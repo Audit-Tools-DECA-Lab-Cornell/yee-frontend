@@ -1,3 +1,5 @@
+# audit-tools-yee-frontend
+
 ## YEE Frontend (Next.js)
 
 Minimal frontend starter for the Youth Enabling Environments Audit Tool.
@@ -10,7 +12,7 @@ Minimal frontend starter for the Youth Enabling Environments Audit Tool.
 ### Run locally
 
 ```bash
-cd yee-frontend
+cd /Users/andishasafdariyan/auditTools/audit-tools-yee-frontend
 npm install
 npm run dev
 ```
