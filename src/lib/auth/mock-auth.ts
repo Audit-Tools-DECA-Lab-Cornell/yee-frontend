@@ -1,6 +1,6 @@
 import { api } from "@/lib/api/api-client";
 
-export type UserRole = "MANAGER" | "AUDITOR";
+export type UserRole = "ADMIN" | "MANAGER" | "AUDITOR";
 
 export type MockUserState = {
 	role: UserRole;
@@ -12,6 +12,14 @@ export type MockUserState = {
 };
 
 export const mockUserStates: MockUserState[] = [
+	{
+		role: "ADMIN",
+		approved: true,
+		profileComplete: true,
+		redirectTo: "/admin",
+		label: "Admin demo",
+		description: "Admin gets full platform access and a system-wide overview."
+	},
 	{
 		role: "MANAGER",
 		approved: true,
@@ -40,7 +48,7 @@ export const mockUserStates: MockUserState[] = [
 		role: "AUDITOR",
 		approved: true,
 		profileComplete: true,
-		redirectTo: "/dashboard",
+		redirectTo: "/my-dashboard",
 		label: "Active auditor",
 		description: "Auditor can view the dashboard and start assigned audits."
 	}
@@ -72,6 +80,6 @@ export async function getCurrentUser() {
 
 export function getMockRedirect(state: MockUserState) {
 	if (!state.approved) return "/waiting-approval";
-	if (!state.profileComplete) return "/complete-profile";
+	if (!state.profileComplete) return `/complete-profile?role=${state.role}`;
 	return state.redirectTo;
 }

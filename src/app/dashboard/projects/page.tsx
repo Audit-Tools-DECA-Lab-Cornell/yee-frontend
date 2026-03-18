@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
@@ -17,7 +18,9 @@ export default function ProjectsPage() {
 							are ready.
 						</CardDescription>
 					</div>
-					<Button className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">Create project</Button>
+					<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
+						<Link href="/dashboard/projects/new">Create Project</Link>
+					</Button>
 				</CardHeader>
 				<CardContent className="overflow-x-auto">
 					<table className="min-w-full text-left text-sm">

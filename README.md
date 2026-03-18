@@ -3,8 +3,8 @@
 Next.js frontend for the Audit Tools platform. This app now includes:
 
 - auth and onboarding entry pages
-- a manager-style dashboard shell
-- placeholder dashboard pages for projects, places, audits, and settings
+- separate role-based dashboard experiences for admin, manager, and auditor
+- manager action routes for creating projects and places
 - the Youth Enabling Environments (YEE) audit form under its own route
 - local Next.js API proxy routes that forward audit requests to the backend
 
@@ -19,6 +19,7 @@ The current frontend structure reflects the broader platform flow:
 - users start at login
 - onboarding state determines where they go next
 - dashboard pages act as the main workspace
+- navigation and allowed actions vary by role
 - the YEE audit form is one child workflow inside the product
 
 Current mocked flow:
@@ -116,18 +117,52 @@ If the backend is not running, the survey route will show a `502 Could not reach
 - `/complete-profile`
   - placeholder page for required onboarding/profile setup
 
-### Dashboard
+### Admin routes
+
+- `/admin`
+  - admin overview with system-wide metrics and account snapshot
+- `/admin/users`
+  - all users across roles and organizations
+- `/admin/projects`
+  - project list using shared dashboard content
+- `/admin/places`
+  - place list using shared dashboard content
+- `/admin/audits`
+  - audit list using shared dashboard content
+- `/admin/settings`
+  - admin-only settings placeholder
+
+### Manager routes
 
 - `/dashboard`
-  - overview page with stats, recent activity, and quick links
+  - manager overview with quick actions
 - `/dashboard/projects`
-  - placeholder project list table
+  - project list
+- `/dashboard/projects/new`
+  - create project placeholder form
 - `/dashboard/places`
-  - placeholder place list table
+  - place list
+- `/dashboard/places/new`
+  - add place placeholder form
+- `/dashboard/auditors`
+  - auditor management list with invite action
 - `/dashboard/audits`
-  - placeholder audits table
+  - audit list
+- `/dashboard/reports`
+  - report and comparison placeholder
 - `/dashboard/settings`
-  - settings placeholder
+  - manager settings placeholder
+
+### Auditor routes
+
+- `/my-dashboard`
+  - auditor overview
+- `/my-dashboard/places`
+  - assigned places only
+- `/my-dashboard/audits`
+  - personal audit history only
+- `/my-dashboard/settings`
+  - personal settings placeholder
 
 ### YEE audit
 
@@ -154,15 +189,33 @@ src/app/
     audits/route.ts
     audits/score/route.ts
     instrument/route.ts
-  complete-profile/page.tsx
-  dashboard/
+  admin/
     audits/page.tsx
     layout.tsx
     page.tsx
     places/page.tsx
     projects/page.tsx
     settings/page.tsx
+    users/page.tsx
+  complete-profile/page.tsx
+  dashboard/
+    auditors/page.tsx
+    audits/page.tsx
+    layout.tsx
+    page.tsx
+    places/page.tsx
+    places/new/page.tsx
+    projects/page.tsx
+    projects/new/page.tsx
+    reports/page.tsx
+    settings/page.tsx
   login/page.tsx
+  my-dashboard/
+    audits/page.tsx
+    layout.tsx
+    page.tsx
+    places/page.tsx
+    settings/page.tsx
   signup/page.tsx
   waiting-approval/page.tsx
   yee/audit/[placeId]/page.tsx
@@ -203,6 +256,7 @@ src/lib/
     mock-auth.ts
   dashboard/
     mock-data.ts
+    workspace-config.ts
   utils.ts
 ```
 
@@ -234,7 +288,7 @@ What it does:
 
 - provides the first-pass product flow before backend auth is fully wired
 - uses mocked role and approval/profile states
-- gives a realistic navigation structure for manager and auditor journeys
+- gives a realistic navigation structure for admin, manager, and auditor journeys
 
 Current limitation:
 
@@ -246,31 +300,45 @@ Current limitation:
 Files:
 
 - `src/app/dashboard/layout.tsx`
+- `src/app/admin/layout.tsx`
+- `src/app/my-dashboard/layout.tsx`
 - `src/components/dashboard/dashboard-shell.tsx`
 - `src/components/dashboard/dashboard-sidebar.tsx`
 - `src/components/dashboard/dashboard-header.tsx`
+- `src/lib/dashboard/workspace-config.ts`
 
 What it does:
 
-- creates a shared dashboard layout
+- creates a shared role-aware dashboard layout
 - includes responsive sidebar behavior
 - provides a consistent top header and action area
-- gives a common visual system for overview and future management pages
+- swaps navigation, copy, badges, and primary actions by role
 
 ### Dashboard content
 
 Files:
 
 - `src/app/dashboard/page.tsx`
+- `src/app/dashboard/auditors/page.tsx`
 - `src/app/dashboard/projects/page.tsx`
+- `src/app/dashboard/projects/new/page.tsx`
 - `src/app/dashboard/places/page.tsx`
+- `src/app/dashboard/places/new/page.tsx`
 - `src/app/dashboard/audits/page.tsx`
+- `src/app/dashboard/reports/page.tsx`
 - `src/app/dashboard/settings/page.tsx`
+- `src/app/admin/page.tsx`
+- `src/app/admin/users/page.tsx`
+- `src/app/my-dashboard/page.tsx`
+- `src/app/my-dashboard/places/page.tsx`
+- `src/app/my-dashboard/audits/page.tsx`
+- `src/app/my-dashboard/settings/page.tsx`
 - `src/lib/dashboard/mock-data.ts`
 
 What it does:
 
-- uses mock data to make the dashboard feel realistic before backend endpoints are ready
+- uses mock data to make each role-specific dashboard feel realistic before backend endpoints are ready
+- gives managers action-oriented pages, auditors a simplified fieldwork view, and admins a system-wide overview
 - shows tables and summary cards that can later be replaced with API-backed queries
 
 ### YEE audit form
@@ -378,6 +446,7 @@ If you want to sanity-check the current product flow manually:
 
 - auth is placeholder-only right now
 - dashboard tables use mocked data
+- route protection is still mocked through login choices rather than a real session
 - there are no project detail or place detail pages yet
 - there is no route protection yet
 - the audit route is reachable directly without login guard

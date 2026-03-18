@@ -42,6 +42,7 @@ export default function SignupPage() {
 							className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none">
 							<option value="AUDITOR">Auditor</option>
 							<option value="MANAGER">Manager</option>
+							<option value="ADMIN">Admin</option>
 						</select>
 					</div>
 				</div>
@@ -51,7 +52,7 @@ export default function SignupPage() {
 						<Link href="/waiting-approval">Continue as auditor demo</Link>
 					</Button>
 					<Button asChild variant="outline" className="rounded-2xl">
-						<Link href="/complete-profile">Continue as manager demo</Link>
+						<Link href="/complete-profile?role=MANAGER">Continue as manager demo</Link>
 					</Button>
 				</div>
 

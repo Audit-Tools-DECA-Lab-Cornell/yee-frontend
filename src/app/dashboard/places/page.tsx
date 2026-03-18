@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,8 +16,8 @@ export default function PlacesPage() {
 							Locations are grouped under projects and can later be connected to filters, detail pages, and assignment actions.
 						</CardDescription>
 					</div>
-					<Button variant="outline" className="rounded-2xl">
-						Add place
+					<Button asChild variant="outline" className="rounded-2xl">
+						<Link href="/dashboard/places/new">Add Place</Link>
 					</Button>
 				</CardHeader>
 				<CardContent className="overflow-x-auto">

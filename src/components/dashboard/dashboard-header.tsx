@@ -2,40 +2,22 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, FilePlus2, Menu, Search } from "lucide-react";
+import { Bell, Menu, Search } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
+import { workspaceConfigs, type WorkspaceVariant } from "@/lib/dashboard/workspace-config";
 
-const pageCopy: Record<string, { title: string; description: string }> = {
-	"/dashboard": {
-		title: "Overview",
-		description: "Track your YEE work across projects, places, auditors, and completed audits."
-	},
-	"/dashboard/projects": {
-		title: "Projects",
-		description: "Review current studies and monitor place and audit coverage."
-	},
-	"/dashboard/places": {
-		title: "Places",
-		description: "See which locations are active, reviewed, or ready for the next visit."
-	},
-	"/dashboard/audits": {
-		title: "Audits",
-		description: "Review submitted fieldwork and jump into the form when a new audit starts."
-	},
-	"/dashboard/settings": {
-		title: "Settings",
-		description: "Space for profile, roles, and workspace preferences when backend support lands."
-	}
-};
-
-export function DashboardHeader() {
+export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 	const pathname = usePathname();
-	const content = pageCopy[pathname] ?? pageCopy["/dashboard"];
+	const config = workspaceConfigs[variant];
+	const content =
+		Object.entries(config.pageCopy)
+			.sort((a, b) => b[0].length - a[0].length)
+			.find(([key]) => pathname === key || pathname.startsWith(`${key}/`))?.[1] ?? Object.values(config.pageCopy)[0];
 
 	return (
 		<header className="sticky top-0 z-20 border-b border-slate-200/80 bg-[#f6f3ea]/90 backdrop-blur">
@@ -57,14 +39,14 @@ export function DashboardHeader() {
 								<SheetDescription className="sr-only">
 									Navigate between overview, projects, places, audits, and settings.
 								</SheetDescription>
-								<DashboardSidebar />
+								<DashboardSidebar variant={variant} />
 							</SheetContent>
 						</Sheet>
 
 						<div>
 							<div className="flex items-center gap-2">
 								<Badge variant="secondary" className="rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-600">
-									Manager view
+									{config.badge}
 								</Badge>
 							</div>
 							<h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
@@ -83,18 +65,20 @@ export function DashboardHeader() {
 							<span className="sr-only">Notifications</span>
 						</Button>
 						<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
-							<Link href="/yee/audit/place-central-park">
-								<FilePlus2 className="size-4" />
-								Start Audit
+							<Link href={config.primaryAction.href}>
+								<config.primaryAction.icon className="size-4" />
+								{config.primaryAction.label}
 							</Link>
 						</Button>
 						<div className="hidden items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 sm:flex">
 							<Avatar size="lg">
-								<AvatarFallback className="bg-emerald-100 font-semibold text-emerald-700">AS</AvatarFallback>
+								<AvatarFallback className="bg-emerald-100 font-semibold text-emerald-700">
+									{config.user.initials}
+								</AvatarFallback>
 							</Avatar>
 							<div className="min-w-0">
-								<p className="truncate text-sm font-medium text-slate-900">Andisha Safdariyan</p>
-								<p className="text-xs text-slate-500">Manager</p>
+								<p className="truncate text-sm font-medium text-slate-900">{config.user.name}</p>
+								<p className="text-xs text-slate-500">{config.user.roleLabel}</p>
 							</div>
 						</div>
 					</div>
@@ -105,16 +89,19 @@ export function DashboardHeader() {
 						<Search className="size-4 text-slate-400" />
 						<input
 							type="search"
-							placeholder="Search projects, places, or audits..."
+							placeholder={config.searchPlaceholder}
 							className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
 						/>
 					</label>
 
 					<div className="flex flex-wrap items-center gap-2">
-						<Badge className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700 hover:bg-emerald-100">
-							12 places active
-						</Badge>
-						<Badge className="rounded-full bg-sky-100 px-3 py-1 text-sky-700 hover:bg-sky-100">48 audits logged</Badge>
+						{config.headerBadges.map(item => (
+							<Badge
+								key={item}
+								className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700 hover:bg-emerald-100">
+								{item}
+							</Badge>
+						))}
 					</div>
 				</div>
 			</div>

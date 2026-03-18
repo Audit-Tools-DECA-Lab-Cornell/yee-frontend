@@ -29,7 +29,7 @@ export default function WaitingApprovalPage() {
 
 				<div className="grid gap-3 sm:grid-cols-2">
 					<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
-						<Link href="/complete-profile">Simulate approval</Link>
+						<Link href="/complete-profile?role=AUDITOR">Simulate approval</Link>
 					</Button>
 					<Button asChild variant="outline" className="rounded-2xl">
 						<Link href="/login">Back to login</Link>

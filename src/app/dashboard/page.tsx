@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, ClipboardList, FolderKanban, MapPinned, Users2 } from "lucide-react";
+import { ArrowRight, FilePlus2, MapPinned, UserPlus, Users2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,22 +8,22 @@ import { audits, dashboardMetrics, recentActivity } from "@/lib/dashboard/mock-d
 
 const quickLinks = [
 	{
-		title: "Projects",
-		description: "Review active studies and place coverage.",
-		href: "/dashboard/projects",
-		icon: FolderKanban
+		title: "Create Project",
+		description: "Start a new study with timeline, scope, and ownership.",
+		href: "/dashboard/projects/new",
+		icon: FilePlus2
 	},
 	{
-		title: "Places",
-		description: "See location status and the latest visit dates.",
-		href: "/dashboard/places",
+		title: "Add Place",
+		description: "Create a new field location under one of your projects.",
+		href: "/dashboard/places/new",
 		icon: MapPinned
 	},
 	{
-		title: "Audits",
-		description: "Review recent submissions and scores.",
-		href: "/dashboard/audits",
-		icon: ClipboardList
+		title: "Invite Auditor",
+		description: "Send access to a new fieldworker and track assignment status.",
+		href: "/dashboard/auditors",
+		icon: UserPlus
 	}
 ];
 
@@ -40,13 +40,13 @@ export default function DashboardPage() {
 							Your dashboard is ready for projects, places, and YEE fieldwork.
 						</h1>
 						<p className="mt-4 max-w-2xl text-sm leading-7 text-emerald-50/80 sm:text-base">
-							Start with the shell now, keep fake data for momentum, and plug backend APIs in once your teammate
-							ships them.
+							This manager view is now action-oriented: create projects, add places, invite auditors, and review
+							results from the same workspace.
 						</p>
 						<div className="mt-6 flex flex-wrap gap-3">
 							<Button asChild className="rounded-2xl bg-white text-slate-950 hover:bg-emerald-50">
-								<Link href="/dashboard/projects">
-									View Projects
+								<Link href="/dashboard/projects/new">
+									Create Project
 									<ArrowRight className="size-4" />
 								</Link>
 							</Button>
@@ -54,7 +54,7 @@ export default function DashboardPage() {
 								asChild
 								variant="outline"
 								className="rounded-2xl border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
-								<Link href="/yee/audit/place-central-park">Start an Audit</Link>
+								<Link href="/dashboard/places/new">Add Place</Link>
 							</Button>
 						</div>
 					</div>
@@ -112,8 +112,8 @@ export default function DashboardPage() {
 
 				<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
 					<CardHeader>
-						<CardTitle>Quick links</CardTitle>
-						<CardDescription>Move between the pages you need most while the data layer is in progress.</CardDescription>
+						<CardTitle>Manager actions</CardTitle>
+						<CardDescription>Core setup actions for projects, places, and auditor assignment.</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-3">
 						{quickLinks.map(link => {
@@ -176,14 +176,14 @@ export default function DashboardPage() {
 
 				<Card className="rounded-[1.75rem] border-slate-200/80 bg-[#fffdf8] shadow-sm">
 					<CardHeader>
-						<CardTitle>Next implementation step</CardTitle>
-						<CardDescription>When backend endpoints are ready, this shell is prepared for live counts and tables.</CardDescription>
+						<CardTitle>Operator checklist</CardTitle>
+						<CardDescription>What this manager dashboard is now ready to support next.</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4 text-sm leading-6 text-slate-600">
 						<p>Replace the mock metrics and records with API-driven React Query hooks.</p>
-						<p>Keep the page structure and card styling so the data swap is straightforward.</p>
+						<p>Connect create-project, add-place, and invite-auditor flows to backend forms and mutations.</p>
 						<Button asChild variant="outline" className="rounded-2xl">
-							<Link href="/dashboard/audits">Open Audits Table</Link>
+							<Link href="/dashboard/auditors">Open Auditors</Link>
 						</Button>
 					</CardContent>
 				</Card>

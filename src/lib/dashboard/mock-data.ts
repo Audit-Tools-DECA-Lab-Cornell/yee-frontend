@@ -32,6 +32,22 @@ export type AuditRecord = {
 	status: string;
 };
 
+export type UserRecord = {
+	id: string;
+	name: string;
+	role: "ADMIN" | "MANAGER" | "AUDITOR";
+	organization: string;
+	status: string;
+};
+
+export type AuditorRecord = {
+	id: string;
+	name: string;
+	assignedPlaces: number;
+	completedAudits: number;
+	status: string;
+};
+
 export const dashboardMetrics: DashboardMetric[] = [
 	{
 		title: "Projects",
@@ -159,5 +175,60 @@ export const audits: AuditRecord[] = [
 		date: "Mar 10, 2026",
 		score: 0,
 		status: "Draft"
+	}
+];
+
+export const users: UserRecord[] = [
+	{
+		id: "user-001",
+		name: "Platform Administrator",
+		role: "ADMIN",
+		organization: "DECA Lab",
+		status: "Active"
+	},
+	{
+		id: "user-002",
+		name: "Andisha Safdariyan",
+		role: "MANAGER",
+		organization: "DECA Lab",
+		status: "Active"
+	},
+	{
+		id: "user-003",
+		name: "Jordan Patel",
+		role: "AUDITOR",
+		organization: "DECA Lab",
+		status: "Pending approval"
+	},
+	{
+		id: "user-004",
+		name: "Morgan Lewis",
+		role: "AUDITOR",
+		organization: "Urban Futures",
+		status: "Active"
+	}
+];
+
+export const auditors: AuditorRecord[] = [
+	{
+		id: "aud-001",
+		name: "Andisha Safdariyan",
+		assignedPlaces: 3,
+		completedAudits: 11,
+		status: "Active"
+	},
+	{
+		id: "aud-002",
+		name: "Jordan Patel",
+		assignedPlaces: 2,
+		completedAudits: 4,
+		status: "Pending approval"
+	},
+	{
+		id: "aud-003",
+		name: "Morgan Lewis",
+		assignedPlaces: 4,
+		completedAudits: 8,
+		status: "Active"
 	}
 ];

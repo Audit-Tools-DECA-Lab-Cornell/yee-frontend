@@ -2,31 +2,23 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-	ClipboardList,
-	FilePlus2,
-	FolderKanban,
-	LayoutDashboard,
-	LogOut,
-	MapPinned,
-	Settings2
-} from "lucide-react";
+import { LogOut } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { workspaceConfigs, type WorkspaceVariant } from "@/lib/dashboard/workspace-config";
 import { cn } from "@/lib/utils";
 
-const navigation = [
-	{ label: "Overview", href: "/dashboard", icon: LayoutDashboard },
-	{ label: "Projects", href: "/dashboard/projects", icon: FolderKanban },
-	{ label: "Places", href: "/dashboard/places", icon: MapPinned },
-	{ label: "Audits", href: "/dashboard/audits", icon: ClipboardList }
-];
-
-const secondaryNavigation = [{ label: "Settings", href: "/dashboard/settings", icon: Settings2 }];
-
-export function DashboardSidebar({ onNavigate }: { onNavigate?: () => void }) {
+export function DashboardSidebar({
+	variant,
+	onNavigate
+}: {
+	variant: WorkspaceVariant;
+	onNavigate?: () => void;
+}) {
 	const pathname = usePathname();
+	const config = workspaceConfigs[variant];
+	const isActive = (href: string) => pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
 
 	return (
 		<div className="flex h-full flex-col bg-[#10231f] text-white">
@@ -35,19 +27,17 @@ export function DashboardSidebar({ onNavigate }: { onNavigate?: () => void }) {
 					DECA Lab
 				</Badge>
 				<div className="mt-4 space-y-2">
-					<h1 className="text-xl font-semibold tracking-tight">YEE Dashboard</h1>
-					<p className="text-sm leading-6 text-emerald-50/70">
-						A calm workspace for managing projects, places, audits, and fieldwork.
-					</p>
+					<h1 className="text-xl font-semibold tracking-tight">Audit Tools Platform</h1>
+					<p className="text-sm leading-6 text-emerald-50/70">{config.description}</p>
 				</div>
 			</div>
 
 			<div className="flex-1 px-4 py-5">
 				<p className="px-3 text-xs font-medium uppercase tracking-[0.24em] text-emerald-50/45">Workspace</p>
 				<nav className="mt-3 space-y-1.5">
-					{navigation.map(item => {
+					{config.navigation.map(item => {
 						const Icon = item.icon;
-						const active = pathname === item.href;
+						const active = isActive(item.href);
 
 						return (
 							<Link
@@ -68,18 +58,13 @@ export function DashboardSidebar({ onNavigate }: { onNavigate?: () => void }) {
 				</nav>
 
 				<div className="mt-8 rounded-3xl border border-white/10 bg-white/6 p-4">
-					<p className="text-xs font-medium uppercase tracking-[0.2em] text-emerald-50/45">Quick start</p>
-					<h2 className="mt-3 text-base font-semibold">Launch a new YEE audit</h2>
-					<p className="mt-2 text-sm leading-6 text-emerald-50/70">
-						Use the current frontend form while backend APIs are being finalized.
-					</p>
-					<Button
-						asChild
-						className="mt-4 w-full rounded-2xl bg-white text-slate-950 hover:bg-emerald-50"
-						size="lg">
-						<Link href="/yee/audit/place-central-park" onClick={onNavigate}>
-							<FilePlus2 className="size-4" />
-							Start Audit
+					<p className="text-xs font-medium uppercase tracking-[0.2em] text-emerald-50/45">{config.sidebarCard.eyebrow}</p>
+					<h2 className="mt-3 text-base font-semibold">{config.sidebarCard.title}</h2>
+					<p className="mt-2 text-sm leading-6 text-emerald-50/70">{config.sidebarCard.description}</p>
+					<Button asChild className="mt-4 w-full rounded-2xl bg-white text-slate-950 hover:bg-emerald-50" size="lg">
+						<Link href={config.sidebarCard.actionHref} onClick={onNavigate}>
+							<config.sidebarCard.actionIcon className="size-4" />
+							{config.sidebarCard.actionLabel}
 						</Link>
 					</Button>
 				</div>
@@ -87,9 +72,9 @@ export function DashboardSidebar({ onNavigate }: { onNavigate?: () => void }) {
 
 			<div className="border-t border-white/10 px-4 py-4">
 				<nav className="space-y-1.5">
-					{secondaryNavigation.map(item => {
+					{config.secondaryNavigation.map(item => {
 						const Icon = item.icon;
-						const active = pathname === item.href;
+						const active = isActive(item.href);
 
 						return (
 							<Link
