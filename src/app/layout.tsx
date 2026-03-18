@@ -4,8 +4,8 @@ import "./globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
-	title: "YEE Audit Tool",
-	description: "Youth Enabling Environments Audit Tool"
+	title: "Audit Tools Platform",
+	description: "Dashboard, onboarding, and YEE audit workflows"
 };
 
 export default function RootLayout({

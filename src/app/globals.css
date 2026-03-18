@@ -120,7 +120,13 @@
 	* {
 		@apply border-border outline-ring/50;
 	}
+	html {
+		scroll-behavior: smooth;
+	}
 	body {
-		@apply bg-background text-foreground;
+		@apply bg-background text-foreground antialiased;
+		background:
+			radial-gradient(circle at top, rgb(219 241 232 / 0.9), transparent 28%),
+			linear-gradient(180deg, #fbfaf6 0%, #f6f3ea 100%);
 	}
 }
