@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Bell, Menu, Search } from "lucide-react";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { LogoutButton } from "@/components/auth/logout-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -57,6 +58,7 @@ export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 					</div>
 
 					<div className="flex items-center gap-2 sm:gap-3">
+						<LogoutButton className="mt-0 hidden w-auto border border-slate-200 bg-white px-4 py-2 text-slate-700 hover:bg-slate-50 hover:text-slate-950 lg:flex" />
 						<Button
 							variant="outline"
 							size="icon"

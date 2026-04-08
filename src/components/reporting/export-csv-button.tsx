@@ -1,0 +1,32 @@
+"use client";
+
+import { Download } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { toCsv } from "@/lib/dashboard/reporting";
+
+export function ExportCsvButton({
+	filename,
+	rows
+}: {
+	filename: string;
+	rows: Record<string, string | number>[];
+}) {
+	function handleExport() {
+		const csv = toCsv(rows);
+		const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+		const url = URL.createObjectURL(blob);
+		const anchor = document.createElement("a");
+		anchor.href = url;
+		anchor.download = filename;
+		anchor.click();
+		URL.revokeObjectURL(url);
+	}
+
+	return (
+		<Button className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]" onClick={handleExport}>
+			<Download className="size-4" />
+			Download CSV
+		</Button>
+	);
+}

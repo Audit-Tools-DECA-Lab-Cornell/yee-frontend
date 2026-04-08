@@ -11,7 +11,10 @@ export async function POST(request: Request) {
 	try {
 		const response = await fetch(targetUrl, {
 			method: "POST",
-			headers: { "Content-Type": "application/json" },
+			headers: {
+				"Content-Type": "application/json",
+				...(request.headers.get("authorization") ? { Authorization: request.headers.get("authorization") as string } : {})
+			},
 			body: JSON.stringify(payload)
 		});
 

@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut } from "lucide-react";
 
+import { LogoutButton } from "@/components/auth/logout-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { workspaceConfigs, type WorkspaceVariant } from "@/lib/dashboard/workspace-config";
@@ -92,12 +92,7 @@ export function DashboardSidebar({
 					})}
 				</nav>
 
-				<button
-					type="button"
-					className="mt-3 flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-sm font-medium text-emerald-50/70 transition-colors hover:bg-white/6 hover:text-white">
-					<LogOut className="size-4.5" />
-					<span>Logout</span>
-				</button>
+				<LogoutButton />
 			</div>
 		</div>
 	);

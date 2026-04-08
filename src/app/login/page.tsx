@@ -1,13 +1,46 @@
-import Link from "next/link";
+"use client";
 
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import * as React from "react";
+
+import { useAuth } from "@/components/auth/auth-provider";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getMockRedirect, mockUserStates } from "@/lib/auth/mock-auth";
+import { getRouteForUser } from "@/lib/auth/session";
 
 export default function LoginPage() {
+	const router = useRouter();
+	const { login, session, loading } = useAuth();
+	const [email, setEmail] = React.useState("");
+	const [password, setPassword] = React.useState("");
+	const [submitting, setSubmitting] = React.useState(false);
+	const [error, setError] = React.useState<string | null>(null);
+
+	React.useEffect(() => {
+		if (!loading && session) {
+			router.replace(getRouteForUser(session.user));
+		}
+	}, [loading, router, session]);
+
+	async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+		setSubmitting(true);
+		setError(null);
+
+		try {
+			const nextSession = await login({ email, password });
+			router.replace(getRouteForUser(nextSession.user));
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Login failed.");
+		} finally {
+			setSubmitting(false);
+		}
+	}
+
 	return (
 		<AuthShell
 			eyebrow="Audit Tools Platform"
@@ -20,43 +53,38 @@ export default function LoginPage() {
 					</Badge>
 					<h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950">Log in</h2>
 					<p className="mt-2 text-sm leading-6 text-slate-600">
-						These are mocked entry points for now so we can wire routing before backend auth is finalized.
+						Use your verified YEE account to continue into the correct onboarding step or dashboard.
 					</p>
 				</div>
 
-				<div className="space-y-4">
+				<form className="space-y-4" onSubmit={handleSubmit}>
 					<div className="space-y-2">
 						<Label htmlFor="email">Email</Label>
-						<Input id="email" type="email" placeholder="name@university.edu" />
+						<Input
+							id="email"
+							type="email"
+							placeholder="name@university.edu"
+							value={email}
+							onChange={event => setEmail(event.target.value)}
+							required
+						/>
 					</div>
 					<div className="space-y-2">
 						<Label htmlFor="password">Password</Label>
-						<Input id="password" type="password" placeholder="••••••••" />
+						<Input
+							id="password"
+							type="password"
+							placeholder="••••••••"
+							value={password}
+							onChange={event => setPassword(event.target.value)}
+							required
+						/>
 					</div>
-				</div>
-
-				<div className="space-y-3">
-					<p className="text-sm font-medium text-slate-700">Mock login states</p>
-					<div className="grid gap-3">
-						{mockUserStates.map(state => (
-							<Button
-								key={state.label}
-								asChild
-								variant="outline"
-								className="h-auto justify-between rounded-2xl border-slate-200 px-4 py-4 text-left">
-								<Link href={getMockRedirect(state)}>
-									<span>
-										<span className="block text-sm font-semibold text-slate-900">{state.label}</span>
-										<span className="mt-1 block text-sm leading-6 text-slate-500">{state.description}</span>
-									</span>
-									<Badge variant="secondary" className="rounded-full bg-slate-100 text-slate-700 hover:bg-slate-100">
-										{state.role}
-									</Badge>
-								</Link>
-							</Button>
-						))}
-					</div>
-				</div>
+					{error ? <p className="text-sm text-rose-600">{error}</p> : null}
+					<Button type="submit" className="w-full rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]" disabled={submitting}>
+						{submitting ? "Logging in..." : "Log in"}
+					</Button>
+				</form>
 
 				<p className="text-sm text-slate-600">
 					Need an account?{" "}

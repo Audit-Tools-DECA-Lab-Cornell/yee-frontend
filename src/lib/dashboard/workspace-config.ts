@@ -1,6 +1,7 @@
 import {
 	BarChart3,
 	ClipboardList,
+	Database,
 	FilePlus2,
 	FolderKanban,
 	LayoutDashboard,
@@ -73,7 +74,8 @@ export const workspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> = {
 			{ label: "Users", href: "/admin/users", icon: Users2 },
 			{ label: "Projects", href: "/admin/projects", icon: FolderKanban },
 			{ label: "Places", href: "/admin/places", icon: MapPinned },
-			{ label: "Audits", href: "/admin/audits", icon: ClipboardList }
+			{ label: "Audits", href: "/admin/audits", icon: ClipboardList },
+			{ label: "Raw Data", href: "/admin/raw-data", icon: Database }
 		],
 		secondaryNavigation: [{ label: "Settings", href: "/admin/settings", icon: Settings2 }],
 		pageCopy: {
@@ -96,6 +98,10 @@ export const workspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> = {
 			"/admin/audits": {
 				title: "Audits",
 				description: "See submissions across all teams and organizations."
+			},
+			"/admin/raw-data": {
+				title: "Raw Data",
+				description: "Export system-wide audit records and future comparative datasets."
 			},
 			"/admin/settings": {
 				title: "Settings",
@@ -134,7 +140,8 @@ export const workspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> = {
 			{ label: "Places", href: "/dashboard/places", icon: MapPinned },
 			{ label: "Auditors", href: "/dashboard/auditors", icon: Users2 },
 			{ label: "Audits", href: "/dashboard/audits", icon: ClipboardList },
-			{ label: "Reports", href: "/dashboard/reports", icon: BarChart3 }
+			{ label: "Reports", href: "/dashboard/reports", icon: BarChart3 },
+			{ label: "Raw Data", href: "/dashboard/raw-data", icon: Database }
 		],
 		secondaryNavigation: [{ label: "Settings", href: "/dashboard/settings", icon: Settings2 }],
 		pageCopy: {
@@ -170,6 +177,10 @@ export const workspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> = {
 				title: "Reports",
 				description: "Track score summaries and compare project-level performance."
 			},
+			"/dashboard/raw-data": {
+				title: "Raw Data",
+				description: "Export manager-scoped audits, answers, and future score summaries."
+			},
 			"/dashboard/settings": {
 				title: "Settings",
 				description: "Placeholder for account, notification, and project-scoped settings."
@@ -190,7 +201,7 @@ export const workspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> = {
 		searchPlaceholder: "Search your places or saved audits...",
 		primaryAction: {
 			label: "Start Audit",
-			href: "/yee/audit/place-central-park",
+			href: "/yee/introduction",
 			icon: FilePlus2
 		},
 		sidebarCard: {
@@ -198,14 +209,14 @@ export const workspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> = {
 			title: "Continue assigned work",
 			description: "Jump into your next place visit or resume a saved audit from the dashboard.",
 			actionLabel: "Start Audit",
-			actionHref: "/yee/audit/place-central-park",
+			actionHref: "/yee/introduction",
 			actionIcon: FilePlus2
 		},
 		navigation: [
 			{ label: "Overview", href: "/my-dashboard", icon: LayoutDashboard },
 			{ label: "My Places", href: "/my-dashboard/places", icon: MapPinned },
 			{ label: "My Audits", href: "/my-dashboard/audits", icon: ClipboardList },
-			{ label: "Start Audit", href: "/yee/audit/place-central-park", icon: FilePlus2 }
+			{ label: "Start Audit", href: "/yee/introduction", icon: FilePlus2 }
 		],
 		secondaryNavigation: [{ label: "Settings", href: "/my-dashboard/settings", icon: Settings2 }],
 		pageCopy: {
