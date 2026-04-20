@@ -5,6 +5,7 @@ import * as React from "react";
 import { ArrowRight, ArrowUpRight, FilePlus2, MailPlus, MapPinned, UserPlus, Users2 } from "lucide-react";
 
 import { useAuth } from "@/components/auth/auth-provider";
+import { ClearFiltersButton, SearchableMultiSelectFilter } from "@/components/dashboard/table-filters";
 import { PlaceComparisonPanel } from "@/components/reporting/place-comparison-panel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -157,6 +158,30 @@ function rawDataToRows(rows: RawDataRecord[]) {
 		}
 		return base;
 	});
+}
+
+function uniqueFilterOptions(values: Array<string | null | undefined>) {
+	return Array.from(new Set(values.filter(Boolean) as string[]))
+		.sort((left, right) => left.localeCompare(right))
+		.map(value => ({ value, label: value }));
+}
+
+function includesSelected(selectedValues: string[], value: string | null | undefined) {
+	if (selectedValues.length === 0) return true;
+	if (!value) return false;
+	return selectedValues.includes(value);
+}
+
+function intersectsSelected(selectedValues: string[], values: string[]) {
+	if (selectedValues.length === 0) return true;
+	return values.some(value => selectedValues.includes(value));
+}
+
+function parseAssignmentList(value: string) {
+	return value
+		.split(",")
+		.map(item => item.trim())
+		.filter(item => item && item !== "None");
 }
 
 export function LiveManagerOverview() {
@@ -381,19 +406,16 @@ export function LiveProjectsTable() {
 
 export function LivePlacesTable() {
 	const { data, loading, error } = useTableData(fetchPlaces);
-	const [organizationFilter, setOrganizationFilter] = React.useState("ALL");
-	const [projectFilter, setProjectFilter] = React.useState("ALL");
+	const [selectedProjects, setSelectedProjects] = React.useState<string[]>([]);
 	if (loading) return <LoadingCard label="places" />;
 	if (error) return <ErrorCard message={error} />;
 	if (!data?.length) return <EmptyState title="No places yet" description="Add a place under a project and it will show here from the backend." />;
-	const organizations = Array.from(new Set(data.map(place => place.organization).filter(Boolean))) as string[];
-	const projects = Array.from(new Set(data.map(place => place.project)));
+	const projectOptions = uniqueFilterOptions(data.map(place => place.project));
 	const filteredPlaces = data.filter(place => {
-		if (organizationFilter !== "ALL" && place.organization !== organizationFilter) return false;
-		if (projectFilter !== "ALL" && place.project !== projectFilter) return false;
+		if (!includesSelected(selectedProjects, place.project)) return false;
 		return true;
 	});
-	const showOrganization = organizations.length > 0;
+	const filtersActive = selectedProjects.length > 0;
 
 	return (
 		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
@@ -408,31 +430,233 @@ export function LivePlacesTable() {
 			</CardHeader>
 			<CardContent className="space-y-4 overflow-x-auto">
 				<div className="flex flex-wrap gap-3">
-					{showOrganization ? (
-						<select value={organizationFilter} onChange={event => setOrganizationFilter(event.target.value)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm">
-							<option value="ALL">All organizations</option>
-							{organizations.map(organization => (
-								<option key={organization} value={organization}>
-									{organization}
-								</option>
-							))}
-						</select>
-					) : null}
-					<select value={projectFilter} onChange={event => setProjectFilter(event.target.value)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm">
-						<option value="ALL">All projects</option>
-						{projects.map(project => (
-							<option key={project} value={project}>
-								{project}
-							</option>
-						))}
-					</select>
+					<SearchableMultiSelectFilter
+						label="Project"
+						options={projectOptions}
+						selectedValues={selectedProjects}
+						onChange={setSelectedProjects}
+					/>
+					<ClearFiltersButton disabled={!filtersActive} onClick={() => setSelectedProjects([])} />
 				</div>
 				<table className="min-w-full text-left text-sm">
 					<thead className="text-slate-500">
 						<tr className="border-b border-slate-200">
 							<th className="py-3 pr-4 font-medium">Place Name</th>
-							{showOrganization ? <th className="py-3 pr-4 font-medium">Organization</th> : null}
+							<th className="py-3 pr-4 font-medium">Address</th>
+							<th className="py-3 pr-4 font-medium">Postal Code</th>
+							<th className="py-3 pr-4 font-medium">Project Name</th>
+							<th className="py-3 pr-4 font-medium">Assigned Auditors</th>
+							<th className="py-3 font-medium">Action</th>
+						</tr>
+					</thead>
+					<tbody>
+						{filteredPlaces.length === 0 ? (
+							<tr>
+								<td colSpan={6} className="py-8 text-center text-sm text-slate-500">
+									No places match the selected filters.
+								</td>
+							</tr>
+						) : null}
+						{filteredPlaces.map(place => (
+							<tr key={place.id} className="border-b border-slate-100 last:border-0">
+								<td className="py-4 pr-4 font-medium text-slate-900">{place.name}</td>
+								<td className="py-4 pr-4 text-slate-600">{place.address}</td>
+								<td className="py-4 pr-4 text-slate-600">{place.postal_code ?? "-"}</td>
+								<td className="py-4 pr-4 text-slate-600">{place.project}</td>
+								<td className="py-4 pr-4">
+									<div className="flex flex-wrap gap-2">
+										{place.assigned_auditors.length === 0 ? (
+											<span className="text-slate-500">No auditors assigned</span>
+										) : (
+											place.assigned_auditors.map(auditorId => (
+												<Badge key={auditorId} variant="secondary" className="rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
+													{auditorId}
+												</Badge>
+											))
+										)}
+									</div>
+								</td>
+								<td className="py-4">
+									<div className="flex flex-wrap gap-3">
+										<Link href={`/dashboard/places/${place.id}`} className="inline-flex items-center gap-1 text-sm text-slate-700 hover:text-slate-950">
+											Open
+											<ArrowUpRight className="size-4" />
+										</Link>
+										<Link
+											href={`/dashboard/auditors?projectId=${place.project_id}&placeId=${place.id}`}
+											className="inline-flex items-center gap-1 text-sm text-emerald-700 hover:text-emerald-900"
+										>
+											Assign Auditors
+											<ArrowUpRight className="size-4" />
+										</Link>
+									</div>
+								</td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</CardContent>
+		</Card>
+	);
+}
+
+export function AdminProjectsTable() {
+	const { data, loading, error } = useTableData(fetchProjects);
+	const [selectedOrganizations, setSelectedOrganizations] = React.useState<string[]>([]);
+	const [selectedProjects, setSelectedProjects] = React.useState<string[]>([]);
+
+	if (loading) return <LoadingCard label="projects" />;
+	if (error) return <ErrorCard message={error} />;
+	if (!data?.length) return <EmptyState title="No projects yet" description="Create a project to see it appear here from the backend." />;
+
+	const organizationOptions = uniqueFilterOptions(data.map(project => project.organization ?? null));
+	const projectOptions = uniqueFilterOptions(
+		data
+			.filter(project => includesSelected(selectedOrganizations, project.organization ?? null))
+			.map(project => project.name)
+	);
+	const filteredProjects = data.filter(project => {
+		if (!includesSelected(selectedOrganizations, project.organization ?? null)) return false;
+		if (!includesSelected(selectedProjects, project.name)) return false;
+		return true;
+	});
+	const filtersActive = selectedOrganizations.length > 0 || selectedProjects.length > 0;
+
+	return (
+		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+			<CardHeader>
+				<CardTitle className="text-2xl">Projects</CardTitle>
+				<CardDescription className="mt-2 max-w-2xl leading-6">
+					System-wide project records with organization-first filtering and summary columns for stakeholder review.
+				</CardDescription>
+			</CardHeader>
+			<CardContent className="space-y-4 overflow-x-auto">
+				<div className="flex flex-wrap gap-3">
+					<SearchableMultiSelectFilter
+						label="Organization"
+						options={organizationOptions}
+						selectedValues={selectedOrganizations}
+						onChange={setSelectedOrganizations}
+					/>
+					<SearchableMultiSelectFilter
+						label="Project"
+						options={projectOptions}
+						selectedValues={selectedProjects}
+						onChange={setSelectedProjects}
+					/>
+					<ClearFiltersButton
+						disabled={!filtersActive}
+						onClick={() => {
+							setSelectedOrganizations([]);
+							setSelectedProjects([]);
+						}}
+					/>
+				</div>
+				<table className="min-w-full text-left text-sm">
+					<thead className="text-slate-500">
+						<tr className="border-b border-slate-200">
+							<th className="py-3 pr-4 font-medium">Organization</th>
+							<th className="py-3 pr-4 font-medium">Project Name</th>
+							<th className="py-3 pr-4 font-medium">Project Summary</th>
+							<th className="py-3 pr-4 font-medium">Places</th>
+							<th className="py-3 pr-4 font-medium">Audits</th>
+							<th className="py-3 pr-4 font-medium">Status</th>
+							<th className="py-3 font-medium">Action</th>
+						</tr>
+					</thead>
+					<tbody>
+						{filteredProjects.length === 0 ? (
+							<tr>
+								<td colSpan={7} className="py-8 text-center text-sm text-slate-500">
+									No projects match the selected filters.
+								</td>
+							</tr>
+						) : null}
+						{filteredProjects.map(project => (
+							<tr key={project.id} className="border-b border-slate-100 last:border-0">
+								<td className="py-4 pr-4 text-slate-600">{project.organization ?? "-"}</td>
+								<td className="py-4 pr-4 font-medium text-slate-900">{project.name}</td>
+								<td className="py-4 pr-4 text-slate-600">{project.summary}</td>
+								<td className="py-4 pr-4 text-slate-600">{project.places}</td>
+								<td className="py-4 pr-4 text-slate-600">{project.audits}</td>
+								<td className="py-4 pr-4">
+									<Badge variant="secondary" className="rounded-full bg-amber-50 text-amber-700 hover:bg-amber-50">
+										{project.status}
+									</Badge>
+								</td>
+								<td className="py-4">
+									<Link href={`/dashboard/projects/${project.id}`} className="inline-flex items-center gap-1 text-sm text-slate-700 hover:text-slate-950">
+										Open
+										<ArrowUpRight className="size-4" />
+									</Link>
+								</td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</CardContent>
+		</Card>
+	);
+}
+
+export function AdminPlacesTable() {
+	const { data, loading, error } = useTableData(fetchPlaces);
+	const [selectedOrganizations, setSelectedOrganizations] = React.useState<string[]>([]);
+	const [selectedProjects, setSelectedProjects] = React.useState<string[]>([]);
+
+	if (loading) return <LoadingCard label="places" />;
+	if (error) return <ErrorCard message={error} />;
+	if (!data?.length) return <EmptyState title="No places yet" description="Add a place under a project and it will show here from the backend." />;
+
+	const organizationOptions = uniqueFilterOptions(data.map(place => place.organization ?? null));
+	const projectOptions = uniqueFilterOptions(
+		data
+			.filter(place => includesSelected(selectedOrganizations, place.organization ?? null))
+			.map(place => place.project)
+	);
+	const filteredPlaces = data.filter(place => {
+		if (!includesSelected(selectedOrganizations, place.organization ?? null)) return false;
+		if (!includesSelected(selectedProjects, place.project)) return false;
+		return true;
+	});
+	const filtersActive = selectedOrganizations.length > 0 || selectedProjects.length > 0;
+
+	return (
+		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+			<CardHeader>
+				<CardTitle className="text-2xl">Places</CardTitle>
+				<CardDescription className="mt-2 max-w-2xl leading-6">
+					System-wide place rows with organization and project filters that narrow the visible records directly.
+				</CardDescription>
+			</CardHeader>
+			<CardContent className="space-y-4 overflow-x-auto">
+				<div className="flex flex-wrap gap-3">
+					<SearchableMultiSelectFilter
+						label="Organization"
+						options={organizationOptions}
+						selectedValues={selectedOrganizations}
+						onChange={setSelectedOrganizations}
+					/>
+					<SearchableMultiSelectFilter
+						label="Project"
+						options={projectOptions}
+						selectedValues={selectedProjects}
+						onChange={setSelectedProjects}
+					/>
+					<ClearFiltersButton
+						disabled={!filtersActive}
+						onClick={() => {
+							setSelectedOrganizations([]);
+							setSelectedProjects([]);
+						}}
+					/>
+				</div>
+				<table className="min-w-full text-left text-sm">
+					<thead className="text-slate-500">
+						<tr className="border-b border-slate-200">
+							<th className="py-3 pr-4 font-medium">Organization</th>
 							<th className="py-3 pr-4 font-medium">Project</th>
+							<th className="py-3 pr-4 font-medium">Place Name</th>
 							<th className="py-3 pr-4 font-medium">Address</th>
 							<th className="py-3 pr-4 font-medium">Postal Code</th>
 							<th className="py-3 pr-4 font-medium">Audits</th>
@@ -442,16 +666,23 @@ export function LivePlacesTable() {
 						</tr>
 					</thead>
 					<tbody>
+						{filteredPlaces.length === 0 ? (
+							<tr>
+								<td colSpan={9} className="py-8 text-center text-sm text-slate-500">
+									No places match the selected filters.
+								</td>
+							</tr>
+						) : null}
 						{filteredPlaces.map(place => (
 							<tr key={place.id} className="border-b border-slate-100 last:border-0">
-								<td className="py-4 pr-4 font-medium text-slate-900">{place.name}</td>
-								{showOrganization ? <td className="py-4 pr-4 text-slate-600">{place.organization ?? "-"}</td> : null}
+								<td className="py-4 pr-4 text-slate-600">{place.organization ?? "-"}</td>
 								<td className="py-4 pr-4 text-slate-600">{place.project}</td>
+								<td className="py-4 pr-4 font-medium text-slate-900">{place.name}</td>
 								<td className="py-4 pr-4 text-slate-600">{place.address}</td>
 								<td className="py-4 pr-4 text-slate-600">{place.postal_code ?? "-"}</td>
 								<td className="py-4 pr-4 text-slate-600">{place.audits}</td>
 								<td className="py-4 pr-4 text-slate-600">{place.last_audit}</td>
-								<td className="py-4">
+								<td className="py-4 pr-4">
 									<Badge variant="secondary" className="rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
 										{place.status}
 									</Badge>
@@ -496,7 +727,8 @@ export function LiveAuditorsTable() {
 					<thead className="text-slate-500">
 						<tr className="border-b border-slate-200">
 							<th className="py-3 pr-4 font-medium">Name</th>
-							<th className="py-3 pr-4 font-medium">Email</th>
+							<th className="py-3 pr-4 font-medium">Auditor ID</th>
+							<th className="py-3 pr-4 font-medium">Email / Contact Info</th>
 							<th className="py-3 pr-4 font-medium">Assigned Places</th>
 							<th className="py-3 pr-4 font-medium">Completed Audits</th>
 							<th className="py-3 font-medium">Status</th>
@@ -506,8 +738,11 @@ export function LiveAuditorsTable() {
 						{data.map(auditor => (
 							<tr key={auditor.id} className="border-b border-slate-100 last:border-0">
 								<td className="py-4 pr-4 font-medium text-slate-900">{auditor.name}</td>
+								<td className="py-4 pr-4 text-slate-600">{auditor.auditor_id}</td>
 								<td className="py-4 pr-4 text-slate-600">{auditor.email || "-"}</td>
-								<td className="py-4 pr-4 text-slate-600">{auditor.assigned_places}</td>
+								<td className="py-4 pr-4 text-slate-600">
+									{auditor.assigned_places.length > 0 ? auditor.assigned_places.join(", ") : "No places assigned"}
+								</td>
 								<td className="py-4 pr-4 text-slate-600">{auditor.completed_audits}</td>
 								<td className="py-4">
 									<Badge variant="secondary" className="rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
@@ -530,8 +765,8 @@ export function LiveAuditsTable() {
 	const [comparisons, setComparisons] = React.useState<PlaceComparisonGroupRecord[]>([]);
 	const [loading, setLoading] = React.useState(true);
 	const [error, setError] = React.useState<string | null>(null);
-	const [projectFilter, setProjectFilter] = React.useState("ALL");
-	const [placeFilter, setPlaceFilter] = React.useState("ALL");
+	const [selectedProjectIds, setSelectedProjectIds] = React.useState<string[]>([]);
+	const [selectedPlaceIds, setSelectedPlaceIds] = React.useState<string[]>([]);
 	const [selectedAuditIds, setSelectedAuditIds] = React.useState<string[]>([]);
 	const [compareError, setCompareError] = React.useState<string | null>(null);
 
@@ -551,6 +786,12 @@ export function LiveAuditsTable() {
 					setAudits(auditRows);
 					setRawData(rawRows);
 					setComparisons(comparisonRows);
+					if (auditRows.length > 0) {
+						const firstProjectId = auditRows[0]?.project_id;
+						if (firstProjectId) {
+							setSelectedProjectIds(current => (current.length > 0 ? current : [firstProjectId]));
+						}
+					}
 				}
 			} catch (err) {
 				if (!cancelled) setError(err instanceof Error ? err.message : "Could not load audits.");
@@ -564,32 +805,38 @@ export function LiveAuditsTable() {
 		};
 	}, [session]);
 
-	const projectOptions = React.useMemo(() => Array.from(new Map(audits.map(audit => [audit.project_id, audit.project_name])).entries()), [audits]);
+	const projectOptions = React.useMemo(
+		() => Array.from(new Map(audits.map(audit => [audit.project_id, { value: audit.project_id, label: audit.project_name }])).values()),
+		[audits]
+	);
 	const placeOptions = React.useMemo(() => {
-		const matching = audits.filter(audit => (projectFilter === "ALL" ? true : audit.project_id === projectFilter));
-		return Array.from(new Map(matching.map(audit => [audit.place_id, audit.place])).entries());
-	}, [audits, projectFilter]);
+		const matching = audits.filter(audit => (selectedProjectIds.length === 0 ? false : selectedProjectIds.includes(audit.project_id)));
+		return Array.from(new Map(matching.map(audit => [audit.place_id, { value: audit.place_id, label: audit.place }])).values());
+	}, [audits, selectedProjectIds]);
 
 	const filteredAudits = React.useMemo(
 		() =>
 			audits.filter(audit => {
-				if (projectFilter !== "ALL" && audit.project_id !== projectFilter) return false;
-				if (placeFilter !== "ALL" && audit.place_id !== placeFilter) return false;
+				if (selectedProjectIds.length > 0 && !selectedProjectIds.includes(audit.project_id)) return false;
+				if (selectedPlaceIds.length > 0 && !selectedPlaceIds.includes(audit.place_id)) return false;
 				return true;
 			}),
-		[audits, placeFilter, projectFilter]
+		[audits, selectedPlaceIds, selectedProjectIds]
 	);
 
 	const filteredRawData = React.useMemo(() => {
-		const matchingIds = new Set(filteredAudits.map(audit => audit.id));
+		const matchingIds = new Set(filteredAudits.map(audit => audit.submission_id).filter(Boolean));
 		return rawData.filter(row => matchingIds.has(row.audit_id));
 	}, [filteredAudits, rawData]);
 
-	const selectedRawData = React.useMemo(() => rawData.filter(row => selectedAuditIds.includes(row.audit_id)), [rawData, selectedAuditIds]);
+	const selectedRawData = React.useMemo(
+		() => rawData.filter(row => selectedAuditIds.includes(row.audit_id)),
+		[rawData, selectedAuditIds]
+	);
 
 	const selectedComparisonGroup = React.useMemo(() => {
 		if (selectedAuditIds.length < 2) return null;
-		const selectedRows = filteredAudits.filter(audit => selectedAuditIds.includes(audit.id));
+		const selectedRows = filteredAudits.filter(audit => audit.submission_id && selectedAuditIds.includes(audit.submission_id));
 		const uniquePlaceIds = new Set(selectedRows.map(audit => audit.place_id));
 		if (uniquePlaceIds.size !== 1) return null;
 		const group = comparisons.find(item => item.place_id === selectedRows[0]?.place_id);
@@ -609,7 +856,7 @@ export function LiveAuditsTable() {
 	}
 
 	function handleCompare() {
-		const selectedRows = filteredAudits.filter(audit => selectedAuditIds.includes(audit.id));
+		const selectedRows = filteredAudits.filter(audit => audit.submission_id && selectedAuditIds.includes(audit.submission_id));
 		const uniquePlaceIds = new Set(selectedRows.map(audit => audit.place_id));
 		if (selectedRows.length < 2) {
 			setCompareError("Select at least two audits to compare.");
@@ -624,6 +871,7 @@ export function LiveAuditsTable() {
 
 	if (loading) return <LoadingCard label="audits" />;
 	if (error) return <ErrorCard message={error} />;
+	const filtersActive = selectedProjectIds.length > 0 || selectedPlaceIds.length > 0;
 
 	return (
 		<div className="space-y-6">
@@ -634,30 +882,38 @@ export function LiveAuditsTable() {
 				</CardHeader>
 				<CardContent className="space-y-4 overflow-x-auto">
 					<div className="flex flex-wrap gap-3">
-						<select
-							value={projectFilter}
-							onChange={event => {
-								setProjectFilter(event.target.value);
-								setPlaceFilter("ALL");
+						<SearchableMultiSelectFilter
+							label="Project"
+							options={projectOptions}
+							selectedValues={selectedProjectIds}
+							onChange={values => {
+								setSelectedProjectIds(values);
+								const allowedPlaceIds = new Set(
+									audits
+										.filter(audit => values.includes(audit.project_id))
+										.map(audit => audit.place_id)
+								);
+								setSelectedPlaceIds(current => current.filter(placeId => allowedPlaceIds.has(placeId)));
 								setSelectedAuditIds([]);
 							}}
-							className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm"
-						>
-							<option value="ALL">All projects</option>
-							{projectOptions.map(([id, name]) => (
-								<option key={id} value={id}>
-									{name}
-								</option>
-							))}
-						</select>
-						<select value={placeFilter} onChange={event => setPlaceFilter(event.target.value)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm">
-							<option value="ALL">All places</option>
-							{placeOptions.map(([id, name]) => (
-								<option key={id} value={id}>
-									{name}
-								</option>
-							))}
-						</select>
+						/>
+						<SearchableMultiSelectFilter
+							label="Place"
+							options={placeOptions}
+							selectedValues={selectedPlaceIds}
+							onChange={values => {
+								setSelectedPlaceIds(values);
+								setSelectedAuditIds([]);
+							}}
+						/>
+						<ClearFiltersButton
+							disabled={!filtersActive}
+							onClick={() => {
+								setSelectedProjectIds(projectOptions[0] ? [projectOptions[0].value] : []);
+								setSelectedPlaceIds([]);
+								setSelectedAuditIds([]);
+							}}
+						/>
 						<Button type="button" variant="outline" className="rounded-xl" onClick={() => exportRows(filteredRawData, "filtered-audits.csv")}>
 							Export Filtered
 						</Button>
@@ -673,47 +929,67 @@ export function LiveAuditsTable() {
 						<thead className="text-slate-500">
 							<tr className="border-b border-slate-200">
 								<th className="py-3 pr-4 font-medium">Select</th>
-								<th className="py-3 pr-4 font-medium">Project</th>
 								<th className="py-3 pr-4 font-medium">Place</th>
 								<th className="py-3 pr-4 font-medium">Auditor ID</th>
-								<th className="py-3 pr-4 font-medium">Date</th>
 								<th className="py-3 pr-4 font-medium">Status</th>
 								<th className="py-3 pr-4 font-medium">Score</th>
+								<th className="py-3 pr-4 font-medium">Submitted Date</th>
 								<th className="py-3 pr-4 font-medium">Report</th>
 								<th className="py-3 font-medium">Raw Data</th>
 							</tr>
 						</thead>
 						<tbody>
+							{filteredAudits.length === 0 ? (
+								<tr>
+									<td colSpan={8} className="py-8 text-center text-sm text-slate-500">
+										No audits match the selected filters.
+									</td>
+								</tr>
+							) : null}
 							{filteredAudits.map(audit => (
 								<tr key={audit.id} className="border-b border-slate-100 last:border-0">
 									<td className="py-4 pr-4">
-										<input type="checkbox" checked={selectedAuditIds.includes(audit.id)} onChange={() => toggleAuditSelection(audit.id)} />
+										<input
+											type="checkbox"
+											checked={audit.submission_id ? selectedAuditIds.includes(audit.submission_id) : false}
+											onChange={() => audit.submission_id ? toggleAuditSelection(audit.submission_id) : undefined}
+											disabled={!audit.submission_id}
+										/>
 									</td>
-									<td className="py-4 pr-4 text-slate-600">{audit.project_name}</td>
 									<td className="py-4 pr-4 font-medium text-slate-900">{audit.place}</td>
 									<td className="py-4 pr-4 text-slate-600">{audit.auditor}</td>
-									<td className="py-4 pr-4 text-slate-600">{audit.date}</td>
 									<td className="py-4 pr-4">
 										<Badge variant="secondary" className="rounded-full bg-sky-50 text-sky-700 hover:bg-sky-50">
 											{audit.status}
 										</Badge>
 									</td>
 									<td className="py-4 pr-4 text-slate-600">{audit.score === 0 ? "-" : audit.score}</td>
+									<td className="py-4 pr-4 text-slate-600">
+										{audit.submitted_at ? new Date(audit.submitted_at).toLocaleDateString() : "-"}
+									</td>
 									<td className="py-4 pr-4">
-										<Button asChild variant="outline" size="sm" className="rounded-xl">
-											<Link href={`/dashboard/reports?placeId=${audit.place_id}`}>Report</Link>
-										</Button>
+										{audit.submission_id ? (
+											<Button asChild variant="outline" size="sm" className="rounded-xl">
+												<Link href={`/yee/submissions/${audit.submission_id}`}>View Report</Link>
+											</Button>
+										) : (
+											<span className="text-sm text-slate-400">Unavailable</span>
+										)}
 									</td>
 									<td className="py-4">
-										<Button
-											type="button"
-											variant="outline"
-											size="sm"
-											className="rounded-xl"
-											onClick={() => exportRows(rawData.filter(row => row.audit_id === audit.id), `audit-${audit.id}.csv`)}
-										>
-											Raw Data
-										</Button>
+										{audit.submission_id ? (
+											<Button
+												type="button"
+												variant="outline"
+												size="sm"
+												className="rounded-xl"
+												onClick={() => exportRows(rawData.filter(row => row.audit_id === audit.submission_id), `audit-${audit.submission_id}.csv`)}
+											>
+												View Raw Data
+											</Button>
+										) : (
+											<span className="text-sm text-slate-400">Unavailable</span>
+										)}
 									</td>
 								</tr>
 							))}
@@ -797,9 +1073,9 @@ export function LiveUsersTable({ embedded = false }: { embedded?: boolean }) {
 	const [actionError, setActionError] = React.useState<string | null>(null);
 	const [selectedAccounts, setSelectedAccounts] = React.useState<Record<string, string>>({});
 	const [submittingUserId, setSubmittingUserId] = React.useState<string | null>(null);
-	const [organizationFilter, setOrganizationFilter] = React.useState("ALL");
-	const [roleFilter, setRoleFilter] = React.useState("ALL");
-	const [projectFilter, setProjectFilter] = React.useState("ALL");
+	const [selectedOrganizations, setSelectedOrganizations] = React.useState<string[]>([]);
+	const [selectedRoles, setSelectedRoles] = React.useState<string[]>([]);
+	const [selectedProjects, setSelectedProjects] = React.useState<string[]>([]);
 
 	const accountOptions = React.useMemo(
 		() =>
@@ -860,21 +1136,24 @@ export function LiveUsersTable({ embedded = false }: { embedded?: boolean }) {
 	if (!embedded && loading) return <LoadingCard label="users" />;
 	if (!embedded && error) return <ErrorCard message={error} />;
 	if (!rows.length && !loading) return <EmptyState title="No users yet" description="User records will appear here once accounts exist in the backend." />;
-	const organizations = Array.from(new Set(rows.map(user => user.organization)));
-	const roles = Array.from(new Set(rows.map(user => user.role)));
-	const projects = Array.from(
-		new Set(
-			rows
-				.flatMap(user => user.project_assignments.split(",").map(item => item.trim()))
-				.filter(item => item && item !== "None")
-		)
-	);
+	const organizationOptions = uniqueFilterOptions(rows.map(user => user.organization));
+	const roleOptions = uniqueFilterOptions(rows.map(user => user.role));
+	const availableProjectValues = rows
+		.filter(user => includesSelected(selectedOrganizations, user.organization))
+		.flatMap(user => parseAssignmentList(user.project_assignments));
+	const projectOptions = uniqueFilterOptions(availableProjectValues);
 	const filteredRows = rows.filter(user => {
-		if (organizationFilter !== "ALL" && user.organization !== organizationFilter) return false;
-		if (roleFilter !== "ALL" && user.role !== roleFilter) return false;
-		if (projectFilter !== "ALL" && !user.project_assignments.split(",").map(item => item.trim()).includes(projectFilter)) return false;
+		if (!includesSelected(selectedOrganizations, user.organization)) return false;
+		if (!includesSelected(selectedRoles, user.role)) return false;
+		if (!intersectsSelected(selectedProjects, parseAssignmentList(user.project_assignments))) return false;
 		return true;
 	});
+	const filtersActive = selectedOrganizations.length > 0 || selectedRoles.length > 0 || selectedProjects.length > 0;
+	function clearFilters() {
+		setSelectedOrganizations([]);
+		setSelectedRoles([]);
+		setSelectedProjects([]);
+	}
 
 	return (
 		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
@@ -885,95 +1164,94 @@ export function LiveUsersTable({ embedded = false }: { embedded?: boolean }) {
 			{actionError ? <CardContent className="pt-0 text-sm text-rose-700">{actionError}</CardContent> : null}
 			<CardContent className="space-y-4 overflow-x-auto">
 				<div className="flex flex-wrap gap-3">
-					<select value={organizationFilter} onChange={event => setOrganizationFilter(event.target.value)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm">
-						<option value="ALL">All organizations</option>
-						{organizations.map(organization => (
-							<option key={organization} value={organization}>
-								{organization}
-							</option>
-						))}
-					</select>
-					<select value={roleFilter} onChange={event => setRoleFilter(event.target.value)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm">
-						<option value="ALL">All roles</option>
-						{roles.map(role => (
-							<option key={role} value={role}>
-								{role}
-							</option>
-						))}
-					</select>
-					<select value={projectFilter} onChange={event => setProjectFilter(event.target.value)} className="h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm">
-						<option value="ALL">All projects</option>
-						{projects.map(project => (
-							<option key={project} value={project}>
-								{project}
-							</option>
-						))}
-					</select>
+					<SearchableMultiSelectFilter
+						label="Organization"
+						options={organizationOptions}
+						selectedValues={selectedOrganizations}
+						onChange={setSelectedOrganizations}
+					/>
+					<SearchableMultiSelectFilter
+						label="Role"
+						options={roleOptions}
+						selectedValues={selectedRoles}
+						onChange={setSelectedRoles}
+					/>
+					<SearchableMultiSelectFilter
+						label="Project"
+						options={projectOptions}
+						selectedValues={selectedProjects}
+						onChange={setSelectedProjects}
+					/>
+					<ClearFiltersButton disabled={!filtersActive} onClick={clearFilters} />
 				</div>
 				<table className="min-w-full text-left text-sm">
 					<thead className="text-slate-500">
 						<tr className="border-b border-slate-200">
-							<th className="py-3 pr-4 font-medium">Name</th>
-							<th className="py-3 pr-4 font-medium">Email</th>
-							<th className="py-3 pr-4 font-medium">Role</th>
 							<th className="py-3 pr-4 font-medium">Organization</th>
+							<th className="py-3 pr-4 font-medium">User Name</th>
+							<th className="py-3 pr-4 font-medium">Role</th>
 							<th className="py-3 pr-4 font-medium">Project Assignment</th>
 							<th className="py-3 pr-4 font-medium">Contact Info</th>
-							<th className="py-3 pr-4 font-medium">Status</th>
-							<th className="py-3 font-medium">Action</th>
+							<th className="py-3 font-medium">Action / Status</th>
 						</tr>
 					</thead>
 					<tbody>
+						{filteredRows.length === 0 ? (
+							<tr>
+								<td colSpan={6} className="py-8 text-center text-sm text-slate-500">
+									No users match the selected filters.
+								</td>
+							</tr>
+						) : null}
 						{filteredRows.map(user => (
 							<tr key={user.id} className="border-b border-slate-100 last:border-0">
-								<td className="py-4 pr-4 font-medium text-slate-900">{user.name}</td>
-								<td className="py-4 pr-4 text-slate-600">{user.email}</td>
-								<td className="py-4 pr-4 text-slate-600">{user.role}</td>
 								<td className="py-4 pr-4 text-slate-600">{user.organization}</td>
+								<td className="py-4 pr-4 font-medium text-slate-900">{user.name}</td>
+								<td className="py-4 pr-4 text-slate-600">{user.role}</td>
 								<td className="py-4 pr-4 text-slate-600">{user.project_assignments}</td>
-								<td className="py-4 pr-4 text-slate-600">{user.contact_info || "-"}</td>
-								<td className="py-4 pr-4">
-									<Badge variant="secondary" className="rounded-full bg-slate-100 text-slate-700 hover:bg-slate-100">
-										{user.status}
-									</Badge>
-								</td>
+								<td className="py-4 pr-4 text-slate-600">{user.role === "MANAGER" ? user.contact_info || user.email : ""}</td>
 								<td className="py-4">
-									{!user.approved ? (
-										<div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-											{user.role === "AUDITOR" ? (
-												<select
-													value={selectedAccounts[user.id] ?? ""}
-													onChange={event =>
-														setSelectedAccounts(previous => ({
-															...previous,
-															[user.id]: event.target.value
-														}))
+									<div className="flex flex-col gap-2">
+										<Badge variant="secondary" className="w-fit rounded-full bg-slate-100 text-slate-700 hover:bg-slate-100">
+											{user.status}
+										</Badge>
+										{!user.approved ? (
+											<div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+												{user.role === "AUDITOR" ? (
+													<select
+														value={selectedAccounts[user.id] ?? ""}
+														onChange={event =>
+															setSelectedAccounts(previous => ({
+																...previous,
+																[user.id]: event.target.value
+															}))
+														}
+														className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"
+													>
+														<option value="">Select workspace</option>
+														{accountOptions.map(([accountId, organization]) => (
+															<option key={accountId} value={accountId}>
+																{organization}
+															</option>
+														))}
+													</select>
+												) : null}
+												<Button
+													size="sm"
+													className="rounded-xl bg-[#10231f] text-white hover:bg-[#17302c]"
+													onClick={() => void handleApprove(user)}
+													disabled={
+														submittingUserId === user.id ||
+														(user.role === "AUDITOR" && !selectedAccounts[user.id] && !user.account_id)
 													}
-													className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"
 												>
-													<option value="">Select workspace</option>
-													{accountOptions.map(([accountId, organization]) => (
-														<option key={accountId} value={accountId}>
-															{organization}
-														</option>
-													))}
-												</select>
-											) : null}
-											<Button
-												size="sm"
-												className="rounded-xl bg-[#10231f] text-white hover:bg-[#17302c]"
-												onClick={() => void handleApprove(user)}
-												disabled={
-													submittingUserId === user.id ||
-													(user.role === "AUDITOR" && !selectedAccounts[user.id] && !user.account_id)
-												}
-											>
-												{submittingUserId === user.id ? "Approving..." : "Approve"}
-											</Button>
-										</div>
-									) : (
-										<span className="text-sm text-slate-500">No action needed</span>
-									)}
+													{submittingUserId === user.id ? "Approving..." : "Approve"}
+												</Button>
+											</div>
+										) : (
+											<span className="text-sm text-slate-500">No action needed</span>
+										)}
+									</div>
 								</td>
 							</tr>
 						))}

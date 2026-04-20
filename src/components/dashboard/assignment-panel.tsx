@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useSearchParams } from "next/navigation";
 
 import { useAuth } from "@/components/auth/auth-provider";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ import {
 } from "@/lib/dashboard/live-api";
 
 export function AssignmentPanel() {
+	const searchParams = useSearchParams();
 	const { session } = useAuth();
 	const [projects, setProjects] = React.useState<ProjectRecord[]>([]);
 	const [auditors, setAuditors] = React.useState<AuditorRecord[]>([]);
@@ -28,6 +30,8 @@ export function AssignmentPanel() {
 	const [saving, setSaving] = React.useState(false);
 	const [message, setMessage] = React.useState<string | null>(null);
 	const [error, setError] = React.useState<string | null>(null);
+	const requestedProjectId = searchParams.get("projectId") ?? "";
+	const requestedPlaceId = searchParams.get("placeId") ?? "";
 
 	React.useEffect(() => {
 		if (!session) return;
@@ -43,7 +47,9 @@ export function AssignmentPanel() {
 					setProjects(projectRows);
 					setAuditors(auditorRows);
 					setPlaces(placeRows);
-					setProjectId(projectRows[0]?.id ?? "");
+					const nextProjectId =
+						projectRows.find(project => project.id === requestedProjectId)?.id ?? projectRows[0]?.id ?? "";
+					setProjectId(nextProjectId);
 				}
 			} catch (err) {
 				if (!cancelled) {
@@ -59,12 +65,20 @@ export function AssignmentPanel() {
 		return () => {
 			cancelled = true;
 		};
-	}, [session]);
+	}, [requestedProjectId, session]);
 
 	const visiblePlaces = React.useMemo(
 		() => places.filter(place => place.project_id === projectId),
 		[places, projectId]
 	);
+
+	React.useEffect(() => {
+		if (!requestedPlaceId) return;
+		if (!visiblePlaces.some(place => place.id === requestedPlaceId)) return;
+		setSelectedPlaceIds(current => (current.includes(requestedPlaceId) ? current : [...current, requestedPlaceId]));
+	}, [requestedPlaceId, visiblePlaces]);
+
+	const allVisibleSelected = visiblePlaces.length > 0 && visiblePlaces.every(place => selectedPlaceIds.includes(place.id));
 
 	function toggleValue(values: string[], value: string) {
 		return values.includes(value) ? values.filter(item => item !== value) : [...values, value];
@@ -72,6 +86,14 @@ export function AssignmentPanel() {
 
 	function selectAllPlaces() {
 		setSelectedPlaceIds(visiblePlaces.map(place => place.id));
+	}
+
+	function toggleSelectAllPlaces() {
+		if (allVisibleSelected) {
+			setSelectedPlaceIds(current => current.filter(id => !visiblePlaces.some(place => place.id === id)));
+			return;
+		}
+		setSelectedPlaceIds(current => Array.from(new Set([...current, ...visiblePlaces.map(place => place.id)])));
 	}
 
 	async function handleAssign(event: React.FormEvent<HTMLFormElement>) {
@@ -145,6 +167,7 @@ export function AssignmentPanel() {
 											/>
 											<div>
 												<p className="font-medium text-slate-900">{auditor.name}</p>
+												<p className="text-xs text-slate-500">{auditor.auditor_id}</p>
 												<p className="text-sm text-slate-600">{auditor.email || "No contact email"}</p>
 											</div>
 										</label>
@@ -157,8 +180,12 @@ export function AssignmentPanel() {
 									<Label>Places</Label>
 									<div className="flex items-center gap-2">
 										<p className="text-xs text-slate-500">{selectedPlaceIds.length} selected</p>
+										<label className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700">
+											<input type="checkbox" checked={allVisibleSelected} onChange={toggleSelectAllPlaces} />
+											Select all
+										</label>
 										<Button type="button" variant="outline" size="sm" className="rounded-xl" onClick={selectAllPlaces}>
-											Select all in project
+											All places in project
 										</Button>
 									</div>
 								</div>

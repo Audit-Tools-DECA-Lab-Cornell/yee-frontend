@@ -1,1 +1,5 @@
-export { default } from "@/app/dashboard/places/page";
+import { AdminPlacesTable } from "@/components/dashboard/live-dashboard";
+
+export default function AdminPlacesPage() {
+	return <AdminPlacesTable />;
+}

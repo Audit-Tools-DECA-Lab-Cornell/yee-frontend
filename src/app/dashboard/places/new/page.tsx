@@ -104,7 +104,7 @@ export default function NewPlacePage() {
 					</div>
 					<div className="space-y-2">
 						<Label htmlFor="place-postal-code">Postal code</Label>
-						<Input id="place-postal-code" placeholder="14850" value={postalCode} onChange={event => setPostalCode(event.target.value)} />
+						<Input id="place-postal-code" placeholder="14850" value={postalCode} onChange={event => setPostalCode(event.target.value)} required />
 					</div>
 					<div className="space-y-2 sm:col-span-2">
 						<Label htmlFor="place-notes">Notes</Label>

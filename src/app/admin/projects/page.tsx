@@ -1,1 +1,5 @@
-export { default } from "@/app/dashboard/projects/page";
+import { AdminProjectsTable } from "@/components/dashboard/live-dashboard";
+
+export default function AdminProjectsPage() {
+	return <AdminProjectsTable />;
+}

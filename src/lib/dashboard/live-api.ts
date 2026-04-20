@@ -11,12 +11,14 @@ export type DashboardMetric = {
 
 export type AuditRecord = {
 	id: string;
+	submission_id?: string | null;
 	project_id: string;
 	project_name: string;
 	place_id: string;
 	place: string;
 	auditor: string;
 	date: string;
+	submitted_at?: string | null;
 	score: number;
 	status: string;
 };
@@ -48,6 +50,7 @@ export type PlaceRecord = {
 	organization?: string | null;
 	address: string;
 	postal_code?: string | null;
+	assigned_auditors: string[];
 	audits: number;
 	last_audit: string;
 	status: string;
@@ -56,8 +59,9 @@ export type PlaceRecord = {
 export type AuditorRecord = {
 	id: string;
 	name: string;
+	auditor_id: string;
 	email: string;
-	assigned_places: number;
+	assigned_places: string[];
 	completed_audits: number;
 	status: string;
 };

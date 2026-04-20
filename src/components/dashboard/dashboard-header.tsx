@@ -15,6 +15,11 @@ import { workspaceConfigs, type WorkspaceVariant } from "@/lib/dashboard/workspa
 export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 	const pathname = usePathname();
 	const config = workspaceConfigs[variant];
+	const hideSearch =
+		(variant === "admin" &&
+			(pathname === "/admin/users" || pathname === "/admin/projects" || pathname === "/admin/places")) ||
+		(variant === "manager" &&
+			(pathname === "/dashboard/places" || pathname === "/dashboard/auditors" || pathname === "/dashboard/audits"));
 	const content =
 		Object.entries(config.pageCopy)
 			.sort((a, b) => b[0].length - a[0].length)
@@ -87,14 +92,20 @@ export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 				</div>
 
 				<div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-					<label className="flex w-full max-w-xl items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
-						<Search className="size-4 text-slate-400" />
-						<input
-							type="search"
-							placeholder={config.searchPlaceholder}
-							className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
-						/>
-					</label>
+					{hideSearch ? (
+						<div className="flex w-full max-w-xl items-center rounded-2xl border border-dashed border-slate-200 bg-white px-4 py-3 text-sm text-slate-500 shadow-sm">
+							These data pages use structured filters below instead of a generic search bar.
+						</div>
+					) : (
+						<label className="flex w-full max-w-xl items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+							<Search className="size-4 text-slate-400" />
+							<input
+								type="search"
+								placeholder={config.searchPlaceholder}
+								className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
+							/>
+						</label>
+					)}
 
 					<div className="flex flex-wrap items-center gap-2">
 						{config.headerBadges.map(item => (
