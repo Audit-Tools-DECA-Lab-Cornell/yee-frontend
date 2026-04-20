@@ -1,60 +1,129 @@
-# audit-tools-yee-frontend
+# Audit Tools Frontend
 
-Next.js frontend for the Audit Tools platform. This app now includes:
+Next.js frontend for DECA Lab's Audit Tools platform. This repository contains the browser UI for authentication, role-based dashboards, manager/admin reporting, and the Youth Enabling Environments (YEE) audit workflow.
 
-- auth and onboarding entry pages
-- separate role-based dashboard experiences for admin, manager, and auditor
-- manager action routes for creating projects and places
-- the Youth Enabling Environments (YEE) audit form under its own route
-- local Next.js API proxy routes that forward audit requests to the backend
+The frontend and backend live in separate repos:
 
-The frontend and backend live in separate repos. This repo is the product UI layer.
+- Frontend: this repo
+- Backend: FastAPI service in `audit-tools-backend`
 
-## Current product direction
+The frontend talks to the backend through local Next.js API proxy routes under [`src/app/api`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/app/api).
 
-This app is no longer treated as "just the YEE survey page".
+## What This App Does
 
-The current frontend structure reflects the broader platform flow:
+This is not a single survey page. It is a role-based website with:
 
-- users start at login
-- onboarding state determines where they go next
-- dashboard pages act as the main workspace
-- navigation and allowed actions vary by role
-- the YEE audit form is one child workflow inside the product
+- authentication and onboarding
+- separate admin, manager, and auditor dashboards
+- project, place, auditor, audit, reporting, and raw-data pages
+- YEE multi-step audit flow
+- backend-backed YEE draft state
+- locked submitted YEE results pages
+- manager/admin reporting and CSV export flows
 
-Current mocked flow:
+## Roles
+
+### Admin
+
+Admins can access system-wide views:
+
+- `/admin`
+- `/admin/users`
+- `/admin/projects`
+- `/admin/places`
+- `/admin/audits`
+- `/admin/raw-data`
+- `/admin/settings`
+
+### Manager
+
+Managers can access organization-scoped workspace pages:
+
+- `/dashboard`
+- `/dashboard/projects`
+- `/dashboard/projects/new`
+- `/dashboard/projects/[projectId]`
+- `/dashboard/places`
+- `/dashboard/places/new`
+- `/dashboard/places/[placeId]`
+- `/dashboard/auditors`
+- `/dashboard/auditors/invite`
+- `/dashboard/audits`
+- `/dashboard/reports`
+- `/dashboard/raw-data`
+- `/dashboard/settings`
+
+### Auditor
+
+Auditors can access only their own assigned work:
+
+- `/my-dashboard`
+- `/my-dashboard/places`
+- `/my-dashboard/audits`
+- `/my-dashboard/settings`
+- `/yee/introduction`
+- `/yee/audit/[placeId]/page/[step]`
+- `/yee/audit/[placeId]/review`
+- `/yee/audit/[placeId]/submitted`
+- `/yee/submissions/[submissionId]`
+
+## Current Product Behavior
+
+### Authentication and onboarding
+
+The frontend uses backend auth, not mocked auth pages.
+
+The current flow is:
 
 1. `/` redirects to `/login`
-2. user can navigate through mocked login states
-3. onboarding pages simulate approval and profile completion
-4. dashboard pages provide the main navigation shell
-5. audit actions open the YEE form at `/yee/audit/[placeId]`
+2. login and signup call backend auth endpoints through `/api/auth/*`
+3. the backend response provides:
+   - `account_type`
+   - `email_verified`
+   - `approved`
+   - `profile_completed`
+   - `next_step`
+   - `dashboard_path`
+4. the frontend routes the user to:
+   - `/verify-email`
+   - `/waiting-approval`
+   - `/complete-profile`
+   - role dashboard
 
-## Tech stack
+The frontend stores the signed-in session in browser local storage through [`src/lib/auth/session.ts`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/lib/auth/session.ts).
+
+### YEE audit flow
+
+The YEE audit flow is split into multiple pages:
+
+- `/yee/introduction`
+- `/yee/audit/[placeId]/page/1` through `/page/8`
+- `/yee/audit/[placeId]/review`
+- `/yee/audit/[placeId]/submitted`
+- `/yee/submissions/[submissionId]`
+
+Current behavior:
+
+- step pages and review use backend-backed draft state via `/api/yee/places/[placeId]/audit-state`
+- draft data includes metadata, high-level answers, domain weights, comments, and question responses
+- score preview calls `/api/yee/audits/score` with the backend-required payload shape
+- final submission calls `/api/yee/audits`
+- after submit, the place becomes locked for that auditor
+- submitted audits open a read-only results page at `/yee/submissions/[submissionId]`
+
+## Tech Stack
 
 - Next.js 15 App Router
 - React 19
 - TypeScript
 - Tailwind CSS v4
-- shadcn/ui
+- shadcn/ui primitives
 - lucide-react
-- React Query
+- TanStack Query is installed, but most current data fetching is still plain `fetch`
 
-## Prerequisites
+## Environment Variables
 
-- Node.js 20+
-- npm
-- backend repo available locally if you want the audit form to load real data
-
-Backend default:
-
-- `http://127.0.0.1:8000`
-
-## Environment variables
-
-The frontend uses `.env` for backend connectivity.
-
-Expected values:
+Copy `.env.example` to `.env` and point it at the backend:
 
 ```bash
 API_BASE_URL=http://127.0.0.1:8000
@@ -63,15 +132,15 @@ NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000
 
 Notes:
 
-- `API_BASE_URL` is used by server-side proxy routes under `src/app/api/yee/*`
-- `NEXT_PUBLIC_API_BASE_URL` is used by the client API helper in `src/lib/api/api-client.ts`
+- `API_BASE_URL` is used by server-side proxy routes
+- `NEXT_PUBLIC_API_BASE_URL` is available to client-side helpers if needed
 
-## Getting started
+## Local Setup
 
 ### 1. Install dependencies
 
 ```bash
-cd audit-tools-yee-frontend
+cd /Users/andishasafdariyan/auditTools/audit-tools-yee-frontend
 npm install
 ```
 
@@ -81,18 +150,17 @@ npm install
 npm run dev
 ```
 
-Open:
+Frontend URL:
 
 - [http://localhost:3000](http://localhost:3000)
 
-### 3. Start the backend if you want the YEE audit form to work
+### 3. Start the backend
 
 In a second terminal:
 
 ```bash
 cd /Users/andishasafdariyan/auditTools/audit-tools-backend
-source .venv/bin/activate
-uvicorn app.main:app --reload
+.venv/bin/uvicorn app.main:app --reload
 ```
 
 Useful backend URLs:
@@ -100,374 +168,204 @@ Useful backend URLs:
 - [http://127.0.0.1:8000/health](http://127.0.0.1:8000/health)
 - [http://127.0.0.1:8000/yee/instrument](http://127.0.0.1:8000/yee/instrument)
 
-If the backend is not running, the survey route will show a `502 Could not reach backend` error through the frontend proxy.
+If the backend is offline, the frontend proxy routes will return `502 Could not reach backend`.
 
-## Available routes
+## Demo Accounts
 
-### Auth and onboarding
+These are useful for local or tunnel-based testing:
+
+- Admin: `admin-demo@yee.local` / `DemoPass123!`
+- Manager: `manager-demo@yee.local` / `DemoPass123!`
+- Auditor 1: `auditor-demo-1@yee.local` / `DemoPass123!`
+- Auditor 2: `auditor-demo-2@yee.local` / `DemoPass123!`
+- Auditor 3: `auditor-demo-3@yee.local` / `DemoPass123!`
+
+## Route Map
+
+### Public and onboarding routes
 
 - `/`
-  - redirects to `/login`
 - `/login`
-  - mocked login entry page
 - `/signup`
-  - mocked signup page
+- `/verify-email`
+- `/invite/[token]`
 - `/waiting-approval`
-  - placeholder page for auditor approval state
 - `/complete-profile`
-  - placeholder page for required onboarding/profile setup
 
 ### Admin routes
 
 - `/admin`
-  - admin overview with system-wide metrics and account snapshot
 - `/admin/users`
-  - all users across roles and organizations
 - `/admin/projects`
-  - project list using shared dashboard content
 - `/admin/places`
-  - place list using shared dashboard content
 - `/admin/audits`
-  - audit list using shared dashboard content
+- `/admin/raw-data`
 - `/admin/settings`
-  - admin-only settings placeholder
 
 ### Manager routes
 
 - `/dashboard`
-  - manager overview with quick actions
 - `/dashboard/projects`
-  - project list
 - `/dashboard/projects/new`
-  - create project placeholder form
+- `/dashboard/projects/[projectId]`
 - `/dashboard/places`
-  - place list
 - `/dashboard/places/new`
-  - add place placeholder form
+- `/dashboard/places/[placeId]`
 - `/dashboard/auditors`
-  - auditor management list with invite action
+- `/dashboard/auditors/invite`
 - `/dashboard/audits`
-  - audit list
 - `/dashboard/reports`
-  - report and comparison placeholder
+- `/dashboard/raw-data`
 - `/dashboard/settings`
-  - manager settings placeholder
 
 ### Auditor routes
 
 - `/my-dashboard`
-  - auditor overview
 - `/my-dashboard/places`
-  - assigned places only
 - `/my-dashboard/audits`
-  - personal audit history only
 - `/my-dashboard/settings`
-  - personal settings placeholder
-
-### YEE audit
-
+- `/yee/introduction`
 - `/yee/audit/[placeId]`
-  - YEE audit form page for a specific place
-  - example: `/yee/audit/place-central-park`
+- `/yee/audit/[placeId]/page/[step]`
+- `/yee/audit/[placeId]/review`
+- `/yee/audit/[placeId]/submitted`
+- `/yee/submissions/[submissionId]`
 
-### Local proxy API routes
+### Frontend proxy API routes
+
+Auth:
+
+- `/api/auth/login`
+- `/api/auth/signup`
+- `/api/auth/me`
+- `/api/auth/verify-email`
+- `/api/auth/resend-verification`
+- `/api/auth/complete-profile`
+- `/api/auth/invite/[token]`
+- `/api/auth/invite/[token]/accept`
+
+Dashboard:
+
+- `/api/dashboard/overview`
+- `/api/dashboard/projects`
+- `/api/dashboard/projects/[projectId]`
+- `/api/dashboard/places`
+- `/api/dashboard/places/[placeId]`
+- `/api/dashboard/auditors`
+- `/api/dashboard/assignments`
+- `/api/dashboard/auditor-invites`
+- `/api/dashboard/audits`
+- `/api/dashboard/reports/place-comparisons`
+- `/api/dashboard/raw-data`
+- `/api/dashboard/my-places`
+- `/api/dashboard/users`
+
+YEE:
 
 - `/api/yee/instrument`
-  - proxies backend `GET /yee/instrument`
 - `/api/yee/audits`
-  - proxies backend `POST /yee/audits`
+- `/api/yee/audits/[submissionId]`
 - `/api/yee/audits/score`
-  - proxies backend `POST /yee/audits/score`
+- `/api/yee/my-audits`
+- `/api/yee/places/[placeId]/audit-state`
 
-## How the app is organized
+## Project Structure
 
-### App routes
-
-```text
-src/app/
-  api/yee/
-    audits/route.ts
-    audits/score/route.ts
-    instrument/route.ts
-  admin/
-    audits/page.tsx
-    layout.tsx
-    page.tsx
-    places/page.tsx
-    projects/page.tsx
-    settings/page.tsx
-    users/page.tsx
-  complete-profile/page.tsx
-  dashboard/
-    auditors/page.tsx
-    audits/page.tsx
-    layout.tsx
-    page.tsx
-    places/page.tsx
-    places/new/page.tsx
-    projects/page.tsx
-    projects/new/page.tsx
-    reports/page.tsx
-    settings/page.tsx
-  login/page.tsx
-  my-dashboard/
-    audits/page.tsx
-    layout.tsx
-    page.tsx
-    places/page.tsx
-    settings/page.tsx
-  signup/page.tsx
-  waiting-approval/page.tsx
-  yee/audit/[placeId]/page.tsx
-  globals.css
-  layout.tsx
-  page.tsx
-  providers.tsx
-```
-
-### Shared UI and feature components
+High-level structure:
 
 ```text
-src/components/
-  auth/
-    auth-shell.tsx
-  dashboard/
-    dashboard-header.tsx
-    dashboard-shell.tsx
-    dashboard-sidebar.tsx
-  yee/
-    yee-audit-form.tsx
-  ui/
-    badge.tsx
-    button.tsx
-    card.tsx
-    input.tsx
-    label.tsx
-    ...
+src/
+  app/
+    api/
+      auth/
+      dashboard/
+      yee/
+    admin/
+    dashboard/
+    my-dashboard/
+    yee/
+  components/
+    app/
+    auth/
+    dashboard/
+    reporting/
+    ui/
+    yee/
+  lib/
+    api/
+    auth/
+    dashboard/
+    yee-*.ts
 ```
 
-### Supporting libraries
+Important files:
 
-```text
-src/lib/
-  api/
-    api-client.ts
-  auth/
-    mock-auth.ts
-  dashboard/
-    mock-data.ts
-    workspace-config.ts
-  utils.ts
-```
+- App shell: [`src/app/layout.tsx`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/app/layout.tsx)
+- Providers: [`src/app/providers.tsx`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/app/providers.tsx)
+- Auth provider: [`src/components/auth/auth-provider.tsx`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/components/auth/auth-provider.tsx)
+- Dashboard shell: [`src/components/dashboard/dashboard-shell.tsx`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/components/dashboard/dashboard-shell.tsx)
+- Manager/admin live dashboard content: [`src/components/dashboard/live-dashboard.tsx`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/components/dashboard/live-dashboard.tsx)
+- YEE wizard: [`src/components/yee/yee-audit-wizard.tsx`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/components/yee/yee-audit-wizard.tsx)
+- Submitted results page: [`src/components/yee/yee-submission-report.tsx`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/components/yee/yee-submission-report.tsx)
+- YEE draft/results client helpers: [`src/lib/yee-audit-api.ts`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/lib/yee-audit-api.ts)
+- YEE scoring helpers: [`src/lib/yee-scoring.ts`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/lib/yee-scoring.ts)
 
-## Key implementation details
+## Architecture Summary
 
-### Homepage behavior
+The frontend uses a simple layered pattern:
 
-File:
+1. page routes render UI containers
+2. components handle layout and feature UI
+3. lib helpers call frontend proxy routes
+4. frontend proxy routes forward to the FastAPI backend
 
-- `src/app/page.tsx`
+This keeps backend URLs and tokens out of most UI components and gives one place to handle `502 Could not reach backend` behavior.
 
-What it does:
+For more detail, see:
 
-- redirects all traffic from `/` to `/login`
-- prevents the survey from being the first screen users see
+- [docs/architecture.md](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/docs/architecture.md)
+- [docs/roles-and-permissions.md](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/docs/roles-and-permissions.md)
+- [docs/scoring.md](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/docs/scoring.md)
+- [docs/deployment.md](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/docs/deployment.md)
 
-### Auth flow
+## Known Limitations / Pending Work
 
-Files:
+- The frontend still uses browser local session storage rather than cookie-based auth.
+- Some pages are still placeholder-style UI shells around live backend data and will need more product polish.
+- The YEE flow now has backend-backed draft state and locked submitted results, but it is still a place-scoped draft model rather than a more advanced revisioned audit-session system.
+- Final visual design, accessibility review, and full browser automation coverage are still future work.
 
-- `src/app/login/page.tsx`
-- `src/app/signup/page.tsx`
-- `src/app/waiting-approval/page.tsx`
-- `src/app/complete-profile/page.tsx`
-- `src/components/auth/auth-shell.tsx`
-- `src/lib/auth/mock-auth.ts`
+## Verification Commands
 
-What it does:
-
-- provides the first-pass product flow before backend auth is fully wired
-- uses mocked role and approval/profile states
-- gives a realistic navigation structure for admin, manager, and auditor journeys
-
-Current limitation:
-
-- forms are not connected to real backend auth endpoints yet
-- login/signup buttons currently demonstrate navigation states, not real authentication
-
-### Dashboard shell
-
-Files:
-
-- `src/app/dashboard/layout.tsx`
-- `src/app/admin/layout.tsx`
-- `src/app/my-dashboard/layout.tsx`
-- `src/components/dashboard/dashboard-shell.tsx`
-- `src/components/dashboard/dashboard-sidebar.tsx`
-- `src/components/dashboard/dashboard-header.tsx`
-- `src/lib/dashboard/workspace-config.ts`
-
-What it does:
-
-- creates a shared role-aware dashboard layout
-- includes responsive sidebar behavior
-- provides a consistent top header and action area
-- swaps navigation, copy, badges, and primary actions by role
-
-### Dashboard content
-
-Files:
-
-- `src/app/dashboard/page.tsx`
-- `src/app/dashboard/auditors/page.tsx`
-- `src/app/dashboard/projects/page.tsx`
-- `src/app/dashboard/projects/new/page.tsx`
-- `src/app/dashboard/places/page.tsx`
-- `src/app/dashboard/places/new/page.tsx`
-- `src/app/dashboard/audits/page.tsx`
-- `src/app/dashboard/reports/page.tsx`
-- `src/app/dashboard/settings/page.tsx`
-- `src/app/admin/page.tsx`
-- `src/app/admin/users/page.tsx`
-- `src/app/my-dashboard/page.tsx`
-- `src/app/my-dashboard/places/page.tsx`
-- `src/app/my-dashboard/audits/page.tsx`
-- `src/app/my-dashboard/settings/page.tsx`
-- `src/lib/dashboard/mock-data.ts`
-
-What it does:
-
-- uses mock data to make each role-specific dashboard feel realistic before backend endpoints are ready
-- gives managers action-oriented pages, auditors a simplified fieldwork view, and admins a system-wide overview
-- shows tables and summary cards that can later be replaced with API-backed queries
-
-### YEE audit form
-
-Files:
-
-- `src/app/yee/audit/[placeId]/page.tsx`
-- `src/components/yee/yee-audit-form.tsx`
-
-What it does:
-
-- moves the YEE form out of the homepage
-- scopes the form to a place-based route
-- still uses the existing proxy API routes for instrument loading and audit submission
-
-Requirement:
-
-- backend must be running for instrument loading and submission to work
-
-## Backend integration notes
-
-This frontend currently depends on the backend for audit-specific functionality.
-
-Expected backend behavior:
-
-- `GET /yee/instrument`
-- `POST /yee/audits`
-- `POST /yee/audits/score`
-
-Planned future backend integration areas:
-
-- login
-- signup
-- current user / session
-- role detection
-- approval status
-- profile completion status
-- projects
-- places
-- audits
-- auditors
-
-The current frontend structure is designed so those endpoints can be added without changing the overall route architecture.
-
-## Mocked behavior vs real behavior
-
-### Already real
-
-- App Router routing
-- dashboard layout and pages
-- YEE route placement
-- survey fetch and submit flow through frontend proxy routes
-- backend environment variable configuration
-
-### Still mocked
-
-- login
-- signup
-- role-based redirect logic
-- approval workflow
-- profile completion workflow
-- dashboard data
-
-## Common commands
-
-Run the dev server:
+Useful checks:
 
 ```bash
 npm run dev
-```
-
-Run lint:
-
-```bash
-npm run lint -- src/app src/components src/lib
-```
-
-Run production build:
-
-```bash
 npm run build
 ```
 
-Format the repo:
+If you are validating the full product locally, run both repos:
 
 ```bash
-npm run format
+cd /Users/andishasafdariyan/auditTools/audit-tools-backend
+.venv/bin/uvicorn app.main:app --reload
+
+cd /Users/andishasafdariyan/auditTools/audit-tools-yee-frontend
+npm run dev
 ```
 
-## Recommended local test path
+## Public Testing
 
-If you want to sanity-check the current product flow manually:
+If you share the app through ngrok or another tunnel:
 
-1. open `/`
-2. confirm it redirects to `/login`
-3. click one of the mocked login states
-4. confirm onboarding pages work
-5. open `/dashboard`
-6. navigate through projects, places, audits, and settings
-7. click `Start Audit`
-8. confirm the app opens `/yee/audit/place-central-park`
-9. if backend is running, confirm the instrument loads
+- keep the frontend server running
+- keep the backend server running
+- keep the tunnel process running
+- remember that the public URL changes when a new ngrok session starts
 
-## Known limitations
+## Related Docs
 
-- auth is placeholder-only right now
-- dashboard tables use mocked data
-- route protection is still mocked through login choices rather than a real session
-- there are no project detail or place detail pages yet
-- there is no route protection yet
-- the audit route is reachable directly without login guard
-- backend proxy routes work only if the backend is available
-- Next may warn about multiple lockfiles in the parent workspace during builds
-
-## Suggested next steps
-
-1. Replace mocked auth flow with real backend login/signup/current-user calls.
-2. Add route guards based on user state and role.
-3. Replace dashboard mock data with React Query hooks.
-4. Add project profile and place profile pages.
-5. Add assignment-aware start-audit logic using real place records.
-6. Add results/review pages after audit submission.
-
-## Handoff summary
-
-If another engineer opens this repo today, the important things to know are:
-
-- the app starts at `/login`, not the survey
-- the dashboard and the YEE form stay in the same frontend repo
-- the survey lives at `/yee/audit/[placeId]`
-- dashboard pages are scaffolded and styled, but still mocked
-- audit data still depends on the backend running at `127.0.0.1:8000` unless environment variables are changed
+- [docs/architecture.md](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/docs/architecture.md)
+- [docs/roles-and-permissions.md](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/docs/roles-and-permissions.md)
+- [docs/scoring.md](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/docs/scoring.md)
+- [docs/deployment.md](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/docs/deployment.md)
