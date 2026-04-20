@@ -11,6 +11,9 @@ export type DashboardMetric = {
 
 export type AuditRecord = {
 	id: string;
+	project_id: string;
+	project_name: string;
+	place_id: string;
 	place: string;
 	auditor: string;
 	date: string;
@@ -21,7 +24,8 @@ export type AuditRecord = {
 export type ProjectRecord = {
 	id: string;
 	name: string;
-	lead: string;
+	summary: string;
+	organization?: string | null;
 	places: number;
 	audits: number;
 	status: string;
@@ -39,7 +43,11 @@ export type ProjectPlaceRecord = {
 export type PlaceRecord = {
 	id: string;
 	name: string;
+	project_id: string;
 	project: string;
+	organization?: string | null;
+	address: string;
+	postal_code?: string | null;
 	audits: number;
 	last_audit: string;
 	status: string;
@@ -48,6 +56,7 @@ export type PlaceRecord = {
 export type AuditorRecord = {
 	id: string;
 	name: string;
+	email: string;
 	assigned_places: number;
 	completed_audits: number;
 	status: string;
@@ -73,12 +82,21 @@ export type UserRecord = {
 	approved: boolean;
 	email_verified: boolean;
 	profile_completed: boolean;
+	contact_info: string;
+	project_assignments: string;
 };
 
 export type DashboardOverview = {
 	metrics: DashboardMetric[];
 	recent_activity: string[];
 	latest_audits: AuditRecord[];
+	organization_summaries: {
+		organization: string;
+		users: number;
+		projects: number;
+		places: number;
+		audits: number;
+	}[];
 };
 
 export type AuditorInviteRecord = {
@@ -90,9 +108,14 @@ export type AuditorInviteRecord = {
 };
 
 export type AssignmentRecord = {
-	id: string;
-	auditor_id: string;
-	place_id: string;
+	created_count: number;
+	existing_count: number;
+	assignments: {
+		id: string;
+		auditor_id: string;
+		place_id: string;
+		project_id: string;
+	}[];
 };
 
 export type AssignedPlaceRecord = {
@@ -162,6 +185,7 @@ export type PlaceDetailRecord = {
 	id: string;
 	name: string;
 	address: string;
+	postal_code?: string | null;
 	notes: string;
 	status: string;
 	project_id: string;
@@ -289,7 +313,7 @@ export function createProject(
 
 export function createPlace(
 	session: FrontendSession,
-	payload: { project_id: string; name: string; address: string; notes?: string }
+	payload: { project_id: string; name: string; address: string; postal_code?: string; notes?: string }
 ) {
 	return authedFetch<PlaceRecord>("/api/dashboard/places", session, {
 		method: "POST",
@@ -306,7 +330,7 @@ export function createAuditorInvite(session: FrontendSession, payload: { email: 
 
 export function createAssignment(
 	session: FrontendSession,
-	payload: { auditor_id: string; place_id: string }
+	payload: { project_id: string; auditor_ids: string[]; place_ids: string[] }
 ) {
 	return authedFetch<AssignmentRecord>("/api/dashboard/assignments", session, {
 		method: "POST",

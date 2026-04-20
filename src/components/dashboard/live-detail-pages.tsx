@@ -372,7 +372,10 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 						<h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">{data.name}</h1>
 						<p className="mt-4 flex items-start gap-2 text-sm leading-7 text-sky-50/85 sm:text-base">
 							<MapPin className="mt-1 size-4 shrink-0" />
-							<span>{data.address}</span>
+							<span>
+								{data.address}
+								{data.postal_code ? ` (${data.postal_code})` : ""}
+							</span>
 						</p>
 						<p className="mt-4 max-w-3xl text-sm leading-7 text-sky-50/85 sm:text-base">{data.notes}</p>
 						<div className="mt-5 flex flex-wrap gap-2 text-sm text-sky-50/85">

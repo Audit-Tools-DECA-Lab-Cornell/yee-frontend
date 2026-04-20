@@ -6,6 +6,7 @@ import * as React from "react";
 
 import { useAuth } from "@/components/auth/auth-provider";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { PasswordField } from "@/components/auth/password-field";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -84,7 +85,7 @@ export function InviteAcceptScreen({ token }: { token: string }) {
 					</div>
 					<div className="space-y-2">
 						<Label htmlFor="invite-password">Password</Label>
-						<Input id="invite-password" type="password" value={password} onChange={event => setPassword(event.target.value)} placeholder="Create a password" required />
+						<PasswordField id="invite-password" value={password} onChange={setPassword} placeholder="Create a password" required />
 					</div>
 					{error ? <p className="text-sm text-rose-600">{error}</p> : null}
 					<div className="flex flex-wrap gap-3">

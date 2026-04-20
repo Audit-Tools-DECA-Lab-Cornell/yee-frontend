@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import * as React from "react";
 
 import { useAuth } from "@/components/auth/auth-provider";
@@ -14,6 +15,7 @@ function averageTotal(group: PlaceComparisonGroupRecord) {
 }
 
 export function LiveReports() {
+	const searchParams = useSearchParams();
 	const { session } = useAuth();
 	const [groups, setGroups] = React.useState<PlaceComparisonGroupRecord[]>([]);
 	const [selectedPlaceId, setSelectedPlaceId] = React.useState<string>("");
@@ -31,7 +33,7 @@ export function LiveReports() {
 				const result = await fetchPlaceComparisons(session);
 				if (!cancelled) {
 					setGroups(result);
-					setSelectedPlaceId(result[0]?.place_id ?? "");
+					setSelectedPlaceId(searchParams.get("placeId") ?? result[0]?.place_id ?? "");
 				}
 			} catch (err) {
 				if (!cancelled) {
@@ -48,7 +50,7 @@ export function LiveReports() {
 		return () => {
 			cancelled = true;
 		};
-	}, [session]);
+	}, [searchParams, session]);
 
 	if (loading) {
 		return (

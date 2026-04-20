@@ -18,6 +18,7 @@ export default function NewPlacePage() {
 	const [projectId, setProjectId] = React.useState("");
 	const [name, setName] = React.useState("");
 	const [address, setAddress] = React.useState("");
+	const [postalCode, setPostalCode] = React.useState("");
 	const [notes, setNotes] = React.useState("");
 	const [loadingProjects, setLoadingProjects] = React.useState(true);
 	const [saving, setSaving] = React.useState(false);
@@ -58,7 +59,7 @@ export default function NewPlacePage() {
 		setSaving(true);
 		setError(null);
 		try {
-			await createPlace(session, { project_id: projectId, name, address, notes });
+			await createPlace(session, { project_id: projectId, name, address, postal_code: postalCode, notes });
 			router.push("/dashboard/places");
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Could not create place.");
@@ -100,6 +101,10 @@ export default function NewPlacePage() {
 					<div className="space-y-2 sm:col-span-2">
 						<Label htmlFor="place-location">Address or location</Label>
 						<Input id="place-location" placeholder="New York, NY" value={address} onChange={event => setAddress(event.target.value)} required />
+					</div>
+					<div className="space-y-2">
+						<Label htmlFor="place-postal-code">Postal code</Label>
+						<Input id="place-postal-code" placeholder="14850" value={postalCode} onChange={event => setPostalCode(event.target.value)} />
 					</div>
 					<div className="space-y-2 sm:col-span-2">
 						<Label htmlFor="place-notes">Notes</Label>

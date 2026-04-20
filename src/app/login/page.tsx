@@ -6,6 +6,7 @@ import * as React from "react";
 
 import { useAuth } from "@/components/auth/auth-provider";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { PasswordField } from "@/components/auth/password-field";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,14 +72,7 @@ export default function LoginPage() {
 					</div>
 					<div className="space-y-2">
 						<Label htmlFor="password">Password</Label>
-						<Input
-							id="password"
-							type="password"
-							placeholder="••••••••"
-							value={password}
-							onChange={event => setPassword(event.target.value)}
-							required
-						/>
+						<PasswordField id="password" placeholder="••••••••" value={password} onChange={setPassword} required />
 					</div>
 					{error ? <p className="text-sm text-rose-600">{error}</p> : null}
 					<Button type="submit" className="w-full rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]" disabled={submitting}>

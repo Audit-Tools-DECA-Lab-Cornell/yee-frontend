@@ -8,13 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchMyPlaces, type AssignedPlaceRecord } from "@/lib/dashboard/live-api";
-import { readAuditPlaceStatus } from "@/lib/yee-draft-status";
-import { fetchMyYeeAudits, type MyYeeAuditRecord } from "@/lib/yee-submissions";
+import { fetchAuditState, type YeeAuditState } from "@/lib/yee-audit-api";
 
 export function AuditorAuditHistory() {
 	const { session } = useAuth();
 	const [places, setPlaces] = React.useState<AssignedPlaceRecord[]>([]);
-	const [submittedByPlace, setSubmittedByPlace] = React.useState<Record<string, MyYeeAuditRecord>>({});
+	const [auditStates, setAuditStates] = React.useState<Record<string, YeeAuditState>>({});
 	const [loading, setLoading] = React.useState(true);
 	const [error, setError] = React.useState<string | null>(null);
 
@@ -23,10 +22,11 @@ export function AuditorAuditHistory() {
 		let cancelled = false;
 		const run = async () => {
 			try {
-				const [rows, audits] = await Promise.all([fetchMyPlaces(session), fetchMyYeeAudits(session)]);
+				const rows = await fetchMyPlaces(session);
+				const states = await Promise.all(rows.map(place => fetchAuditState(place.id, session)));
 				if (!cancelled) {
 					setPlaces(rows);
-					setSubmittedByPlace(Object.fromEntries(audits.map(audit => [audit.place_id, audit])));
+					setAuditStates(Object.fromEntries(states.map(state => [state.place_id, state])));
 				}
 			} catch (err) {
 				if (!cancelled) setError(err instanceof Error ? err.message : "Could not load assigned places.");
@@ -61,7 +61,7 @@ export function AuditorAuditHistory() {
 			<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 				<div>
 					<CardTitle>My Audits</CardTitle>
-					<CardDescription>Assigned places from backend scope, with draft and submitted state from the current browser session.</CardDescription>
+					<CardDescription>Assigned places with live backend draft and submission state.</CardDescription>
 				</div>
 				<Button asChild variant="outline" className="rounded-2xl">
 					<Link href="/yee/introduction">Open place picker</Link>
@@ -80,10 +80,9 @@ export function AuditorAuditHistory() {
 					</thead>
 					<tbody>
 						{places.map(place => {
-							const localStatus = readAuditPlaceStatus(place.id);
-							const backendSubmission = submittedByPlace[place.id];
-							const isSubmitted = Boolean(backendSubmission);
-							const hasDraft = localStatus.hasDraft && !isSubmitted;
+							const auditState = auditStates[place.id];
+							const isSubmitted = auditState?.status === "SUBMITTED";
+							const hasDraft = auditState?.status === "DRAFT";
 							return (
 								<tr key={place.id} className="border-b border-slate-100 last:border-0">
 									<td className="py-4 pr-4 font-medium text-slate-900">{place.name}</td>
@@ -101,17 +100,13 @@ export function AuditorAuditHistory() {
 										</Badge>
 									</td>
 									<td className="py-4 pr-4 text-slate-600">
-										{backendSubmission?.submitted_at
-											? new Date(backendSubmission.submitted_at).toLocaleDateString()
-											: localStatus.submittedAt
-												? new Date(localStatus.submittedAt).toLocaleDateString()
-												: "-"}
+										{auditState?.submitted_at ? new Date(auditState.submitted_at).toLocaleDateString() : "-"}
 									</td>
-									<td className="py-4 pr-4 text-slate-600">{backendSubmission?.total_score ?? localStatus.lastResultScore ?? "-"}</td>
+									<td className="py-4 pr-4 text-slate-600">{auditState?.score?.total_score ?? "-"}</td>
 									<td className="py-4">
 										{isSubmitted ? (
 											<Button asChild variant="outline" className="rounded-2xl">
-												<Link href={`/yee/audit/${place.id}/submitted`}>View</Link>
+												<Link href={`/yee/submissions/${auditState.submission_id}`}>View</Link>
 											</Button>
 										) : hasDraft ? (
 											<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">

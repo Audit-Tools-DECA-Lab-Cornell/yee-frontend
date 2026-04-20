@@ -18,11 +18,11 @@ function sectionToDomain(sectionName: string): YeeDomainKey | null {
 	return null;
 }
 
-export async function fetchScorePreview(responses: YeeAuditDraft["responses"]) {
+export async function fetchScorePreview(placeId: string, responses: YeeAuditDraft["responses"]) {
 	const response = await fetch("/api/yee/audits/score", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({ responses })
+		body: JSON.stringify({ place_id: placeId, participant_info: {}, responses })
 	});
 
 	if (!response.ok) {

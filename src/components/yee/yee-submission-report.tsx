@@ -1,0 +1,121 @@
+"use client";
+
+import Link from "next/link";
+import * as React from "react";
+
+import { useAuth } from "@/components/auth/auth-provider";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { YeeScoreSummary } from "@/components/yee/yee-score-summary";
+import { fetchSubmission, type YeeSubmissionRecord } from "@/lib/yee-audit-api";
+import { buildWeightedScorePreview } from "@/lib/yee-scoring";
+
+function normalizeWeights(raw: unknown) {
+	if (!raw || typeof raw !== "object") {
+		return {
+			access: "",
+			activitySpaces: "",
+			amenities: "",
+			experienceOfSpace: "",
+			aestheticsAndCare: "",
+			useAndUsability: ""
+		};
+	}
+
+	return {
+		access: String((raw as Record<string, unknown>).access ?? ""),
+		activitySpaces: String((raw as Record<string, unknown>).activitySpaces ?? ""),
+		amenities: String((raw as Record<string, unknown>).amenities ?? ""),
+		experienceOfSpace: String((raw as Record<string, unknown>).experienceOfSpace ?? ""),
+		aestheticsAndCare: String((raw as Record<string, unknown>).aestheticsAndCare ?? ""),
+		useAndUsability: String((raw as Record<string, unknown>).useAndUsability ?? "")
+	};
+}
+
+export function YeeSubmissionReport({ submissionId }: { submissionId: string }) {
+	const { session } = useAuth();
+	const [submission, setSubmission] = React.useState<YeeSubmissionRecord | null>(null);
+	const [loading, setLoading] = React.useState(true);
+	const [error, setError] = React.useState<string | null>(null);
+
+	React.useEffect(() => {
+		if (!session) return;
+		let cancelled = false;
+		const run = async () => {
+			try {
+				const record = await fetchSubmission(submissionId, session);
+				if (!cancelled) setSubmission(record);
+			} catch (err) {
+				if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load submitted audit.");
+			} finally {
+				if (!cancelled) setLoading(false);
+			}
+		};
+		void run();
+		return () => {
+			cancelled = true;
+		};
+	}, [session, submissionId]);
+
+	if (loading) {
+		return <main className="mx-auto max-w-5xl p-6">Loading submitted audit...</main>;
+	}
+
+	if (error || !submission) {
+		return <main className="mx-auto max-w-5xl p-6 text-red-700">{error || "Submitted audit not found."}</main>;
+	}
+
+	const preview = buildWeightedScorePreview(
+		submission.score,
+		normalizeWeights(submission.participant_info.domain_weights)
+	);
+
+	return (
+		<main className="mx-auto max-w-5xl space-y-6 p-6">
+			<Card className="rounded-[2rem] border-slate-200/80 bg-white shadow-sm">
+				<CardHeader>
+					<CardTitle className="text-3xl">Submitted audit results</CardTitle>
+					<CardDescription>This is a locked, read-only report for the submitted YEE audit.</CardDescription>
+				</CardHeader>
+				<CardContent className="space-y-6">
+					<div className="grid gap-4 md:grid-cols-2">
+						<div className="rounded-2xl bg-slate-50 p-4 text-sm leading-7 text-slate-700">
+							<p className="font-medium text-slate-900">Submission details</p>
+							<p>Place: {submission.place_name || submission.place_id}</p>
+							<p>Auditor ID: {submission.auditor_generated_id || submission.auditor_id}</p>
+							<p>Submitted at: {new Date(submission.submitted_at).toLocaleString()}</p>
+							<p>Submission ID: {submission.id}</p>
+						</div>
+						<div className="rounded-2xl bg-slate-50 p-4 text-sm leading-7 text-slate-700">
+							<p className="font-medium text-slate-900">Context</p>
+							<p>Date: {String(submission.participant_info.audit_date || "Not recorded")}</p>
+							<p>Visit frequency: {String(submission.participant_info.visit_frequency || "Not recorded")}</p>
+							<p>Season: {String(submission.participant_info.season || "Not recorded")}</p>
+							<p>Weather: {String(submission.participant_info.weather || "Not recorded")}</p>
+						</div>
+					</div>
+
+					<YeeScoreSummary
+						preview={preview}
+						title="Score results"
+						description="Read-only raw and weighted scores computed from the submitted responses."
+					/>
+
+					<div className="rounded-2xl border border-slate-200 p-4">
+						<p className="text-sm font-medium text-slate-900">Comments</p>
+						<p className="mt-2 text-sm text-slate-600">{String(submission.participant_info.comments || "No comments submitted.")}</p>
+					</div>
+
+					<div className="flex flex-wrap gap-3">
+						<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
+							<Link href="/my-dashboard/audits">Back to My Audits</Link>
+						</Button>
+						<Button asChild variant="outline" className="rounded-2xl">
+							<Link href="/my-dashboard">Back to dashboard</Link>
+						</Button>
+					</div>
+				</CardContent>
+			</Card>
+		</main>
+	);
+}

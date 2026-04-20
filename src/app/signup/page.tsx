@@ -6,6 +6,7 @@ import * as React from "react";
 
 import { useAuth } from "@/components/auth/auth-provider";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { PasswordField } from "@/components/auth/password-field";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -80,14 +81,7 @@ export default function SignupPage() {
 					</div>
 					<div className="space-y-2">
 						<Label htmlFor="password">Password</Label>
-						<Input
-							id="password"
-							type="password"
-							placeholder="Create a password"
-							value={password}
-							onChange={event => setPassword(event.target.value)}
-							required
-						/>
+						<PasswordField id="password" placeholder="Create a password" value={password} onChange={setPassword} required />
 					</div>
 					<div className="space-y-2">
 						<Label htmlFor="role">Account type</Label>

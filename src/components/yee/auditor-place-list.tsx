@@ -8,13 +8,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchMyPlaces, type AssignedPlaceRecord } from "@/lib/dashboard/live-api";
-import { readAuditPlaceStatus } from "@/lib/yee-draft-status";
-import { fetchMyYeeAudits, type MyYeeAuditRecord } from "@/lib/yee-submissions";
+import { fetchAuditState, type YeeAuditState } from "@/lib/yee-audit-api";
 
 export function AuditorPlaceList({ compact = false }: { compact?: boolean }) {
 	const { session } = useAuth();
 	const [places, setPlaces] = React.useState<AssignedPlaceRecord[]>([]);
-	const [submittedByPlace, setSubmittedByPlace] = React.useState<Record<string, MyYeeAuditRecord>>({});
+	const [auditStates, setAuditStates] = React.useState<Record<string, YeeAuditState>>({});
 	const [loading, setLoading] = React.useState(true);
 	const [error, setError] = React.useState<string | null>(null);
 
@@ -23,10 +22,11 @@ export function AuditorPlaceList({ compact = false }: { compact?: boolean }) {
 		let cancelled = false;
 		const run = async () => {
 			try {
-				const [rows, audits] = await Promise.all([fetchMyPlaces(session), fetchMyYeeAudits(session)]);
+				const rows = await fetchMyPlaces(session);
+				const states = await Promise.all(rows.map(place => fetchAuditState(place.id, session)));
 				if (!cancelled) {
 					setPlaces(rows);
-					setSubmittedByPlace(Object.fromEntries(audits.map(audit => [audit.place_id, audit])));
+					setAuditStates(Object.fromEntries(states.map(state => [state.place_id, state])));
 				}
 			} catch (err) {
 				if (!cancelled) setError(err instanceof Error ? err.message : "Could not load assigned places.");
@@ -72,10 +72,9 @@ export function AuditorPlaceList({ compact = false }: { compact?: boolean }) {
 
 	const visiblePlaces = places.slice(0, compact ? 3 : places.length);
 	const content = visiblePlaces.map(place => {
-		const localStatus = readAuditPlaceStatus(place.id);
-		const backendSubmission = submittedByPlace[place.id];
-		const isSubmitted = Boolean(backendSubmission);
-		const hasDraft = localStatus.hasDraft && !isSubmitted;
+		const auditState = auditStates[place.id];
+		const isSubmitted = auditState?.status === "SUBMITTED";
+		const hasDraft = auditState?.status === "DRAFT";
 
 		return (
 			<div key={place.id} className="flex flex-col gap-3 rounded-2xl border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -95,7 +94,7 @@ export function AuditorPlaceList({ compact = false }: { compact?: boolean }) {
 				<div className="flex flex-wrap gap-2">
 					{isSubmitted ? (
 						<Button asChild variant="outline" className="rounded-2xl">
-							<Link href={`/yee/audit/${place.id}/submitted`}>View submission</Link>
+							<Link href={`/yee/submissions/${auditState.submission_id}`}>View submission</Link>
 						</Button>
 					) : hasDraft ? (
 						<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
@@ -120,7 +119,7 @@ export function AuditorPlaceList({ compact = false }: { compact?: boolean }) {
 			<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 				<div>
 					<CardTitle>My Places</CardTitle>
-					<CardDescription>Assigned places from the backend, with local draft and submission status layered on top.</CardDescription>
+					<CardDescription>Assigned places from the backend, with live draft and submission state.</CardDescription>
 				</div>
 				<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
 					<Link href="/yee/introduction">Open place picker</Link>

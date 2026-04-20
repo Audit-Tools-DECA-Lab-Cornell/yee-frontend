@@ -10,16 +10,20 @@ import {
 	createAssignment,
 	fetchAuditors,
 	fetchPlaces,
+	fetchProjects,
 	type AuditorRecord,
-	type PlaceRecord
+	type PlaceRecord,
+	type ProjectRecord
 } from "@/lib/dashboard/live-api";
 
 export function AssignmentPanel() {
 	const { session } = useAuth();
+	const [projects, setProjects] = React.useState<ProjectRecord[]>([]);
 	const [auditors, setAuditors] = React.useState<AuditorRecord[]>([]);
 	const [places, setPlaces] = React.useState<PlaceRecord[]>([]);
-	const [auditorId, setAuditorId] = React.useState("");
-	const [placeId, setPlaceId] = React.useState("");
+	const [projectId, setProjectId] = React.useState("");
+	const [selectedAuditorIds, setSelectedAuditorIds] = React.useState<string[]>([]);
+	const [selectedPlaceIds, setSelectedPlaceIds] = React.useState<string[]>([]);
 	const [loading, setLoading] = React.useState(true);
 	const [saving, setSaving] = React.useState(false);
 	const [message, setMessage] = React.useState<string | null>(null);
@@ -30,12 +34,16 @@ export function AssignmentPanel() {
 		let cancelled = false;
 		const run = async () => {
 			try {
-				const [auditorRows, placeRows] = await Promise.all([fetchAuditors(session), fetchPlaces(session)]);
+				const [projectRows, auditorRows, placeRows] = await Promise.all([
+					fetchProjects(session),
+					fetchAuditors(session),
+					fetchPlaces(session)
+				]);
 				if (!cancelled) {
+					setProjects(projectRows);
 					setAuditors(auditorRows);
 					setPlaces(placeRows);
-					setAuditorId(auditorRows[0]?.id ?? "");
-					setPlaceId(placeRows[0]?.id ?? "");
+					setProjectId(projectRows[0]?.id ?? "");
 				}
 			} catch (err) {
 				if (!cancelled) {
@@ -53,6 +61,19 @@ export function AssignmentPanel() {
 		};
 	}, [session]);
 
+	const visiblePlaces = React.useMemo(
+		() => places.filter(place => place.project_id === projectId),
+		[places, projectId]
+	);
+
+	function toggleValue(values: string[], value: string) {
+		return values.includes(value) ? values.filter(item => item !== value) : [...values, value];
+	}
+
+	function selectAllPlaces() {
+		setSelectedPlaceIds(visiblePlaces.map(place => place.id));
+	}
+
 	async function handleAssign(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 		if (!session) return;
@@ -60,10 +81,16 @@ export function AssignmentPanel() {
 		setError(null);
 		setMessage(null);
 		try {
-			await createAssignment(session, { auditor_id: auditorId, place_id: placeId });
-			setMessage("Assignment saved.");
+			const result = await createAssignment(session, {
+				project_id: projectId,
+				auditor_ids: selectedAuditorIds,
+				place_ids: selectedPlaceIds
+			});
+			setMessage(
+				`Saved ${result.created_count} new assignments${result.existing_count ? `, skipped ${result.existing_count} existing` : ""}.`
+			);
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Could not assign place.");
+			setError(err instanceof Error ? err.message : "Could not save assignments.");
 		} finally {
 			setSaving(false);
 		}
@@ -72,49 +99,103 @@ export function AssignmentPanel() {
 	return (
 		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
 			<CardHeader>
-				<CardTitle>Assign Place</CardTitle>
-				<CardDescription>Connect an invited auditor to a place in your account so it appears in their dashboard.</CardDescription>
+				<CardTitle>Assign Auditors to Places and Projects</CardTitle>
+				<CardDescription>
+					Choose a project, then assign one or more auditors to one or more places. Selecting every place in a project covers the whole project.
+				</CardDescription>
 			</CardHeader>
 			<CardContent>
 				{loading ? (
 					<p className="text-sm text-slate-500">Loading assignment options...</p>
 				) : (
-					<form className="grid gap-4 md:grid-cols-2" onSubmit={handleAssign}>
+					<form className="space-y-6" onSubmit={handleAssign}>
 						<div className="space-y-2">
-							<Label htmlFor="assignment-auditor">Auditor</Label>
+							<Label htmlFor="assignment-project">Project</Label>
 							<select
-								id="assignment-auditor"
-								value={auditorId}
-								onChange={event => setAuditorId(event.target.value)}
-								className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none">
-								{auditors.map(auditor => (
-									<option key={auditor.id} value={auditor.id}>
-										{auditor.name}
+								id="assignment-project"
+								value={projectId}
+								onChange={event => {
+									setProjectId(event.target.value);
+									setSelectedPlaceIds([]);
+								}}
+								className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm shadow-xs outline-none"
+							>
+								{projects.map(project => (
+									<option key={project.id} value={project.id}>
+										{project.name}
 									</option>
 								))}
 							</select>
 						</div>
-						<div className="space-y-2">
-							<Label htmlFor="assignment-place">Place</Label>
-							<select
-								id="assignment-place"
-								value={placeId}
-								onChange={event => setPlaceId(event.target.value)}
-								className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none">
-								{places.map(place => (
-									<option key={place.id} value={place.id}>
-										{place.name} ({place.project})
-									</option>
-								))}
-							</select>
+
+						<div className="grid gap-6 lg:grid-cols-2">
+							<div className="space-y-3">
+								<div className="flex items-center justify-between">
+									<Label>Auditors</Label>
+									<p className="text-xs text-slate-500">{selectedAuditorIds.length} selected</p>
+								</div>
+								<div className="max-h-72 space-y-2 overflow-auto rounded-2xl border border-slate-200 p-3">
+									{auditors.map(auditor => (
+										<label key={auditor.id} className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-100 p-3 hover:bg-slate-50">
+											<input
+												type="checkbox"
+												checked={selectedAuditorIds.includes(auditor.id)}
+												onChange={() => setSelectedAuditorIds(current => toggleValue(current, auditor.id))}
+												className="mt-1"
+											/>
+											<div>
+												<p className="font-medium text-slate-900">{auditor.name}</p>
+												<p className="text-sm text-slate-600">{auditor.email || "No contact email"}</p>
+											</div>
+										</label>
+									))}
+								</div>
+							</div>
+
+							<div className="space-y-3">
+								<div className="flex items-center justify-between">
+									<Label>Places</Label>
+									<div className="flex items-center gap-2">
+										<p className="text-xs text-slate-500">{selectedPlaceIds.length} selected</p>
+										<Button type="button" variant="outline" size="sm" className="rounded-xl" onClick={selectAllPlaces}>
+											Select all in project
+										</Button>
+									</div>
+								</div>
+								<div className="max-h-72 space-y-2 overflow-auto rounded-2xl border border-slate-200 p-3">
+									{visiblePlaces.length === 0 ? (
+										<p className="text-sm text-slate-500">No places found for this project yet.</p>
+									) : (
+										visiblePlaces.map(place => (
+											<label key={place.id} className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-100 p-3 hover:bg-slate-50">
+												<input
+													type="checkbox"
+													checked={selectedPlaceIds.includes(place.id)}
+													onChange={() => setSelectedPlaceIds(current => toggleValue(current, place.id))}
+													className="mt-1"
+												/>
+												<div>
+													<p className="font-medium text-slate-900">{place.name}</p>
+													<p className="text-sm text-slate-600">{place.address}</p>
+													{place.postal_code ? <p className="text-xs text-slate-500">Postal code: {place.postal_code}</p> : null}
+												</div>
+											</label>
+										))
+									)}
+								</div>
+							</div>
 						</div>
-						{error ? <p className="md:col-span-2 text-sm text-rose-600">{error}</p> : null}
-						{message ? <p className="md:col-span-2 text-sm text-emerald-700">{message}</p> : null}
-						<div className="md:col-span-2">
-							<Button type="submit" className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]" disabled={saving || !auditorId || !placeId}>
-								{saving ? "Assigning..." : "Assign place"}
-							</Button>
-						</div>
+
+						{error ? <p className="text-sm text-rose-600">{error}</p> : null}
+						{message ? <p className="text-sm text-emerald-700">{message}</p> : null}
+
+						<Button
+							type="submit"
+							className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]"
+							disabled={saving || !projectId || selectedAuditorIds.length === 0 || selectedPlaceIds.length === 0}
+						>
+							{saving ? "Saving assignments..." : "Save assignments"}
+						</Button>
 					</form>
 				)}
 			</CardContent>
