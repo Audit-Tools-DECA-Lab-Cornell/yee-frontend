@@ -11,3 +11,17 @@ export async function GET(
 		authorization: request.headers.get("authorization")
 	});
 }
+
+export async function PATCH(
+	request: Request,
+	{ params }: { params: Promise<{ projectId: string }> }
+) {
+	const { projectId } = await params;
+
+	return proxyDashboardRequest({
+		targetPath: `/yee/dashboard/projects/${projectId}`,
+		method: "PATCH",
+		body: await request.json(),
+		authorization: request.headers.get("authorization")
+	});
+}

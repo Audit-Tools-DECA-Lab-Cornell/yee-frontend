@@ -71,6 +71,7 @@ export function AssignmentPanel() {
 		() => places.filter(place => place.project_id === projectId),
 		[places, projectId]
 	);
+	const allAuditorsSelected = auditors.length > 0 && auditors.every(auditor => selectedAuditorIds.includes(auditor.id));
 
 	React.useEffect(() => {
 		if (!requestedPlaceId) return;
@@ -86,6 +87,14 @@ export function AssignmentPanel() {
 
 	function selectAllPlaces() {
 		setSelectedPlaceIds(visiblePlaces.map(place => place.id));
+	}
+
+	function toggleSelectAllAuditors() {
+		if (allAuditorsSelected) {
+			setSelectedAuditorIds([]);
+			return;
+		}
+		setSelectedAuditorIds(auditors.map(auditor => auditor.id));
 	}
 
 	function toggleSelectAllPlaces() {
@@ -154,7 +163,13 @@ export function AssignmentPanel() {
 							<div className="space-y-3">
 								<div className="flex items-center justify-between">
 									<Label>Auditors</Label>
-									<p className="text-xs text-slate-500">{selectedAuditorIds.length} selected</p>
+									<div className="flex items-center gap-2">
+										<p className="text-xs text-slate-500">{selectedAuditorIds.length} selected</p>
+										<label className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700">
+											<input type="checkbox" checked={allAuditorsSelected} onChange={toggleSelectAllAuditors} />
+											Select all
+										</label>
+									</div>
 								</div>
 								<div className="max-h-72 space-y-2 overflow-auto rounded-2xl border border-slate-200 p-3">
 									{auditors.map(auditor => (
@@ -221,7 +236,7 @@ export function AssignmentPanel() {
 							className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]"
 							disabled={saving || !projectId || selectedAuditorIds.length === 0 || selectedPlaceIds.length === 0}
 						>
-							{saving ? "Saving assignments..." : "Save assignments"}
+							{saving ? "Saving assignments..." : "Assign auditors"}
 						</Button>
 					</form>
 				)}

@@ -61,10 +61,10 @@ export function AuditorAuditHistory() {
 			<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 				<div>
 					<CardTitle>My Audits</CardTitle>
-					<CardDescription>Assigned places with live backend draft and submission state.</CardDescription>
+					<CardDescription>Review audits in progress and submitted audits for your assigned places.</CardDescription>
 				</div>
 				<Button asChild variant="outline" className="rounded-2xl">
-					<Link href="/yee/introduction">Open place picker</Link>
+					<Link href="/yee/introduction">Choose Place</Link>
 				</Button>
 			</CardHeader>
 			<CardContent className="overflow-x-auto">
@@ -106,15 +106,15 @@ export function AuditorAuditHistory() {
 									<td className="py-4">
 										{isSubmitted ? (
 											<Button asChild variant="outline" className="rounded-2xl">
-												<Link href={`/yee/submissions/${auditState.submission_id}`}>View</Link>
+												<Link href={`/yee/submissions/${auditState.submission_id}`}>View Submission</Link>
 											</Button>
 										) : hasDraft ? (
 											<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
-												<Link href={`/yee/audit/${place.id}/page/1`}>Continue</Link>
+												<Link href={`/yee/audit/${place.id}/page/1`}>Continue In Progress</Link>
 											</Button>
 										) : (
 											<Button asChild variant="outline" className="rounded-2xl">
-												<Link href={`/yee/audit/${place.id}/page/1`}>Start</Link>
+												<Link href={`/yee/audit/${place.id}/page/1`}>Start New Audit</Link>
 											</Button>
 										)}
 									</td>

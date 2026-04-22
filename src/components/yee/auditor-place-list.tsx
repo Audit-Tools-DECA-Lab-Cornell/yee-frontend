@@ -94,11 +94,11 @@ export function AuditorPlaceList({ compact = false }: { compact?: boolean }) {
 				<div className="flex flex-wrap gap-2">
 					{isSubmitted ? (
 						<Button asChild variant="outline" className="rounded-2xl">
-							<Link href={`/yee/submissions/${auditState.submission_id}`}>View submission</Link>
+							<Link href={`/yee/submissions/${auditState.submission_id}`}>View Submission</Link>
 						</Button>
 					) : hasDraft ? (
 						<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
-							<Link href={`/yee/audit/${place.id}/page/1`}>Continue Draft</Link>
+							<Link href={`/yee/audit/${place.id}/page/1`}>Continue In Progress</Link>
 						</Button>
 					) : (
 						<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
@@ -119,10 +119,10 @@ export function AuditorPlaceList({ compact = false }: { compact?: boolean }) {
 			<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 				<div>
 					<CardTitle>My Places</CardTitle>
-					<CardDescription>Assigned places from the backend, with live draft and submission state.</CardDescription>
+					<CardDescription>Choose a place by name and continue the correct audit action for that place.</CardDescription>
 				</div>
 				<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
-					<Link href="/yee/introduction">Open place picker</Link>
+					<Link href="/yee/introduction">Choose Place</Link>
 				</Button>
 			</CardHeader>
 			<CardContent className="space-y-3">{content}</CardContent>

@@ -33,10 +33,20 @@ import {
 	type YeeAuditDraft,
 	type YeeStepNumber
 } from "@/lib/yee-audit-config";
-import { fetchInstrument, filterItemsForDomain, type InstrumentItem, type InstrumentResponse } from "@/lib/yee-instrument";
+import {
+	fetchInstrument,
+	filterItemsForDomain,
+	findSectionMeta,
+	type InstrumentItem,
+	type InstrumentResponse
+} from "@/lib/yee-instrument";
 import { buildWeightedScorePreview, fetchScorePreview } from "@/lib/yee-scoring";
 
 type ResponsesState = Record<string, string | Record<string, string>>;
+type QuestionGroup = {
+	baseQuestionId: string;
+	items: InstrumentItem[];
+};
 
 function getChoiceLabel(choice: { Display?: string } | undefined, fallback: string): string {
 	return choice?.Display || fallback;
@@ -44,6 +54,11 @@ function getChoiceLabel(choice: { Display?: string } | undefined, fallback: stri
 
 function normalizeText(value: string) {
 	return value.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+}
+
+function ensureQuestionMark(value: string) {
+	if (!value) return value;
+	return /[?.!]$/.test(value) ? value : `${value}?`;
 }
 
 function hasAnsweredItem(item: InstrumentItem, responses: ResponsesState) {
@@ -60,6 +75,36 @@ function hasAnsweredItem(item: InstrumentItem, responses: ResponsesState) {
 	return typeof currentValue === "string" && currentValue.length > 0;
 }
 
+function answerLabels(item: InstrumentItem) {
+	return Object.values(item.answers || {}).map(answer => normalizeText(getChoiceLabel(answer, "")).toLowerCase());
+}
+
+function isConditionItem(item: InstrumentItem) {
+	if (item.item_kind) return item.item_kind === "condition";
+	const labels = answerLabels(item);
+	return (
+		normalizeText(item.question_text).toLowerCase().includes("if yes") ||
+		(labels.includes("poor") && labels.includes("acceptable") && labels.includes("great"))
+	);
+}
+
+function isPositiveAnswerLabel(label: string) {
+	const normalized = normalizeText(label).toLowerCase();
+	return normalized.startsWith("yes");
+}
+
+function getSelectedMatrixAnswer(itemId: string, choiceId: string, responses: ResponsesState) {
+	const currentValue = responses[itemId];
+	if (typeof currentValue !== "object" || !currentValue) return "";
+	return currentValue[choiceId] || "";
+}
+
+function isRowPositive(item: InstrumentItem, choiceId: string, responses: ResponsesState) {
+	const answerId = getSelectedMatrixAnswer(item.item_id, choiceId, responses);
+	if (!answerId) return false;
+	return isPositiveAnswerLabel(getChoiceLabel(item.answers?.[answerId], answerId));
+}
+
 function getOptionLabel(
 	options: { value: string; label: string }[],
 	value: string | null | undefined,
@@ -67,6 +112,79 @@ function getOptionLabel(
 ) {
 	if (!value) return fallback;
 	return options.find(option => option.value === value)?.label ?? value;
+}
+
+function normalizeSectionComments(raw: unknown): YeeAuditDraft["sectionComments"] {
+	const empty = {
+		access: "",
+		activitySpaces: "",
+		amenities: "",
+		experienceOfSpace: "",
+		aestheticsAndCare: "",
+		useAndUsability: ""
+	} satisfies YeeAuditDraft["sectionComments"];
+	if (!raw || typeof raw !== "object") return empty;
+	return {
+		access: String((raw as Record<string, unknown>).access ?? ""),
+		activitySpaces: String((raw as Record<string, unknown>).activitySpaces ?? ""),
+		amenities: String((raw as Record<string, unknown>).amenities ?? ""),
+		experienceOfSpace: String((raw as Record<string, unknown>).experienceOfSpace ?? ""),
+		aestheticsAndCare: String((raw as Record<string, unknown>).aestheticsAndCare ?? ""),
+		useAndUsability: String((raw as Record<string, unknown>).useAndUsability ?? "")
+	};
+}
+
+function getItemAnswerSummary(item: InstrumentItem, responses: ResponsesState) {
+	const currentValue = responses[item.item_id];
+	const choices = Object.entries(item.choices || {});
+	const answers = Object.entries(item.answers || {});
+
+	if (!currentValue) return [];
+
+	if (answers.length > 0) {
+		if (typeof currentValue !== "object") return [];
+		return choices
+			.map(([choiceId, choice]) => {
+				const answerId = currentValue[choiceId];
+				if (!answerId) return null;
+				const answerLabel = getChoiceLabel(item.answers?.[answerId], answerId);
+				return `${getChoiceLabel(choice, choiceId)}: ${answerLabel}`;
+			})
+			.filter((value): value is string => Boolean(value));
+	}
+
+	if (typeof currentValue !== "string") return [];
+	return [getChoiceLabel(item.choices?.[currentValue], currentValue)];
+}
+
+function getMultiOptionLabels(
+	options: { value: string; label: string }[],
+	value: string | null | undefined,
+	fallback = "Not answered"
+) {
+	if (!value) return fallback;
+	const selectedValues = value.split("|").filter(Boolean);
+	if (selectedValues.length === 0) return fallback;
+	return selectedValues
+		.map(selectedValue => options.find(option => option.value === selectedValue)?.label ?? selectedValue)
+		.join(", ");
+}
+
+function groupInstrumentItems(items: InstrumentItem[]): QuestionGroup[] {
+	const map = new Map<string, InstrumentItem[]>();
+	for (const item of items) {
+		const key = item.base_question_id || item.item_id;
+		const next = map.get(key) ?? [];
+		next.push(item);
+		map.set(key, next);
+	}
+	return Array.from(map.entries()).map(([baseQuestionId, groupItems]) => ({
+		baseQuestionId,
+		items: groupItems.sort((left, right) => {
+			if (isConditionItem(left) === isConditionItem(right)) return left.item_id.localeCompare(right.item_id);
+			return isConditionItem(left) ? 1 : -1;
+		})
+	}));
 }
 
 function normalizeWeights(raw: unknown): YeeAuditDraft["weights"] {
@@ -94,6 +212,7 @@ function buildParticipantInfo(draft: YeeAuditDraft) {
 		auditor_id: draft.auditorId,
 		auditor_name: draft.auditorName,
 		place_id: draft.placeId,
+		place_name: draft.placeName,
 		audit_date: draft.auditDate,
 		start_time: draft.startTime,
 		finish_time: draft.finishTime,
@@ -102,17 +221,22 @@ function buildParticipantInfo(draft: YeeAuditDraft) {
 		season: draft.season,
 		weather: draft.weather,
 		domain_weights: draft.weights,
-		comments: draft.comments
+		comments: draft.comments,
+		section_comments: draft.sectionComments
 	};
 }
 
 function draftFromAuditState(placeId: string, state: YeeAuditState): YeeAuditDraft {
 	const participantInfo = state.participant_info ?? {};
 	const weights = normalizeWeights(participantInfo.domain_weights);
+	const sectionComments = normalizeSectionComments(participantInfo.section_comments);
 	const baseDraft = createDefaultDraft(placeId);
 	return {
 		...baseDraft,
 		placeId,
+		placeName:
+			state.place_name ||
+			(typeof participantInfo.place_name === "string" && participantInfo.place_name ? participantInfo.place_name : baseDraft.placeName),
 		auditorId: state.auditor_generated_id || baseDraft.auditorId,
 		auditorName:
 			typeof participantInfo.auditor_name === "string" && participantInfo.auditor_name
@@ -134,6 +258,7 @@ function draftFromAuditState(placeId: string, state: YeeAuditState): YeeAuditDra
 		weights,
 		responses: state.responses ?? {},
 		comments: typeof participantInfo.comments === "string" ? participantInfo.comments : "",
+		sectionComments,
 		submittedAt: state.submitted_at,
 		lastResult: state.submission_id
 			? {
@@ -182,6 +307,49 @@ function OptionCards({
 					<span className="font-medium">{option.label}</span>
 				</label>
 			))}
+		</div>
+	);
+}
+
+function MultiSelectCards({
+	name,
+	options,
+	value,
+	onChange
+}: {
+	name: string;
+	options: { value: string; label: string }[];
+	value: string[];
+	onChange: (next: string[]) => void;
+}) {
+	return (
+		<div className="grid gap-2 sm:grid-cols-3">
+			{options.map(option => {
+				const checked = value.includes(option.value);
+				return (
+					<label
+						key={`${name}-${option.value}`}
+						className={`cursor-pointer rounded-2xl border p-4 text-sm transition ${
+							checked
+								? "border-emerald-500 bg-emerald-50 text-emerald-800"
+								: "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+						}`}>
+						<input
+							type="checkbox"
+							name={name}
+							value={option.value}
+							checked={checked}
+							onChange={() =>
+								onChange(
+									checked ? value.filter(entry => entry !== option.value) : [...value, option.value]
+								)
+							}
+							className="sr-only"
+						/>
+						<span className="font-medium">{option.label}</span>
+					</label>
+				);
+			})}
 		</div>
 	);
 }
@@ -268,6 +436,83 @@ function InstrumentQuestionCard({
 						label: getChoiceLabel(choice, choiceId)
 					}))}
 				/>
+			</CardContent>
+		</Card>
+	);
+}
+
+function InstrumentQuestionGroupCard({
+	group,
+	responses,
+	setResponses
+}: {
+	group: QuestionGroup;
+	responses: ResponsesState;
+	setResponses: React.Dispatch<React.SetStateAction<ResponsesState>>;
+}) {
+	if (group.items.length === 1) {
+		return <InstrumentQuestionCard item={group.items[0]} responses={responses} setResponses={setResponses} />;
+	}
+
+	const presenceItem = group.items.find(item => !isConditionItem(item)) ?? group.items[0];
+	const conditionItem = group.items.find(item => isConditionItem(item)) ?? null;
+	const choices = Object.entries(presenceItem.choices || {});
+	const presenceAnswers = Object.entries(presenceItem.answers || {});
+	const conditionAnswers = Object.entries(conditionItem?.answers || {});
+
+	function updateMatrixResponse(itemId: string, rowId: string, answerId: string) {
+		setResponses(prev => {
+			const existing = prev[itemId];
+			const matrix = typeof existing === "object" && existing ? { ...existing } : {};
+			matrix[rowId] = answerId;
+			return { ...prev, [itemId]: matrix };
+		});
+	}
+
+	return (
+		<Card className="rounded-[1.5rem] border-slate-200/80 bg-[#f7fbf8] shadow-sm">
+			<CardHeader>
+				<CardTitle className="text-base">{presenceItem.block}</CardTitle>
+				<CardDescription>
+					Answer each item below. If the feature is present, the condition follow-up will appear right underneath it.
+				</CardDescription>
+			</CardHeader>
+			<CardContent className="space-y-4">
+				{choices.map(([choiceId, choice]) => {
+					const selectedPresence = getSelectedMatrixAnswer(presenceItem.item_id, choiceId, responses);
+					const showCondition = conditionItem ? isRowPositive(presenceItem, choiceId, responses) : false;
+					const selectedCondition = conditionItem ? getSelectedMatrixAnswer(conditionItem.item_id, choiceId, responses) : "";
+					return (
+						<div key={`${group.baseQuestionId}-${choiceId}`} className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
+							<p className="text-sm font-medium text-slate-900">
+								{ensureQuestionMark(getChoiceLabel(choice, choiceId))}
+							</p>
+							<OptionCards
+								name={`${presenceItem.item_id}-${choiceId}`}
+								value={selectedPresence}
+								onChange={value => updateMatrixResponse(presenceItem.item_id, choiceId, value)}
+								options={presenceAnswers.map(([answerId, answer]) => ({
+									value: answerId,
+									label: getChoiceLabel(answer, answerId)
+								}))}
+							/>
+							{conditionItem && showCondition ? (
+								<div className="space-y-2 rounded-2xl bg-emerald-50/70 p-4">
+									<p className="text-xs font-medium uppercase tracking-[0.16em] text-emerald-800">Condition</p>
+									<OptionCards
+										name={`${conditionItem.item_id}-${choiceId}`}
+										value={selectedCondition}
+										onChange={value => updateMatrixResponse(conditionItem.item_id, choiceId, value)}
+										options={conditionAnswers.map(([answerId, answer]) => ({
+											value: answerId,
+											label: getChoiceLabel(answer, answerId)
+										}))}
+									/>
+								</div>
+							) : null}
+						</div>
+					);
+				})}
 			</CardContent>
 		</Card>
 	);
@@ -376,18 +621,49 @@ export function YeeAuditWizard({
 
 	const stepDetails = step ? yeeSteps.find(item => item.step === step) : null;
 	const domainKey = step ? getDomainForStep(step) : null;
-	const domainItems =
-		instrument && domainKey ? filterItemsForDomain(instrument.scoring_items, yeeDomainLabels[domainKey]) : [];
-	const answeredDomainItems = domainItems.filter(item => hasAnsweredItem(item, responses)).length;
-	const requiredDomainItems = domainItems.length;
+	const domainItems = React.useMemo(
+		() => (instrument && domainKey ? filterItemsForDomain(instrument.scoring_items, yeeDomainLabels[domainKey]) : []),
+		[domainKey, instrument]
+	);
+	const sectionMeta = React.useMemo(
+		() => (instrument && domainKey ? findSectionMeta(instrument, yeeDomainLabels[domainKey]) : null),
+		[domainKey, instrument]
+	);
+	const domainGroups = React.useMemo(() => groupInstrumentItems(domainItems), [domainItems]);
+	const weatherSelections = React.useMemo(() => draft.weather.split("|").filter(Boolean), [draft.weather]);
+
+	const answeredDomainItems = domainGroups.filter(group => {
+		if (group.items.length === 1) return hasAnsweredItem(group.items[0], responses);
+		const presenceItem = group.items.find(item => !isConditionItem(item)) ?? group.items[0];
+		const conditionItem = group.items.find(item => isConditionItem(item)) ?? null;
+		const choices = Object.keys(presenceItem.choices || {});
+		return choices.every(choiceId => {
+			const presenceValue = getSelectedMatrixAnswer(presenceItem.item_id, choiceId, responses);
+			if (!presenceValue) return false;
+			if (!conditionItem || !isRowPositive(presenceItem, choiceId, responses)) return true;
+			return Boolean(getSelectedMatrixAnswer(conditionItem.item_id, choiceId, responses));
+		});
+	}).length;
+	const requiredDomainItems = domainGroups.length;
 
 	const stepIsComplete =
 		step === 1
-			? Boolean(draft.visitFrequency && draft.season && draft.weather)
+			? Boolean(draft.visitFrequency && draft.season && weatherSelections.length > 0)
 			: step === 2
 				? Object.values(draft.weights).every(Boolean)
 				: step
-					? domainItems.every(item => hasAnsweredItem(item, responses))
+					? domainGroups.every(group => {
+							if (group.items.length === 1) return hasAnsweredItem(group.items[0], responses);
+							const presenceItem = group.items.find(item => !isConditionItem(item)) ?? group.items[0];
+							const conditionItem = group.items.find(item => isConditionItem(item)) ?? null;
+							const choiceIds = Object.keys(presenceItem.choices || {});
+							return choiceIds.every(choiceId => {
+								const presenceValue = getSelectedMatrixAnswer(presenceItem.item_id, choiceId, responses);
+								if (!presenceValue) return false;
+								if (!conditionItem || !isRowPositive(presenceItem, choiceId, responses)) return true;
+								return Boolean(getSelectedMatrixAnswer(conditionItem.item_id, choiceId, responses));
+							});
+						})
 					: false;
 
 	function updateDraft<K extends keyof YeeAuditDraft>(key: K, value: YeeAuditDraft[K]) {
@@ -417,7 +693,7 @@ export function YeeAuditWizard({
 		try {
 			setPreviewLoading(true);
 			setError(null);
-			const backendScore = await fetchScorePreview(placeId, responses);
+			const backendScore = await fetchScorePreview(placeId, buildParticipantInfo(draft), responses);
 			const preview = buildWeightedScorePreview(backendScore, draft.weights);
 			setDraft(prev => ({ ...prev, scorePreview: preview }));
 		} catch (err) {
@@ -425,7 +701,7 @@ export function YeeAuditWizard({
 		} finally {
 			setPreviewLoading(false);
 		}
-	}, [draft.weights, placeId, responses]);
+	}, [draft, placeId, responses]);
 
 	React.useEffect(() => {
 		if (mode !== "review") return;
@@ -524,23 +800,30 @@ export function YeeAuditWizard({
 	}
 
 	if (mode === "review") {
+		const reviewSections = (Object.keys(yeeDomainLabels) as Array<keyof typeof yeeDomainLabels>).map(domain => ({
+			domain,
+			label: yeeDomainLabels[domain],
+			items: filterItemsForDomain(instrument.scoring_items, yeeDomainLabels[domain]).filter(item => hasAnsweredItem(item, responses))
+		}));
+
 		return (
 			<main className="mx-auto max-w-5xl space-y-6 p-6">
 				<Card className="rounded-[2rem] border-slate-200/80 bg-white shadow-sm">
 					<CardHeader>
 						<CardTitle className="text-3xl">Review and submit</CardTitle>
-						<CardDescription>Review the saved draft from the backend before final submission.</CardDescription>
+						<CardDescription>Review the saved answers for {draft.placeName || "this place"} before final submission.</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-6">
 						<div className="grid gap-4 md:grid-cols-2">
 							<div className="rounded-2xl bg-slate-50 p-4 text-sm leading-7 text-slate-700">
 								<p className="font-medium text-slate-900">Audit metadata</p>
+								<p>Place: {draft.placeName || "Not recorded"}</p>
 								<p>Generated auditor ID: {draft.auditorId}</p>
 								<p>Date: {draft.auditDate || "Not answered"}</p>
 								<p>Start time: {draft.startTime || "Not answered"}</p>
 								<p>Visit frequency: {getOptionLabel(visitFrequencyOptions, draft.visitFrequency)}</p>
 								<p>Season: {getOptionLabel(seasonOptions, draft.season)}</p>
-								<p>Weather: {getOptionLabel(weatherOptions, draft.weather)}</p>
+								<p>Weather: {getMultiOptionLabels(weatherOptions, draft.weather)}</p>
 							</div>
 							<div className="rounded-2xl bg-slate-50 p-4 text-sm leading-7 text-slate-700">
 								<p className="font-medium text-slate-900">Importance weighting</p>
@@ -551,15 +834,45 @@ export function YeeAuditWizard({
 								))}
 							</div>
 						</div>
+						<div className="space-y-4">
+							{reviewSections.map(section => (
+								<Card key={section.domain} className="rounded-[1.5rem] border-slate-200/80 bg-[#f7fbf8] shadow-sm">
+									<CardHeader className="pb-3">
+										<CardTitle className="text-lg">{section.label}</CardTitle>
+										<CardDescription>
+											{section.items.length > 0
+												? `${section.items.length} answered items saved for review.`
+												: "No saved answers yet for this section."}
+										</CardDescription>
+									</CardHeader>
+									<CardContent className="space-y-4">
+										{section.items.map(item => (
+											<div key={item.item_id} className="rounded-2xl border border-slate-200 bg-white p-4">
+												<p className="text-sm font-medium text-slate-900">{normalizeText(item.question_text || item.item_id)}</p>
+												<div className="mt-2 space-y-1 text-sm text-slate-600">
+													{getItemAnswerSummary(item, responses).map(answer => (
+														<p key={`${item.item_id}-${answer}`}>{answer}</p>
+													))}
+												</div>
+											</div>
+										))}
+										<div className="rounded-2xl border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-600">
+											<p className="font-medium text-slate-900">Section comments</p>
+											<p className="mt-2">{draft.sectionComments[section.domain] || "No section comments added."}</p>
+										</div>
+									</CardContent>
+								</Card>
+							))}
+						</div>
 						<div className="rounded-2xl border border-slate-200 p-4">
-							<p className="text-sm font-medium text-slate-900">Optional comments</p>
+							<p className="text-sm font-medium text-slate-900">Overall comments</p>
 							<p className="mt-2 text-sm text-slate-600">{draft.comments || "No comments added."}</p>
 						</div>
 						{draft.scorePreview ? (
 							<YeeScoreSummary
 								preview={draft.scorePreview}
 								title="Score preview"
-								description="This preview is computed from the saved backend draft, using raw and youth-weighted scores."
+								description="This preview is based on the saved draft answers and shows both raw and youth-weighted score views."
 							/>
 						) : (
 							<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
@@ -579,7 +892,7 @@ export function YeeAuditWizard({
 								{submitting ? "Submitting..." : "Submit Audit"}
 							</Button>
 						</div>
-						<p className="text-xs text-slate-500">{persisting ? "Saving draft..." : "Draft synced with backend."}</p>
+						<p className="text-xs text-slate-500">{persisting ? "Saving your latest answers..." : "All answers saved."}</p>
 						{error ? <p className="text-sm text-red-700">{error}</p> : null}
 					</CardContent>
 				</Card>
@@ -596,11 +909,12 @@ export function YeeAuditWizard({
 						Step {step} of 8
 					</Badge>
 					<Badge variant="secondary" className="rounded-full bg-sky-100 text-sky-700 hover:bg-sky-100">
-						{persisting ? "Saving to backend..." : "Backend draft active"}
+						{persisting ? "Saving answers..." : "Progress saved automatically"}
 					</Badge>
 				</div>
 				<h1 className="text-3xl font-semibold tracking-tight text-slate-950">{stepDetails?.title}</h1>
 				<p className="max-w-3xl text-sm leading-7 text-slate-600">{stepDetails?.description}</p>
+				{draft.placeName ? <p className="text-sm font-medium text-emerald-800">Place: {draft.placeName}</p> : null}
 			</header>
 
 			<div className="grid gap-2 sm:grid-cols-4 lg:grid-cols-8">
@@ -620,7 +934,9 @@ export function YeeAuditWizard({
 				<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
 					<CardHeader>
 						<CardTitle>Visit details</CardTitle>
-						<CardDescription>These fields are saved to the backend draft and carried into review and submission.</CardDescription>
+						<CardDescription>
+							Record the visit context for {draft.placeName || "this place"} before moving into importance weighting and domain questions.
+						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-6">
 						<div className="grid gap-4 md:grid-cols-2">
@@ -652,7 +968,7 @@ export function YeeAuditWizard({
 							</div>
 						</div>
 						<div className="space-y-3">
-							<Label>How often have you visited this space in the last 6 months?</Label>
+							<Label>How often have you been to / visited this space in the last 6 months? (choose the response that fits best)</Label>
 							<OptionCards
 								name="visit-frequency"
 								value={draft.visitFrequency}
@@ -661,12 +977,25 @@ export function YeeAuditWizard({
 							/>
 						</div>
 						<div className="space-y-3">
-							<Label>Current season</Label>
+							<Label>What is the current season?</Label>
 							<OptionCards name="season" value={draft.season} onChange={value => updateDraft("season", value)} options={seasonOptions} />
 						</div>
 						<div className="space-y-3">
-							<Label>Weather today</Label>
-							<OptionCards name="weather" value={draft.weather} onChange={value => updateDraft("weather", value)} options={weatherOptions} />
+							<Label>What is the weather like today? (choose all that apply)</Label>
+							<MultiSelectCards
+								name="weather"
+								value={weatherSelections}
+								onChange={values =>
+									updateDraft(
+										"weather",
+										weatherOptions
+											.filter(option => values.includes(option.value))
+											.map(option => option.value)
+											.join("|")
+									)
+								}
+								options={weatherOptions}
+							/>
 						</div>
 					</CardContent>
 				</Card>
@@ -674,11 +1003,31 @@ export function YeeAuditWizard({
 
 			{step === 2 ? (
 				<div className="space-y-4">
+					<Card className="rounded-[1.5rem] border-slate-200/80 bg-[#f4fbf6] shadow-sm">
+						<CardContent className="py-5 text-sm leading-7 text-slate-700">
+							<p className="font-medium text-slate-900">How important is each domain to you in {draft.placeName || "this place"}?</p>
+							<p className="mt-2">
+								Your answers on this page are used later to calculate youth-weighted scores alongside the raw section scores.
+							</p>
+						</CardContent>
+					</Card>
 					{Object.entries(yeeDomainLabels).map(([key, label]) => (
 						<Card key={key} className="rounded-[1.5rem] border-slate-200/80 bg-white shadow-sm">
 							<CardHeader>
 								<CardTitle>{label}</CardTitle>
-								<CardDescription>How important is this domain to you in this space?</CardDescription>
+								<CardDescription>
+									{key === "access"
+										? "ACCESS: How important is to you that you can easily and safely get to these spaces?"
+										: key === "activitySpaces"
+											? "ACTIVITY SPACES: How important is it to you that these places have the spaces and/or equipment that allow you to do the activities you like?"
+											: key === "amenities"
+												? "AMENITIES: How important is it to you that these places have amenities that make the space more comfortable and suitable?"
+												: key === "experienceOfSpace"
+													? "EXPERIENCE OF THE SPACE: How important is it to you that these places feel pleasant and safe to be in?"
+													: key === "aestheticsAndCare"
+														? "AESTHETICS & CARE: How important is it to you that these places look nice and well cared for?"
+														: "USE & USABILITY: How important is it to you that these places are suitable for many activities for youth and/or the community?"}
+								</CardDescription>
 							</CardHeader>
 							<CardContent>
 								<OptionCards
@@ -703,17 +1052,63 @@ export function YeeAuditWizard({
 
 			{step && step >= 3 && step <= 8 ? (
 				<div className="space-y-4">
-					<Card className="rounded-[1.5rem] border-slate-200/80 bg-[#fffdf8] shadow-sm">
+					<Card className="rounded-[1.5rem] border-slate-200/80 bg-[#f4fbf6] shadow-sm">
 						<CardContent className="flex flex-wrap items-center justify-between gap-3 py-5 text-sm text-slate-600">
 							<span>
-								Question progress: {answeredDomainItems} of {requiredDomainItems} answered
+								Section progress: {answeredDomainItems} of {requiredDomainItems} questions answered
 							</span>
 							<span>{requiredDomainItems === 0 ? "Informational section" : stepIsComplete ? "Section complete" : "Section in progress"}</span>
 						</CardContent>
 					</Card>
-					{domainItems.map(item => (
-						<InstrumentQuestionCard key={item.item_id} item={item} responses={responses} setResponses={setResponses} />
+					{domainKey ? (
+						<Card className="rounded-[1.5rem] border-slate-200/80 bg-[#eef8f2] shadow-sm">
+							<CardContent className="py-5 text-sm leading-7 text-slate-700">
+								<p className="font-medium text-slate-900">{sectionMeta?.title || yeeDomainLabels[domainKey]}</p>
+								<p
+									className="mt-2"
+									dangerouslySetInnerHTML={{
+										__html:
+											sectionMeta?.intro_text ||
+											`Answer each question for ${draft.placeName || "this place"}. Your answers stay saved as you move backward and forward through the audit.`
+									}}
+								/>
+							</CardContent>
+						</Card>
+					) : null}
+					{domainGroups.map(group => (
+						<InstrumentQuestionGroupCard
+							key={group.baseQuestionId}
+							group={group}
+							responses={responses}
+							setResponses={setResponses}
+						/>
 					))}
+					{domainKey ? (
+						<Card className="rounded-[1.5rem] border-slate-200/80 bg-white shadow-sm">
+							<CardHeader>
+								<CardTitle>Section comments</CardTitle>
+								<CardDescription>
+									{sectionMeta?.comment_prompt || `Add any optional notes for the ${yeeDomainLabels[domainKey]} section.`}
+								</CardDescription>
+							</CardHeader>
+							<CardContent>
+								<Textarea
+									value={draft.sectionComments[domainKey]}
+									onChange={event =>
+										setDraft(prev => ({
+											...prev,
+											sectionComments: {
+												...prev.sectionComments,
+												[domainKey]: event.target.value
+											}
+										}))
+									}
+									placeholder={sectionMeta?.comment_prompt || `Optional notes about ${yeeDomainLabels[domainKey].toLowerCase()} in this place...`}
+									className="min-h-28"
+								/>
+							</CardContent>
+						</Card>
+					) : null}
 				</div>
 			) : null}
 

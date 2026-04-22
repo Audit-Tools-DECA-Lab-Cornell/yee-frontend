@@ -18,8 +18,10 @@ This is not a single survey page. It is a role-based website with:
 - project, place, auditor, audit, reporting, and raw-data pages
 - YEE multi-step audit flow
 - backend-backed YEE draft state
+- manager editing for projects and places
 - locked submitted YEE results pages
 - manager/admin reporting and CSV export flows
+- spreadsheet/QSF-backed section intros, weighting prompts, and conditional survey rendering
 
 ## Roles
 
@@ -43,9 +45,11 @@ Managers can access organization-scoped workspace pages:
 - `/dashboard/projects`
 - `/dashboard/projects/new`
 - `/dashboard/projects/[projectId]`
+- `/dashboard/projects/[projectId]/edit`
 - `/dashboard/places`
 - `/dashboard/places/new`
 - `/dashboard/places/[placeId]`
+- `/dashboard/places/[placeId]/edit`
 - `/dashboard/auditors`
 - `/dashboard/auditors/invite`
 - `/dashboard/audits`
@@ -106,10 +110,37 @@ Current behavior:
 
 - step pages and review use backend-backed draft state via `/api/yee/places/[placeId]/audit-state`
 - draft data includes metadata, high-level answers, domain weights, comments, and question responses
+- the instrument payload now includes section intro text and section comment prompts derived from the source QSF
+- page 1 uses the spreadsheet-aligned visit-frequency wording and weather is treated as multi-select
+- domain question groups now pair presence and condition answers together, and condition follow-ups only appear when the presence answer is positive
 - score preview calls `/api/yee/audits/score` with the backend-required payload shape
 - final submission calls `/api/yee/audits`
 - after submit, the place becomes locked for that auditor
 - submitted audits open a read-only results page at `/yee/submissions/[submissionId]`
+
+### Manager workspace behavior
+
+Current manager pages support:
+
+- clickable overview cards that route into real workspace pages
+- projects and places create flows
+- project and place edit flows with real backend persistence
+- place-level auditor assignment with project/place/auditor selection
+- structured filtering on manager audit, report, and raw-data pages
+- CSV export for all, filtered, or selected raw audit rows
+- comparison views that use generated auditor IDs only
+
+### Reporting and score display
+
+The current reporting experience includes:
+
+- raw and youth-weighted totals
+- domain-level raw and youth-weighted breakdowns
+- read-only submitted report pages
+- print and CSV export actions from submitted reports
+- manager comparison views with bar-style score summaries
+
+Cap score percentage and final max-score presentation are intentionally left extensible until the final cap logic is confirmed.
 
 ## Tech Stack
 
@@ -208,9 +239,11 @@ These are useful for local or tunnel-based testing:
 - `/dashboard/projects`
 - `/dashboard/projects/new`
 - `/dashboard/projects/[projectId]`
+- `/dashboard/projects/[projectId]/edit`
 - `/dashboard/places`
 - `/dashboard/places/new`
 - `/dashboard/places/[placeId]`
+- `/dashboard/places/[placeId]/edit`
 - `/dashboard/auditors`
 - `/dashboard/auditors/invite`
 - `/dashboard/audits`
@@ -258,6 +291,41 @@ Dashboard:
 - `/api/dashboard/reports/place-comparisons`
 - `/api/dashboard/raw-data`
 - `/api/dashboard/my-places`
+
+## Developer Notes
+
+### YEE instrument source of truth
+
+The YEE survey UI is driven by a backend-derived instrument payload:
+
+- source file: backend `app/data/yee_instrument.qsf`
+- backend normalization: backend `app/yee_scoring.py`
+- frontend fetch helper: [`src/lib/yee-instrument.ts`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/lib/yee-instrument.ts)
+
+The backend currently enriches the instrument payload with:
+
+- scored survey items
+- block/domain names
+- normalized block titles
+- lightweight item kind metadata for presence vs condition rows
+- section intro text
+- section comment prompts
+
+This keeps the frontend survey rendering aligned to the actual instrument instead of duplicating fragile wording in React.
+
+### Editing and persistence
+
+Project and place editing now use real patch flows:
+
+- frontend proxy helpers in [`src/lib/dashboard/live-api.ts`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/lib/dashboard/live-api.ts)
+- Next API proxy routes under `src/app/api/dashboard/projects/[projectId]` and `src/app/api/dashboard/places/[placeId]`
+- backend persistence in the FastAPI dashboard router
+
+### What is still intentionally pending
+
+- final cap-score denominator/percentage logic
+- any future mobile/offline app work
+- broader spreadsheet-by-spreadsheet copy polishing beyond the QSF-backed metadata already exposed
 - `/api/dashboard/users`
 
 YEE:

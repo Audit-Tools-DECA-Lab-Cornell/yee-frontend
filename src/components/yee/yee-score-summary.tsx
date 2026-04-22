@@ -12,6 +12,8 @@ export function YeeScoreSummary({
 	description: string;
 }) {
 	const rows = getScoreRows(preview);
+	const rawMax = Math.max(...rows.map(row => row.rawScore), 1);
+	const weightedMax = Math.max(...rows.map(row => row.weightedScore), 1);
 
 	return (
 		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
@@ -44,10 +46,48 @@ export function YeeScoreSummary({
 					<div className="rounded-2xl bg-slate-50 p-4">
 						<p className="text-sm text-slate-500">Total Enabling Environment Raw Score</p>
 						<p className="mt-2 text-2xl font-semibold text-slate-950">{preview.totalRawScore}</p>
+						<p className="mt-2 text-xs text-slate-500">Max score and cap percentage can be shown here once the final scoring cap is confirmed.</p>
 					</div>
 					<div className="rounded-2xl bg-emerald-50 p-4">
 						<p className="text-sm text-emerald-700">Total Enabling Environment Youth-Weighted Score</p>
 						<p className="mt-2 text-2xl font-semibold text-emerald-900">{preview.totalWeightedScore}</p>
+						<p className="mt-2 text-xs text-emerald-700/80">This total reflects the importance weighting selected earlier in the audit.</p>
+					</div>
+				</div>
+				<div className="grid gap-6 lg:grid-cols-2">
+					<div className="space-y-3 rounded-2xl border border-slate-200 bg-[#f8fbf9] p-4">
+						<p className="text-sm font-medium text-slate-900">Raw score by domain</p>
+						{rows.map(row => (
+							<div key={`${row.domain}-raw`} className="space-y-1">
+								<div className="flex items-center justify-between text-xs text-slate-600">
+									<span>{row.label}</span>
+									<span>{row.rawScore}</span>
+								</div>
+								<div className="h-2 rounded-full bg-slate-200">
+									<div
+										className="h-2 rounded-full bg-slate-900"
+										style={{ width: `${Math.max(6, (row.rawScore / rawMax) * 100)}%` }}
+									/>
+								</div>
+							</div>
+						))}
+					</div>
+					<div className="space-y-3 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4">
+						<p className="text-sm font-medium text-emerald-900">Youth-weighted score by domain</p>
+						{rows.map(row => (
+							<div key={`${row.domain}-weighted`} className="space-y-1">
+								<div className="flex items-center justify-between text-xs text-emerald-800">
+									<span>{row.label}</span>
+									<span>{row.weightedScore}</span>
+								</div>
+								<div className="h-2 rounded-full bg-emerald-100">
+									<div
+										className="h-2 rounded-full bg-emerald-700"
+										style={{ width: `${Math.max(6, (row.weightedScore / weightedMax) * 100)}%` }}
+									/>
+								</div>
+							</div>
+						))}
 					</div>
 				</div>
 			</CardContent>

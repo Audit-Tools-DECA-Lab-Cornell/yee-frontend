@@ -308,6 +308,9 @@ export function LiveProjectDetail({ projectId }: { projectId: string }) {
 								<Link href="/dashboard/places/new">Add place to project</Link>
 							</Button>
 							<Button asChild variant="outline" className="rounded-2xl border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+								<Link href={`/dashboard/projects/${data.id}/edit`}>Edit project</Link>
+							</Button>
+							<Button asChild variant="outline" className="rounded-2xl border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
 								<Link href="/dashboard/reports">Open reports</Link>
 							</Button>
 						</div>
@@ -388,6 +391,9 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 						<div className="mt-5 grid gap-3">
 							<Button asChild className="rounded-2xl bg-white text-slate-950 hover:bg-sky-50">
 								<Link href={`/dashboard/projects/${data.project_id}`}>Open project</Link>
+							</Button>
+							<Button asChild variant="outline" className="rounded-2xl border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+								<Link href={`/dashboard/places/${data.id}/edit`}>Edit place</Link>
 							</Button>
 							<Button asChild variant="outline" className="rounded-2xl border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
 								<Link href="/dashboard/reports">

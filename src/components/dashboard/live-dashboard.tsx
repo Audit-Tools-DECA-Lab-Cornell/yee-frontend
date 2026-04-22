@@ -47,6 +47,15 @@ const quickLinks = [
 	}
 ];
 
+function metricHref(title: string) {
+	const normalized = title.toLowerCase();
+	if (normalized.includes("project")) return "/dashboard/projects";
+	if (normalized.includes("place")) return "/dashboard/places";
+	if (normalized.includes("auditor")) return "/dashboard/auditors";
+	if (normalized.includes("audit")) return "/dashboard/audits";
+	return "/dashboard";
+}
+
 function useDashboardData<T>(loader: (session: NonNullable<ReturnType<typeof useAuth>["session"]>) => Promise<T>) {
 	const { session } = useAuth();
 	const [data, setData] = React.useState<T | null>(null);
@@ -203,8 +212,7 @@ export function LiveManagerOverview() {
 							Your dashboard is ready for projects, places, and YEE fieldwork.
 						</h1>
 						<p className="mt-4 max-w-2xl text-sm leading-7 text-emerald-50/80 sm:text-base">
-							This manager view is now backed by real backend dashboard endpoints. Current scope is effectively single-tenant until
-							manager-to-account scoping lands in the backend.
+							Use this overview to move into projects, places, auditors, reports, and audit records without dead summary cards.
 						</p>
 						<div className="mt-6 flex flex-wrap gap-3">
 							<Button asChild className="rounded-2xl bg-white text-slate-950 hover:bg-emerald-50">
@@ -239,18 +247,23 @@ export function LiveManagerOverview() {
 
 			<section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
 				{data.metrics.map(metric => (
-					<Card key={metric.title} className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
-						<CardHeader className="gap-3">
-							<CardDescription className="text-sm font-medium text-slate-500">{metric.title}</CardDescription>
-							<CardTitle className="text-3xl font-semibold tracking-tight text-slate-950">{metric.value}</CardTitle>
-						</CardHeader>
-						<CardContent className="space-y-2">
-							<p className="text-sm leading-6 text-slate-600">{metric.description}</p>
-							<Badge variant="secondary" className="rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
-								{metric.trend}
-							</Badge>
-						</CardContent>
-					</Card>
+					<Link key={metric.title} href={metricHref(metric.title)} className="block">
+						<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm transition hover:border-emerald-300 hover:shadow-md">
+							<CardHeader className="gap-3">
+								<CardDescription className="text-sm font-medium text-slate-500">{metric.title}</CardDescription>
+								<CardTitle className="text-3xl font-semibold tracking-tight text-slate-950">{metric.value}</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-2">
+								<p className="text-sm leading-6 text-slate-600">{metric.description}</p>
+								<div className="flex items-center justify-between">
+									<Badge variant="secondary" className="rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
+										{metric.trend}
+									</Badge>
+									<span className="text-xs font-medium text-slate-500">Open</span>
+								</div>
+							</CardContent>
+						</Card>
+					</Link>
 				))}
 			</section>
 
@@ -258,7 +271,7 @@ export function LiveManagerOverview() {
 				<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
 					<CardHeader>
 						<CardTitle>Recent activity</CardTitle>
-						<CardDescription>Latest backend activity visible in the dashboard.</CardDescription>
+						<CardDescription>Recent activity across your projects, places, auditors, and audits.</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-3">
 						{data.recent_activity.map(item => (
@@ -422,7 +435,9 @@ export function LivePlacesTable() {
 			<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 				<div>
 					<CardTitle className="text-2xl">Places</CardTitle>
-					<CardDescription className="mt-2 max-w-2xl leading-6">Live place rows from the backend.</CardDescription>
+					<CardDescription className="mt-2 max-w-2xl leading-6">
+						Review place name, address, postal code, assigned auditors, and the next action for each place.
+					</CardDescription>
 				</div>
 				<Button asChild variant="outline" className="rounded-2xl">
 					<Link href="/dashboard/places/new">Add Place</Link>
@@ -446,13 +461,15 @@ export function LivePlacesTable() {
 							<th className="py-3 pr-4 font-medium">Postal Code</th>
 							<th className="py-3 pr-4 font-medium">Project Name</th>
 							<th className="py-3 pr-4 font-medium">Assigned Auditors</th>
+							<th className="py-3 pr-4 font-medium">Total Audits</th>
+							<th className="py-3 pr-4 font-medium">Audit State</th>
 							<th className="py-3 font-medium">Action</th>
 						</tr>
 					</thead>
 					<tbody>
 						{filteredPlaces.length === 0 ? (
 							<tr>
-								<td colSpan={6} className="py-8 text-center text-sm text-slate-500">
+								<td colSpan={8} className="py-8 text-center text-sm text-slate-500">
 									No places match the selected filters.
 								</td>
 							</tr>
@@ -476,10 +493,20 @@ export function LivePlacesTable() {
 										)}
 									</div>
 								</td>
+								<td className="py-4 pr-4 text-slate-600">{place.audits}</td>
+								<td className="py-4 pr-4">
+									<Badge variant="secondary" className="rounded-full bg-slate-100 text-slate-700 hover:bg-slate-100">
+										{place.audits === 0 ? "Pending first audit" : place.status}
+									</Badge>
+								</td>
 								<td className="py-4">
 									<div className="flex flex-wrap gap-3">
 										<Link href={`/dashboard/places/${place.id}`} className="inline-flex items-center gap-1 text-sm text-slate-700 hover:text-slate-950">
 											Open
+											<ArrowUpRight className="size-4" />
+										</Link>
+										<Link href={`/dashboard/places/${place.id}/edit`} className="inline-flex items-center gap-1 text-sm text-sky-700 hover:text-sky-900">
+											Edit
 											<ArrowUpRight className="size-4" />
 										</Link>
 										<Link
@@ -487,6 +514,10 @@ export function LivePlacesTable() {
 											className="inline-flex items-center gap-1 text-sm text-emerald-700 hover:text-emerald-900"
 										>
 											Assign Auditors
+											<ArrowUpRight className="size-4" />
+										</Link>
+										<Link href={`/yee/audit/${place.id}/page/1`} className="inline-flex items-center gap-1 text-sm text-slate-700 hover:text-slate-950">
+											Add Audit
 											<ArrowUpRight className="size-4" />
 										</Link>
 									</div>
@@ -876,12 +907,12 @@ export function LiveAuditsTable() {
 	return (
 		<div className="space-y-6">
 			<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
-				<CardHeader>
-					<CardTitle>Audits</CardTitle>
-					<CardDescription>Filter by project or place, compare selected audits, and export selected or filtered raw data.</CardDescription>
-				</CardHeader>
-				<CardContent className="space-y-4 overflow-x-auto">
-					<div className="flex flex-wrap gap-3">
+					<CardHeader>
+						<CardTitle>Audits</CardTitle>
+						<CardDescription>Filter by project or place, compare selected audits, and export all, filtered, or selected raw data.</CardDescription>
+					</CardHeader>
+					<CardContent className="space-y-4 overflow-x-auto">
+						<div className="flex flex-wrap gap-3">
 						<SearchableMultiSelectFilter
 							label="Project"
 							options={projectOptions}
@@ -914,6 +945,9 @@ export function LiveAuditsTable() {
 								setSelectedAuditIds([]);
 							}}
 						/>
+						<Button type="button" variant="outline" className="rounded-xl" onClick={() => exportRows(rawData, "all-audits.csv")}>
+							Export All
+						</Button>
 						<Button type="button" variant="outline" className="rounded-xl" onClick={() => exportRows(filteredRawData, "filtered-audits.csv")}>
 							Export Filtered
 						</Button>
@@ -928,7 +962,26 @@ export function LiveAuditsTable() {
 					<table className="min-w-full text-left text-sm">
 						<thead className="text-slate-500">
 							<tr className="border-b border-slate-200">
-								<th className="py-3 pr-4 font-medium">Select</th>
+								<th className="py-3 pr-4 font-medium">
+									<input
+										type="checkbox"
+										checked={filteredAudits.length > 0 && filteredAudits.every(audit => audit.submission_id && selectedAuditIds.includes(audit.submission_id))}
+										onChange={() =>
+											setSelectedAuditIds(current =>
+												filteredAudits.every(audit => audit.submission_id && current.includes(audit.submission_id))
+													? current.filter(id => !filteredAudits.some(audit => audit.submission_id === id))
+													: Array.from(
+															new Set([
+																...current,
+																...filteredAudits
+																	.map(audit => audit.submission_id)
+																	.filter((submissionId): submissionId is string => Boolean(submissionId))
+															])
+													  )
+											)
+										}
+									/>
+								</th>
 								<th className="py-3 pr-4 font-medium">Place</th>
 								<th className="py-3 pr-4 font-medium">Auditor ID</th>
 								<th className="py-3 pr-4 font-medium">Status</th>

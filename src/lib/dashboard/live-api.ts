@@ -238,7 +238,7 @@ export type RawDataRecord = {
 async function authedFetch<T>(
 	path: string,
 	session: FrontendSession,
-	init?: { method?: "GET" | "POST"; body?: unknown }
+	init?: { method?: "GET" | "POST" | "PATCH"; body?: unknown }
 ): Promise<T> {
 	const response = await fetch(path, {
 		method: init?.method ?? "GET",
@@ -315,12 +315,34 @@ export function createProject(
 	});
 }
 
+export function updateProject(
+	session: FrontendSession,
+	projectId: string,
+	payload: { name: string; description?: string }
+) {
+	return authedFetch<ProjectRecord>(`/api/dashboard/projects/${projectId}`, session, {
+		method: "PATCH",
+		body: payload
+	});
+}
+
 export function createPlace(
 	session: FrontendSession,
 	payload: { project_id: string; name: string; address: string; postal_code?: string; notes?: string }
 ) {
 	return authedFetch<PlaceRecord>("/api/dashboard/places", session, {
 		method: "POST",
+		body: payload
+	});
+}
+
+export function updatePlace(
+	session: FrontendSession,
+	placeId: string,
+	payload: { project_id: string; name: string; address: string; postal_code?: string; notes?: string }
+) {
+	return authedFetch<PlaceRecord>(`/api/dashboard/places/${placeId}`, session, {
+		method: "PATCH",
 		body: payload
 	});
 }

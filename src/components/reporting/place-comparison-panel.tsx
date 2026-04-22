@@ -6,6 +6,8 @@ import { domainLabels, domainOrder, getComparisonAverages } from "@/lib/dashboar
 export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRecord }) {
 	const records = group.audits;
 	const averages = getComparisonAverages(records);
+	const maxRaw = Math.max(...records.map(record => record.total_raw_score), 1);
+	const maxWeighted = Math.max(...records.map(record => record.total_weighted_score), 1);
 
 	if (records.length === 0) {
 		return (
@@ -23,7 +25,9 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 			<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
 				<CardHeader>
 					<CardTitle>Place-level comparison</CardTitle>
-					<CardDescription>Compare audits for {group.place_name} using generated auditor IDs only.</CardDescription>
+					<CardDescription>
+						Compare audits for {group.place_name} using generated auditor IDs only. Raw and youth-weighted totals stay separate in this view.
+					</CardDescription>
 				</CardHeader>
 				<CardContent className="overflow-x-auto">
 					<table className="min-w-full text-left text-sm">
@@ -46,6 +50,48 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 							))}
 						</tbody>
 					</table>
+				</CardContent>
+			</Card>
+
+			<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+				<CardHeader>
+					<CardTitle>Score bars</CardTitle>
+					<CardDescription>
+						These bars show score distribution across audits for this place. Final cap-score percentages can be layered in once the cap logic is finalized.
+					</CardDescription>
+				</CardHeader>
+				<CardContent className="grid gap-6 lg:grid-cols-2">
+					<div className="space-y-4 rounded-2xl border border-slate-200 bg-[#f8fbf9] p-4">
+						<p className="text-sm font-medium text-slate-900">Total Raw Score</p>
+						{records.map(record => (
+							<div key={`${record.audit_id}-raw`} className="space-y-1">
+								<div className="flex items-center justify-between text-xs text-slate-600">
+									<span>{record.auditor_id}</span>
+									<span>{record.total_raw_score}</span>
+								</div>
+								<div className="h-2 rounded-full bg-slate-200">
+									<div className="h-2 rounded-full bg-slate-900" style={{ width: `${(record.total_raw_score / maxRaw) * 100}%` }} />
+								</div>
+							</div>
+						))}
+					</div>
+					<div className="space-y-4 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4">
+						<p className="text-sm font-medium text-emerald-900">Total Youth-Weighted Score</p>
+						{records.map(record => (
+							<div key={`${record.audit_id}-weighted`} className="space-y-1">
+								<div className="flex items-center justify-between text-xs text-emerald-800">
+									<span>{record.auditor_id}</span>
+									<span>{record.total_weighted_score}</span>
+								</div>
+								<div className="h-2 rounded-full bg-emerald-100">
+									<div
+										className="h-2 rounded-full bg-emerald-700"
+										style={{ width: `${(record.total_weighted_score / maxWeighted) * 100}%` }}
+									/>
+								</div>
+							</div>
+						))}
+					</div>
 				</CardContent>
 			</Card>
 

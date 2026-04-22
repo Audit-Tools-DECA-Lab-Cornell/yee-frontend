@@ -10,6 +10,38 @@ import { YeeScoreSummary } from "@/components/yee/yee-score-summary";
 import { fetchSubmission, type YeeSubmissionRecord } from "@/lib/yee-audit-api";
 import { buildWeightedScorePreview } from "@/lib/yee-scoring";
 
+function downloadSingleSubmissionCsv(submission: YeeSubmissionRecord) {
+	const row: Record<string, string | number> = {
+		audit_id: submission.id,
+		auditor_generated_id: submission.auditor_generated_id || submission.auditor_id,
+		place_id: submission.place_id,
+		place_name: submission.place_name || submission.place_id,
+		submitted_at: submission.submitted_at,
+		total_raw_score: submission.score.total_score
+	};
+	for (const [key, value] of Object.entries(submission.participant_info)) {
+		row[`participant_${key}`] = typeof value === "object" ? JSON.stringify(value) : String(value ?? "");
+	}
+	for (const [key, value] of Object.entries(submission.responses)) {
+		row[key] = typeof value === "object" ? JSON.stringify(value) : String(value ?? "");
+	}
+
+	const headers = Object.keys(row);
+	const csv = [
+		headers.join(","),
+		headers
+			.map(header => `"${String(row[header] ?? "").replace(/"/g, "\"\"")}"`)
+			.join(",")
+	].join("\n");
+	const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+	const url = URL.createObjectURL(blob);
+	const anchor = document.createElement("a");
+	anchor.href = url;
+	anchor.download = `yee-submission-${submission.id}.csv`;
+	anchor.click();
+	URL.revokeObjectURL(url);
+}
+
 function normalizeWeights(raw: unknown) {
 	if (!raw || typeof raw !== "object") {
 		return {
@@ -107,6 +139,12 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 					</div>
 
 					<div className="flex flex-wrap gap-3">
+						<Button type="button" variant="outline" className="rounded-2xl" onClick={() => window.print()}>
+							Print report
+						</Button>
+						<Button type="button" variant="outline" className="rounded-2xl" onClick={() => downloadSingleSubmissionCsv(submission)}>
+							Export data
+						</Button>
 						<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
 							<Link href="/my-dashboard/audits">Back to My Audits</Link>
 						</Button>

@@ -8,12 +8,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchMyPlaces, type AssignedPlaceRecord } from "@/lib/dashboard/live-api";
-import { fetchMyYeeAudits } from "@/lib/yee-submissions";
+import { fetchAuditState } from "@/lib/yee-audit-api";
 
 export function AuditorOverview() {
 	const { session } = useAuth();
 	const [places, setPlaces] = React.useState<AssignedPlaceRecord[]>([]);
 	const [submittedCount, setSubmittedCount] = React.useState(0);
+	const [draftCount, setDraftCount] = React.useState(0);
 	const [loading, setLoading] = React.useState(true);
 	const [error, setError] = React.useState<string | null>(null);
 
@@ -22,10 +23,12 @@ export function AuditorOverview() {
 		let cancelled = false;
 		const run = async () => {
 			try {
-				const [rows, audits] = await Promise.all([fetchMyPlaces(session), fetchMyYeeAudits(session)]);
+				const rows = await fetchMyPlaces(session);
+				const states = await Promise.all(rows.map(place => fetchAuditState(place.id, session)));
 				if (!cancelled) {
 					setPlaces(rows);
-					setSubmittedCount(audits.length);
+					setSubmittedCount(states.filter(state => state.status === "SUBMITTED").length);
+					setDraftCount(states.filter(state => state.status === "DRAFT").length);
 				}
 			} catch (err) {
 				if (!cancelled) setError(err instanceof Error ? err.message : "Could not load assigned places.");
@@ -56,17 +59,17 @@ export function AuditorOverview() {
 							Assigned fieldwork
 						</Badge>
 						<h1 className="mt-4 max-w-2xl text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-							Your auditor dashboard is focused on fieldwork, not management.
+							Complete audits for the places assigned to you.
 						</h1>
 						<p className="mt-4 max-w-2xl text-sm leading-7 text-emerald-50/80 sm:text-base">
-							Only places assigned by your manager appear here, and local draft/submission state is preserved in the browser while backend assignment scope controls access.
+							Use this space to start new audits, continue audits in progress, and review your submitted work by place name.
 						</p>
 						<div className="mt-6 flex flex-wrap gap-3">
 							<Button asChild className="rounded-2xl bg-white text-slate-950 hover:bg-emerald-50">
-								<Link href="/yee/introduction">Start Audit</Link>
+								<Link href="/my-dashboard/audits">View My Audits</Link>
 							</Button>
 							<Button asChild variant="outline" className="rounded-2xl border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
-								<Link href="/my-dashboard/audits">Continue Drafts</Link>
+								<Link href="/yee/introduction">Start New Audit</Link>
 							</Button>
 						</div>
 					</div>
@@ -81,16 +84,20 @@ export function AuditorOverview() {
 								<p className="text-sm text-emerald-50/70">Submitted audits</p>
 								<p className="mt-2 text-3xl font-semibold">{submittedCount}</p>
 							</div>
+							<div className="rounded-2xl bg-white/10 p-4">
+								<p className="text-sm text-emerald-50/70">Audits in progress</p>
+								<p className="mt-2 text-3xl font-semibold">{draftCount}</p>
+							</div>
 						</div>
 					</div>
 				</div>
 			</section>
 
-			<section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
+			<section>
 				<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
 					<CardHeader>
 						<CardTitle>Assigned places</CardTitle>
-						<CardDescription>Only places assigned to this auditor are shown here from the backend.</CardDescription>
+						<CardDescription>Only the places assigned to you appear here.</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-3">
 						{places.length === 0 ? (
@@ -101,24 +108,14 @@ export function AuditorOverview() {
 									<p className="font-medium text-slate-900">{place.name}</p>
 									<p className="mt-1 text-sm text-slate-600">{place.project}</p>
 									<p className="mt-1 text-sm text-slate-500">{place.address}</p>
+									<div className="mt-3">
+										<Button asChild variant="outline" className="rounded-2xl">
+											<Link href={`/yee/audit/${place.id}/page/1`}>Open audit flow</Link>
+										</Button>
+									</div>
 								</div>
 							))
 						)}
-					</CardContent>
-				</Card>
-
-				<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
-					<CardHeader>
-						<CardTitle>Next actions</CardTitle>
-						<CardDescription>Auditors should get direct work actions, not management actions.</CardDescription>
-					</CardHeader>
-					<CardContent className="space-y-3">
-						<Button asChild className="w-full rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
-							<Link href="/yee/introduction">Start Audit</Link>
-						</Button>
-						<Button asChild variant="outline" className="w-full rounded-2xl">
-							<Link href="/my-dashboard/audits">View My Audits</Link>
-						</Button>
 					</CardContent>
 				</Card>
 			</section>

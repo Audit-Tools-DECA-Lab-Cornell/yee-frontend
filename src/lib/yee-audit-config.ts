@@ -10,6 +10,7 @@ export type YeeDomainKey =
 
 export type YeeAuditDraft = {
 	placeId: string;
+	placeName: string;
 	auditorId: string;
 	auditorName: string;
 	auditDate: string;
@@ -22,6 +23,7 @@ export type YeeAuditDraft = {
 	weights: Record<YeeDomainKey, string>;
 	responses: Record<string, string | Record<string, string>>;
 	comments: string;
+	sectionComments: Record<YeeDomainKey, string>;
 	submittedAt: string | null;
 	lastResult: {
 		id: string;
@@ -40,14 +42,14 @@ export type YeeScorePreview = {
 };
 
 export const yeeSteps: { step: YeeStepNumber; title: string; description: string }[] = [
-	{ step: 1, title: "Context and metadata", description: "Capture visit details before domain questions begin." },
-	{ step: 2, title: "Importance weighting", description: "Collect youth importance ratings for the six YEE domains." },
-	{ step: 3, title: "Access", description: "Access questions only." },
-	{ step: 4, title: "Activity Spaces", description: "Activity Spaces questions only." },
-	{ step: 5, title: "Amenities", description: "Amenities questions only." },
-	{ step: 6, title: "Experience of the Space", description: "Experience questions only." },
-	{ step: 7, title: "Aesthetics & Care", description: "Aesthetics and Care questions only." },
-	{ step: 8, title: "Use & Usability", description: "Use and Usability questions plus final comments." }
+	{ step: 1, title: "Context and visit details", description: "Record the audit date, visit timing, and context questions for this place." },
+	{ step: 2, title: "Importance weighting", description: "Tell us how important each YEE domain is to you for the play, recreation, and green spaces in your community." },
+	{ step: 3, title: "Access", description: "Complete the Access domain questions and any optional section comments." },
+	{ step: 4, title: "Activity Spaces", description: "Complete the Activity Spaces domain questions and any optional section comments." },
+	{ step: 5, title: "Amenities", description: "Complete the Amenities domain questions and any optional section comments." },
+	{ step: 6, title: "Experience of the Space", description: "Complete the Experience of the Space domain questions and any optional section comments." },
+	{ step: 7, title: "Aesthetics and Care", description: "Complete the Aesthetics & Care domain questions and any optional section comments." },
+	{ step: 8, title: "Use and Usability", description: "Complete the Use & Usability domain questions, then add final notes before review." }
 ];
 
 export const yeeDomainLabels: Record<YeeDomainKey, string> = {
@@ -66,9 +68,10 @@ export const yeeWeightOptions = [
 ];
 
 export const visitFrequencyOptions = [
-	{ value: "every-or-almost-every-day", label: "Every or almost every day" },
-	{ value: "once-or-twice-a-week", label: "Once or twice a week" },
-	{ value: "once-or-twice-a-month", label: "Once or twice a month" },
+	{ value: "never-before", label: "I have never been here before" },
+	{ value: "every-or-almost-every-day", label: "Every day or Almost every day" },
+	{ value: "once-or-twice-a-week", label: "One or twice a week" },
+	{ value: "once-or-twice-a-month", label: "Once of twice a month" },
 	{ value: "few-times-less-than-monthly", label: "Only a few times (less than once a month)" },
 	{ value: "not-in-last-6-months", label: "I have not been here in the last 6 months" }
 ];
@@ -76,24 +79,27 @@ export const visitFrequencyOptions = [
 export const seasonOptions = [
 	{ value: "spring", label: "Spring" },
 	{ value: "summer", label: "Summer" },
-	{ value: "fall", label: "Fall" },
+	{ value: "autumn", label: "Autumn" },
 	{ value: "winter", label: "Winter" }
 ];
 
 export const weatherOptions = [
-	{ value: "sunny", label: "Sunny" },
-	{ value: "cloudy", label: "Cloudy" },
-	{ value: "rainy", label: "Rainy" },
-	{ value: "snowy", label: "Snowy" },
+	{ value: "sunny-mostly-sunny", label: "Sunny / Mostly sunny" },
+	{ value: "mostly-cloudy-overcast", label: "Mostly cloudy / Overcast" },
+	{ value: "rainy-drizzling", label: "Rainy / drizzling" },
 	{ value: "windy", label: "Windy" },
-	{ value: "hot-humid", label: "Hot / Humid" }
+	{ value: "snowy-flurries", label: "Snowy / Flurries" },
+	{ value: "stormy", label: "Stormy" },
+	{ value: "feels-hot", label: "Feels hot / very hot" },
+	{ value: "feels-cold", label: "Feels cold / very cold" }
 ];
 
 export function createDefaultDraft(placeId: string): YeeAuditDraft {
 	const startedAt = new Date();
 	return {
 		placeId,
-		auditorId: `AUD-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+		placeName: "",
+		auditorId: "AUD000",
 		auditorName: "",
 		auditDate: startedAt.toISOString().slice(0, 10),
 		startTime: startedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
@@ -112,6 +118,14 @@ export function createDefaultDraft(placeId: string): YeeAuditDraft {
 		},
 		responses: {},
 		comments: "",
+		sectionComments: {
+			access: "",
+			activitySpaces: "",
+			amenities: "",
+			experienceOfSpace: "",
+			aestheticsAndCare: "",
+			useAndUsability: ""
+		},
 		submittedAt: null,
 		lastResult: null,
 		scorePreview: null
