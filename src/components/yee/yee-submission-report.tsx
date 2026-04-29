@@ -130,7 +130,7 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 					<YeeScoreSummary
 						preview={preview}
 						title="Score results"
-						description="Read-only raw and weighted scores computed from the submitted responses."
+						description="Read-only raw and Youth Weighted scores computed from the submitted responses."
 					/>
 
 					<div className="rounded-2xl border border-slate-200 p-4">

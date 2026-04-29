@@ -41,6 +41,9 @@ function toExportRows(rows: RawDataRecord[]) {
 			total_raw_score: row.total_raw_score,
 			total_weighted_score: row.total_weighted_score
 		};
+		for (const [key, value] of Object.entries(row.domain_weights)) {
+			base[`domain_weight_${key}`] = value;
+		}
 		for (const [key, value] of Object.entries(row.responses)) {
 			base[key] = value;
 		}
@@ -189,7 +192,7 @@ export function LiveRawDataTable({
 								<th className="py-3 pr-4 font-medium">Place</th>
 								<th className="py-3 pr-4 font-medium">Project</th>
 								<th className="py-3 pr-4 font-medium">Raw Total</th>
-								<th className="py-3 font-medium">Weighted Total</th>
+								<th className="py-3 font-medium">Youth Weighted Total</th>
 							</tr>
 						</thead>
 						<tbody>

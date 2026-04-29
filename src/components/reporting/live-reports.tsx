@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import * as React from "react";
 
@@ -190,20 +191,33 @@ export function LiveReports() {
 						</div>
 						<div className="space-y-3 text-sm leading-6 text-slate-600">
 							{filteredGroups.map(group => (
-								<button
+								<div
 									key={group.place_id}
-									type="button"
-									onClick={() => setSelectedPlaceId(group.place_id)}
-									className={`block w-full rounded-2xl border p-4 text-left transition ${
+									className={`rounded-2xl border p-4 transition ${
 										group.place_id === selectedGroup?.place_id
 											? "border-emerald-300 bg-emerald-50"
 											: "border-slate-200 bg-slate-50 hover:bg-slate-100"
-									}`}
-								>
-									<p className="font-medium text-slate-900">{group.place_name}</p>
-									<p className="mt-1 text-slate-600">{group.project_name}</p>
-									<p className="mt-2 text-xs text-slate-500">{group.audits.length} submitted audits</p>
-								</button>
+									}`}>
+									<div className="flex flex-wrap items-start justify-between gap-3">
+										<div>
+											<Link
+												href={`/dashboard/places/${group.place_id}`}
+												className="font-medium text-slate-900 underline decoration-slate-300 underline-offset-4 hover:text-slate-950">
+												{group.place_name}
+											</Link>
+											<p className="mt-1 text-slate-600">{group.project_name}</p>
+											<p className="mt-2 text-xs text-slate-500">{group.audits.length} submitted audits</p>
+										</div>
+										<Button
+											type="button"
+											variant="outline"
+											size="sm"
+											className="rounded-xl"
+											onClick={() => setSelectedPlaceId(group.place_id)}>
+											Open report
+										</Button>
+									</div>
+								</div>
 							))}
 							{filteredGroups.length === 0 ? <p className="text-sm text-slate-500">No reports match the selected filters.</p> : null}
 						</div>
@@ -221,7 +235,7 @@ export function LiveReports() {
 								<p className="font-medium text-slate-900">{selectedGroup.place_name}</p>
 								<p className="mt-1">{selectedGroup.project_name}</p>
 								<p className="mt-2">Average raw score: {averageTotal(selectedGroup)}</p>
-								<p>Average youth-weighted score: {averageWeighted(selectedGroup)}</p>
+								<p>Average Youth Weighted score: {averageWeighted(selectedGroup)}</p>
 							</div>
 						) : (
 							<p className="text-sm text-slate-500">Choose a place to open its report view.</p>

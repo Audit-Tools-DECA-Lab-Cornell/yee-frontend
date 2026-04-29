@@ -186,7 +186,7 @@ export const workspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> = {
 				description: "Placeholder for account, notification, and project-scoped settings."
 			}
 		},
-		headerBadges: ["12 places active", "48 audits logged"],
+		headerBadges: [],
 		user: {
 			name: "Andisha Safdariyan",
 			initials: "AS",

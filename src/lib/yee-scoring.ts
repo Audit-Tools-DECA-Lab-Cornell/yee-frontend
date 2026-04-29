@@ -62,10 +62,14 @@ export function buildWeightedScorePreview(
 			return [domain, rawDomainScores[domain] * weight];
 		})
 	) as Record<YeeDomainKey, number>;
+	const selectedWeights = Object.fromEntries(
+		(Object.keys(rawDomainScores) as YeeDomainKey[]).map(domain => [domain, Number(weights[domain] || 0)])
+	) as Record<YeeDomainKey, number>;
 
 	return {
 		rawDomainScores,
 		weightedDomainScores,
+		selectedWeights,
 		totalRawScore: Object.values(rawDomainScores).reduce((sum, value) => sum + value, 0),
 		totalWeightedScore: Object.values(weightedDomainScores).reduce((sum, value) => sum + value, 0),
 		matchedScoredAnswers: backendScore.matched_scored_answers,

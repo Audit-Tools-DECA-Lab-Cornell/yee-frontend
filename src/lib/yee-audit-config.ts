@@ -35,6 +35,7 @@ export type YeeAuditDraft = {
 export type YeeScorePreview = {
 	rawDomainScores: Record<YeeDomainKey, number>;
 	weightedDomainScores: Record<YeeDomainKey, number>;
+	selectedWeights: Record<YeeDomainKey, number>;
 	totalRawScore: number;
 	totalWeightedScore: number;
 	matchedScoredAnswers: number;

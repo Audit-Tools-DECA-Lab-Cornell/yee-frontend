@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, ChevronDown, Search, X } from "lucide-react";
+import { ChevronDown, Search, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -125,10 +125,7 @@ export function SearchableMultiSelectFilter({
 									onCheckedChange={checked => toggleValue(option.value, checked === true)}
 									onSelect={event => event.preventDefault()}
 									className="rounded-xl py-2.5 pr-3 pl-9 text-sm text-slate-700 focus:bg-slate-50 focus:text-slate-950">
-									<div className="flex min-w-0 items-center justify-between gap-3">
-										<span className="truncate">{option.label}</span>
-										{selectedValues.includes(option.value) ? <Check className="size-4 text-emerald-700" /> : null}
-									</div>
+									<span className="block truncate">{option.label}</span>
 								</DropdownMenuCheckboxItem>
 							))
 						)}

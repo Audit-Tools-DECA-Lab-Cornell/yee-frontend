@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { YeeScorePreview } from "@/lib/yee-audit-config";
 import { getScoreRows } from "@/lib/yee-scoring";
+import { getYouthWeightedScoreMaximum, totalRawScoreMaximum } from "@/lib/yee-score-limits";
 
 export function YeeScoreSummary({
 	preview,
@@ -14,6 +15,7 @@ export function YeeScoreSummary({
 	const rows = getScoreRows(preview);
 	const rawMax = Math.max(...rows.map(row => row.rawScore), 1);
 	const weightedMax = Math.max(...rows.map(row => row.weightedScore), 1);
+	const youthWeightedMax = getYouthWeightedScoreMaximum(preview.selectedWeights);
 
 	return (
 		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
@@ -45,13 +47,21 @@ export function YeeScoreSummary({
 				<div className="grid gap-4 md:grid-cols-2">
 					<div className="rounded-2xl bg-slate-50 p-4">
 						<p className="text-sm text-slate-500">Total Enabling Environment Raw Score</p>
-						<p className="mt-2 text-2xl font-semibold text-slate-950">{preview.totalRawScore}</p>
-						<p className="mt-2 text-xs text-slate-500">Max score and cap percentage can be shown here once the final scoring cap is confirmed.</p>
+						<p className="mt-2 text-2xl font-semibold text-slate-950">
+							{preview.totalRawScore} / {totalRawScoreMaximum}
+						</p>
+						<p className="mt-2 text-xs text-slate-500">
+							The scoring worksheet sets the maximum raw audit score at {totalRawScoreMaximum}. Cap-score percentage remains pending.
+						</p>
 					</div>
 					<div className="rounded-2xl bg-emerald-50 p-4">
-						<p className="text-sm text-emerald-700">Total Enabling Environment Youth-Weighted Score</p>
-						<p className="mt-2 text-2xl font-semibold text-emerald-900">{preview.totalWeightedScore}</p>
-						<p className="mt-2 text-xs text-emerald-700/80">This total reflects the importance weighting selected earlier in the audit.</p>
+						<p className="text-sm text-emerald-700">Total Enabling Environment Youth Weighted Score</p>
+						<p className="mt-2 text-2xl font-semibold text-emerald-900">
+							{preview.totalWeightedScore} / {youthWeightedMax}
+						</p>
+						<p className="mt-2 text-xs text-emerald-700/80">
+							This Youth Weighted maximum is based on the domain weights selected earlier in the audit.
+						</p>
 					</div>
 				</div>
 				<div className="grid gap-6 lg:grid-cols-2">
@@ -73,7 +83,7 @@ export function YeeScoreSummary({
 						))}
 					</div>
 					<div className="space-y-3 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4">
-						<p className="text-sm font-medium text-emerald-900">Youth-weighted score by domain</p>
+						<p className="text-sm font-medium text-emerald-900">Youth Weighted score by domain</p>
 						{rows.map(row => (
 							<div key={`${row.domain}-weighted`} className="space-y-1">
 								<div className="flex items-center justify-between text-xs text-emerald-800">

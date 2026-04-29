@@ -232,6 +232,7 @@ export type RawDataRecord = {
 	weighted_use_and_usability: number;
 	total_raw_score: number;
 	total_weighted_score: number;
+	domain_weights: Record<string, number>;
 	responses: Record<string, string>;
 };
 

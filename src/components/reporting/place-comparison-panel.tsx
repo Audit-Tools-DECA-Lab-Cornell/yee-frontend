@@ -26,7 +26,7 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 				<CardHeader>
 					<CardTitle>Place-level comparison</CardTitle>
 					<CardDescription>
-						Compare audits for {group.place_name} using generated auditor IDs only. Raw and youth-weighted totals stay separate in this view.
+						Compare audits for {group.place_name} using generated auditor IDs only. Raw and Youth Weighted totals stay separate in this view.
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="overflow-x-auto">
@@ -36,7 +36,7 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 								<th className="py-3 pr-4 font-medium">Auditor ID</th>
 								<th className="py-3 pr-4 font-medium">Date</th>
 								<th className="py-3 pr-4 font-medium">Total Raw</th>
-								<th className="py-3 font-medium">Total Weighted</th>
+								<th className="py-3 font-medium">Total Youth Weighted</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -76,7 +76,7 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 						))}
 					</div>
 					<div className="space-y-4 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4">
-						<p className="text-sm font-medium text-emerald-900">Total Youth-Weighted Score</p>
+						<p className="text-sm font-medium text-emerald-900">Total Youth Weighted Score</p>
 						{records.map(record => (
 							<div key={`${record.audit_id}-weighted`} className="space-y-1">
 								<div className="flex items-center justify-between text-xs text-emerald-800">
@@ -98,7 +98,7 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 			<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
 				<CardHeader>
 					<CardTitle>Domain comparison</CardTitle>
-					<CardDescription>Raw and weighted domain scores across audits plus averages.</CardDescription>
+					<CardDescription>Raw and Youth Weighted domain scores across audits plus averages.</CardDescription>
 				</CardHeader>
 				<CardContent className="overflow-x-auto">
 					<table className="min-w-full text-left text-sm">
@@ -111,7 +111,7 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 									</th>
 								))}
 								<th className="py-3 pr-4 font-medium">Average Raw</th>
-								<th className="py-3 font-medium">Average Weighted</th>
+								<th className="py-3 font-medium">Average Youth Weighted</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -121,7 +121,7 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 									{records.map(record => (
 										<td key={`${record.audit_id}-${domain}`} className="py-4 pr-4 text-slate-600">
 											<div>{record.raw_domain_scores[domain]} raw</div>
-											<div className="text-xs text-slate-500">{record.weighted_domain_scores[domain]} weighted</div>
+											<div className="text-xs text-slate-500">{record.weighted_domain_scores[domain]} youth weighted</div>
 										</td>
 									))}
 									<td className="py-4 pr-4 text-slate-600">{averages?.avgRawByDomain[domain]}</td>
@@ -145,7 +145,7 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 								Average raw: {averages.totalRawAverage}
 							</Badge>
 							<Badge className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700 hover:bg-emerald-100">
-								Average weighted: {averages.totalWeightedAverage}
+								Average youth weighted: {averages.totalWeightedAverage}
 							</Badge>
 						</CardContent>
 					</Card>

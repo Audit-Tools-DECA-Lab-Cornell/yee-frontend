@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import * as React from "react";
-import { ArrowRight, ArrowUpRight, FilePlus2, MailPlus, MapPinned, UserPlus, Users2 } from "lucide-react";
+import { ArrowRight, ArrowUpRight, FilePlus2, MailPlus, MapPinned, UserPlus } from "lucide-react";
 
 import { useAuth } from "@/components/auth/auth-provider";
 import { ClearFiltersButton, SearchableMultiSelectFilter } from "@/components/dashboard/table-filters";
@@ -21,10 +21,12 @@ import {
 	fetchRawData,
 	fetchUsers,
 	type AuditRecord,
+	type DashboardMetric,
 	type PlaceComparisonGroupRecord,
 	type RawDataRecord,
 	type UserRecord
 } from "@/lib/dashboard/live-api";
+import { getYouthWeightedScoreMaximum, totalRawScoreMaximum, totalYouthWeightedScoreMaximum } from "@/lib/yee-score-limits";
 
 const quickLinks = [
 	{
@@ -162,6 +164,9 @@ function rawDataToRows(rows: RawDataRecord[]) {
 			total_raw_score: row.total_raw_score,
 			total_weighted_score: row.total_weighted_score
 		};
+		for (const [key, value] of Object.entries(row.domain_weights)) {
+			base[`domain_weight_${key}`] = value;
+		}
 		for (const [key, value] of Object.entries(row.responses)) {
 			base[key] = value;
 		}
@@ -193,12 +198,80 @@ function parseAssignmentList(value: string) {
 		.filter(item => item && item !== "None");
 }
 
+function getMetricValue(metrics: DashboardMetric[], keyword: string) {
+	return metrics.find(metric => metric.title.toLowerCase().includes(keyword.toLowerCase()))?.value ?? "0";
+}
+
+function formatScoreValue(value: number | null) {
+	if (value === null || Number.isNaN(value)) return "Pending";
+	return Number.isInteger(value) ? String(value) : value.toFixed(1);
+}
+
+function formatPercent(value: number | null) {
+	if (value === null || Number.isNaN(value)) return "Pending";
+	return `${value.toFixed(1)}%`;
+}
+
 export function LiveManagerOverview() {
 	const { data, loading, error } = useDashboardData(fetchDashboardOverview);
+	const rawData = useTableData(fetchRawData);
 
-	if (loading) return <LoadingCard label="overview" />;
+	if (loading || rawData.loading) return <LoadingCard label="overview" />;
 	if (error) return <ErrorCard message={error} />;
+	if (rawData.error) return <ErrorCard message={rawData.error} />;
 	if (!data) return <EmptyState title="No dashboard data yet" description="Sign in again and make sure the backend is running." />;
+
+	const submittedRows = (rawData.data ?? []).filter(row => Boolean(row.submitted_at));
+	const averageRawScore =
+		submittedRows.length > 0
+			? submittedRows.reduce((sum, row) => sum + row.total_raw_score, 0) / submittedRows.length
+			: null;
+	const averageWeightedScore =
+		submittedRows.length > 0
+			? submittedRows.reduce((sum, row) => sum + row.total_weighted_score, 0) / submittedRows.length
+			: null;
+	const averageCapPercentage =
+		submittedRows.length > 0
+			? submittedRows.reduce((sum, row) => {
+					const denominator = getYouthWeightedScoreMaximum(row.domain_weights);
+					if (denominator <= 0) return sum;
+					return sum + (row.total_weighted_score / denominator) * 100;
+				}, 0) / submittedRows.length
+			: null;
+	const activePlaces = getMetricValue(data.metrics, "place");
+	const auditsLogged = getMetricValue(data.metrics, "audit");
+	const snapshotItems = [
+		{
+			label: "Active Places",
+			value: activePlaces,
+			helper: "Places currently in this manager's project scope."
+		},
+		{
+			label: "Audits Logged",
+			value: auditsLogged,
+			helper: "Draft and submitted audit records tied to this manager's places."
+		},
+		{
+			label: "Youth Weighted Score",
+			value: formatScoreValue(averageWeightedScore),
+			helper: "Average Youth Weighted score across submitted audits in this manager view."
+		},
+		{
+			label: "Raw Score",
+			value: formatScoreValue(averageRawScore),
+			helper: "Average raw score across submitted audits in this manager view."
+		},
+		{
+			label: "Cap Score Percentage",
+			value: formatPercent(averageCapPercentage),
+			helper: "Average Youth Weighted percentage against the scoring-sheet denominator for each submitted audit."
+		},
+		{
+			label: "Max Score",
+			value: `${totalRawScoreMaximum} raw / ${totalYouthWeightedScoreMaximum} Youth Weighted`,
+			helper: "Scoring-sheet maxima: raw total is fixed, while Youth Weighted maxima depend on selected domain weights."
+		}
+	];
 
 	return (
 		<div className="space-y-6">
@@ -227,19 +300,18 @@ export function LiveManagerOverview() {
 						</div>
 					</div>
 					<div className="rounded-[1.75rem] border border-white/10 bg-white/8 p-5 backdrop-blur-sm">
-						<p className="text-sm font-medium text-emerald-50/80">Field snapshot</p>
-						<div className="mt-5 grid gap-4">
-							<div className="rounded-2xl bg-white/10 p-4">
-								<p className="text-sm text-emerald-50/70">Coverage this week</p>
-								<p className="mt-2 text-3xl font-semibold">{data.metrics[3]?.value ?? "00"}</p>
-							</div>
-							<div className="flex items-center justify-between rounded-2xl bg-white/10 p-4">
-								<div>
-									<p className="text-sm text-emerald-50/70">Auditors assigned</p>
-									<p className="mt-1 text-xl font-semibold">{data.metrics[2]?.value ?? "00"}</p>
+						<p className="text-sm font-medium text-emerald-50/80">Manager snapshot</p>
+						<p className="mt-2 text-xs leading-5 text-emerald-50/70">
+							These values reflect only the projects, places, and audits currently owned by this manager.
+						</p>
+						<div className="mt-5 grid gap-3 sm:grid-cols-2">
+							{snapshotItems.map(item => (
+								<div key={item.label} className="rounded-2xl bg-white/10 p-4">
+									<p className="text-sm text-emerald-50/70">{item.label}</p>
+									<p className="mt-2 text-2xl font-semibold text-white">{item.value}</p>
+									<p className="mt-2 text-xs leading-5 text-emerald-50/65">{item.helper}</p>
 								</div>
-								<Users2 className="size-8 text-emerald-100/80" />
-							</div>
+							))}
 						</div>
 					</div>
 				</div>
@@ -306,7 +378,11 @@ export function LiveManagerOverview() {
 				</Card>
 			</section>
 
-			<AuditTableCard title="Latest audit scores" description="Recent submitted or draft audits from the backend." audits={data.latest_audits} />
+			<AuditTableCard
+				title="Latest audit scores"
+				description="Recent submitted or draft audits currently available in this manager workspace."
+				audits={data.latest_audits}
+			/>
 		</div>
 	);
 }

@@ -872,7 +872,7 @@ export function YeeAuditWizard({
 							<YeeScoreSummary
 								preview={draft.scorePreview}
 								title="Score preview"
-								description="This preview is based on the saved draft answers and shows both raw and youth-weighted score views."
+								description="This preview is based on the saved draft answers and shows both raw and Youth Weighted score views."
 							/>
 						) : (
 							<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
@@ -1007,7 +1007,7 @@ export function YeeAuditWizard({
 						<CardContent className="py-5 text-sm leading-7 text-slate-700">
 							<p className="font-medium text-slate-900">How important is each domain to you in {draft.placeName || "this place"}?</p>
 							<p className="mt-2">
-								Your answers on this page are used later to calculate youth-weighted scores alongside the raw section scores.
+								Your answers on this page are used later to calculate Youth Weighted scores alongside the raw section scores.
 							</p>
 						</CardContent>
 					</Card>
