@@ -1,46 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import * as React from "react";
 
-import { useAuth } from "@/components/auth/auth-provider";
+import { AuditorAuditHistory } from "@/components/yee/auditor-audit-history";
+import { useAuditorAuditData } from "@/components/yee/use-auditor-audit-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { fetchMyPlaces, type AssignedPlaceRecord } from "@/lib/dashboard/live-api";
-import { fetchAuditState } from "@/lib/yee-audit-api";
 
 export function AuditorOverview() {
-	const { session } = useAuth();
-	const [places, setPlaces] = React.useState<AssignedPlaceRecord[]>([]);
-	const [submittedCount, setSubmittedCount] = React.useState(0);
-	const [draftCount, setDraftCount] = React.useState(0);
-	const [loading, setLoading] = React.useState(true);
-	const [error, setError] = React.useState<string | null>(null);
-
-	React.useEffect(() => {
-		if (!session) return;
-		let cancelled = false;
-		const run = async () => {
-			try {
-				const rows = await fetchMyPlaces(session);
-				const states = await Promise.all(rows.map(place => fetchAuditState(place.id, session)));
-				if (!cancelled) {
-					setPlaces(rows);
-					setSubmittedCount(states.filter(state => state.status === "SUBMITTED").length);
-					setDraftCount(states.filter(state => state.status === "DRAFT").length);
-				}
-			} catch (err) {
-				if (!cancelled) setError(err instanceof Error ? err.message : "Could not load assigned places.");
-			} finally {
-				if (!cancelled) setLoading(false);
-			}
-		};
-		void run();
-		return () => {
-			cancelled = true;
-		};
-	}, [session]);
+	const { places, submittedCount, draftCount, firstDraftPlaceId, loading, error } = useAuditorAuditData();
+	const continueAuditHref = firstDraftPlaceId ? `/yee/audit/${firstDraftPlaceId}/page/1` : "/my-dashboard/places";
 
 	if (loading) {
 		return <main className="mx-auto max-w-5xl p-6 text-sm text-slate-500">Loading auditor dashboard...</main>;
@@ -66,10 +35,13 @@ export function AuditorOverview() {
 						</p>
 						<div className="mt-6 flex flex-wrap gap-3">
 							<Button asChild className="rounded-2xl bg-white text-slate-950 hover:bg-emerald-50">
-								<Link href="/my-dashboard/audits">View My Audits</Link>
+								<Link href="/my-dashboard/places">View My Audits</Link>
 							</Button>
 							<Button asChild variant="outline" className="rounded-2xl border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
 								<Link href="/yee/introduction">Start New Audit</Link>
+							</Button>
+							<Button asChild variant="outline" className="rounded-2xl border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+								<Link href={continueAuditHref}>Continue Audits in Progress</Link>
 							</Button>
 						</div>
 					</div>
@@ -94,30 +66,7 @@ export function AuditorOverview() {
 			</section>
 
 			<section>
-				<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
-					<CardHeader>
-						<CardTitle>Assigned places</CardTitle>
-						<CardDescription>Only the places assigned to you appear here.</CardDescription>
-					</CardHeader>
-					<CardContent className="space-y-3">
-						{places.length === 0 ? (
-							<p className="text-sm text-slate-500">No places assigned yet.</p>
-						) : (
-							places.map(place => (
-								<div key={place.id} className="rounded-2xl border border-slate-200 p-4">
-									<p className="font-medium text-slate-900">{place.name}</p>
-									<p className="mt-1 text-sm text-slate-600">{place.project}</p>
-									<p className="mt-1 text-sm text-slate-500">{place.address}</p>
-									<div className="mt-3">
-										<Button asChild variant="outline" className="rounded-2xl">
-											<Link href={`/yee/audit/${place.id}/page/1`}>Open audit flow</Link>
-										</Button>
-									</div>
-								</div>
-							))
-						)}
-					</CardContent>
-				</Card>
+				<AuditorAuditHistory title="Assigned Places" description="Review audit status and use the correct action for each assigned place." />
 			</section>
 		</div>
 	);

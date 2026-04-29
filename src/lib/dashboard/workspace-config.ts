@@ -214,9 +214,7 @@ export const workspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> = {
 		},
 		navigation: [
 			{ label: "Overview", href: "/my-dashboard", icon: LayoutDashboard },
-			{ label: "My Places", href: "/my-dashboard/places", icon: MapPinned },
-			{ label: "My Audits", href: "/my-dashboard/audits", icon: ClipboardList },
-			{ label: "Start Audit", href: "/yee/introduction", icon: FilePlus2 }
+			{ label: "My Audits", href: "/my-dashboard/places", icon: ClipboardList }
 		],
 		secondaryNavigation: [{ label: "Settings", href: "/my-dashboard/settings", icon: Settings2 }],
 		pageCopy: {
@@ -225,19 +223,19 @@ export const workspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> = {
 				description: "Review assigned places, continue fieldwork, and track your own submission history."
 			},
 			"/my-dashboard/places": {
-				title: "My Places",
-				description: "Only the places assigned to this auditor appear here."
+				title: "My Audits",
+				description: "Review audit status and place-by-place actions for the locations assigned to you."
 			},
 			"/my-dashboard/audits": {
 				title: "My Audits",
-				description: "Track draft, submitted, and completed audits for your own work."
+				description: "This route redirects to the current auditor audit workspace."
 			},
 			"/my-dashboard/settings": {
 				title: "Settings",
 				description: "Placeholder for personal profile and preferences."
 			}
 		},
-		headerBadges: ["4 assigned places", "2 drafts in progress"],
+		headerBadges: [],
 		user: {
 			name: "Assigned Auditor",
 			initials: "AU",

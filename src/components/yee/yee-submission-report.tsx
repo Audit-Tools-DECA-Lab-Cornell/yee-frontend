@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { YeeScoreSummary } from "@/components/yee/yee-score-summary";
 import { fetchSubmission, type YeeSubmissionRecord } from "@/lib/yee-audit-api";
+import { yeeDomainLabels, type YeeDomainKey } from "@/lib/yee-audit-config";
 import { buildWeightedScorePreview } from "@/lib/yee-scoring";
 
 function downloadSingleSubmissionCsv(submission: YeeSubmissionRecord) {
@@ -101,6 +102,15 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 		submission.score,
 		normalizeWeights(submission.participant_info.domain_weights)
 	);
+	const sectionComments =
+		submission.participant_info.section_comments &&
+		typeof submission.participant_info.section_comments === "object"
+			? (submission.participant_info.section_comments as Partial<Record<YeeDomainKey, string>>)
+			: {};
+	const weightingComments =
+		typeof submission.participant_info.weighting_comments === "string"
+			? submission.participant_info.weighting_comments
+			: "";
 
 	return (
 		<main className="mx-auto max-w-5xl space-y-6 p-6">
@@ -133,9 +143,24 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 						description="Read-only raw and Youth Weighted scores computed from the submitted responses."
 					/>
 
-					<div className="rounded-2xl border border-slate-200 p-4">
-						<p className="text-sm font-medium text-slate-900">Comments</p>
-						<p className="mt-2 text-sm text-slate-600">{String(submission.participant_info.comments || "No comments submitted.")}</p>
+					<div className="grid gap-4 md:grid-cols-2">
+						<div className="rounded-2xl border border-slate-200 p-4">
+							<p className="text-sm font-medium text-slate-900">Weighting comments</p>
+							<p className="mt-2 text-sm text-slate-600">{weightingComments || "No weighting comments submitted."}</p>
+						</div>
+						<div className="rounded-2xl border border-slate-200 p-4">
+							<p className="text-sm font-medium text-slate-900">Overall comments</p>
+							<p className="mt-2 text-sm text-slate-600">{String(submission.participant_info.comments || "No comments submitted.")}</p>
+						</div>
+					</div>
+
+					<div className="grid gap-4 md:grid-cols-2">
+						{(Object.keys(yeeDomainLabels) as YeeDomainKey[]).map(domain => (
+							<div key={domain} className="rounded-2xl border border-slate-200 p-4">
+								<p className="text-sm font-medium text-slate-900">{yeeDomainLabels[domain]} comments</p>
+								<p className="mt-2 text-sm text-slate-600">{sectionComments[domain] || "No section comments submitted."}</p>
+							</div>
+						))}
 					</div>
 
 					<div className="flex flex-wrap gap-3">
@@ -146,7 +171,7 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 							Export data
 						</Button>
 						<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
-							<Link href="/my-dashboard/audits">Back to My Audits</Link>
+							<Link href="/my-dashboard/places">Back to My Audits</Link>
 						</Button>
 						<Button asChild variant="outline" className="rounded-2xl">
 							<Link href="/my-dashboard">Back to dashboard</Link>

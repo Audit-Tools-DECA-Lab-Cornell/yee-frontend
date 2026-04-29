@@ -109,14 +109,19 @@ The YEE audit flow is split into multiple pages:
 Current behavior:
 
 - step pages and review use backend-backed draft state via `/api/yee/places/[placeId]/audit-state`
-- draft data includes metadata, high-level answers, domain weights, comments, and question responses
+- draft data includes metadata, high-level answers, domain weights, comments, section comments, weighting comments, and question responses
 - the instrument payload now includes section intro text and section comment prompts derived from the source QSF
 - page 1 uses the spreadsheet-aligned visit-frequency wording and weather is treated as multi-select
+- page 2 uses stakeholder-provided weighting copy and more prominent question styling
 - domain question groups now pair presence and condition answers together, and condition follow-ups only appear when the presence answer is positive
+- each audit section uses pale-green survey cards with stacked answer buttons and softer selected states
+- each domain section includes its own optional comments box
+- the survey now includes a dedicated final-comments page before review
 - score preview calls `/api/yee/audits/score` with the backend-required payload shape
 - final submission calls `/api/yee/audits`
 - after submit, the place becomes locked for that auditor
 - submitted audits open a read-only results page at `/yee/submissions/[submissionId]`
+- local duplicate draft rows are handled by the backend using the latest matching YEE draft instead of crashing on save/submit
 
 ### Manager workspace behavior
 
@@ -139,8 +144,29 @@ The current reporting experience includes:
 - read-only submitted report pages
 - print and CSV export actions from submitted reports
 - manager comparison views with bar-style score summaries
+- per-domain percentage bar graphics for both raw and youth-weighted score views
+- shared score legends that explain lower / middle / upper score ranges
+- manager comparison cards that show percentage bars for each audit's total raw and total youth-weighted score
 
 Cap score percentage and final max-score presentation are intentionally left extensible until the final cap logic is confirmed.
+
+### Auditor dashboard behavior
+
+The current auditor workspace is intentionally more task-focused than the manager workspace.
+
+Current behavior:
+
+- the auditor overview has exactly three primary actions:
+  - `View My Audits`
+  - `Start New Audit`
+  - `Continue Audits in Progress`
+- the old duplicate top-header `Start Audit` action was removed
+- the previous header status badges were removed so they do not conflict with the field snapshot
+- the assigned-place audit-status widget was moved into the overview page under `Assigned Places`
+- the visible auditor navigation now uses `/my-dashboard/places` as the primary `My Audits` destination
+- `/my-dashboard/audits` is kept as a compatibility redirect to `/my-dashboard/places`
+- the auditor field snapshot and assigned-place table now share the same fetched audit-state source
+- auditor filtering now supports `Project` and `Place` filters in both the overview widget and the `My Audits` page
 
 ## Tech Stack
 
@@ -263,6 +289,11 @@ These are useful for local or tunnel-based testing:
 - `/yee/audit/[placeId]/review`
 - `/yee/audit/[placeId]/submitted`
 - `/yee/submissions/[submissionId]`
+
+Notes:
+
+- the visible `My Audits` page currently lives at `/my-dashboard/places`
+- `/my-dashboard/audits` remains in the app only as a redirect for older links
 
 ### Frontend proxy API routes
 

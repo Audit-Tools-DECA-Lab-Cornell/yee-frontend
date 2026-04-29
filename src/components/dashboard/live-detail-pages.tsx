@@ -60,6 +60,36 @@ function DetailMetric({
 	);
 }
 
+function DetailActionCard({
+	label,
+	description,
+	href,
+	actionLabel
+}: {
+	label: string;
+	description: string;
+	href: string;
+	actionLabel: string;
+}) {
+	return (
+		<Card className="rounded-[1.5rem] border-slate-200/80 bg-white shadow-sm">
+			<CardHeader className="pb-3">
+				<CardDescription>{label}</CardDescription>
+				<CardTitle className="text-2xl font-semibold tracking-tight text-slate-950">{actionLabel}</CardTitle>
+			</CardHeader>
+			<CardContent className="flex items-center justify-between gap-4 text-sm leading-6 text-slate-600">
+				<p>{description}</p>
+				<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
+					<Link href={href}>
+						{actionLabel}
+						<ArrowRight className="size-4" />
+					</Link>
+				</Button>
+			</CardContent>
+		</Card>
+	);
+}
+
 function useProtectedLoader<T>(loader: (accessToken: NonNullable<ReturnType<typeof useAuth>["session"]>) => Promise<T>) {
 	const { session } = useAuth();
 	const [data, setData] = React.useState<T | null>(null);
@@ -396,6 +426,12 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 								<Link href={`/dashboard/places/${data.id}/edit`}>Edit place</Link>
 							</Button>
 							<Button asChild variant="outline" className="rounded-2xl border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+								<Link href={`/dashboard/auditors?projectId=${data.project_id}&placeId=${data.id}`}>Assign Auditors</Link>
+							</Button>
+							<Button asChild variant="outline" className="rounded-2xl border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+								<Link href={`/dashboard/audits?projectId=${data.project_id}&placeId=${data.id}`}>View Audits</Link>
+							</Button>
+							<Button asChild variant="outline" className="rounded-2xl border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
 								<Link href="/dashboard/reports">
 									View comparison reports
 									<FileBarChart2 className="size-4" />
@@ -410,7 +446,12 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 				<DetailMetric label="Assigned auditors" value={`${data.assigned_auditors}`} description="Auditors currently allowed to complete YEE work at this place." />
 				<DetailMetric label="All audits" value={`${data.total_audits}`} description="Audit records linked to this place across current activity." />
 				<DetailMetric label="Submitted audits" value={`${data.submitted_audits}`} description="Completed YEE submissions available for scoring and reporting." />
-				<DetailMetric label="Last audit" value={data.last_audit} description="Most recent submitted audit currently available in the backend." />
+				<DetailActionCard
+					label="View Audits"
+					actionLabel="Open Audits"
+					href={`/dashboard/audits?projectId=${data.project_id}&placeId=${data.id}`}
+					description="Review draft and submitted audits already linked to this place from the manager workspace."
+				/>
 			</section>
 
 			<PlaceAuditorsTable rows={data.auditors} />

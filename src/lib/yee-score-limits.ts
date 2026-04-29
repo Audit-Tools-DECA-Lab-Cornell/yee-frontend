@@ -25,3 +25,10 @@ export function getYouthWeightedScoreMaximum(weights?: Partial<Record<YeeDomainK
 		0
 	);
 }
+
+export function getDomainYouthWeightedMaximum(
+	domain: YeeDomainKey,
+	weight: string | number | null | undefined
+) {
+	return rawDomainScoreMaximums[domain] * normalizeWeightValue(weight);
+}

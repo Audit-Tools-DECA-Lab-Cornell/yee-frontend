@@ -31,6 +31,7 @@ import {
 	visitFrequencyOptions,
 	weatherOptions,
 	type YeeAuditDraft,
+	type YeeDomainKey,
 	type YeeStepNumber
 } from "@/lib/yee-audit-config";
 import {
@@ -59,6 +60,22 @@ function normalizeText(value: string) {
 function ensureQuestionMark(value: string) {
 	if (!value) return value;
 	return /[?.!]$/.test(value) ? value : `${value}?`;
+}
+
+function formatExampleText(value: string) {
+	return value
+		.replace(/\bexample:\s*/gi, "Ex: ")
+		.replace(/\(example:\s*/gi, "(Ex: ")
+		.replace(/\bex\s*:\s*/gi, "Ex: ");
+}
+
+function normalizeVisibleQuestion(value: string) {
+	return ensureQuestionMark(formatExampleText(normalizeText(value)));
+}
+
+function isPlaceholderQuestionText(value: string) {
+	const normalized = normalizeText(value).toLowerCase();
+	return normalized === "" || normalized === "click to write the question text";
 }
 
 function hasAnsweredItem(item: InstrumentItem, responses: ResponsesState) {
@@ -207,6 +224,195 @@ function normalizeWeights(raw: unknown): YeeAuditDraft["weights"] {
 	};
 }
 
+function getShortStepLabel(stepValue: YeeStepNumber) {
+	switch (stepValue) {
+		case 1:
+			return "Context";
+		case 2:
+			return "Weighting";
+		case 3:
+			return "Access";
+		case 4:
+			return "Activity Spaces";
+		case 5:
+			return "Amenities";
+		case 6:
+			return "Experience";
+		case 7:
+			return "Aesthetics & Care";
+		case 8:
+			return "Use & Usability";
+		case 9:
+			return "Final Comments";
+	}
+}
+
+function getSectionIntroCopy(domain: YeeDomainKey) {
+	switch (domain) {
+		case "access":
+			return {
+				heading: "Access: Presence, Condition, Quantity",
+				body: (
+					<>
+						<strong>ACCESS:</strong> this section asks about access to the park or space and the surrounding area.
+						{" "}Do your best to look around the space and its entrances to answer the questions.
+						{" "}If asked to rate the condition of a feature, consider whether it is <strong>poor</strong>{" "}
+						(Ex: poorly maintained, unsafe, broken, or dirty), <strong>acceptable</strong>{" "}
+						(Ex: clean, in good shape, well maintained, or relatively safe), or <strong>great</strong>{" "}
+						(Ex: in really good shape, really well maintained, and feels very safe).
+					</>
+				)
+			};
+		case "activitySpaces":
+			return {
+				heading: "Activity Spaces: Presence, Condition, Provision",
+				body: (
+					<>
+						<strong>ACTIVITY SPACES:</strong> this section asks you to evaluate opportunities and spaces for recreational and social activities.
+						{" "}If asked to rate the condition of a feature, consider whether it is <strong>poor</strong>{" "}
+						(Ex: poorly maintained, unsafe, broken, or dirty), <strong>acceptable</strong>{" "}
+						(Ex: clean, in good shape, well maintained, or relatively safe), or <strong>great</strong>{" "}
+						(Ex: in really good shape, really well maintained, and feels very safe).
+					</>
+				)
+			};
+		case "amenities":
+			return {
+				heading: "Amenities: Presence, Condition, Quantity",
+				body: (
+					<>
+						<strong>AMENITIES:</strong> this section asks about the presence and condition of different amenities within the space.
+						{" "}If asked to rate the condition of a feature, consider whether it is <strong>poor</strong>{" "}
+						(Ex: poorly maintained, unsafe, broken, or dirty), <strong>acceptable</strong>{" "}
+						(Ex: clean, in good shape, well maintained, or relatively safe), or <strong>great</strong>{" "}
+						(Ex: in really good shape, really well maintained, and feels very safe).
+					</>
+				)
+			};
+		case "experienceOfSpace":
+			return {
+				heading: "Experience of Space",
+				body: (
+					<>
+						<strong>EXPERIENCE OF THE SPACE:</strong> this section asks about how you feel in or experience the space.
+						{" "}Choose the most appropriate answer for each statement based on what you notice during your visit.
+					</>
+				)
+			};
+		case "aestheticsAndCare":
+			return {
+				heading: "Aesthetics & Care: Presence, Condition, Quantity",
+				body: (
+					<>
+						<strong>AESTHETICS &amp; CARE:</strong> this section asks about how the space looks and how well it is cared for or maintained.
+						{" "}If asked to rate the condition of a feature, consider whether it is <strong>poor</strong>{" "}
+						(Ex: poorly maintained, unsafe, broken, or dirty), <strong>acceptable</strong>{" "}
+						(Ex: clean, in good shape, well maintained, or relatively safe), or <strong>great</strong>{" "}
+						(Ex: in really good shape, really well maintained, and feels very safe).
+					</>
+				)
+			};
+		case "useAndUsability":
+			return {
+				heading: "Use & Usability: Presence, Condition, Provision",
+				body: (
+					<>
+						<strong>USE &amp; USABILITY:</strong> this section asks about how the space can be or is used.
+						{" "}If asked to rate the condition of a feature, consider whether it is <strong>poor</strong>{" "}
+						(Ex: poorly maintained, unsafe, broken, or dirty), <strong>acceptable</strong>{" "}
+						(Ex: clean, in good shape, well maintained, or relatively safe), or <strong>great</strong>{" "}
+						(Ex: in really good shape, really well maintained, and feels very safe).
+					</>
+				)
+			};
+	}
+}
+
+function getMatrixCardInstruction(domain: YeeDomainKey) {
+	if (domain === "access") {
+		return "Answer each item below. If the feature is present, the condition follow-up will appear right underneath it.";
+	}
+	return "Answer each item below. If the feature is present, the condition follow-up will appear right underneath it.";
+}
+
+function getSingleCardInstruction(domain: YeeDomainKey) {
+	switch (domain) {
+		case "access":
+			return "Choose the most appropriate answer for each access item below.";
+		case "activitySpaces":
+			return "Please answer the following questions about activity spaces.";
+		case "amenities":
+			return "Choose the most appropriate answer for each amenities item below.";
+		case "experienceOfSpace":
+			return "Choose the most appropriate answer for each statement below.";
+		case "aestheticsAndCare":
+			return "Choose the most appropriate answer for each aesthetics and care item below.";
+		case "useAndUsability":
+			return "Choose the most appropriate answer for each use and usability item below.";
+	}
+}
+
+function getDomainForBlock(block: string): YeeDomainKey | null {
+	const normalized = block.toLowerCase();
+	if (normalized.includes("access")) return "access";
+	if (normalized.includes("activity spaces")) return "activitySpaces";
+	if (normalized.includes("amenities")) return "amenities";
+	if (normalized.includes("experience")) return "experienceOfSpace";
+	if (normalized.includes("aesthetics")) return "aestheticsAndCare";
+	if (normalized.includes("use & usability")) return "useAndUsability";
+	return null;
+}
+
+function getWeightingPrompt(domain: YeeDomainKey) {
+	switch (domain) {
+		case "access":
+			return "How important is to you that you can easily and safely get to these spaces?";
+		case "activitySpaces":
+			return "How important is it to you that these places have the spaces and/or equipment that allow you to do the activities you like (example: have spaces for sports/games, for hanging out with friends, for spending quiet time on your own, etc)?";
+		case "amenities":
+			return "How important is it to you that these places have amenities that make the space more comfortable and suitable (like bathrooms, wifi, garbage bins, places to buy food/drinks, seating for groups, shade etc)?";
+		case "experienceOfSpace":
+			return "How important is it to you that these places feel pleasant and safe to be in (example: feel peaceful, have lots of nature or nice views, feel safe and comfortable, where you won't be bothered or feel out of place, etc)?";
+		case "aestheticsAndCare":
+			return "How important is it to you that these places look nice and well cared for (example: have lots of greenery, have gardens or art to look at, are free from litter and graffiti, looks like someone is taking good care of it, etc)?";
+		case "useAndUsability":
+			return "How important is it to you that these places are suitable for many activities for youth and/or the community (example: allows for lots of different types of activities, has lights that allow for night use, is good for youth programming or dog walking, etc)?";
+	}
+}
+
+function getIncompleteStepMessage(step: YeeStepNumber | undefined) {
+	if (step === 1) {
+		return "Please answer the visit frequency, season, and weather questions before continuing.";
+	}
+	if (step === 2) {
+		return "Please answer all six importance weighting questions before continuing.";
+	}
+	if (step && step >= 3 && step <= 8) {
+		return "Please finish the required questions on this section before continuing.";
+	}
+	return "Please complete the required answers before continuing.";
+}
+
+function getPromptCountForItem(item: InstrumentItem) {
+	const choices = Object.keys(item.choices || {});
+	const answers = Object.keys(item.answers || {});
+	if (answers.length > 0) return Math.max(choices.length, 1);
+	return choices.length > 0 ? 1 : 0;
+}
+
+function getAnsweredPromptCountForItem(item: InstrumentItem, responses: ResponsesState) {
+	const currentValue = responses[item.item_id];
+	const choices = Object.entries(item.choices || {});
+	const answers = Object.entries(item.answers || {});
+
+	if (answers.length > 0) {
+		if (typeof currentValue !== "object" || !currentValue) return 0;
+		return choices.reduce((sum, [choiceId]) => (currentValue[choiceId] ? sum + 1 : sum), 0);
+	}
+
+	return typeof currentValue === "string" && currentValue.length > 0 ? 1 : 0;
+}
+
 function buildParticipantInfo(draft: YeeAuditDraft) {
 	return {
 		auditor_id: draft.auditorId,
@@ -221,6 +427,7 @@ function buildParticipantInfo(draft: YeeAuditDraft) {
 		season: draft.season,
 		weather: draft.weather,
 		domain_weights: draft.weights,
+		weighting_comments: draft.weightingComments,
 		comments: draft.comments,
 		section_comments: draft.sectionComments
 	};
@@ -256,6 +463,7 @@ function draftFromAuditState(placeId: string, state: YeeAuditState): YeeAuditDra
 		season: typeof participantInfo.season === "string" ? participantInfo.season : "",
 		weather: typeof participantInfo.weather === "string" ? participantInfo.weather : "",
 		weights,
+		weightingComments: typeof participantInfo.weighting_comments === "string" ? participantInfo.weighting_comments : "",
 		responses: state.responses ?? {},
 		comments: typeof participantInfo.comments === "string" ? participantInfo.comments : "",
 		sectionComments,
@@ -275,25 +483,28 @@ function OptionCards({
 	options,
 	value,
 	onChange,
-	readOnly = false
+	readOnly = false,
+	columns = 3
 }: {
 	name: string;
 	options: { value: string; label: string }[];
 	value: string;
 	onChange: (value: string) => void;
 	readOnly?: boolean;
+	columns?: 1 | 2 | 3;
 }) {
+	const gridClass = columns === 1 ? "grid-cols-1" : columns === 2 ? "sm:grid-cols-2" : "sm:grid-cols-3";
 	return (
-		<div className="grid gap-2 sm:grid-cols-3">
+		<div className={`grid gap-2 ${gridClass}`}>
 			{options.map(option => (
 				<label
 					key={`${name}-${option.value}`}
-					className={`rounded-2xl border p-4 text-sm transition ${
+					className={`rounded-2xl border px-4 py-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] transition ${
 						readOnly ? "cursor-default" : "cursor-pointer"
 					} ${
 						value === option.value
-							? "border-emerald-500 bg-emerald-50 text-emerald-800"
-							: "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+							? "border-emerald-300 bg-[#e8f4ec] text-emerald-950 ring-1 ring-emerald-150 shadow-[0_8px_22px_-18px_rgba(46,107,82,0.45)]"
+							: "border-emerald-100 bg-[#f5fbf7] text-slate-700 hover:border-emerald-200 hover:bg-[#eef8f2]"
 					}`}>
 					<input
 						type="radio"
@@ -329,10 +540,10 @@ function MultiSelectCards({
 				return (
 					<label
 						key={`${name}-${option.value}`}
-						className={`cursor-pointer rounded-2xl border p-4 text-sm transition ${
+						className={`cursor-pointer rounded-2xl border px-4 py-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] transition ${
 							checked
-								? "border-emerald-500 bg-emerald-50 text-emerald-800"
-								: "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+								? "border-emerald-300 bg-[#e8f4ec] text-emerald-950 ring-1 ring-emerald-150 shadow-[0_8px_22px_-18px_rgba(46,107,82,0.45)]"
+								: "border-emerald-100 bg-[#f5fbf7] text-slate-700 hover:border-emerald-200 hover:bg-[#eef8f2]"
 						}`}>
 						<input
 							type="checkbox"
@@ -382,18 +593,20 @@ function InstrumentQuestionCard({
 
 	if (choices.length === 0 && answers.length === 0) {
 		return (
-			<Card className="rounded-[1.5rem] border-slate-200/80 bg-[#fffdf8] shadow-sm">
+			<Card className="rounded-[1.75rem] border border-emerald-200/70 bg-[#f2faf5] shadow-[0_12px_35px_-24px_rgba(16,35,31,0.45)]">
 				<CardContent className="py-6 text-sm leading-7 text-slate-600">{normalizeText(item.question_text)}</CardContent>
 			</Card>
 		);
 	}
 
 	if (answers.length > 0) {
+		const title = isPlaceholderQuestionText(item.question_text)
+			? getSingleCardInstruction(getDomainForBlock(item.block) ?? "access")
+			: normalizeVisibleQuestion(item.question_text || item.item_id);
 		return (
-			<Card className="rounded-[1.5rem] border-slate-200/80 bg-white shadow-sm">
-				<CardHeader>
-					<CardTitle className="text-base">{normalizeText(item.question_text || item.item_id)}</CardTitle>
-					<CardDescription>{item.block}</CardDescription>
+			<Card className="rounded-[1.75rem] border border-emerald-200/80 bg-[#f2faf5] shadow-[0_18px_40px_-30px_rgba(16,35,31,0.55)]">
+				<CardHeader className="pb-3">
+					<CardTitle className="text-base font-semibold">{title}</CardTitle>
 				</CardHeader>
 				<CardContent className="space-y-4">
 					{choices.map(([choiceId, choice]) => {
@@ -401,8 +614,11 @@ function InstrumentQuestionCard({
 							typeof currentValue === "object" && currentValue ? currentValue[choiceId] || "" : "";
 
 						return (
-							<div key={`${item.item_id}-${choiceId}`} className="space-y-3 rounded-2xl border border-slate-200 p-4">
-								<p className="text-sm font-medium text-slate-900">{getChoiceLabel(choice, choiceId)}</p>
+							<div
+								key={`${item.item_id}-${choiceId}`}
+								className="space-y-3 rounded-[1.35rem] border border-emerald-100 bg-white/85 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]"
+							>
+								<p className="text-sm font-medium text-slate-900">{normalizeVisibleQuestion(getChoiceLabel(choice, choiceId))}</p>
 								<OptionCards
 									name={`${item.item_id}-${choiceId}`}
 									value={selected}
@@ -420,11 +636,14 @@ function InstrumentQuestionCard({
 		);
 	}
 
+	const title = isPlaceholderQuestionText(item.question_text)
+		? getSingleCardInstruction(getDomainForBlock(item.block) ?? "access")
+		: normalizeVisibleQuestion(item.question_text || item.item_id);
+
 	return (
-		<Card className="rounded-[1.5rem] border-slate-200/80 bg-white shadow-sm">
-			<CardHeader>
-				<CardTitle className="text-base">{normalizeText(item.question_text || item.item_id)}</CardTitle>
-				<CardDescription>{item.block}</CardDescription>
+		<Card className="rounded-[1.75rem] border border-emerald-200/80 bg-[#f2faf5] shadow-[0_18px_40px_-30px_rgba(16,35,31,0.55)]">
+			<CardHeader className="pb-3">
+				<CardTitle className="text-base font-semibold">{title}</CardTitle>
 			</CardHeader>
 			<CardContent>
 				<OptionCards
@@ -470,12 +689,11 @@ function InstrumentQuestionGroupCard({
 	}
 
 	return (
-		<Card className="rounded-[1.5rem] border-slate-200/80 bg-[#f7fbf8] shadow-sm">
-			<CardHeader>
-				<CardTitle className="text-base">{presenceItem.block}</CardTitle>
-				<CardDescription>
-					Answer each item below. If the feature is present, the condition follow-up will appear right underneath it.
-				</CardDescription>
+		<Card className="rounded-[1.75rem] border border-emerald-200/80 bg-[#f2faf5] shadow-[0_18px_40px_-30px_rgba(16,35,31,0.55)]">
+			<CardHeader className="pb-3">
+				<CardTitle className="text-base font-semibold">
+					{getMatrixCardInstruction(getDomainForBlock(presenceItem.block) ?? "access")}
+				</CardTitle>
 			</CardHeader>
 			<CardContent className="space-y-4">
 				{choices.map(([choiceId, choice]) => {
@@ -483,7 +701,10 @@ function InstrumentQuestionGroupCard({
 					const showCondition = conditionItem ? isRowPositive(presenceItem, choiceId, responses) : false;
 					const selectedCondition = conditionItem ? getSelectedMatrixAnswer(conditionItem.item_id, choiceId, responses) : "";
 					return (
-						<div key={`${group.baseQuestionId}-${choiceId}`} className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
+						<div
+							key={`${group.baseQuestionId}-${choiceId}`}
+							className="space-y-3 rounded-[1.35rem] border border-emerald-100 bg-white/85 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]"
+						>
 							<p className="text-sm font-medium text-slate-900">
 								{ensureQuestionMark(getChoiceLabel(choice, choiceId))}
 							</p>
@@ -497,7 +718,7 @@ function InstrumentQuestionGroupCard({
 								}))}
 							/>
 							{conditionItem && showCondition ? (
-								<div className="space-y-2 rounded-2xl bg-emerald-50/70 p-4">
+								<div className="space-y-2 rounded-[1.25rem] border border-emerald-200 bg-[#edf6f0] p-4">
 									<p className="text-xs font-medium uppercase tracking-[0.16em] text-emerald-800">Condition</p>
 									<OptionCards
 										name={`${conditionItem.item_id}-${choiceId}`}
@@ -632,27 +853,34 @@ export function YeeAuditWizard({
 	const domainGroups = React.useMemo(() => groupInstrumentItems(domainItems), [domainItems]);
 	const weatherSelections = React.useMemo(() => draft.weather.split("|").filter(Boolean), [draft.weather]);
 
-	const answeredDomainItems = domainGroups.filter(group => {
-		if (group.items.length === 1) return hasAnsweredItem(group.items[0], responses);
+	const answeredDomainItems = domainGroups.reduce((sum, group) => {
+		if (group.items.length === 1) return sum + getAnsweredPromptCountForItem(group.items[0], responses);
 		const presenceItem = group.items.find(item => !isConditionItem(item)) ?? group.items[0];
 		const conditionItem = group.items.find(item => isConditionItem(item)) ?? null;
 		const choices = Object.keys(presenceItem.choices || {});
-		return choices.every(choiceId => {
-			const presenceValue = getSelectedMatrixAnswer(presenceItem.item_id, choiceId, responses);
-			if (!presenceValue) return false;
-			if (!conditionItem || !isRowPositive(presenceItem, choiceId, responses)) return true;
-			return Boolean(getSelectedMatrixAnswer(conditionItem.item_id, choiceId, responses));
-		});
-	}).length;
-	const requiredDomainItems = domainGroups.length;
+		return (
+			sum +
+			choices.reduce((rowSum, choiceId) => {
+				const presenceValue = getSelectedMatrixAnswer(presenceItem.item_id, choiceId, responses);
+				if (!presenceValue) return rowSum;
+				if (!conditionItem || !isRowPositive(presenceItem, choiceId, responses)) return rowSum + 1;
+				return getSelectedMatrixAnswer(conditionItem.item_id, choiceId, responses) ? rowSum + 1 : rowSum;
+			}, 0)
+		);
+	}, 0);
+	const requiredDomainItems = domainGroups.reduce((sum, group) => {
+		if (group.items.length === 1) return sum + getPromptCountForItem(group.items[0]);
+		const presenceItem = group.items.find(item => !isConditionItem(item)) ?? group.items[0];
+		return sum + Math.max(Object.keys(presenceItem.choices || {}).length, 1);
+	}, 0);
 
 	const stepIsComplete =
 		step === 1
 			? Boolean(draft.visitFrequency && draft.season && weatherSelections.length > 0)
 			: step === 2
 				? Object.values(draft.weights).every(Boolean)
-				: step
-					? domainGroups.every(group => {
+					: step && step <= 8
+						? domainGroups.every(group => {
 							if (group.items.length === 1) return hasAnsweredItem(group.items[0], responses);
 							const presenceItem = group.items.find(item => !isConditionItem(item)) ?? group.items[0];
 							const conditionItem = group.items.find(item => isConditionItem(item)) ?? null;
@@ -664,7 +892,9 @@ export function YeeAuditWizard({
 								return Boolean(getSelectedMatrixAnswer(conditionItem.item_id, choiceId, responses));
 							});
 						})
-					: false;
+					: step === 9
+						? true
+						: false;
 
 	function updateDraft<K extends keyof YeeAuditDraft>(key: K, value: YeeAuditDraft[K]) {
 		setDraft(prev => ({ ...prev, [key]: value }));
@@ -673,6 +903,7 @@ export function YeeAuditWizard({
 	async function goToStep(nextStep: YeeStepNumber | null) {
 		if (!nextStep) return;
 		try {
+			setError(null);
 			await persistCurrentDraft({ ...draft, responses }, responses);
 			router.push(`/yee/audit/${placeId}/page/${nextStep}`);
 		} catch (err) {
@@ -682,6 +913,7 @@ export function YeeAuditWizard({
 
 	async function openReview() {
 		try {
+			setError(null);
 			await persistCurrentDraft({ ...draft, responses }, responses);
 			router.push(`/yee/audit/${placeId}/review`);
 		} catch (err) {
@@ -712,6 +944,12 @@ export function YeeAuditWizard({
 
 	async function submitAudit() {
 		try {
+			if (
+				typeof window !== "undefined" &&
+				!window.confirm("Submit this audit now? After submission, you will not be able to edit the audit.")
+			) {
+				return;
+			}
 			setSubmitting(true);
 			setError(null);
 			const now = new Date();
@@ -821,6 +1059,8 @@ export function YeeAuditWizard({
 								<p>Generated auditor ID: {draft.auditorId}</p>
 								<p>Date: {draft.auditDate || "Not answered"}</p>
 								<p>Start time: {draft.startTime || "Not answered"}</p>
+								<p>Finish time: {draft.finishTime || "Will be recorded on submit"}</p>
+								<p>Total minutes: {draft.totalMinutes || "Will be calculated on submit"}</p>
 								<p>Visit frequency: {getOptionLabel(visitFrequencyOptions, draft.visitFrequency)}</p>
 								<p>Season: {getOptionLabel(seasonOptions, draft.season)}</p>
 								<p>Weather: {getMultiOptionLabels(weatherOptions, draft.weather)}</p>
@@ -832,6 +1072,10 @@ export function YeeAuditWizard({
 										{yeeDomainLabels[key as keyof typeof draft.weights]}: {getOptionLabel(yeeWeightOptions, value)}
 									</p>
 								))}
+								<div className="mt-3 rounded-2xl border border-dashed border-slate-200 bg-white p-3">
+									<p className="font-medium text-slate-900">Weighting comments</p>
+									<p className="mt-2">{draft.weightingComments || "No weighting comments added."}</p>
+								</div>
 							</div>
 						</div>
 						<div className="space-y-4">
@@ -848,7 +1092,7 @@ export function YeeAuditWizard({
 									<CardContent className="space-y-4">
 										{section.items.map(item => (
 											<div key={item.item_id} className="rounded-2xl border border-slate-200 bg-white p-4">
-												<p className="text-sm font-medium text-slate-900">{normalizeText(item.question_text || item.item_id)}</p>
+												<p className="text-sm font-medium text-slate-900">{normalizeVisibleQuestion(item.question_text || item.item_id)}</p>
 												<div className="mt-2 space-y-1 text-sm text-slate-600">
 													{getItemAnswerSummary(item, responses).map(answer => (
 														<p key={`${item.item_id}-${answer}`}>{answer}</p>
@@ -883,7 +1127,7 @@ export function YeeAuditWizard({
 						)}
 						<div className="flex flex-wrap gap-3">
 							<Button asChild variant="outline" className="rounded-2xl">
-								<Link href={`/yee/audit/${placeId}/page/8`}>Back to final section</Link>
+								<Link href={`/yee/audit/${placeId}/page/9`}>Back to final comments</Link>
 							</Button>
 							<Button variant="outline" className="rounded-2xl" onClick={() => void refreshScorePreview()} disabled={previewLoading}>
 								{previewLoading ? "Refreshing..." : "Refresh Score Preview"}
@@ -906,27 +1150,33 @@ export function YeeAuditWizard({
 				<div className="flex flex-wrap items-center gap-2">
 					<Badge className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700 hover:bg-emerald-100">{draft.auditorId}</Badge>
 					<Badge variant="secondary" className="rounded-full bg-slate-100 text-slate-700 hover:bg-slate-100">
-						Step {step} of 8
+						Step {step} of 9
 					</Badge>
 					<Badge variant="secondary" className="rounded-full bg-sky-100 text-sky-700 hover:bg-sky-100">
-						{persisting ? "Saving answers..." : "Progress saved automatically"}
+						{draft.placeName || "Selected place"}
 					</Badge>
 				</div>
 				<h1 className="text-3xl font-semibold tracking-tight text-slate-950">{stepDetails?.title}</h1>
 				<p className="max-w-3xl text-sm leading-7 text-slate-600">{stepDetails?.description}</p>
-				{draft.placeName ? <p className="text-sm font-medium text-emerald-800">Place: {draft.placeName}</p> : null}
 			</header>
 
-			<div className="grid gap-2 sm:grid-cols-4 lg:grid-cols-8">
+			<div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
 				{yeeSteps.map(entry => (
-					<Link
+					<button
 						key={entry.step}
-						href={`/yee/audit/${placeId}/page/${entry.step}`}
-						className={`rounded-2xl border px-3 py-2 text-center text-sm ${
-							step === entry.step ? "border-emerald-500 bg-emerald-50 text-emerald-800" : "border-slate-200 bg-white text-slate-600"
+						type="button"
+						onClick={() => void goToStep(entry.step)}
+						disabled={step === entry.step}
+						className={`rounded-2xl border px-3 py-2 text-left text-sm transition ${
+							step === entry.step
+								? "border-emerald-500 bg-emerald-50 text-emerald-800"
+								: "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
 						}`}>
-						{entry.step}
-					</Link>
+						<span className="block text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
+							{entry.step}.
+						</span>
+						<span className="mt-1 block font-medium">{getShortStepLabel(entry.step)}</span>
+					</button>
 				))}
 			</div>
 
@@ -948,24 +1198,6 @@ export function YeeAuditWizard({
 								<Label htmlFor="audit-date">Audit date</Label>
 								<Input id="audit-date" type="date" value={draft.auditDate} onChange={event => updateDraft("auditDate", event.target.value)} />
 							</div>
-							<div className="space-y-2">
-								<Label htmlFor="start-time">Start time</Label>
-								<Input id="start-time" value={draft.startTime} onChange={event => updateDraft("startTime", event.target.value)} />
-							</div>
-							<div className="space-y-2">
-								<Label htmlFor="finish-time">Finish time</Label>
-								<Input id="finish-time" value={draft.finishTime || "Recorded on submit"} readOnly />
-							</div>
-							<div className="space-y-2">
-								<Label htmlFor="total-minutes">Total minutes</Label>
-								<Input
-									id="total-minutes"
-									type="number"
-									value={draft.totalMinutes ? String(draft.totalMinutes) : ""}
-									placeholder="Minutes spent on audit"
-									onChange={event => updateDraft("totalMinutes", Number(event.target.value) || 0)}
-								/>
-							</div>
 						</div>
 						<div className="space-y-3">
 							<Label>How often have you been to / visited this space in the last 6 months? (choose the response that fits best)</Label>
@@ -974,11 +1206,18 @@ export function YeeAuditWizard({
 								value={draft.visitFrequency}
 								onChange={value => updateDraft("visitFrequency", value)}
 								options={visitFrequencyOptions}
+								columns={1}
 							/>
 						</div>
 						<div className="space-y-3">
 							<Label>What is the current season?</Label>
-							<OptionCards name="season" value={draft.season} onChange={value => updateDraft("season", value)} options={seasonOptions} />
+							<OptionCards
+								name="season"
+								value={draft.season}
+								onChange={value => updateDraft("season", value)}
+								options={seasonOptions}
+								columns={1}
+							/>
 						</div>
 						<div className="space-y-3">
 							<Label>What is the weather like today? (choose all that apply)</Label>
@@ -1005,31 +1244,23 @@ export function YeeAuditWizard({
 				<div className="space-y-4">
 					<Card className="rounded-[1.5rem] border-slate-200/80 bg-[#f4fbf6] shadow-sm">
 						<CardContent className="py-5 text-sm leading-7 text-slate-700">
-							<p className="font-medium text-slate-900">How important is each domain to you in {draft.placeName || "this place"}?</p>
+							<p className="font-medium text-slate-900">
+								Please start by telling us how important each of the following issues are to you - especially about the play/recreation and green spaces in your community or neighborhood
+							</p>
 							<p className="mt-2">
-								Your answers on this page are used later to calculate Youth Weighted scores alongside the raw section scores.
+								These answers are also used later to calculate Youth Weighted scores alongside the raw section scores for {draft.placeName || "this place"}.
 							</p>
 						</CardContent>
 					</Card>
 					{Object.entries(yeeDomainLabels).map(([key, label]) => (
 						<Card key={key} className="rounded-[1.5rem] border-slate-200/80 bg-white shadow-sm">
 							<CardHeader>
-								<CardTitle>{label}</CardTitle>
-								<CardDescription>
-									{key === "access"
-										? "ACCESS: How important is to you that you can easily and safely get to these spaces?"
-										: key === "activitySpaces"
-											? "ACTIVITY SPACES: How important is it to you that these places have the spaces and/or equipment that allow you to do the activities you like?"
-											: key === "amenities"
-												? "AMENITIES: How important is it to you that these places have amenities that make the space more comfortable and suitable?"
-												: key === "experienceOfSpace"
-													? "EXPERIENCE OF THE SPACE: How important is it to you that these places feel pleasant and safe to be in?"
-													: key === "aestheticsAndCare"
-														? "AESTHETICS & CARE: How important is it to you that these places look nice and well cared for?"
-														: "USE & USABILITY: How important is it to you that these places are suitable for many activities for youth and/or the community?"}
-								</CardDescription>
+								<CardTitle className="text-lg font-semibold">{label}</CardTitle>
 							</CardHeader>
-							<CardContent>
+							<CardContent className="space-y-4">
+								<p className="text-sm font-medium text-slate-900">
+									{ensureQuestionMark(formatExampleText(getWeightingPrompt(key as YeeDomainKey)))}
+								</p>
 								<OptionCards
 									name={`weight-${key}`}
 									value={draft.weights[key as keyof typeof draft.weights]}
@@ -1047,31 +1278,32 @@ export function YeeAuditWizard({
 							</CardContent>
 						</Card>
 					))}
+					<Card className="rounded-[1.5rem] border-slate-200/80 bg-white shadow-sm">
+						<CardHeader>
+							<CardTitle>Optional comments for importance weighting</CardTitle>
+							<CardDescription>Add any notes about how you answered the importance weighting section.</CardDescription>
+						</CardHeader>
+						<CardContent>
+							<Textarea
+								value={draft.weightingComments}
+								onChange={event => updateDraft("weightingComments", event.target.value)}
+								placeholder="Optional notes about your weighting choices..."
+								className="min-h-28"
+							/>
+						</CardContent>
+					</Card>
 				</div>
 			) : null}
 
 			{step && step >= 3 && step <= 8 ? (
 				<div className="space-y-4">
-					<Card className="rounded-[1.5rem] border-slate-200/80 bg-[#f4fbf6] shadow-sm">
-						<CardContent className="flex flex-wrap items-center justify-between gap-3 py-5 text-sm text-slate-600">
-							<span>
-								Section progress: {answeredDomainItems} of {requiredDomainItems} questions answered
-							</span>
-							<span>{requiredDomainItems === 0 ? "Informational section" : stepIsComplete ? "Section complete" : "Section in progress"}</span>
-						</CardContent>
-					</Card>
 					{domainKey ? (
 						<Card className="rounded-[1.5rem] border-slate-200/80 bg-[#eef8f2] shadow-sm">
 							<CardContent className="py-5 text-sm leading-7 text-slate-700">
-								<p className="font-medium text-slate-900">{sectionMeta?.title || yeeDomainLabels[domainKey]}</p>
-								<p
-									className="mt-2"
-									dangerouslySetInnerHTML={{
-										__html:
-											sectionMeta?.intro_text ||
-											`Answer each question for ${draft.placeName || "this place"}. Your answers stay saved as you move backward and forward through the audit.`
-									}}
-								/>
+								<p className="text-lg font-semibold text-slate-900">{getSectionIntroCopy(domainKey).heading}</p>
+								<div className="mt-2">
+									{getSectionIntroCopy(domainKey).body}
+								</div>
 							</CardContent>
 						</Card>
 					) : null}
@@ -1109,14 +1341,22 @@ export function YeeAuditWizard({
 							</CardContent>
 						</Card>
 					) : null}
+					<Card className="rounded-[1.5rem] border-slate-200/80 bg-[#f4fbf6] shadow-sm">
+						<CardContent className="flex flex-wrap items-center justify-between gap-3 py-5 text-sm text-slate-600">
+							<span>
+								Section progress: {answeredDomainItems} of {requiredDomainItems} questions answered
+							</span>
+							<span>{requiredDomainItems === 0 ? "Informational section" : stepIsComplete ? "Section complete" : "Section in progress"}</span>
+						</CardContent>
+					</Card>
 				</div>
 			) : null}
 
-			{step === 8 ? (
+			{step === 9 ? (
 				<Card className="rounded-[1.5rem] border-slate-200/80 bg-white shadow-sm">
 					<CardHeader>
-						<CardTitle>Optional comments</CardTitle>
-						<CardDescription>Add any final notes before the review screen.</CardDescription>
+						<CardTitle>Final optional comments</CardTitle>
+						<CardDescription>Add any overall notes you want included before the review screen.</CardDescription>
 					</CardHeader>
 					<CardContent>
 						<Textarea
@@ -1148,24 +1388,26 @@ export function YeeAuditWizard({
 						Save and exit
 					</Button>
 				</div>
-				{step && step < 8 ? (
+				{step && step < 9 ? (
 					<Button
+						type="button"
 						className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]"
 						onClick={() => void goToStep(getNextStep(step))}
-						disabled={!stepIsComplete}>
+					>
 						Next
 					</Button>
 				) : (
 					<Button
+						type="button"
 						className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]"
 						onClick={() => void openReview()}
-						disabled={!stepIsComplete}>
+					>
 						Review Audit
 					</Button>
 				)}
 			</div>
 			{!stepIsComplete ? (
-				<p className="text-sm text-amber-700">Complete the required answers on this step before continuing.</p>
+				<p className="text-sm text-amber-700">{getIncompleteStepMessage(step)}</p>
 			) : null}
 			{error ? <p className="text-sm text-red-700">{error}</p> : null}
 		</main>

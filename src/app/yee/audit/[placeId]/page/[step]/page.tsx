@@ -10,7 +10,7 @@ export default async function YeeAuditStepPage({
 }) {
 	const { placeId, step } = await params;
 	const numericStep = Number(step);
-	if (!Number.isInteger(numericStep) || numericStep < 1 || numericStep > 8) {
+	if (!Number.isInteger(numericStep) || numericStep < 1 || numericStep > 9) {
 		notFound();
 	}
 

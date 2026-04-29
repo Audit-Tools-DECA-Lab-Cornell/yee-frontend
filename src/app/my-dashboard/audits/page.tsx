@@ -1,5 +1,5 @@
-import { AuditorAuditHistory } from "@/components/yee/auditor-audit-history";
+import { redirect } from "next/navigation";
 
 export default function MyAuditsPage() {
-	return <AuditorAuditHistory />;
+	redirect("/my-dashboard/places");
 }

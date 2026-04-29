@@ -1,4 +1,4 @@
-export type YeeStepNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+export type YeeStepNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
 export type YeeDomainKey =
 	| "access"
@@ -21,6 +21,7 @@ export type YeeAuditDraft = {
 	season: string;
 	weather: string;
 	weights: Record<YeeDomainKey, string>;
+	weightingComments: string;
 	responses: Record<string, string | Record<string, string>>;
 	comments: string;
 	sectionComments: Record<YeeDomainKey, string>;
@@ -50,7 +51,8 @@ export const yeeSteps: { step: YeeStepNumber; title: string; description: string
 	{ step: 5, title: "Amenities", description: "Complete the Amenities domain questions and any optional section comments." },
 	{ step: 6, title: "Experience of the Space", description: "Complete the Experience of the Space domain questions and any optional section comments." },
 	{ step: 7, title: "Aesthetics and Care", description: "Complete the Aesthetics & Care domain questions and any optional section comments." },
-	{ step: 8, title: "Use and Usability", description: "Complete the Use & Usability domain questions, then add final notes before review." }
+	{ step: 8, title: "Use and Usability", description: "Complete the Use & Usability domain questions and any optional section comments." },
+	{ step: 9, title: "Final comments", description: "Add any overall comments you want to include before the review screen." }
 ];
 
 export const yeeDomainLabels: Record<YeeDomainKey, string> = {
@@ -117,6 +119,7 @@ export function createDefaultDraft(placeId: string): YeeAuditDraft {
 			aestheticsAndCare: "",
 			useAndUsability: ""
 		},
+		weightingComments: "",
 		responses: {},
 		comments: "",
 		sectionComments: {
@@ -138,7 +141,7 @@ export function getDraftStorageKey(placeId: string) {
 }
 
 export function getNextStep(step: YeeStepNumber) {
-	return step < 8 ? (step + 1 as YeeStepNumber) : null;
+	return step < 9 ? (step + 1 as YeeStepNumber) : null;
 }
 
 export function getPreviousStep(step: YeeStepNumber) {
@@ -159,6 +162,8 @@ export function getDomainForStep(step: YeeStepNumber): YeeDomainKey | null {
 			return "aestheticsAndCare";
 		case 8:
 			return "useAndUsability";
+		case 9:
+			return null;
 		default:
 			return null;
 	}

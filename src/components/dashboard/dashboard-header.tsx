@@ -15,6 +15,7 @@ import { workspaceConfigs, type WorkspaceVariant } from "@/lib/dashboard/workspa
 export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 	const pathname = usePathname();
 	const config = workspaceConfigs[variant];
+	const showPrimaryAction = variant !== "auditor";
 	const hideSearch =
 		(variant === "admin" &&
 			(pathname === "/admin/users" || pathname === "/admin/projects" || pathname === "/admin/places")) ||
@@ -71,12 +72,14 @@ export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 							<Bell className="size-4" />
 							<span className="sr-only">Notifications</span>
 						</Button>
-						<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
-							<Link href={config.primaryAction.href}>
-								<config.primaryAction.icon className="size-4" />
-								{config.primaryAction.label}
-							</Link>
-						</Button>
+						{showPrimaryAction ? (
+							<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
+								<Link href={config.primaryAction.href}>
+									<config.primaryAction.icon className="size-4" />
+									{config.primaryAction.label}
+								</Link>
+							</Button>
+						) : null}
 						<div className="hidden items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 sm:flex">
 							<Avatar size="lg">
 								<AvatarFallback className="bg-emerald-100 font-semibold text-emerald-700">

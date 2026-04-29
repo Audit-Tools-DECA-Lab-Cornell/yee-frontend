@@ -2,12 +2,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import type { PlaceComparisonGroupRecord } from "@/lib/dashboard/live-api";
 import { domainLabels, domainOrder, getComparisonAverages } from "@/lib/dashboard/reporting";
+import { totalRawScoreMaximum, totalYouthWeightedScoreMaximum } from "@/lib/yee-score-limits";
+
+function clampPercentage(value: number) {
+	return Math.max(0, Math.min(100, value));
+}
+
+function colorBand(percentage: number) {
+	if (percentage < 34) return "bg-rose-400";
+	if (percentage < 67) return "bg-amber-400";
+	return "bg-emerald-500";
+}
+
+function barHeight(value: number) {
+	return `${Math.max(12, clampPercentage(value))}%`;
+}
 
 export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRecord }) {
 	const records = group.audits;
 	const averages = getComparisonAverages(records);
-	const maxRaw = Math.max(...records.map(record => record.total_raw_score), 1);
-	const maxWeighted = Math.max(...records.map(record => record.total_weighted_score), 1);
 
 	if (records.length === 0) {
 		return (
@@ -57,40 +70,67 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 				<CardHeader>
 					<CardTitle>Score bars</CardTitle>
 					<CardDescription>
-						These bars show score distribution across audits for this place. Final cap-score percentages can be layered in once the cap logic is finalized.
+						Each audit shows percentage bars for both Total Raw and Total Youth Weighted scores. The full column is 100% of the available score, and the colored fill shows how much of that available score was achieved.
 					</CardDescription>
 				</CardHeader>
-				<CardContent className="grid gap-6 lg:grid-cols-2">
-					<div className="space-y-4 rounded-2xl border border-slate-200 bg-[#f8fbf9] p-4">
-						<p className="text-sm font-medium text-slate-900">Total Raw Score</p>
-						{records.map(record => (
-							<div key={`${record.audit_id}-raw`} className="space-y-1">
-								<div className="flex items-center justify-between text-xs text-slate-600">
-									<span>{record.auditor_id}</span>
-									<span>{record.total_raw_score}</span>
+				<CardContent className="space-y-6">
+					<div className="grid gap-3 md:grid-cols-3">
+						{[
+							{ label: "Lower range", tone: "bg-rose-400", text: "0% to 33% of the available score" },
+							{ label: "Middle range", tone: "bg-amber-400", text: "34% to 66% of the available score" },
+							{ label: "Upper range", tone: "bg-emerald-500", text: "67% to 100% of the available score" }
+						].map(entry => (
+							<div key={entry.label} className="rounded-2xl border border-slate-200 bg-[#f8fbf9] p-3">
+								<div className="flex items-center gap-2">
+									<span className={`h-3 w-3 rounded-full ${entry.tone}`} />
+									<p className="text-sm font-medium text-slate-900">{entry.label}</p>
 								</div>
-								<div className="h-2 rounded-full bg-slate-200">
-									<div className="h-2 rounded-full bg-slate-900" style={{ width: `${(record.total_raw_score / maxRaw) * 100}%` }} />
-								</div>
+								<p className="mt-2 text-xs text-slate-600">{entry.text}</p>
 							</div>
 						))}
 					</div>
-					<div className="space-y-4 rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4">
-						<p className="text-sm font-medium text-emerald-900">Total Youth Weighted Score</p>
-						{records.map(record => (
-							<div key={`${record.audit_id}-weighted`} className="space-y-1">
-								<div className="flex items-center justify-between text-xs text-emerald-800">
-									<span>{record.auditor_id}</span>
-									<span>{record.total_weighted_score}</span>
+					<div className="grid gap-4 lg:grid-cols-2">
+						{records.map(record => {
+							const rawPercent = totalRawScoreMaximum ? (record.total_raw_score / totalRawScoreMaximum) * 100 : 0;
+							const youthPercent = totalYouthWeightedScoreMaximum ? (record.total_weighted_score / totalYouthWeightedScoreMaximum) * 100 : 0;
+							return (
+								<div key={record.audit_id} className="rounded-[1.5rem] border border-slate-200 bg-[#f8fbf9] p-4">
+									<div className="flex items-center justify-between gap-3">
+										<div>
+											<p className="text-sm font-semibold text-slate-900">{record.auditor_id}</p>
+											<p className="text-xs text-slate-600">{record.date}</p>
+										</div>
+										<Badge className="rounded-full bg-white px-3 py-1 text-slate-700 hover:bg-white">{record.place_name}</Badge>
+									</div>
+									<div className="mt-4 grid gap-4 sm:grid-cols-2">
+										<div className="rounded-[1.25rem] border border-slate-200 bg-white p-4">
+											<p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">Total Raw</p>
+											<div className="mt-3 flex items-end gap-4">
+												<div className="flex h-36 w-14 items-end rounded-full border border-slate-200 bg-slate-50 p-1">
+													<div className={`${colorBand(rawPercent)} w-full rounded-full`} style={{ height: barHeight(rawPercent) }} />
+												</div>
+												<div className="space-y-1 text-xs text-slate-600">
+													<p className="font-medium text-slate-900">{record.total_raw_score} / {totalRawScoreMaximum}</p>
+													<p>{rawPercent.toFixed(0)}%</p>
+												</div>
+											</div>
+										</div>
+										<div className="rounded-[1.25rem] border border-emerald-200 bg-emerald-50/80 p-4">
+											<p className="text-xs font-medium uppercase tracking-[0.16em] text-emerald-700">Total Youth Weighted</p>
+											<div className="mt-3 flex items-end gap-4">
+												<div className="flex h-36 w-14 items-end rounded-full border border-emerald-200 bg-white/90 p-1">
+													<div className={`${colorBand(youthPercent)} w-full rounded-full`} style={{ height: barHeight(youthPercent) }} />
+												</div>
+												<div className="space-y-1 text-xs text-emerald-800">
+													<p className="font-medium text-emerald-900">{record.total_weighted_score} / {totalYouthWeightedScoreMaximum}</p>
+													<p>{youthPercent.toFixed(0)}%</p>
+												</div>
+											</div>
+										</div>
+									</div>
 								</div>
-								<div className="h-2 rounded-full bg-emerald-100">
-									<div
-										className="h-2 rounded-full bg-emerald-700"
-										style={{ width: `${(record.total_weighted_score / maxWeighted) * 100}%` }}
-									/>
-								</div>
-							</div>
-						))}
+							);
+						})}
 					</div>
 				</CardContent>
 			</Card>

@@ -3,42 +3,57 @@
 import Link from "next/link";
 import * as React from "react";
 
-import { useAuth } from "@/components/auth/auth-provider";
+import { ClearFiltersButton, SearchableMultiSelectFilter } from "@/components/dashboard/table-filters";
+import { useAuditorAuditData } from "@/components/yee/use-auditor-audit-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { fetchMyPlaces, type AssignedPlaceRecord } from "@/lib/dashboard/live-api";
-import { fetchAuditState, type YeeAuditState } from "@/lib/yee-audit-api";
 
-export function AuditorAuditHistory() {
-	const { session } = useAuth();
-	const [places, setPlaces] = React.useState<AssignedPlaceRecord[]>([]);
-	const [auditStates, setAuditStates] = React.useState<Record<string, YeeAuditState>>({});
-	const [loading, setLoading] = React.useState(true);
-	const [error, setError] = React.useState<string | null>(null);
+export function AuditorAuditHistory({
+	title = "Assigned Places",
+	description = "Review audits in progress and submitted audits for your assigned places.",
+	showHeaderAction = true
+}: {
+	title?: string;
+	description?: string;
+	showHeaderAction?: boolean;
+}) {
+	const { places, auditStates, loading, error } = useAuditorAuditData();
+	const [selectedProjects, setSelectedProjects] = React.useState<string[]>([]);
+	const [selectedPlaceIds, setSelectedPlaceIds] = React.useState<string[]>([]);
 
-	React.useEffect(() => {
-		if (!session) return;
-		let cancelled = false;
-		const run = async () => {
-			try {
-				const rows = await fetchMyPlaces(session);
-				const states = await Promise.all(rows.map(place => fetchAuditState(place.id, session)));
-				if (!cancelled) {
-					setPlaces(rows);
-					setAuditStates(Object.fromEntries(states.map(state => [state.place_id, state])));
-				}
-			} catch (err) {
-				if (!cancelled) setError(err instanceof Error ? err.message : "Could not load assigned places.");
-			} finally {
-				if (!cancelled) setLoading(false);
-			}
-		};
-		void run();
-		return () => {
-			cancelled = true;
-		};
-	}, [session]);
+	const projectOptions = React.useMemo(
+		() =>
+			Array.from(new Set(places.map(place => place.project)))
+				.sort((left, right) => left.localeCompare(right))
+				.map(project => ({ value: project, label: project })),
+		[places]
+	);
+
+	const placeOptions = React.useMemo(
+		() =>
+			places
+				.filter(place => selectedProjects.length === 0 || selectedProjects.includes(place.project))
+				.sort((left, right) => left.name.localeCompare(right.name))
+				.map(place => ({
+					value: place.id,
+					label: place.name,
+					keywords: [place.project, place.address]
+				})),
+		[places, selectedProjects]
+	);
+
+	const filteredPlaces = React.useMemo(
+		() =>
+			places.filter(place => {
+				if (selectedProjects.length > 0 && !selectedProjects.includes(place.project)) return false;
+				if (selectedPlaceIds.length > 0 && !selectedPlaceIds.includes(place.id)) return false;
+				return true;
+			}),
+		[places, selectedPlaceIds, selectedProjects]
+	);
+
+	const filtersActive = selectedProjects.length > 0 || selectedPlaceIds.length > 0;
 
 	if (loading) {
 		return (
@@ -60,14 +75,45 @@ export function AuditorAuditHistory() {
 		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
 			<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 				<div>
-					<CardTitle>My Audits</CardTitle>
-					<CardDescription>Review audits in progress and submitted audits for your assigned places.</CardDescription>
+					<CardTitle>{title}</CardTitle>
+					<CardDescription>{description}</CardDescription>
 				</div>
-				<Button asChild variant="outline" className="rounded-2xl">
-					<Link href="/yee/introduction">Choose Place</Link>
-				</Button>
+				{showHeaderAction ? (
+					<Button asChild variant="outline" className="rounded-2xl">
+						<Link href="/yee/introduction">Choose Place</Link>
+					</Button>
+				) : null}
 			</CardHeader>
-			<CardContent className="overflow-x-auto">
+			<CardContent className="space-y-4 overflow-x-auto">
+				<div className="flex flex-wrap gap-3">
+					<SearchableMultiSelectFilter
+						label="Project"
+						options={projectOptions}
+						selectedValues={selectedProjects}
+						onChange={values => {
+							setSelectedProjects(values);
+							if (values.length === 0) {
+								setSelectedPlaceIds([]);
+								return;
+							}
+							const allowedPlaceIds = new Set(places.filter(place => values.includes(place.project)).map(place => place.id));
+							setSelectedPlaceIds(current => current.filter(placeId => allowedPlaceIds.has(placeId)));
+						}}
+					/>
+					<SearchableMultiSelectFilter
+						label="Place"
+						options={placeOptions}
+						selectedValues={selectedPlaceIds}
+						onChange={setSelectedPlaceIds}
+					/>
+					<ClearFiltersButton
+						disabled={!filtersActive}
+						onClick={() => {
+							setSelectedProjects([]);
+							setSelectedPlaceIds([]);
+						}}
+					/>
+				</div>
 				<table className="min-w-full text-left text-sm">
 					<thead className="text-slate-500">
 						<tr className="border-b border-slate-200">
@@ -79,7 +125,14 @@ export function AuditorAuditHistory() {
 						</tr>
 					</thead>
 					<tbody>
-						{places.map(place => {
+						{filteredPlaces.length === 0 ? (
+							<tr>
+								<td colSpan={5} className="py-8 text-center text-sm text-slate-500">
+									No assigned places match the selected filters.
+								</td>
+							</tr>
+						) : null}
+						{filteredPlaces.map(place => {
 							const auditState = auditStates[place.id];
 							const isSubmitted = auditState?.status === "SUBMITTED";
 							const hasDraft = auditState?.status === "DRAFT";
