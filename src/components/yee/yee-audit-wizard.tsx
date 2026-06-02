@@ -14,8 +14,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { YeeScoreSummary } from "@/components/yee/yee-score-summary";
 import {
 	fetchAuditState,
+	fetchManagerAuditEditState,
 	fetchSubmission,
 	saveAuditDraft,
+	updateManagerAuditEditState,
 	type YeeAuditState,
 	type YeeSubmissionRecord
 } from "@/lib/yee-audit-api";
@@ -251,10 +253,10 @@ function getSectionIntroCopy(domain: YeeDomainKey) {
 	switch (domain) {
 		case "access":
 			return {
-				heading: "Access: Presence, Condition, Quantity",
+				heading: "Access",
 				body: (
 					<>
-						<strong>ACCESS:</strong> this section asks about access to the park or space and the surrounding area.
+						This section asks about access to the park or space and the surrounding area.
 						{" "}Do your best to look around the space and its entrances to answer the questions.
 						{" "}If asked to rate the condition of a feature, consider whether it is <strong>poor</strong>{" "}
 						(Ex: poorly maintained, unsafe, broken, or dirty), <strong>acceptable</strong>{" "}
@@ -265,10 +267,10 @@ function getSectionIntroCopy(domain: YeeDomainKey) {
 			};
 		case "activitySpaces":
 			return {
-				heading: "Activity Spaces: Presence, Condition, Provision",
+				heading: "Activity Spaces",
 				body: (
 					<>
-						<strong>ACTIVITY SPACES:</strong> this section asks you to evaluate opportunities and spaces for recreational and social activities.
+						This section asks you to evaluate opportunities and spaces for recreational and social activities.
 						{" "}If asked to rate the condition of a feature, consider whether it is <strong>poor</strong>{" "}
 						(Ex: poorly maintained, unsafe, broken, or dirty), <strong>acceptable</strong>{" "}
 						(Ex: clean, in good shape, well maintained, or relatively safe), or <strong>great</strong>{" "}
@@ -278,10 +280,10 @@ function getSectionIntroCopy(domain: YeeDomainKey) {
 			};
 		case "amenities":
 			return {
-				heading: "Amenities: Presence, Condition, Quantity",
+				heading: "Amenities",
 				body: (
 					<>
-						<strong>AMENITIES:</strong> this section asks about the presence and condition of different amenities within the space.
+						This section asks about the presence and condition of different amenities within the space.
 						{" "}If asked to rate the condition of a feature, consider whether it is <strong>poor</strong>{" "}
 						(Ex: poorly maintained, unsafe, broken, or dirty), <strong>acceptable</strong>{" "}
 						(Ex: clean, in good shape, well maintained, or relatively safe), or <strong>great</strong>{" "}
@@ -294,17 +296,17 @@ function getSectionIntroCopy(domain: YeeDomainKey) {
 				heading: "Experience of Space",
 				body: (
 					<>
-						<strong>EXPERIENCE OF THE SPACE:</strong> this section asks about how you feel in or experience the space.
+						This section asks about how you feel in or experience the space.
 						{" "}Choose the most appropriate answer for each statement based on what you notice during your visit.
 					</>
 				)
 			};
 		case "aestheticsAndCare":
 			return {
-				heading: "Aesthetics & Care: Presence, Condition, Quantity",
+				heading: "Aesthetics & Care",
 				body: (
 					<>
-						<strong>AESTHETICS &amp; CARE:</strong> this section asks about how the space looks and how well it is cared for or maintained.
+						This section asks about how the space looks and how well it is cared for or maintained.
 						{" "}If asked to rate the condition of a feature, consider whether it is <strong>poor</strong>{" "}
 						(Ex: poorly maintained, unsafe, broken, or dirty), <strong>acceptable</strong>{" "}
 						(Ex: clean, in good shape, well maintained, or relatively safe), or <strong>great</strong>{" "}
@@ -314,16 +316,152 @@ function getSectionIntroCopy(domain: YeeDomainKey) {
 			};
 		case "useAndUsability":
 			return {
-				heading: "Use & Usability: Presence, Condition, Provision",
+				heading: "Use & Usability",
 				body: (
 					<>
-						<strong>USE &amp; USABILITY:</strong> this section asks about how the space can be or is used.
+						This section asks about how the space can be or is used.
 						{" "}If asked to rate the condition of a feature, consider whether it is <strong>poor</strong>{" "}
 						(Ex: poorly maintained, unsafe, broken, or dirty), <strong>acceptable</strong>{" "}
 						(Ex: clean, in good shape, well maintained, or relatively safe), or <strong>great</strong>{" "}
 						(Ex: in really good shape, really well maintained, and feels very safe).
 					</>
 				)
+			};
+	}
+}
+
+function getStepPalette(stepValue: YeeStepNumber) {
+	switch (stepValue) {
+		case 1:
+			return {
+				active: "border-emerald-400 bg-gradient-to-br from-emerald-50 via-emerald-100 to-emerald-200 text-emerald-950 ring-2 ring-emerald-200 shadow-[0_16px_32px_-24px_rgba(6,95,70,0.38)]",
+				idle: "border-emerald-200 bg-emerald-50/80 text-emerald-900 hover:border-emerald-300 hover:bg-emerald-100/80"
+			};
+		case 2:
+			return {
+				active: "border-indigo-400 bg-gradient-to-br from-indigo-50 via-indigo-100 to-indigo-200 text-indigo-950 ring-2 ring-indigo-200 shadow-[0_16px_32px_-24px_rgba(55,48,163,0.36)]",
+				idle: "border-indigo-200 bg-indigo-50/80 text-indigo-900 hover:border-indigo-300 hover:bg-indigo-100/80"
+			};
+		case 3:
+			return {
+				active: "border-green-400 bg-gradient-to-br from-green-50 via-green-100 to-green-200 text-green-950 ring-2 ring-green-200 shadow-[0_16px_32px_-24px_rgba(22,101,52,0.36)]",
+				idle: "border-green-200 bg-green-50/80 text-green-900 hover:border-green-300 hover:bg-green-100/80"
+			};
+		case 4:
+			return {
+				active: "border-cyan-400 bg-gradient-to-br from-cyan-50 via-cyan-100 to-cyan-200 text-cyan-950 ring-2 ring-cyan-200 shadow-[0_16px_32px_-24px_rgba(21,94,117,0.34)]",
+				idle: "border-cyan-200 bg-cyan-50/80 text-cyan-900 hover:border-cyan-300 hover:bg-cyan-100/80"
+			};
+		case 5:
+			return {
+				active: "border-amber-400 bg-gradient-to-br from-amber-50 via-amber-100 to-amber-200 text-amber-950 ring-2 ring-amber-200 shadow-[0_16px_32px_-24px_rgba(180,83,9,0.32)]",
+				idle: "border-amber-200 bg-amber-50/80 text-amber-900 hover:border-amber-300 hover:bg-amber-100/80"
+			};
+		case 6:
+			return {
+				active: "border-teal-400 bg-gradient-to-br from-teal-50 via-teal-100 to-teal-200 text-teal-950 ring-2 ring-teal-200 shadow-[0_16px_32px_-24px_rgba(17,94,89,0.34)]",
+				idle: "border-teal-200 bg-teal-50/80 text-teal-900 hover:border-teal-300 hover:bg-teal-100/80"
+			};
+		case 7:
+			return {
+				active: "border-rose-400 bg-gradient-to-br from-rose-50 via-rose-100 to-rose-200 text-rose-950 ring-2 ring-rose-200 shadow-[0_16px_32px_-24px_rgba(159,18,57,0.32)]",
+				idle: "border-rose-200 bg-rose-50/80 text-rose-900 hover:border-rose-300 hover:bg-rose-100/80"
+			};
+		case 8:
+			return {
+				active: "border-violet-400 bg-gradient-to-br from-violet-50 via-violet-100 to-violet-200 text-violet-950 ring-2 ring-violet-200 shadow-[0_16px_32px_-24px_rgba(91,33,182,0.34)]",
+				idle: "border-violet-200 bg-violet-50/80 text-violet-900 hover:border-violet-300 hover:bg-violet-100/80"
+			};
+		case 9:
+			return {
+				active: "border-emerald-400 bg-gradient-to-br from-emerald-50 via-emerald-100 to-emerald-200 text-emerald-950 ring-2 ring-emerald-200 shadow-[0_16px_32px_-24px_rgba(6,95,70,0.38)]",
+				idle: "border-emerald-200 bg-emerald-50/80 text-emerald-900 hover:border-emerald-300 hover:bg-emerald-100/80"
+			};
+	}
+}
+
+function getSurfacePalette(stepValue: YeeStepNumber) {
+	switch (stepValue) {
+		case 1:
+		case 9:
+			return {
+				card: "border-emerald-200/80 bg-[#eef7f1]",
+				inner: "border-emerald-100 bg-white/90",
+				selected: "border-emerald-600 bg-emerald-200 text-emerald-950 ring-1 ring-emerald-300 shadow-[0_10px_22px_-18px_rgba(6,78,59,0.35)]",
+				idle: "border-emerald-200 bg-[#f4faf6] text-emerald-950 hover:border-emerald-300 hover:bg-emerald-100/90",
+				instruction: "border-[#7ed6ad] bg-[#57b894] text-white",
+				progress: "border-emerald-200/80 bg-emerald-50/80",
+				condition: "border-emerald-300 bg-emerald-100/80"
+			};
+		case 2:
+			return {
+				card: "border-indigo-200/80 bg-[#f5f4ff]",
+				inner: "border-indigo-100 bg-white/92",
+				selected: "border-indigo-600 bg-indigo-200 text-indigo-950 ring-1 ring-indigo-300 shadow-[0_10px_22px_-18px_rgba(55,48,163,0.35)]",
+				idle: "border-indigo-200 bg-indigo-50/90 text-indigo-950 hover:border-indigo-300 hover:bg-indigo-100/90",
+				instruction: "border-[#a9b2ff] bg-[#7c88ee] text-white",
+				progress: "border-indigo-200/80 bg-indigo-50/80",
+				condition: "border-indigo-300 bg-indigo-100/85"
+			};
+		case 3:
+			return {
+				card: "border-green-200/80 bg-[#eef8f1]",
+				inner: "border-green-100 bg-white/90",
+				selected: "border-green-600 bg-green-200 text-green-950 ring-1 ring-green-300 shadow-[0_10px_22px_-18px_rgba(22,101,52,0.35)]",
+				idle: "border-green-200 bg-green-50/90 text-green-950 hover:border-green-300 hover:bg-green-100/90",
+				instruction: "border-[#85dfa0] bg-[#63c483] text-white",
+				progress: "border-green-200/80 bg-green-50/80",
+				condition: "border-green-300 bg-green-100/80"
+			};
+		case 4:
+			return {
+				card: "border-cyan-200/80 bg-[#eef8fb]",
+				inner: "border-cyan-100 bg-white/92",
+				selected: "border-cyan-600 bg-cyan-200 text-cyan-950 ring-1 ring-cyan-300 shadow-[0_10px_22px_-18px_rgba(21,94,117,0.32)]",
+				idle: "border-cyan-200 bg-cyan-50/90 text-cyan-950 hover:border-cyan-300 hover:bg-cyan-100/90",
+				instruction: "border-[#8dd6f0] bg-[#5fb8dc] text-white",
+				progress: "border-cyan-200/80 bg-cyan-50/80",
+				condition: "border-cyan-300 bg-cyan-100/85"
+			};
+		case 5:
+			return {
+				card: "border-amber-200/80 bg-[#fff8ee]",
+				inner: "border-amber-100 bg-white/92",
+				selected: "border-amber-600 bg-amber-200 text-amber-950 ring-1 ring-amber-300 shadow-[0_10px_22px_-18px_rgba(180,83,9,0.3)]",
+				idle: "border-amber-200 bg-amber-50/90 text-amber-950 hover:border-amber-300 hover:bg-amber-100/90",
+				instruction: "border-[#ffd27a] bg-[#e5ae47] text-white",
+				progress: "border-amber-200/80 bg-amber-50/80",
+				condition: "border-amber-300 bg-amber-100/80"
+			};
+		case 6:
+			return {
+				card: "border-teal-200/80 bg-[#eef9f7]",
+				inner: "border-teal-100 bg-white/92",
+				selected: "border-teal-600 bg-teal-200 text-teal-950 ring-1 ring-teal-300 shadow-[0_10px_22px_-18px_rgba(17,94,89,0.32)]",
+				idle: "border-teal-200 bg-teal-50/90 text-teal-950 hover:border-teal-300 hover:bg-teal-100/90",
+				instruction: "border-[#7edfd8] bg-[#58bbb2] text-white",
+				progress: "border-teal-200/80 bg-teal-50/80",
+				condition: "border-teal-300 bg-teal-100/85"
+			};
+		case 7:
+			return {
+				card: "border-rose-200/80 bg-[#fff2f7]",
+				inner: "border-rose-100 bg-white/92",
+				selected: "border-rose-600 bg-rose-200 text-rose-950 ring-1 ring-rose-300 shadow-[0_10px_22px_-18px_rgba(159,18,57,0.3)]",
+				idle: "border-rose-200 bg-rose-50/90 text-rose-950 hover:border-rose-300 hover:bg-rose-100/90",
+				instruction: "border-[#f1a7c8] bg-[#de7cab] text-white",
+				progress: "border-rose-200/80 bg-rose-50/80",
+				condition: "border-rose-300 bg-rose-100/85"
+			};
+		case 8:
+			return {
+				card: "border-violet-200/80 bg-[#f7f2ff]",
+				inner: "border-violet-100 bg-white/92",
+				selected: "border-violet-600 bg-violet-200 text-violet-950 ring-1 ring-violet-300 shadow-[0_10px_22px_-18px_rgba(91,33,182,0.32)]",
+				idle: "border-violet-200 bg-violet-50/90 text-violet-950 hover:border-violet-300 hover:bg-violet-100/90",
+				instruction: "border-[#ccb2ff] bg-[#9d7fe8] text-white",
+				progress: "border-violet-200/80 bg-violet-50/80",
+				condition: "border-violet-300 bg-violet-100/85"
 			};
 	}
 }
@@ -393,6 +531,35 @@ function getIncompleteStepMessage(step: YeeStepNumber | undefined) {
 	return "Please complete the required answers before continuing.";
 }
 
+function getIncompleteSectionSteps(
+	draft: YeeAuditDraft,
+	responses: ResponsesState,
+	instrument: InstrumentResponse
+) {
+	return yeeSteps
+		.filter(entry => entry.step !== 9)
+		.filter(entry => !isStepCompleteForData(entry.step, draft, responses, instrument))
+		.map(entry => ({
+			step: entry.step,
+			label: getShortStepLabel(entry.step)
+		}));
+}
+
+function buildIncompleteSectionsMessage(
+	draft: YeeAuditDraft,
+	responses: ResponsesState,
+	instrument: InstrumentResponse
+) {
+	const incompleteSections = getIncompleteSectionSteps(draft, responses, instrument);
+	if (incompleteSections.length === 0) return "";
+	if (incompleteSections.length === 1) {
+		return `Please complete the ${incompleteSections[0].label} section before submitting this audit.`;
+	}
+	return `Please complete these sections before submitting this audit: ${incompleteSections
+		.map(section => section.label)
+		.join(", ")}.`;
+}
+
 function getPromptCountForItem(item: InstrumentItem) {
 	const choices = Object.keys(item.choices || {});
 	const answers = Object.keys(item.answers || {});
@@ -411,6 +578,44 @@ function getAnsweredPromptCountForItem(item: InstrumentItem, responses: Response
 	}
 
 	return typeof currentValue === "string" && currentValue.length > 0 ? 1 : 0;
+}
+
+function isStepCompleteForData(
+	stepValue: YeeStepNumber,
+	draft: YeeAuditDraft,
+	responses: ResponsesState,
+	instrument: InstrumentResponse
+) {
+	if (stepValue === 1) {
+		return Boolean(draft.visitFrequency && draft.season && draft.weather.split("|").filter(Boolean).length > 0);
+	}
+	if (stepValue === 2) {
+		return Object.values(draft.weights).every(Boolean);
+	}
+	if (stepValue === 9) {
+		return true;
+	}
+	const domain = getDomainForStep(stepValue);
+	if (!domain) return false;
+	const groups = groupInstrumentItems(filterItemsForDomain(instrument.scoring_items, yeeDomainLabels[domain]));
+	return groups.every(group => {
+		if (group.items.length === 1) return hasAnsweredItem(group.items[0], responses);
+		const presenceItem = group.items.find(item => !isConditionItem(item)) ?? group.items[0];
+		const conditionItem = group.items.find(item => isConditionItem(item)) ?? null;
+		const choiceIds = Object.keys(presenceItem.choices || {});
+		return choiceIds.every(choiceId => {
+			const presenceValue = getSelectedMatrixAnswer(presenceItem.item_id, choiceId, responses);
+			if (!presenceValue) return false;
+			if (!conditionItem || !isRowPositive(presenceItem, choiceId, responses)) return true;
+			return Boolean(getSelectedMatrixAnswer(conditionItem.item_id, choiceId, responses));
+		});
+	});
+}
+
+function areAllRequiredSectionsComplete(draft: YeeAuditDraft, responses: ResponsesState, instrument: InstrumentResponse) {
+	return yeeSteps
+		.filter(entry => entry.step !== 9)
+		.every(entry => isStepCompleteForData(entry.step, draft, responses, instrument));
 }
 
 function buildParticipantInfo(draft: YeeAuditDraft) {
@@ -478,13 +683,76 @@ function draftFromAuditState(placeId: string, state: YeeAuditState): YeeAuditDra
 	};
 }
 
+function draftFromStoredRecord(
+	placeId: string,
+	record: {
+		place_id?: string;
+		place_name: string | null;
+		auditor_generated_id: string | null;
+		submitted_at: string | null;
+		participant_info: Record<string, unknown>;
+		responses: Record<string, string | Record<string, string>>;
+		score: { total_score: number; section_scores: Record<string, number>; category_scores: Record<string, number>; matched_scored_answers: number };
+		submission_id?: string | null;
+		id?: string;
+	}
+): YeeAuditDraft {
+	const participantInfo = record.participant_info ?? {};
+	const weights = normalizeWeights(participantInfo.domain_weights);
+	const sectionComments = normalizeSectionComments(participantInfo.section_comments);
+	const baseDraft = createDefaultDraft(placeId);
+	const scorePreview = buildWeightedScorePreview(record.score, weights);
+	return {
+		...baseDraft,
+		placeId:
+			record.place_id ||
+			(typeof participantInfo.place_id === "string" && participantInfo.place_id ? participantInfo.place_id : placeId),
+		placeName:
+			record.place_name ||
+			(typeof participantInfo.place_name === "string" && participantInfo.place_name ? participantInfo.place_name : baseDraft.placeName),
+		auditorId: record.auditor_generated_id || baseDraft.auditorId,
+		auditorName:
+			typeof participantInfo.auditor_name === "string" && participantInfo.auditor_name
+				? participantInfo.auditor_name
+				: baseDraft.auditorName,
+		auditDate:
+			typeof participantInfo.audit_date === "string" && participantInfo.audit_date
+				? participantInfo.audit_date
+				: baseDraft.auditDate,
+		startTime:
+			typeof participantInfo.start_time === "string" && participantInfo.start_time
+				? participantInfo.start_time
+				: baseDraft.startTime,
+		finishTime: typeof participantInfo.finish_time === "string" ? participantInfo.finish_time : "",
+		totalMinutes: Number(participantInfo.total_minutes ?? 0) || 0,
+		visitFrequency: typeof participantInfo.visit_frequency === "string" ? participantInfo.visit_frequency : "",
+		season: typeof participantInfo.season === "string" ? participantInfo.season : "",
+		weather: typeof participantInfo.weather === "string" ? participantInfo.weather : "",
+		weights,
+		weightingComments: typeof participantInfo.weighting_comments === "string" ? participantInfo.weighting_comments : "",
+		responses: record.responses ?? {},
+		comments: typeof participantInfo.comments === "string" ? participantInfo.comments : "",
+		sectionComments,
+		submittedAt: record.submitted_at,
+		lastResult:
+			record.submission_id || record.id
+				? {
+						id: record.submission_id || record.id || "",
+						totalScore: record.score.total_score
+					}
+				: null,
+		scorePreview
+	};
+}
+
 function OptionCards({
 	name,
 	options,
 	value,
 	onChange,
 	readOnly = false,
-	columns = 3
+	columns = 3,
+	palette = getSurfacePalette(1)
 }: {
 	name: string;
 	options: { value: string; label: string }[];
@@ -492,6 +760,7 @@ function OptionCards({
 	onChange: (value: string) => void;
 	readOnly?: boolean;
 	columns?: 1 | 2 | 3;
+	palette?: ReturnType<typeof getSurfacePalette>;
 }) {
 	const gridClass = columns === 1 ? "grid-cols-1" : columns === 2 ? "sm:grid-cols-2" : "sm:grid-cols-3";
 	return (
@@ -503,8 +772,8 @@ function OptionCards({
 						readOnly ? "cursor-default" : "cursor-pointer"
 					} ${
 						value === option.value
-							? "border-emerald-300 bg-[#e8f4ec] text-emerald-950 ring-1 ring-emerald-150 shadow-[0_8px_22px_-18px_rgba(46,107,82,0.45)]"
-							: "border-emerald-100 bg-[#f5fbf7] text-slate-700 hover:border-emerald-200 hover:bg-[#eef8f2]"
+							? palette.selected
+							: palette.idle
 					}`}>
 					<input
 						type="radio"
@@ -526,12 +795,14 @@ function MultiSelectCards({
 	name,
 	options,
 	value,
-	onChange
+	onChange,
+	palette = getSurfacePalette(1)
 }: {
 	name: string;
 	options: { value: string; label: string }[];
 	value: string[];
 	onChange: (next: string[]) => void;
+	palette?: ReturnType<typeof getSurfacePalette>;
 }) {
 	return (
 		<div className="grid gap-2 sm:grid-cols-3">
@@ -542,8 +813,8 @@ function MultiSelectCards({
 						key={`${name}-${option.value}`}
 						className={`cursor-pointer rounded-2xl border px-4 py-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] transition ${
 							checked
-								? "border-emerald-300 bg-[#e8f4ec] text-emerald-950 ring-1 ring-emerald-150 shadow-[0_8px_22px_-18px_rgba(46,107,82,0.45)]"
-								: "border-emerald-100 bg-[#f5fbf7] text-slate-700 hover:border-emerald-200 hover:bg-[#eef8f2]"
+								? palette.selected
+								: palette.idle
 						}`}>
 						<input
 							type="checkbox"
@@ -568,11 +839,13 @@ function MultiSelectCards({
 function InstrumentQuestionCard({
 	item,
 	responses,
-	setResponses
+	setResponses,
+	palette
 }: {
 	item: InstrumentItem;
 	responses: ResponsesState;
 	setResponses: React.Dispatch<React.SetStateAction<ResponsesState>>;
+	palette: ReturnType<typeof getSurfacePalette>;
 }) {
 	const choices = Object.entries(item.choices || {});
 	const answers = Object.entries(item.answers || {});
@@ -593,7 +866,7 @@ function InstrumentQuestionCard({
 
 	if (choices.length === 0 && answers.length === 0) {
 		return (
-			<Card className="rounded-[1.75rem] border border-emerald-200/70 bg-[#f2faf5] shadow-[0_12px_35px_-24px_rgba(16,35,31,0.45)]">
+			<Card className={`rounded-[1.75rem] border shadow-[0_12px_35px_-24px_rgba(16,35,31,0.45)] ${palette.card}`}>
 				<CardContent className="py-6 text-sm leading-7 text-slate-600">{normalizeText(item.question_text)}</CardContent>
 			</Card>
 		);
@@ -604,7 +877,7 @@ function InstrumentQuestionCard({
 			? getSingleCardInstruction(getDomainForBlock(item.block) ?? "access")
 			: normalizeVisibleQuestion(item.question_text || item.item_id);
 		return (
-			<Card className="rounded-[1.75rem] border border-emerald-200/80 bg-[#f2faf5] shadow-[0_18px_40px_-30px_rgba(16,35,31,0.55)]">
+			<Card className={`rounded-[1.75rem] border shadow-[0_18px_40px_-30px_rgba(16,35,31,0.55)] ${palette.card}`}>
 				<CardHeader className="pb-3">
 					<CardTitle className="text-base font-semibold">{title}</CardTitle>
 				</CardHeader>
@@ -615,19 +888,20 @@ function InstrumentQuestionCard({
 
 						return (
 							<div
-								key={`${item.item_id}-${choiceId}`}
-								className="space-y-3 rounded-[1.35rem] border border-emerald-100 bg-white/85 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]"
-							>
+							key={`${item.item_id}-${choiceId}`}
+							className={`space-y-3 rounded-[1.35rem] border p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] ${palette.inner}`}
+						>
 								<p className="text-sm font-medium text-slate-900">{normalizeVisibleQuestion(getChoiceLabel(choice, choiceId))}</p>
 								<OptionCards
 									name={`${item.item_id}-${choiceId}`}
 									value={selected}
 									onChange={value => updateMatrixResponse(item.item_id, choiceId, value)}
-									options={answers.map(([answerId, answer]) => ({
-										value: answerId,
-										label: getChoiceLabel(answer, answerId)
-									}))}
-								/>
+								options={answers.map(([answerId, answer]) => ({
+									value: answerId,
+									label: getChoiceLabel(answer, answerId)
+								}))}
+								palette={palette}
+							/>
 							</div>
 						);
 					})}
@@ -641,7 +915,7 @@ function InstrumentQuestionCard({
 		: normalizeVisibleQuestion(item.question_text || item.item_id);
 
 	return (
-		<Card className="rounded-[1.75rem] border border-emerald-200/80 bg-[#f2faf5] shadow-[0_18px_40px_-30px_rgba(16,35,31,0.55)]">
+		<Card className={`rounded-[1.75rem] border shadow-[0_18px_40px_-30px_rgba(16,35,31,0.55)] ${palette.card}`}>
 			<CardHeader className="pb-3">
 				<CardTitle className="text-base font-semibold">{title}</CardTitle>
 			</CardHeader>
@@ -654,6 +928,7 @@ function InstrumentQuestionCard({
 						value: choiceId,
 						label: getChoiceLabel(choice, choiceId)
 					}))}
+					palette={palette}
 				/>
 			</CardContent>
 		</Card>
@@ -663,14 +938,16 @@ function InstrumentQuestionCard({
 function InstrumentQuestionGroupCard({
 	group,
 	responses,
-	setResponses
+	setResponses,
+	palette
 }: {
 	group: QuestionGroup;
 	responses: ResponsesState;
 	setResponses: React.Dispatch<React.SetStateAction<ResponsesState>>;
+	palette: ReturnType<typeof getSurfacePalette>;
 }) {
 	if (group.items.length === 1) {
-		return <InstrumentQuestionCard item={group.items[0]} responses={responses} setResponses={setResponses} />;
+		return <InstrumentQuestionCard item={group.items[0]} responses={responses} setResponses={setResponses} palette={palette} />;
 	}
 
 	const presenceItem = group.items.find(item => !isConditionItem(item)) ?? group.items[0];
@@ -689,7 +966,7 @@ function InstrumentQuestionGroupCard({
 	}
 
 	return (
-		<Card className="rounded-[1.75rem] border border-emerald-200/80 bg-[#f2faf5] shadow-[0_18px_40px_-30px_rgba(16,35,31,0.55)]">
+		<Card className={`rounded-[1.75rem] border shadow-[0_18px_40px_-30px_rgba(16,35,31,0.55)] ${palette.card}`}>
 			<CardHeader className="pb-3">
 				<CardTitle className="text-base font-semibold">
 					{getMatrixCardInstruction(getDomainForBlock(presenceItem.block) ?? "access")}
@@ -702,8 +979,8 @@ function InstrumentQuestionGroupCard({
 					const selectedCondition = conditionItem ? getSelectedMatrixAnswer(conditionItem.item_id, choiceId, responses) : "";
 					return (
 						<div
-							key={`${group.baseQuestionId}-${choiceId}`}
-							className="space-y-3 rounded-[1.35rem] border border-emerald-100 bg-white/85 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]"
+						key={`${group.baseQuestionId}-${choiceId}`}
+							className={`space-y-3 rounded-[1.35rem] border p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] ${palette.inner}`}
 						>
 							<p className="text-sm font-medium text-slate-900">
 								{ensureQuestionMark(getChoiceLabel(choice, choiceId))}
@@ -716,10 +993,11 @@ function InstrumentQuestionGroupCard({
 									value: answerId,
 									label: getChoiceLabel(answer, answerId)
 								}))}
+								palette={palette}
 							/>
 							{conditionItem && showCondition ? (
-								<div className="space-y-2 rounded-[1.25rem] border border-emerald-200 bg-[#edf6f0] p-4">
-									<p className="text-xs font-medium uppercase tracking-[0.16em] text-emerald-800">Condition</p>
+								<div className={`space-y-2 rounded-[1.25rem] border p-4 ${palette.condition}`}>
+									<p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-800">Condition</p>
 									<OptionCards
 										name={`${conditionItem.item_id}-${choiceId}`}
 										value={selectedCondition}
@@ -728,6 +1006,7 @@ function InstrumentQuestionGroupCard({
 											value: answerId,
 											label: getChoiceLabel(answer, answerId)
 										}))}
+										palette={palette}
 									/>
 								</div>
 							) : null}
@@ -742,11 +1021,19 @@ function InstrumentQuestionGroupCard({
 export function YeeAuditWizard({
 	placeId,
 	mode,
-	step
+	step,
+	variant = "default",
+	auditId,
+	basePath,
+	exitHref = "/my-dashboard"
 }: {
 	placeId: string;
 	mode: "step" | "review" | "submitted";
 	step?: YeeStepNumber;
+	variant?: "default" | "manager-edit";
+	auditId?: string;
+	basePath?: string;
+	exitHref?: string;
 }) {
 	const router = useRouter();
 	const searchParams = useSearchParams();
@@ -761,6 +1048,15 @@ export function YeeAuditWizard({
 	const [error, setError] = React.useState<string | null>(null);
 	const hydratedRef = React.useRef(false);
 	const lastPersistedSnapshot = React.useRef<string | null>(null);
+	const managerSubmissionId = variant === "manager-edit" ? searchParams.get("submissionId") : null;
+
+	const buildManagerEditHref = React.useCallback(
+		(path: string) => {
+			if (!managerSubmissionId) return path;
+			return `${path}?submissionId=${encodeURIComponent(managerSubmissionId)}`;
+		},
+		[managerSubmissionId]
+	);
 
 	React.useEffect(() => {
 		async function loadInstrument() {
@@ -783,13 +1079,32 @@ export function YeeAuditWizard({
 			try {
 				setLoading(true);
 				setError(null);
-				const state = await fetchAuditState(placeId, session);
-				if (cancelled) return;
-				if (mode !== "submitted" && state.status === "SUBMITTED" && state.submission_id) {
-					router.replace(`/yee/submissions/${state.submission_id}`);
-					return;
+				let nextDraft: YeeAuditDraft;
+				if (variant === "manager-edit") {
+					if (!auditId) {
+						throw new Error("Manager audit ID is missing.");
+					}
+					if (managerSubmissionId) {
+						const submission = await fetchSubmission(managerSubmissionId, session);
+						if (cancelled) return;
+						nextDraft = draftFromStoredRecord(placeId, {
+							...submission,
+							place_id: submission.place_id,
+						});
+					} else {
+						const state = await fetchManagerAuditEditState(auditId, session);
+						if (cancelled) return;
+						nextDraft = draftFromStoredRecord(placeId, state);
+					}
+				} else {
+					const state = await fetchAuditState(placeId, session);
+					if (cancelled) return;
+					if (mode !== "submitted" && state.status === "SUBMITTED" && state.submission_id) {
+						router.replace(`/yee/submissions/${state.submission_id}`);
+						return;
+					}
+					nextDraft = draftFromAuditState(placeId, state);
 				}
-				const nextDraft = draftFromAuditState(placeId, state);
 				setDraft(nextDraft);
 				setResponses(nextDraft.responses);
 				lastPersistedSnapshot.current = JSON.stringify({
@@ -808,7 +1123,7 @@ export function YeeAuditWizard({
 		return () => {
 			cancelled = true;
 		};
-	}, [mode, placeId, router, session]);
+	}, [auditId, managerSubmissionId, mode, placeId, router, session, variant]);
 
 	const persistCurrentDraft = React.useCallback(
 		async (currentDraft: YeeAuditDraft, currentResponses: ResponsesState) => {
@@ -821,13 +1136,24 @@ export function YeeAuditWizard({
 			if (snapshot === lastPersistedSnapshot.current) return;
 			setPersisting(true);
 			try {
-				await saveAuditDraft(placeId, session, payload);
+				if (variant === "manager-edit") {
+					if (!auditId) {
+						throw new Error("Manager audit ID is missing.");
+					}
+					await updateManagerAuditEditState(auditId, session, {
+						submission_id: currentDraft.lastResult?.id ?? null,
+						...payload,
+						resubmit: false
+					});
+				} else {
+					await saveAuditDraft(placeId, session, payload);
+				}
 				lastPersistedSnapshot.current = snapshot;
 			} finally {
 				setPersisting(false);
 			}
 		},
-		[mode, placeId, session]
+		[auditId, mode, placeId, session, variant]
 	);
 
 	React.useEffect(() => {
@@ -852,6 +1178,7 @@ export function YeeAuditWizard({
 	);
 	const domainGroups = React.useMemo(() => groupInstrumentItems(domainItems), [domainItems]);
 	const weatherSelections = React.useMemo(() => draft.weather.split("|").filter(Boolean), [draft.weather]);
+	const stepPalette = getSurfacePalette(step ?? 1);
 
 	const answeredDomainItems = domainGroups.reduce((sum, group) => {
 		if (group.items.length === 1) return sum + getAnsweredPromptCountForItem(group.items[0], responses);
@@ -875,26 +1202,7 @@ export function YeeAuditWizard({
 	}, 0);
 
 	const stepIsComplete =
-		step === 1
-			? Boolean(draft.visitFrequency && draft.season && weatherSelections.length > 0)
-			: step === 2
-				? Object.values(draft.weights).every(Boolean)
-					: step && step <= 8
-						? domainGroups.every(group => {
-							if (group.items.length === 1) return hasAnsweredItem(group.items[0], responses);
-							const presenceItem = group.items.find(item => !isConditionItem(item)) ?? group.items[0];
-							const conditionItem = group.items.find(item => isConditionItem(item)) ?? null;
-							const choiceIds = Object.keys(presenceItem.choices || {});
-							return choiceIds.every(choiceId => {
-								const presenceValue = getSelectedMatrixAnswer(presenceItem.item_id, choiceId, responses);
-								if (!presenceValue) return false;
-								if (!conditionItem || !isRowPositive(presenceItem, choiceId, responses)) return true;
-								return Boolean(getSelectedMatrixAnswer(conditionItem.item_id, choiceId, responses));
-							});
-						})
-					: step === 9
-						? true
-						: false;
+		step && instrument ? isStepCompleteForData(step, draft, responses, instrument) : false;
 
 	function updateDraft<K extends keyof YeeAuditDraft>(key: K, value: YeeAuditDraft[K]) {
 		setDraft(prev => ({ ...prev, [key]: value }));
@@ -902,10 +1210,24 @@ export function YeeAuditWizard({
 
 	async function goToStep(nextStep: YeeStepNumber | null) {
 		if (!nextStep) return;
+		if (step && nextStep > step && !stepIsComplete) {
+			const message = getIncompleteStepMessage(step);
+			if (typeof window !== "undefined") {
+				const shouldContinue = window.confirm(`${message}\n\nDo you still want to move to the next page?`);
+				if (!shouldContinue) {
+					setError(message);
+					return;
+				}
+			}
+		}
 		try {
 			setError(null);
 			await persistCurrentDraft({ ...draft, responses }, responses);
-			router.push(`/yee/audit/${placeId}/page/${nextStep}`);
+			router.push(
+				variant === "manager-edit" && basePath
+					? buildManagerEditHref(`${basePath}/page/${nextStep}`)
+					: `/yee/audit/${placeId}/page/${nextStep}`
+			);
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Failed to save draft before moving to the next step.");
 		}
@@ -914,8 +1236,34 @@ export function YeeAuditWizard({
 	async function openReview() {
 		try {
 			setError(null);
+			if (!instrument) {
+				setError("The YEE survey instrument is still loading. Please try again in a moment.");
+				return;
+			}
+			if (!areAllRequiredSectionsComplete(draft, responses, instrument)) {
+				const message = buildIncompleteSectionsMessage(draft, responses, instrument);
+				setError(message);
+				if (typeof window !== "undefined") {
+					const firstIncompleteStep = getIncompleteSectionSteps(draft, responses, instrument)[0]?.step ?? null;
+					const shouldJump = window.confirm(
+						`${message}\n\nWould you like to go to the first incomplete section now?`
+					);
+					if (shouldJump && firstIncompleteStep) {
+						router.push(
+							variant === "manager-edit" && basePath
+								? buildManagerEditHref(`${basePath}/page/${firstIncompleteStep}`)
+								: `/yee/audit/${placeId}/page/${firstIncompleteStep}`
+						);
+					}
+				}
+				return;
+			}
 			await persistCurrentDraft({ ...draft, responses }, responses);
-			router.push(`/yee/audit/${placeId}/review`);
+			router.push(
+				variant === "manager-edit" && basePath
+					? buildManagerEditHref(`${basePath}/review`)
+					: `/yee/audit/${placeId}/review`
+			);
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Failed to save draft before opening review.");
 		}
@@ -925,7 +1273,7 @@ export function YeeAuditWizard({
 		try {
 			setPreviewLoading(true);
 			setError(null);
-			const backendScore = await fetchScorePreview(placeId, buildParticipantInfo(draft), responses);
+			const backendScore = await fetchScorePreview(draft.placeId, buildParticipantInfo(draft), responses);
 			const preview = buildWeightedScorePreview(backendScore, draft.weights);
 			setDraft(prev => ({ ...prev, scorePreview: preview }));
 		} catch (err) {
@@ -933,7 +1281,7 @@ export function YeeAuditWizard({
 		} finally {
 			setPreviewLoading(false);
 		}
-	}, [draft, placeId, responses]);
+	}, [draft, responses]);
 
 	React.useEffect(() => {
 		if (mode !== "review") return;
@@ -944,6 +1292,28 @@ export function YeeAuditWizard({
 
 	async function submitAudit() {
 		try {
+			if (!instrument) {
+				setError("The YEE survey instrument is still loading. Please try again in a moment.");
+				return;
+			}
+			if (!areAllRequiredSectionsComplete(draft, responses, instrument)) {
+				const message = buildIncompleteSectionsMessage(draft, responses, instrument);
+				setError(message);
+				if (typeof window !== "undefined") {
+					const firstIncompleteStep = getIncompleteSectionSteps(draft, responses, instrument)[0]?.step ?? null;
+					const shouldJump = window.confirm(
+						`${message}\n\nWould you like to go to the first incomplete section now?`
+					);
+					if (shouldJump && firstIncompleteStep) {
+						router.push(
+							variant === "manager-edit" && basePath
+								? buildManagerEditHref(`${basePath}/page/${firstIncompleteStep}`)
+								: `/yee/audit/${placeId}/page/${firstIncompleteStep}`
+						);
+					}
+				}
+				return;
+			}
 			if (
 				typeof window !== "undefined" &&
 				!window.confirm("Submit this audit now? After submission, you will not be able to edit the audit.")
@@ -965,9 +1335,36 @@ export function YeeAuditWizard({
 				finishTime,
 				totalMinutes
 			};
+			const participantInfo = buildParticipantInfo(submissionDraft);
+			if (variant === "manager-edit") {
+				if (!session || !auditId) {
+					throw new Error("Manager audit editing is not available right now.");
+				}
+				const data = await updateManagerAuditEditState(auditId, session, {
+					submission_id: draft.lastResult?.id ?? null,
+					participant_info: participantInfo,
+					responses,
+					resubmit: true
+				});
+				const preview = buildWeightedScorePreview(data.score, submissionDraft.weights);
+				setDraft({
+					...submissionDraft,
+					submittedAt: data.submitted_at,
+					lastResult: data.submission_id
+						? {
+								id: data.submission_id,
+								totalScore: data.score.total_score
+						  }
+						: submissionDraft.lastResult,
+					scorePreview: preview
+				});
+				router.push(data.submission_id ? `/yee/submissions/${data.submission_id}` : "/dashboard/audits");
+				return;
+			}
+
 			const payload = {
-				place_id: placeId,
-				participant_info: buildParticipantInfo(submissionDraft),
+				place_id: draft.placeId,
+				participant_info: participantInfo,
 				responses
 			};
 			const response = await fetch("/api/yee/audits", {
@@ -1127,12 +1524,20 @@ export function YeeAuditWizard({
 						)}
 						<div className="flex flex-wrap gap-3">
 							<Button asChild variant="outline" className="rounded-2xl">
-								<Link href={`/yee/audit/${placeId}/page/9`}>Back to final comments</Link>
+								<Link
+									href={
+										variant === "manager-edit" && basePath
+											? buildManagerEditHref(`${basePath}/page/9`)
+											: `/yee/audit/${placeId}/page/9`
+									}
+								>
+									Back to final comments
+								</Link>
 							</Button>
-							<Button variant="outline" className="rounded-2xl" onClick={() => void refreshScorePreview()} disabled={previewLoading}>
+							<Button type="button" variant="outline" className="rounded-2xl" onClick={() => void refreshScorePreview()} disabled={previewLoading}>
 								{previewLoading ? "Refreshing..." : "Refresh Score Preview"}
 							</Button>
-							<Button className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]" onClick={() => void submitAudit()} disabled={submitting}>
+							<Button type="button" className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]" onClick={() => void submitAudit()} disabled={submitting}>
 								{submitting ? "Submitting..." : "Submit Audit"}
 							</Button>
 						</div>
@@ -1157,7 +1562,7 @@ export function YeeAuditWizard({
 					</Badge>
 				</div>
 				<h1 className="text-3xl font-semibold tracking-tight text-slate-950">{stepDetails?.title}</h1>
-				<p className="max-w-3xl text-sm leading-7 text-slate-600">{stepDetails?.description}</p>
+				{stepDetails?.description ? <p className="max-w-3xl text-sm leading-7 text-slate-600">{stepDetails.description}</p> : null}
 			</header>
 
 			<div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
@@ -1167,15 +1572,10 @@ export function YeeAuditWizard({
 						type="button"
 						onClick={() => void goToStep(entry.step)}
 						disabled={step === entry.step}
-						className={`rounded-2xl border px-3 py-2 text-left text-sm transition ${
-							step === entry.step
-								? "border-emerald-500 bg-emerald-50 text-emerald-800"
-								: "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+						className={`rounded-2xl border px-3 py-3 text-left text-sm transition duration-200 ${
+							step === entry.step ? getStepPalette(entry.step).active : getStepPalette(entry.step).idle
 						}`}>
-						<span className="block text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
-							{entry.step}.
-						</span>
-						<span className="mt-1 block font-medium">{getShortStepLabel(entry.step)}</span>
+						<span className="block font-semibold">{getShortStepLabel(entry.step)}</span>
 					</button>
 				))}
 			</div>
@@ -1207,6 +1607,7 @@ export function YeeAuditWizard({
 								onChange={value => updateDraft("visitFrequency", value)}
 								options={visitFrequencyOptions}
 								columns={1}
+								palette={stepPalette}
 							/>
 						</div>
 						<div className="space-y-3">
@@ -1217,6 +1618,7 @@ export function YeeAuditWizard({
 								onChange={value => updateDraft("season", value)}
 								options={seasonOptions}
 								columns={1}
+								palette={stepPalette}
 							/>
 						</div>
 						<div className="space-y-3">
@@ -1234,6 +1636,7 @@ export function YeeAuditWizard({
 									)
 								}
 								options={weatherOptions}
+								palette={stepPalette}
 							/>
 						</div>
 					</CardContent>
@@ -1242,18 +1645,35 @@ export function YeeAuditWizard({
 
 			{step === 2 ? (
 				<div className="space-y-4">
-					<Card className="rounded-[1.5rem] border-slate-200/80 bg-[#f4fbf6] shadow-sm">
-						<CardContent className="py-5 text-sm leading-7 text-slate-700">
-							<p className="font-medium text-slate-900">
+					<Card className={`rounded-[1.5rem] border shadow-sm ${stepPalette.instruction}`}>
+						<CardContent className="py-5 text-sm leading-7 text-white">
+							<p className="font-medium text-white">
 								Please start by telling us how important each of the following issues are to you - especially about the play/recreation and green spaces in your community or neighborhood
 							</p>
-							<p className="mt-2">
+							<p className="mt-2 text-white/90">
 								These answers are also used later to calculate Youth Weighted scores alongside the raw section scores for {draft.placeName || "this place"}.
 							</p>
 						</CardContent>
 					</Card>
 					{Object.entries(yeeDomainLabels).map(([key, label]) => (
-						<Card key={key} className="rounded-[1.5rem] border-slate-200/80 bg-white shadow-sm">
+						<Card
+							key={key}
+							className={`rounded-[1.5rem] shadow-sm ${
+								getSurfacePalette(
+									key === "access"
+										? 3
+										: key === "activitySpaces"
+											? 4
+											: key === "amenities"
+												? 5
+												: key === "experienceOfSpace"
+													? 6
+													: key === "aestheticsAndCare"
+														? 7
+														: 8
+								).card
+							}`}
+						>
 							<CardHeader>
 								<CardTitle className="text-lg font-semibold">{label}</CardTitle>
 							</CardHeader>
@@ -1274,6 +1694,19 @@ export function YeeAuditWizard({
 										}))
 									}
 									options={yeeWeightOptions}
+									palette={getSurfacePalette(
+										key === "access"
+											? 3
+											: key === "activitySpaces"
+												? 4
+												: key === "amenities"
+													? 5
+													: key === "experienceOfSpace"
+														? 6
+														: key === "aestheticsAndCare"
+															? 7
+															: 8
+									)}
 								/>
 							</CardContent>
 						</Card>
@@ -1298,9 +1731,9 @@ export function YeeAuditWizard({
 			{step && step >= 3 && step <= 8 ? (
 				<div className="space-y-4">
 					{domainKey ? (
-						<Card className="rounded-[1.5rem] border-slate-200/80 bg-[#eef8f2] shadow-sm">
-							<CardContent className="py-5 text-sm leading-7 text-slate-700">
-								<p className="text-lg font-semibold text-slate-900">{getSectionIntroCopy(domainKey).heading}</p>
+						<Card className={`rounded-[1.5rem] border shadow-sm ${stepPalette.instruction}`}>
+							<CardContent className="py-5 text-sm leading-7 text-white">
+								<p className="text-lg font-semibold text-white">{getSectionIntroCopy(domainKey).heading}</p>
 								<div className="mt-2">
 									{getSectionIntroCopy(domainKey).body}
 								</div>
@@ -1313,6 +1746,7 @@ export function YeeAuditWizard({
 							group={group}
 							responses={responses}
 							setResponses={setResponses}
+							palette={stepPalette}
 						/>
 					))}
 					{domainKey ? (
@@ -1341,12 +1775,12 @@ export function YeeAuditWizard({
 							</CardContent>
 						</Card>
 					) : null}
-					<Card className="rounded-[1.5rem] border-slate-200/80 bg-[#f4fbf6] shadow-sm">
+					<Card className={`rounded-[1.5rem] border shadow-sm ${stepPalette.progress}`}>
 						<CardContent className="flex flex-wrap items-center justify-between gap-3 py-5 text-sm text-slate-600">
 							<span>
 								Section progress: {answeredDomainItems} of {requiredDomainItems} questions answered
 							</span>
-							<span>{requiredDomainItems === 0 ? "Informational section" : stepIsComplete ? "Section complete" : "Section in progress"}</span>
+							<span>{requiredDomainItems === 0 ? "Informational section" : stepIsComplete ? "Complete" : "In progress"}</span>
 						</CardContent>
 					</Card>
 				</div>
@@ -1371,21 +1805,34 @@ export function YeeAuditWizard({
 
 			<div className="flex flex-wrap items-center justify-between gap-3">
 				<div className="flex gap-3">
-					<Button variant="outline" className="rounded-2xl" onClick={() => void goToStep(getPreviousStep(step!))} disabled={!step || !getPreviousStep(step)}>
+					<Button type="button" variant="outline" className="rounded-2xl" onClick={() => void goToStep(getPreviousStep(step!))} disabled={!step || !getPreviousStep(step)}>
 						Back
 					</Button>
 					<Button
+						type="button"
 						variant="ghost"
 						className="rounded-2xl"
 						onClick={async () => {
 							try {
-								await persistCurrentDraft(draft, responses);
-								router.push("/my-dashboard");
+								if (variant === "manager-edit") {
+									if (!session || !auditId) {
+										throw new Error("Manager audit editing is not available right now.");
+									}
+									await updateManagerAuditEditState(auditId, session, {
+										submission_id: draft.lastResult?.id ?? null,
+										participant_info: buildParticipantInfo(draft),
+										responses,
+										resubmit: false
+									});
+								} else {
+									await persistCurrentDraft(draft, responses);
+								}
+								router.push(exitHref);
 							} catch (err) {
 								setError(err instanceof Error ? err.message : "Failed to save draft before exiting.");
 							}
 						}}>
-						Save and exit
+						{variant === "manager-edit" ? "Save changes and exit" : "Save and exit"}
 					</Button>
 				</div>
 				{step && step < 9 ? (
@@ -1402,7 +1849,7 @@ export function YeeAuditWizard({
 						className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]"
 						onClick={() => void openReview()}
 					>
-						Review Audit
+						{variant === "manager-edit" ? "Review Audit Changes" : "Review Audit"}
 					</Button>
 				)}
 			</div>

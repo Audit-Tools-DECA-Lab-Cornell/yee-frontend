@@ -2,7 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import type { PlaceComparisonGroupRecord } from "@/lib/dashboard/live-api";
 import { domainLabels, domainOrder, getComparisonAverages } from "@/lib/dashboard/reporting";
-import { totalRawScoreMaximum, totalYouthWeightedScoreMaximum } from "@/lib/yee-score-limits";
+import { getDomainYouthWeightedMaximum, rawDomainScoreMaximums, totalRawScoreMaximum, totalYouthWeightedScoreMaximum } from "@/lib/yee-score-limits";
 
 function clampPercentage(value: number) {
 	return Math.max(0, Math.min(100, value));
@@ -48,8 +48,8 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 							<tr className="border-b border-slate-200">
 								<th className="py-3 pr-4 font-medium">Auditor ID</th>
 								<th className="py-3 pr-4 font-medium">Date</th>
-								<th className="py-3 pr-4 font-medium">Total Raw</th>
-								<th className="py-3 font-medium">Total Youth Weighted</th>
+								<th className="py-3 pr-4 font-medium">Total Raw Score</th>
+								<th className="py-3 font-medium">Total Youth Weighted Score</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -57,8 +57,8 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 								<tr key={record.audit_id} className="border-b border-slate-100 last:border-0">
 									<td className="py-4 pr-4 font-medium text-slate-900">{record.auditor_id}</td>
 									<td className="py-4 pr-4 text-slate-600">{record.date}</td>
-									<td className="py-4 pr-4 text-slate-600">{record.total_raw_score}</td>
-									<td className="py-4 text-slate-600">{record.total_weighted_score}</td>
+									<td className="py-4 pr-4 text-slate-600">{record.total_raw_score} / {totalRawScoreMaximum}</td>
+									<td className="py-4 text-slate-600">{record.total_weighted_score} / {totalYouthWeightedScoreMaximum}</td>
 								</tr>
 							))}
 						</tbody>
@@ -68,7 +68,7 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 
 			<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
 				<CardHeader>
-					<CardTitle>Score bars</CardTitle>
+					<CardTitle>Score bar graphs</CardTitle>
 					<CardDescription>
 						Each audit shows percentage bars for both Total Raw and Total Youth Weighted scores. The full column is 100% of the available score, and the colored fill shows how much of that available score was achieved.
 					</CardDescription>
@@ -94,7 +94,7 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 							const rawPercent = totalRawScoreMaximum ? (record.total_raw_score / totalRawScoreMaximum) * 100 : 0;
 							const youthPercent = totalYouthWeightedScoreMaximum ? (record.total_weighted_score / totalYouthWeightedScoreMaximum) * 100 : 0;
 							return (
-								<div key={record.audit_id} className="rounded-[1.5rem] border border-slate-200 bg-[#f8fbf9] p-4">
+								<div key={record.audit_id} className="rounded-[1.5rem] border border-slate-200 bg-white p-4">
 									<div className="flex items-center justify-between gap-3">
 										<div>
 											<p className="text-sm font-semibold text-slate-900">{record.auditor_id}</p>
@@ -102,28 +102,28 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 										</div>
 										<Badge className="rounded-full bg-white px-3 py-1 text-slate-700 hover:bg-white">{record.place_name}</Badge>
 									</div>
-									<div className="mt-4 grid gap-4 sm:grid-cols-2">
-										<div className="rounded-[1.25rem] border border-slate-200 bg-white p-4">
-											<p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">Total Raw</p>
+									<div className="mt-4 space-y-4">
+										<div className="rounded-[1.25rem] border-4 border-slate-300 bg-white p-4">
+											<p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">Total Raw Score</p>
 											<div className="mt-3 flex items-end gap-4">
 												<div className="flex h-36 w-14 items-end rounded-full border border-slate-200 bg-slate-50 p-1">
 													<div className={`${colorBand(rawPercent)} w-full rounded-full`} style={{ height: barHeight(rawPercent) }} />
 												</div>
 												<div className="space-y-1 text-xs text-slate-600">
 													<p className="font-medium text-slate-900">{record.total_raw_score} / {totalRawScoreMaximum}</p>
-													<p>{rawPercent.toFixed(0)}%</p>
+													<p>{rawPercent.toFixed(0)}% ({record.total_raw_score}/{totalRawScoreMaximum})</p>
 												</div>
 											</div>
 										</div>
-										<div className="rounded-[1.25rem] border border-emerald-200 bg-emerald-50/80 p-4">
-											<p className="text-xs font-medium uppercase tracking-[0.16em] text-emerald-700">Total Youth Weighted</p>
+										<div className="rounded-[1.25rem] border-4 border-emerald-300 bg-white p-4">
+											<p className="text-xs font-medium uppercase tracking-[0.16em] text-emerald-700">Total Youth Weighted Score</p>
 											<div className="mt-3 flex items-end gap-4">
 												<div className="flex h-36 w-14 items-end rounded-full border border-emerald-200 bg-white/90 p-1">
 													<div className={`${colorBand(youthPercent)} w-full rounded-full`} style={{ height: barHeight(youthPercent) }} />
 												</div>
 												<div className="space-y-1 text-xs text-emerald-800">
 													<p className="font-medium text-emerald-900">{record.total_weighted_score} / {totalYouthWeightedScoreMaximum}</p>
-													<p>{youthPercent.toFixed(0)}%</p>
+													<p>{youthPercent.toFixed(0)}% ({record.total_weighted_score}/{totalYouthWeightedScoreMaximum})</p>
 												</div>
 											</div>
 										</div>
@@ -138,7 +138,7 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 			<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
 				<CardHeader>
 					<CardTitle>Domain comparison</CardTitle>
-					<CardDescription>Raw and Youth Weighted domain scores across audits plus averages.</CardDescription>
+					<CardDescription>Raw Score and Youth Weighted Score by domain across audits plus averages.</CardDescription>
 				</CardHeader>
 				<CardContent className="overflow-x-auto">
 					<table className="min-w-full text-left text-sm">
@@ -150,8 +150,8 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 										{record.auditor_id}
 									</th>
 								))}
-								<th className="py-3 pr-4 font-medium">Average Raw</th>
-								<th className="py-3 font-medium">Average Youth Weighted</th>
+								<th className="py-3 pr-4 font-medium">Average Raw Score</th>
+								<th className="py-3 font-medium">Average Youth Weighted Score</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -160,12 +160,14 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 									<td className="py-4 pr-4 font-medium text-slate-900">{domainLabels[domain]}</td>
 									{records.map(record => (
 										<td key={`${record.audit_id}-${domain}`} className="py-4 pr-4 text-slate-600">
-											<div>{record.raw_domain_scores[domain]} raw</div>
-											<div className="text-xs text-slate-500">{record.weighted_domain_scores[domain]} youth weighted</div>
+											<div>{record.raw_domain_scores[domain]} / {rawDomainScoreMaximums[domain]} raw score</div>
+											<div className="text-xs text-slate-500">
+												{record.weighted_domain_scores[domain]} / {getDomainYouthWeightedMaximum(domain, String(record.domain_weights[domain] ?? ""))} Youth Weighted score
+											</div>
 										</td>
 									))}
-									<td className="py-4 pr-4 text-slate-600">{averages?.avgRawByDomain[domain]}</td>
-									<td className="py-4 text-slate-600">{averages?.avgWeightedByDomain[domain]}</td>
+									<td className="py-4 pr-4 text-slate-600">{averages?.avgRawByDomain[domain]} / {rawDomainScoreMaximums[domain]}</td>
+									<td className="py-4 text-slate-600">{averages?.avgWeightedByDomain[domain]} average</td>
 								</tr>
 							))}
 						</tbody>

@@ -2,6 +2,7 @@ import {
 	BarChart3,
 	ClipboardList,
 	Database,
+	FileText,
 	FilePlus2,
 	FolderKanban,
 	LayoutDashboard,
@@ -49,7 +50,35 @@ export type WorkspaceConfig = {
 	};
 };
 
-export const workspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> = {
+export type SiteCopyPayload = {
+	workspaceConfigs?: Partial<
+		Record<
+			WorkspaceVariant,
+			{
+				description?: string;
+				searchPlaceholder?: string;
+				primaryAction?: {
+					label?: string;
+				};
+				sidebarCard?: {
+					eyebrow?: string;
+					title?: string;
+					description?: string;
+					actionLabel?: string;
+				};
+				pageCopy?: Record<
+					string,
+					{
+						title?: string;
+						description?: string;
+					}
+				>;
+			}
+		>
+	>;
+};
+
+export const defaultWorkspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> = {
 	admin: {
 		variant: "admin",
 		badge: "Admin view",
@@ -72,6 +101,8 @@ export const workspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> = {
 		navigation: [
 			{ label: "Overview", href: "/admin", icon: LayoutDashboard },
 			{ label: "Users", href: "/admin/users", icon: Users2 },
+			{ label: "Website Copy", href: "/admin/content", icon: FileText },
+			{ label: "Instruments", href: "/admin/instruments", icon: FileText },
 			{ label: "Projects", href: "/admin/projects", icon: FolderKanban },
 			{ label: "Places", href: "/admin/places", icon: MapPinned },
 			{ label: "Audits", href: "/admin/audits", icon: ClipboardList },
@@ -86,6 +117,14 @@ export const workspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> = {
 			"/admin/users": {
 				title: "Users",
 				description: "View managers, auditors, account states, and role assignments."
+			},
+			"/admin/content": {
+				title: "Website Copy",
+				description: "Edit dashboard wording across the admin, manager, and auditor website without touching code."
+			},
+			"/admin/instruments": {
+				title: "Instruments",
+				description: "Manage versioned YEE survey instruments and activate the one used by the website."
 			},
 			"/admin/projects": {
 				title: "Projects",
@@ -129,7 +168,7 @@ export const workspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> = {
 		sidebarCard: {
 			eyebrow: "Quick start",
 			title: "Launch manager actions",
-			description: "Create a project, add a place, or invite an auditor without leaving the dashboard flow.",
+			description: "Create a Project, add a Place, or invite an auditor.",
 			actionLabel: "Create Project",
 			actionHref: "/dashboard/projects/new",
 			actionIcon: FilePlus2
@@ -243,3 +282,54 @@ export const workspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> = {
 		}
 	}
 };
+
+export function buildWorkspaceConfigs(overrides?: SiteCopyPayload | null): Record<WorkspaceVariant, WorkspaceConfig> {
+	if (!overrides?.workspaceConfigs) {
+		return defaultWorkspaceConfigs;
+	}
+
+	return (Object.keys(defaultWorkspaceConfigs) as WorkspaceVariant[]).reduce(
+		(accumulator, variant) => {
+			const base = defaultWorkspaceConfigs[variant];
+			const override = overrides.workspaceConfigs?.[variant];
+
+			if (!override) {
+				accumulator[variant] = base;
+				return accumulator;
+			}
+
+			const mergedPageCopy = Object.fromEntries(
+				Object.entries(base.pageCopy).map(([path, content]) => [
+					path,
+					{
+						title: override.pageCopy?.[path]?.title ?? content.title,
+						description: override.pageCopy?.[path]?.description ?? content.description
+					}
+				])
+			);
+
+			accumulator[variant] = {
+				...base,
+				description: override.description ?? base.description,
+				searchPlaceholder: override.searchPlaceholder ?? base.searchPlaceholder,
+				primaryAction: {
+					...base.primaryAction,
+					label: override.primaryAction?.label ?? base.primaryAction.label
+				},
+				sidebarCard: {
+					...base.sidebarCard,
+					eyebrow: override.sidebarCard?.eyebrow ?? base.sidebarCard.eyebrow,
+					title: override.sidebarCard?.title ?? base.sidebarCard.title,
+					description: override.sidebarCard?.description ?? base.sidebarCard.description,
+					actionLabel: override.sidebarCard?.actionLabel ?? base.sidebarCard.actionLabel
+				},
+				pageCopy: mergedPageCopy
+			};
+
+			return accumulator;
+		},
+		{} as Record<WorkspaceVariant, WorkspaceConfig>
+	);
+}
+
+export const workspaceConfigs = defaultWorkspaceConfigs;

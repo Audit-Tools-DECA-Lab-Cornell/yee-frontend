@@ -38,7 +38,7 @@ export default function InviteAuditorPage() {
 	return (
 		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
 			<CardHeader>
-				<CardTitle className="text-2xl">Invite Auditor</CardTitle>
+				<CardTitle className="text-2xl">Invite New Auditor</CardTitle>
 				<CardDescription className="max-w-2xl leading-6">
 					Create a real auditor invite link tied to your manager account workspace.
 				</CardDescription>

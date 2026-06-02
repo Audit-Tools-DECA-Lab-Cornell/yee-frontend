@@ -1,151 +1,197 @@
-# Deployment and Public Testing
+# Production Deployment
 
-## Purpose
+## Goal
 
-This document explains how to run the frontend locally, connect it to the backend, and share it for stakeholder review.
+Publish the YEE website so it is available anytime without relying on a local
+laptop, local backend process, or `ngrok`.
 
-## Local development
+Recommended production topology:
 
-### Frontend
+- **Frontend:** Vercel
+- **Backend:** Render
+- **Databases:** Neon PostgreSQL
 
-```bash
-cd /Users/andishasafdariyan/auditTools/audit-tools-yee-frontend
-npm install
-npm run dev
+This keeps the web UI, API, and databases independently hosted and always
+available.
+
+## Final architecture
+
+```text
+Manager / Auditor / Admin browser
+        |
+        v
+Vercel-hosted Next.js frontend
+        |
+        v
+Render-hosted FastAPI backend
+        |
+        +--> Neon database: audit_tools_yee
+        |
+        +--> Neon database: audit_tools_playspace
 ```
 
-Frontend local URL:
+## Why this works well here
 
-- `http://localhost:3000`
+- the frontend is already a standard Next.js 15 app
+- the backend already includes a `render.yaml`
+- the backend already supports separate YEE and Playspace databases
+- the frontend already proxies backend requests through `API_BASE_URL`
 
-### Backend
+## 1. Provision the databases
 
-```bash
-cd /Users/andishasafdariyan/auditTools/audit-tools-backend
-.venv/bin/uvicorn app.main:app --reload
+Create two PostgreSQL databases:
+
+- `audit_tools_yee`
+- `audit_tools_playspace`
+
+Recommended: create both in the same Neon project.
+
+You will need two connection strings:
+
+- `DATABASE_URL_YEE`
+- `DATABASE_URL_PLAYSPACE`
+
+## 2. Deploy the backend on Render
+
+Repo:
+
+- `/Users/andishasafdariyan/auditTools/audit-tools-backend`
+
+The backend repo already includes:
+
+- [`render.yaml`](/Users/andishasafdariyan/auditTools/audit-tools-backend/render.yaml)
+
+It now includes:
+
+- automatic pre-deploy Alembic migrations for **both** product databases
+
+### Required Render environment variables
+
+- `DATABASE_URL_YEE`
+- `DATABASE_URL_PLAYSPACE`
+- `AUTH_TOKEN_SECRET_KEY`
+
+### Strongly recommended backend variables
+
+- `AUTH_ACCESS_TOKEN_TTL_DAYS=7`
+- `AUTH_EMAIL_VERIFY_TTL_HOURS=24`
+- `AUTH_VERIFY_URL_TEMPLATE=https://YOUR-FRONTEND-DOMAIN/verify-email?token={token}`
+- `CORS_ALLOWED_ORIGINS=https://YOUR-FRONTEND-DOMAIN`
+
+### Optional production email variables
+
+- `SMTP_HOST`
+- `SMTP_PORT`
+- `SMTP_USERNAME`
+- `SMTP_PASSWORD`
+- `SMTP_FROM_EMAIL`
+- `SMTP_USE_TLS=true`
+
+### Backend verification
+
+After deploy, verify:
+
+- `GET /health`
+- one login flow
+- one dashboard route
+- one YEE audit route
+
+## 3. Deploy the frontend on Vercel
+
+Repo:
+
+- `/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend`
+
+The frontend is already ready for a normal Vercel deployment.
+
+### Required Vercel environment variables
+
+- `API_BASE_URL=https://YOUR-RENDER-BACKEND-DOMAIN`
+- `NEXT_PUBLIC_API_BASE_URL=https://YOUR-RENDER-BACKEND-DOMAIN`
+
+These are both important:
+
+- `API_BASE_URL` is used by server-side Next.js API proxy routes
+- `NEXT_PUBLIC_API_BASE_URL` is available to client-side helpers
+
+### Frontend verification
+
+After deploy, verify:
+
+- `/login`
+- manager login
+- manager dashboard
+- auditor dashboard
+- one submitted report page
+- one create/edit place flow
+
+## 4. Update backend origin and verification settings
+
+Once Vercel gives you the final production frontend domain:
+
+- set `CORS_ALLOWED_ORIGINS` on Render to that domain
+- set `AUTH_VERIFY_URL_TEMPLATE` to that domain
+
+Example:
+
+```env
+CORS_ALLOWED_ORIGINS=https://your-project.vercel.app
+AUTH_VERIFY_URL_TEMPLATE=https://your-project.vercel.app/verify-email?token={token}
 ```
 
-Backend local URL:
+## 5. Seed production/demo data if needed
 
-- `http://127.0.0.1:8000`
+If you want your employer to review seeded demo users and sample data, make sure
+the target databases are seeded before review.
 
-## Required environment variables
-
-Frontend `.env`:
-
-```bash
-API_BASE_URL=http://127.0.0.1:8000
-NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000
-```
-
-## Production-like build verification
-
-Before sharing changes, run:
+Typical local seed command:
 
 ```bash
-npm run build
+./.venv/bin/python -m app.seed --product yee
+./.venv/bin/python -m app.seed --product playspace
 ```
 
-This catches:
+For hosted environments, run the equivalent seed step carefully against the
+production/staging databases you intend to use for review.
 
-- type errors
-- route generation errors
-- missing imports
-- some proxy route issues
+## 6. Recommended release order
 
-## Sharing a public link
+1. create both Neon databases
+2. set Render backend environment variables
+3. deploy backend on Render
+4. verify backend `/health`
+5. set Vercel frontend environment variables
+6. deploy frontend on Vercel
+7. update backend `CORS_ALLOWED_ORIGINS`
+8. update backend `AUTH_VERIFY_URL_TEMPLATE`
+9. verify login + manager dashboard + auditor flow
 
-The team currently uses `ngrok` for temporary stakeholder previews.
+## What this replaces
 
-### Start the frontend
+This replaces the temporary `ngrok` workflow entirely.
 
-```bash
-npm run dev
-```
+With production hosting:
 
-### Start the backend
+- the site stays available when the laptop is off
+- the employer can review at any time
+- the URL is stable
+- HTTPS is handled by the hosting providers
 
-```bash
-cd /Users/andishasafdariyan/auditTools/audit-tools-backend
-.venv/bin/uvicorn app.main:app --reload
-```
+## Current repo readiness
 
-### Start ngrok
+Prepared in this repo now:
 
-```bash
-ngrok http 3000
-```
+- backend Render blueprint exists
+- backend migrations run before deploy
+- backend supports configurable production CORS origins
+- frontend already supports a production backend URL through env vars
 
-### Find the public URL
+## Remaining external steps
 
-You can usually read it from the terminal or from:
+Still needed outside the repo:
 
-- `http://127.0.0.1:4040/api/tunnels`
-
-## Important caveats for public sharing
-
-The public preview is only as stable as the local machine serving it.
-
-The link will stop working if:
-
-- the frontend dev server stops
-- the backend server stops
-- the `ngrok` process stops
-- the laptop sleeps or disconnects
-
-## Typical public preview checklist
-
-Before sharing:
-
-1. confirm frontend responds locally
-2. confirm backend responds locally
-3. confirm login works
-4. confirm a dashboard route loads
-5. confirm any critical new flow loads
-6. verify the ngrok URL externally
-
-## Demo credentials for review
-
-Common review accounts:
-
-- Admin: `admin-demo@yee.local` / `DemoPass123!`
-- Manager: `manager-demo@yee.local` / `DemoPass123!`
-- Auditor: `auditor-demo-1@yee.local` / `DemoPass123!`
-
-## Deployment notes for future engineers
-
-This repo is currently optimized for local development and tunnel-based review.
-
-Future production deployment work will likely include:
-
-- hosting the Next.js app on a real deployment platform
-- stable environment management
-- stable domain and TLS handling
-- production session strategy
-- release pipeline and branch protections
-
-## Troubleshooting
-
-### `Could not reach backend`
-
-Usually means:
-
-- backend is not running
-- backend URL in `.env` is wrong
-- frontend server needs restart after `.env` changes
-
-### public link loads but app errors
-
-Check:
-
-- frontend dev server logs
-- backend logs
-- whether the tunnel points to port `3000`
-
-### public link works on same machine but not externally
-
-Check:
-
-- tunnel is still active
-- backend is still reachable from the frontend server
-- ngrok warning/interstitial was acknowledged by the reviewer
+- Vercel project creation
+- Render service creation
+- Neon database creation
+- production environment variable entry
+- final deploy/authentication through those provider accounts

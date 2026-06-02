@@ -10,11 +10,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
-import { workspaceConfigs, type WorkspaceVariant } from "@/lib/dashboard/workspace-config";
+import { useWorkspaceConfig } from "@/components/dashboard/site-copy-provider";
+import type { WorkspaceVariant } from "@/lib/dashboard/workspace-config";
 
 export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 	const pathname = usePathname();
-	const config = workspaceConfigs[variant];
+	const config = useWorkspaceConfig(variant);
 	const showPrimaryAction = variant !== "auditor";
 	const hideSearch =
 		(variant === "admin" &&

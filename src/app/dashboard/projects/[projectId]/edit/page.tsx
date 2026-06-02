@@ -1,22 +1,23 @@
 "use client";
 
-import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import * as React from "react";
 
 import { useAuth } from "@/components/auth/auth-provider";
-import { Button } from "@/components/ui/button";
+import {
+	buildProjectProfilePayload,
+	deriveProjectProfileFormValues,
+	ProjectProfileForm,
+	type ProjectProfileFormValues,
+} from "@/components/dashboard/project-profile-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { fetchProjectDetail, updateProject } from "@/lib/dashboard/live-api";
 
 export default function EditProjectPage() {
 	const params = useParams<{ projectId: string }>();
 	const router = useRouter();
 	const { session } = useAuth();
-	const [name, setName] = React.useState("");
-	const [description, setDescription] = React.useState("");
+	const [values, setValues] = React.useState<ProjectProfileFormValues | null>(null);
 	const [loading, setLoading] = React.useState(true);
 	const [saving, setSaving] = React.useState(false);
 	const [error, setError] = React.useState<string | null>(null);
@@ -28,11 +29,10 @@ export default function EditProjectPage() {
 			try {
 				const project = await fetchProjectDetail(session, params.projectId);
 				if (!cancelled) {
-					setName(project.name);
-					setDescription(project.description);
+					setValues(deriveProjectProfileFormValues(project));
 				}
 			} catch (err) {
-				if (!cancelled) setError(err instanceof Error ? err.message : "Could not load project.");
+				if (!cancelled) setError(err instanceof Error ? err.message : "Could not load Project.");
 			} finally {
 				if (!cancelled) setLoading(false);
 			}
@@ -45,17 +45,17 @@ export default function EditProjectPage() {
 
 	async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
-		if (!session) {
+		if (!session || !values) {
 			setError("You need to log in again.");
 			return;
 		}
 		setSaving(true);
 		setError(null);
 		try {
-			await updateProject(session, params.projectId, { name, description });
+			await updateProject(session, params.projectId, buildProjectProfilePayload(values));
 			router.push(`/dashboard/projects/${params.projectId}`);
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Could not update project.");
+			setError(err instanceof Error ? err.message : "Could not update Project.");
 		} finally {
 			setSaving(false);
 		}
@@ -65,33 +65,24 @@ export default function EditProjectPage() {
 		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
 			<CardHeader>
 				<CardTitle className="text-2xl">Edit Project</CardTitle>
-				<CardDescription className="max-w-2xl leading-6">
-					Update the project name and summary for this manager-scoped project.
+				<CardDescription className="max-w-3xl leading-6">
+					Update the Project profile, scope, and Auditor setup details without leaving the manager workflow.
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
-				{loading ? (
-					<p className="text-sm text-slate-500">Loading project details...</p>
+				{loading || !values ? (
+					<p className="text-sm text-slate-500">Loading Project details...</p>
 				) : (
-					<form className="grid gap-4 sm:grid-cols-2" onSubmit={handleSubmit}>
-						<div className="space-y-2 sm:col-span-2">
-							<Label htmlFor="project-name">Project name</Label>
-							<Input id="project-name" value={name} onChange={event => setName(event.target.value)} required />
-						</div>
-						<div className="space-y-2 sm:col-span-2">
-							<Label htmlFor="project-summary">Summary</Label>
-							<Input id="project-summary" value={description} onChange={event => setDescription(event.target.value)} />
-						</div>
-						{error ? <p className="sm:col-span-2 text-sm text-rose-600">{error}</p> : null}
-						<div className="mt-2 flex flex-wrap gap-3 sm:col-span-2">
-							<Button type="submit" className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]" disabled={saving}>
-								{saving ? "Saving..." : "Save changes"}
-							</Button>
-							<Button asChild variant="outline" className="rounded-2xl">
-								<Link href={`/dashboard/projects/${params.projectId}`}>Back to project</Link>
-							</Button>
-						</div>
-					</form>
+					<ProjectProfileForm
+						values={values}
+						onChange={setValues}
+						onSubmit={handleSubmit}
+						saving={saving}
+						error={error}
+						submitLabel="Save Project"
+						cancelHref={`/dashboard/projects/${params.projectId}`}
+						cancelLabel="Back to Project"
+					/>
 				)}
 			</CardContent>
 		</Card>
