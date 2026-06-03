@@ -26,7 +26,7 @@ import {
 	type RawDataRecord,
 	type UserRecord
 } from "@/lib/dashboard/live-api";
-import { getYouthWeightedScoreMaximum, totalRawScoreMaximum, totalYouthWeightedScoreMaximum } from "@/lib/yee-score-limits";
+import { getYouthWeightedScoreMaximum, totalRawScoreMaximum } from "@/lib/yee-score-limits";
 
 const quickLinks = [
 	{
@@ -42,7 +42,7 @@ const quickLinks = [
 		icon: MapPinned
 	},
 	{
-		title: "Invite Auditor",
+		title: "Invite New Auditor",
 		description: "Send access to a new fieldworker and track assignment status.",
 		href: "/dashboard/auditors/invite",
 		icon: UserPlus
@@ -150,25 +150,22 @@ function downloadCsv(filename: string, rows: Record<string, string | number>[]) 
 function rawDataToRows(rows: RawDataRecord[]) {
 	return rows.map(row => {
 		const base: Record<string, string | number> = {
-			audit_id: row.audit_id,
-			auditor_id: row.auditor_generated_id,
-			project_id: row.project_id,
-			project_name: row.project_name,
-			place_id: row.place_id,
-			place_name: row.place_name,
-			date: row.date,
-			submitted_at: row.submitted_at,
-			start_time: row.start_time,
-			finish_time: row.finish_time,
-			total_minutes: row.total_minutes,
-			total_raw_score: row.total_raw_score,
-			total_weighted_score: row.total_weighted_score
+			"Auditor ID": row.auditor_generated_id,
+			Project: row.project_name,
+			Place: row.place_name,
+			Date: row.date,
+			"Submitted At": row.submitted_at,
+			"Start Time": row.start_time,
+			"Finish Time": row.finish_time,
+			"Total Minutes": row.total_minutes,
+			"Total Raw Score": row.total_raw_score,
+			"Total Youth Weighted Average": row.total_weighted_score
 		};
 		for (const [key, value] of Object.entries(row.domain_weights)) {
-			base[`domain_weight_${key}`] = value;
+			base[`Domain Weight ${key}`] = value;
 		}
 		for (const [key, value] of Object.entries(row.responses)) {
-			base[key] = value;
+			base[`Response ${key}`] = value;
 		}
 		return base;
 	});
@@ -204,12 +201,36 @@ function getMetricValue(metrics: DashboardMetric[], keyword: string) {
 
 function formatScoreValue(value: number | null) {
 	if (value === null || Number.isNaN(value)) return "Pending";
-	return Number.isInteger(value) ? String(value) : value.toFixed(1);
+	return Number.isInteger(value) ? String(value) : value.toFixed(2);
 }
 
 function formatPercent(value: number | null) {
 	if (value === null || Number.isNaN(value)) return "Pending";
-	return `${value.toFixed(1)}%`;
+	return `${value.toFixed(2)}%`;
+}
+
+function averageDomainWeights(rows: RawDataRecord[]) {
+	if (rows.length === 0) return [];
+	const domainLabels = {
+		access: "Access",
+		activitySpaces: "Activity Spaces",
+		amenities: "Amenities",
+		experienceOfSpace: "Experience of the Space",
+		aestheticsAndCare: "Aesthetics & Care",
+		useAndUsability: "Use & Usability"
+	} as const;
+
+	return Object.entries(domainLabels).map(([domain, label]) => {
+		const total = rows.reduce((sum, row) => sum + Number(row.domain_weights[domain] ?? 0), 0);
+		const average = total / rows.length;
+		const percent = average > 0 ? (average / 3) * 100 : 0;
+		return {
+			domain,
+			label,
+			average,
+			percent
+		};
+	});
 }
 
 export function LiveManagerOverview() {
@@ -240,26 +261,41 @@ export function LiveManagerOverview() {
 			: null;
 	const activePlaces = getMetricValue(data.metrics, "place");
 	const auditsLogged = getMetricValue(data.metrics, "audit");
-	const snapshotItems = [
+	const completedAudits = submittedRows.length;
+	const activeAuditCount = Number.parseInt(auditsLogged, 10);
+	const auditsInProgress = Number.isNaN(activeAuditCount) ? 0 : Math.max(activeAuditCount - completedAudits, 0);
+	const managerSnapshotItems = [
 		{
-			label: "Active Places",
+			label: "Total Places",
 			value: activePlaces,
 			helper: "Places currently in this manager's project scope."
 		},
 		{
-			label: "Audits Logged",
+			label: "Active Audits",
 			value: auditsLogged,
 			helper: "Draft and submitted audit records tied to this manager's places."
 		},
 		{
-			label: "Youth Weighted Score",
-			value: formatScoreValue(averageWeightedScore),
-			helper: "Average Youth Weighted score across submitted audits in this manager view."
+			label: "Completed Audits",
+			value: String(completedAudits),
+			helper: "Submitted audits currently available for reports, comparisons, and exports."
 		},
+		{
+			label: "Audits in Progress",
+			value: String(auditsInProgress),
+			helper: "Audits that are still underway and not yet locked as submitted."
+		}
+	];
+	const scoreSummaryItems = [
 		{
 			label: "Raw Score",
 			value: formatScoreValue(averageRawScore),
 			helper: "Average raw score across submitted audits in this manager view."
+		},
+		{
+			label: "Youth Weighted Average",
+			value: formatScoreValue(averageWeightedScore),
+			helper: "Average Youth Weighted average across submitted audits in this manager view."
 		},
 		{
 			label: "Cap Score Percentage",
@@ -268,15 +304,16 @@ export function LiveManagerOverview() {
 		},
 		{
 			label: "Max Score",
-			value: `${totalRawScoreMaximum} raw / ${totalYouthWeightedScoreMaximum} Youth Weighted`,
-			helper: "Scoring-sheet maxima: raw total is fixed, while Youth Weighted maxima depend on selected domain weights."
+			value: `${totalRawScoreMaximum} raw / dynamic Youth Weighted`,
+			helper: "Raw total is fixed, while Youth Weighted maxima now depend on normalized domain weights and domain average caps."
 		}
 	];
+	const domainWeightBreakdown = averageDomainWeights(submittedRows);
 
 	return (
 		<div className="space-y-6">
 			<section className="overflow-hidden rounded-[2rem] border border-emerald-200/60 bg-linear-to-br from-[#10231f] via-[#17302c] to-[#21483b] text-white shadow-xl shadow-emerald-950/10">
-				<div className="grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:px-10 lg:py-10">
+				<div className="px-6 py-8 sm:px-8 lg:px-10 lg:py-10">
 					<div>
 						<Badge className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-white hover:bg-white/10">
 							Youth Enabling Environments
@@ -287,6 +324,15 @@ export function LiveManagerOverview() {
 						<p className="mt-4 max-w-2xl text-sm leading-7 text-emerald-50/80 sm:text-base">
 							Use this overview to move into projects, places, auditors, reports, and audit records without dead summary cards.
 						</p>
+						<div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+							{managerSnapshotItems.map(item => (
+								<div key={item.label} className="min-w-0 rounded-[1.5rem] border border-white/12 bg-white/8 px-4 py-4 backdrop-blur-sm">
+									<p className="break-words text-xs font-medium uppercase tracking-[0.16em] text-emerald-50/70">{item.label}</p>
+									<p className="mt-2 break-words text-2xl font-semibold text-white">{item.value}</p>
+									<p className="mt-2 break-words text-xs leading-5 text-emerald-50/65">{item.helper}</p>
+								</div>
+							))}
+						</div>
 						<div className="mt-6 flex flex-wrap gap-3">
 							<Button asChild className="rounded-2xl bg-white text-slate-950 hover:bg-emerald-50">
 								<Link href="/dashboard/projects/new">
@@ -299,21 +345,36 @@ export function LiveManagerOverview() {
 							</Button>
 						</div>
 					</div>
-					<div className="rounded-[1.75rem] border border-white/10 bg-white/8 p-5 backdrop-blur-sm">
-						<p className="text-sm font-medium text-emerald-50/80">Manager snapshot</p>
-						<p className="mt-2 text-xs leading-5 text-emerald-50/70">
-							These values reflect only the projects, places, and audits currently owned by this manager.
-						</p>
-						<div className="mt-5 grid gap-3 sm:grid-cols-2">
-							{snapshotItems.map(item => (
-								<div key={item.label} className="rounded-2xl bg-white/10 p-4">
-									<p className="text-sm text-emerald-50/70">{item.label}</p>
-									<p className="mt-2 text-2xl font-semibold text-white">{item.value}</p>
-									<p className="mt-2 text-xs leading-5 text-emerald-50/65">{item.helper}</p>
-								</div>
-							))}
+				</div>
+			</section>
+
+			<section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+				{scoreSummaryItems.map(item => (
+					<Card key={item.label} className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+						<CardHeader className="gap-3">
+							<CardDescription className="text-sm font-medium text-slate-500">{item.label}</CardDescription>
+							<CardTitle className="text-3xl font-semibold tracking-tight text-slate-950">{item.value}</CardTitle>
+						</CardHeader>
+						<CardContent className="space-y-3">
+							<p className="text-sm leading-6 text-slate-600">{item.helper}</p>
+						</CardContent>
+					</Card>
+				))}
+			</section>
+
+			<section className="rounded-[1.75rem] border border-slate-200/80 bg-white p-5 shadow-sm">
+				<p className="text-sm font-medium text-slate-900">Why Youth Weighted averages differ</p>
+				<p className="mt-2 text-sm leading-6 text-slate-600">
+					Youth Weighted values now use normalized domain weights and per-domain averages, so they reflect both the participant&apos;s priorities and how strongly each domain performed relative to its own item set.
+				</p>
+				<div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+					{domainWeightBreakdown.map(item => (
+						<div key={item.domain} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+							<p className="text-sm font-medium text-slate-900">{item.label}</p>
+							<p className="mt-1 text-xs text-slate-600">Average weighting across submitted audits</p>
+							<p className="mt-2 text-sm font-semibold text-emerald-800">{item.average.toFixed(1)} / 3 ({item.percent.toFixed(0)}%)</p>
 						</div>
-					</div>
+					))}
 				</div>
 			</section>
 
@@ -329,7 +390,7 @@ export function LiveManagerOverview() {
 								<p className="text-sm leading-6 text-slate-600">{metric.description}</p>
 								<div className="flex items-center justify-between">
 									<Badge variant="secondary" className="rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
-										{metric.trend}
+										Manager scope
 									</Badge>
 									<span className="text-xs font-medium text-slate-500">Open</span>
 								</div>
@@ -414,7 +475,22 @@ function AuditTableCard({ title, description, audits }: { title: string; descrip
 									<td className="py-4 pr-4 font-medium text-slate-900">{audit.place}</td>
 									<td className="py-4 pr-4 text-slate-600">{audit.auditor}</td>
 									<td className="py-4 pr-4 text-slate-600">{audit.date}</td>
-									<td className="py-4 pr-4 text-slate-600">{audit.score === 0 ? "-" : audit.score}</td>
+									<td className="py-4 pr-4 text-slate-600">
+										{audit.status === "Submitted" ? (
+											<div className="space-y-1">
+												<p>
+													<span className="font-medium text-slate-900">Raw:</span>{" "}
+													{audit.total_raw_score}/{totalRawScoreMaximum}
+												</p>
+												<p>
+													<span className="font-medium text-slate-900">Youth Weighted:</span>{" "}
+													{audit.total_weighted_score.toFixed(2)}/{getYouthWeightedScoreMaximum(audit.domain_weights).toFixed(2)}
+												</p>
+											</div>
+										) : (
+											"-"
+										)}
+									</td>
 									<td className="py-4">
 										<Badge variant="secondary" className="rounded-full bg-sky-50 text-sky-700 hover:bg-sky-50">
 											{audit.status}
@@ -446,7 +522,7 @@ export function LiveProjectsTable() {
 			<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 				<div>
 					<CardTitle className="text-2xl">Projects</CardTitle>
-					<CardDescription className="mt-2 max-w-2xl leading-6">Live project rows from the backend.</CardDescription>
+					<CardDescription className="mt-2 max-w-2xl leading-6">Project records for this manager, including summary, place count, and audit activity.</CardDescription>
 				</div>
 				<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
 					<Link href="/dashboard/projects/new">Create Project</Link>
@@ -467,8 +543,12 @@ export function LiveProjectsTable() {
 					</thead>
 					<tbody>
 						{data.map(project => (
-							<tr key={project.id} className="border-b border-slate-100 last:border-0">
-								<td className="py-4 pr-4 font-medium text-slate-900">{project.name}</td>
+							<tr key={project.id} className="border-b border-slate-100 last:border-0 transition hover:bg-slate-50">
+								<td className="py-4 pr-4 font-medium text-slate-900">
+									<Link href={`/dashboard/projects/${project.id}`} className="hover:text-slate-950 hover:underline">
+										{project.name}
+									</Link>
+								</td>
 								{showOrganization ? <td className="py-4 pr-4 text-slate-600">{project.organization ?? "-"}</td> : null}
 								<td className="py-4 pr-4 text-slate-600">{project.summary}</td>
 								<td className="py-4 pr-4 text-slate-600">{project.places}</td>
@@ -592,8 +672,8 @@ export function LivePlacesTable() {
 											Assign Auditors
 											<ArrowUpRight className="size-4" />
 										</Link>
-										<Link href={`/yee/audit/${place.id}/page/1`} className="inline-flex items-center gap-1 text-sm text-slate-700 hover:text-slate-950">
-											Add Audit
+										<Link href={`/dashboard/audits?projectId=${place.project_id}&placeId=${place.id}`} className="inline-flex items-center gap-1 text-sm text-slate-700 hover:text-slate-950">
+											View Audits
 											<ArrowUpRight className="size-4" />
 										</Link>
 									</div>
@@ -680,9 +760,13 @@ export function AdminProjectsTable() {
 							</tr>
 						) : null}
 						{filteredProjects.map(project => (
-							<tr key={project.id} className="border-b border-slate-100 last:border-0">
+							<tr key={project.id} className="border-b border-slate-100 last:border-0 transition hover:bg-slate-50">
 								<td className="py-4 pr-4 text-slate-600">{project.organization ?? "-"}</td>
-								<td className="py-4 pr-4 font-medium text-slate-900">{project.name}</td>
+								<td className="py-4 pr-4 font-medium text-slate-900">
+									<Link href={`/dashboard/projects/${project.id}`} className="hover:text-slate-950 hover:underline">
+										{project.name}
+									</Link>
+								</td>
 								<td className="py-4 pr-4 text-slate-600">{project.summary}</td>
 								<td className="py-4 pr-4 text-slate-600">{project.places}</td>
 								<td className="py-4 pr-4 text-slate-600">{project.audits}</td>
@@ -781,10 +865,14 @@ export function AdminPlacesTable() {
 							</tr>
 						) : null}
 						{filteredPlaces.map(place => (
-							<tr key={place.id} className="border-b border-slate-100 last:border-0">
+							<tr key={place.id} className="border-b border-slate-100 last:border-0 transition hover:bg-slate-50">
 								<td className="py-4 pr-4 text-slate-600">{place.organization ?? "-"}</td>
 								<td className="py-4 pr-4 text-slate-600">{place.project}</td>
-								<td className="py-4 pr-4 font-medium text-slate-900">{place.name}</td>
+								<td className="py-4 pr-4 font-medium text-slate-900">
+									<Link href={`/dashboard/places/${place.id}`} className="hover:text-slate-950 hover:underline">
+										{place.name}
+									</Link>
+								</td>
 								<td className="py-4 pr-4 text-slate-600">{place.address}</td>
 								<td className="py-4 pr-4 text-slate-600">{place.postal_code ?? "-"}</td>
 								<td className="py-4 pr-4 text-slate-600">{place.audits}</td>
@@ -820,12 +908,12 @@ export function LiveAuditorsTable() {
 			<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 				<div>
 					<CardTitle className="text-2xl">Auditors</CardTitle>
-					<CardDescription className="mt-2 max-w-2xl leading-6">Live auditor rows from the backend.</CardDescription>
+					<CardDescription className="mt-2 max-w-2xl leading-6">Auditors currently in this manager&apos;s scope, with contact info and place assignments.</CardDescription>
 				</div>
 				<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
 					<Link href="/dashboard/auditors/invite">
 						<MailPlus className="size-4" />
-						Invite Auditor
+						Invite New Auditor
 					</Link>
 				</Button>
 			</CardHeader>
@@ -1064,13 +1152,14 @@ export function LiveAuditsTable() {
 								<th className="py-3 pr-4 font-medium">Score</th>
 								<th className="py-3 pr-4 font-medium">Submitted Date</th>
 								<th className="py-3 pr-4 font-medium">Report</th>
+								<th className="py-3 pr-4 font-medium">Edit Audit</th>
 								<th className="py-3 font-medium">Raw Data</th>
 							</tr>
 						</thead>
 						<tbody>
 							{filteredAudits.length === 0 ? (
 								<tr>
-									<td colSpan={8} className="py-8 text-center text-sm text-slate-500">
+									<td colSpan={9} className="py-8 text-center text-sm text-slate-500">
 										No audits match the selected filters.
 									</td>
 								</tr>
@@ -1092,7 +1181,46 @@ export function LiveAuditsTable() {
 											{audit.status}
 										</Badge>
 									</td>
-									<td className="py-4 pr-4 text-slate-600">{audit.score === 0 ? "-" : audit.score}</td>
+									<td className="py-4 pr-4 text-slate-600">
+										{audit.status === "Submitted" ? (
+											<div className="space-y-1">
+												<div>
+													<span className="font-medium text-slate-900">Raw:</span>{" "}
+													{audit.total_raw_score} / {totalRawScoreMaximum}{" "}
+													<span className="text-slate-500">
+														({totalRawScoreMaximum ? ((audit.total_raw_score / totalRawScoreMaximum) * 100).toFixed(0) : "0"}%)
+													</span>
+												</div>
+												<div>
+													<span className="font-medium text-slate-900">Youth Weighted:</span>{" "}
+													{audit.total_weighted_score.toFixed(2)} /{" "}
+													{getYouthWeightedScoreMaximum({
+														access: audit.domain_weights.access ?? 0,
+														activitySpaces: audit.domain_weights.activitySpaces ?? 0,
+														amenities: audit.domain_weights.amenities ?? 0,
+														experienceOfSpace: audit.domain_weights.experienceOfSpace ?? 0,
+														aestheticsAndCare: audit.domain_weights.aestheticsAndCare ?? 0,
+														useAndUsability: audit.domain_weights.useAndUsability ?? 0
+													}).toFixed(2)}{" "}
+													<span className="text-slate-500">
+														({(() => {
+															const denominator = getYouthWeightedScoreMaximum({
+																access: audit.domain_weights.access ?? 0,
+																activitySpaces: audit.domain_weights.activitySpaces ?? 0,
+																amenities: audit.domain_weights.amenities ?? 0,
+																experienceOfSpace: audit.domain_weights.experienceOfSpace ?? 0,
+																aestheticsAndCare: audit.domain_weights.aestheticsAndCare ?? 0,
+																useAndUsability: audit.domain_weights.useAndUsability ?? 0
+															});
+															return denominator ? ((audit.total_weighted_score / denominator) * 100).toFixed(0) : "0";
+														})()}%)
+													</span>
+												</div>
+											</div>
+										) : (
+											<span className="text-slate-400">Available after submit</span>
+										)}
+									</td>
 									<td className="py-4 pr-4 text-slate-600">
 										{audit.submitted_at ? new Date(audit.submitted_at).toLocaleDateString() : "-"}
 									</td>
@@ -1102,8 +1230,23 @@ export function LiveAuditsTable() {
 												<Link href={`/yee/submissions/${audit.submission_id}`}>View Report</Link>
 											</Button>
 										) : (
-											<span className="text-sm text-slate-400">Unavailable</span>
+											<span className="text-sm text-slate-400">
+												{audit.status === "Submitted" ? "Open via Edit Audit to restore report" : "Available after submit"}
+											</span>
 										)}
+									</td>
+									<td className="py-4 pr-4">
+										<Button asChild variant="outline" size="sm" className="rounded-xl">
+											<Link
+												href={
+													audit.submission_id
+														? `/dashboard/audits/${audit.id}/edit/page/1?submissionId=${encodeURIComponent(audit.submission_id)}`
+														: `/dashboard/audits/${audit.id}/edit/page/1`
+												}
+											>
+												Edit Audit
+											</Link>
+										</Button>
 									</td>
 									<td className="py-4">
 										{audit.submission_id ? (
@@ -1117,7 +1260,9 @@ export function LiveAuditsTable() {
 												View Raw Data
 											</Button>
 										) : (
-											<span className="text-sm text-slate-400">Unavailable</span>
+											<span className="text-sm text-slate-400">
+												{audit.status === "Submitted" ? "Available after report is restored" : "Available after submit"}
+											</span>
 										)}
 									</td>
 								</tr>

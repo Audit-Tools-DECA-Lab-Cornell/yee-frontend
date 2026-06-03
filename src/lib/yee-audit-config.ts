@@ -37,6 +37,9 @@ export type YeeScorePreview = {
 	rawDomainScores: Record<YeeDomainKey, number>;
 	weightedDomainScores: Record<YeeDomainKey, number>;
 	selectedWeights: Record<YeeDomainKey, number>;
+	normalizedWeights: Record<YeeDomainKey, number>;
+	unweightedDomainAverages: Record<YeeDomainKey, number>;
+	priorityGaps: Record<YeeDomainKey, number>;
 	totalRawScore: number;
 	totalWeightedScore: number;
 	matchedScoredAnswers: number;
@@ -44,15 +47,15 @@ export type YeeScorePreview = {
 };
 
 export const yeeSteps: { step: YeeStepNumber; title: string; description: string }[] = [
-	{ step: 1, title: "Context and visit details", description: "Record the audit date, visit timing, and context questions for this place." },
-	{ step: 2, title: "Importance weighting", description: "Tell us how important each YEE domain is to you for the play, recreation, and green spaces in your community." },
-	{ step: 3, title: "Access", description: "Complete the Access domain questions and any optional section comments." },
-	{ step: 4, title: "Activity Spaces", description: "Complete the Activity Spaces domain questions and any optional section comments." },
-	{ step: 5, title: "Amenities", description: "Complete the Amenities domain questions and any optional section comments." },
-	{ step: 6, title: "Experience of the Space", description: "Complete the Experience of the Space domain questions and any optional section comments." },
-	{ step: 7, title: "Aesthetics and Care", description: "Complete the Aesthetics & Care domain questions and any optional section comments." },
-	{ step: 8, title: "Use and Usability", description: "Complete the Use & Usability domain questions and any optional section comments." },
-	{ step: 9, title: "Final comments", description: "Add any overall comments you want to include before the review screen." }
+	{ step: 1, title: "Context and visit details", description: "" },
+	{ step: 2, title: "Importance weighting", description: "" },
+	{ step: 3, title: "Access", description: "" },
+	{ step: 4, title: "Activity Spaces", description: "" },
+	{ step: 5, title: "Amenities", description: "" },
+	{ step: 6, title: "Experience of the Space", description: "" },
+	{ step: 7, title: "Aesthetics and Care", description: "" },
+	{ step: 8, title: "Use and Usability", description: "" },
+	{ step: 9, title: "Final comments", description: "" }
 ];
 
 export const yeeDomainLabels: Record<YeeDomainKey, string> = {

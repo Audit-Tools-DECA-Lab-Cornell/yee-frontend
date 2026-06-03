@@ -11,41 +11,38 @@ import { fetchRawData, type RawDataRecord } from "@/lib/dashboard/live-api";
 function toExportRows(rows: RawDataRecord[]) {
 	return rows.map(row => {
 		const base: Record<string, string | number> = {
-			audit_id: row.audit_id,
-			auditor_generated_id: row.auditor_generated_id,
-			place_id: row.place_id,
-			place_name: row.place_name,
-			project_id: row.project_id,
-			project_name: row.project_name,
-			date: row.date,
-			submitted_at: row.submitted_at,
-			start_time: row.start_time,
-			finish_time: row.finish_time,
-			total_minutes: row.total_minutes,
-			visit_frequency: row.visit_frequency,
-			season: row.season,
-			weather: row.weather,
-			comments: row.comments,
-			raw_access: row.raw_access,
-			raw_activity_spaces: row.raw_activity_spaces,
-			raw_amenities: row.raw_amenities,
-			raw_experience_of_space: row.raw_experience_of_space,
-			raw_aesthetics_and_care: row.raw_aesthetics_and_care,
-			raw_use_and_usability: row.raw_use_and_usability,
-			weighted_access: row.weighted_access,
-			weighted_activity_spaces: row.weighted_activity_spaces,
-			weighted_amenities: row.weighted_amenities,
-			weighted_experience_of_space: row.weighted_experience_of_space,
-			weighted_aesthetics_and_care: row.weighted_aesthetics_and_care,
-			weighted_use_and_usability: row.weighted_use_and_usability,
-			total_raw_score: row.total_raw_score,
-			total_weighted_score: row.total_weighted_score
+			"Auditor ID": row.auditor_generated_id,
+			Place: row.place_name,
+			Project: row.project_name,
+			Date: row.date,
+			"Submitted At": row.submitted_at,
+			"Start Time": row.start_time,
+			"Finish Time": row.finish_time,
+			"Total Minutes": row.total_minutes,
+			"Visit Frequency": row.visit_frequency,
+			Season: row.season,
+			Weather: row.weather,
+			Comments: row.comments,
+			"Raw Access": row.raw_access,
+			"Raw Activity Spaces": row.raw_activity_spaces,
+			"Raw Amenities": row.raw_amenities,
+			"Raw Experience of the Space": row.raw_experience_of_space,
+			"Raw Aesthetics and Care": row.raw_aesthetics_and_care,
+			"Raw Use and Usability": row.raw_use_and_usability,
+			"Youth Weighted Access": row.weighted_access,
+			"Youth Weighted Activity Spaces": row.weighted_activity_spaces,
+			"Youth Weighted Amenities": row.weighted_amenities,
+			"Youth Weighted Experience of the Space": row.weighted_experience_of_space,
+			"Youth Weighted Aesthetics and Care": row.weighted_aesthetics_and_care,
+			"Youth Weighted Use and Usability": row.weighted_use_and_usability,
+			"Total Raw Score": row.total_raw_score,
+			"Total Youth Weighted Average": row.total_weighted_score
 		};
 		for (const [key, value] of Object.entries(row.domain_weights)) {
-			base[`domain_weight_${key}`] = value;
+			base[`Domain Weight ${key}`] = value;
 		}
 		for (const [key, value] of Object.entries(row.responses)) {
-			base[key] = value;
+			base[`Response ${key}`] = value;
 		}
 		return base;
 	});
@@ -139,9 +136,9 @@ export function LiveRawDataTable({
 					<CardDescription>{description}</CardDescription>
 				</div>
 				<div className="flex flex-wrap gap-2">
-					<ExportCsvButton filename={filename} rows={toExportRows(rows)} />
-					<ExportCsvButton filename={`filtered-${filename}`} rows={toExportRows(filteredRows)} />
-					<ExportCsvButton filename={`selected-${filename}`} rows={toExportRows(selectedRows)} />
+					<ExportCsvButton filename={filename} rows={toExportRows(rows)} label="Export All" />
+					<ExportCsvButton filename={`filtered-${filename}`} rows={toExportRows(filteredRows)} label="Export Filtered" />
+					<ExportCsvButton filename={`selected-${filename}`} rows={toExportRows(selectedRows)} label="Export Selected" />
 				</div>
 			</CardHeader>
 			<CardContent className="space-y-4 overflow-x-auto">
@@ -187,12 +184,11 @@ export function LiveRawDataTable({
 						<thead className="text-slate-500">
 							<tr className="border-b border-slate-200">
 								<th className="py-3 pr-4 font-medium">Select</th>
-								<th className="py-3 pr-4 font-medium">Audit ID</th>
 								<th className="py-3 pr-4 font-medium">Auditor ID</th>
 								<th className="py-3 pr-4 font-medium">Place</th>
 								<th className="py-3 pr-4 font-medium">Project</th>
-								<th className="py-3 pr-4 font-medium">Raw Total</th>
-								<th className="py-3 font-medium">Youth Weighted Total</th>
+								<th className="py-3 pr-4 font-medium">Raw Score</th>
+								<th className="py-3 font-medium">Youth Weighted Average</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -211,17 +207,16 @@ export function LiveRawDataTable({
 											}
 										/>
 									</td>
-									<td className="py-4 pr-4 font-medium text-slate-900">{row.audit_id}</td>
 									<td className="py-4 pr-4 text-slate-600">{row.auditor_generated_id}</td>
-									<td className="py-4 pr-4 text-slate-600">{row.place_name}</td>
+									<td className="py-4 pr-4 font-medium text-slate-900">{row.place_name}</td>
 									<td className="py-4 pr-4 text-slate-600">{row.project_name}</td>
 									<td className="py-4 pr-4 text-slate-600">{row.total_raw_score}</td>
-									<td className="py-4 text-slate-600">{row.total_weighted_score}</td>
+									<td className="py-4 text-slate-600">{row.total_weighted_score.toFixed(2)}</td>
 								</tr>
 							))}
 							{filteredRows.length === 0 ? (
 								<tr>
-									<td colSpan={7} className="py-8 text-center text-sm text-slate-500">
+									<td colSpan={6} className="py-8 text-center text-sm text-slate-500">
 										No raw data rows match the selected filters.
 									</td>
 								</tr>

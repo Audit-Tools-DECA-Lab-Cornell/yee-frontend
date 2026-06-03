@@ -7,10 +7,12 @@ import { toCsv } from "@/lib/dashboard/reporting";
 
 export function ExportCsvButton({
 	filename,
-	rows
+	rows,
+	label = "Download CSV"
 }: {
 	filename: string;
 	rows: Record<string, string | number>[];
+	label?: string;
 }) {
 	function handleExport() {
 		const csv = toCsv(rows);
@@ -26,7 +28,7 @@ export function ExportCsvButton({
 	return (
 		<Button className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]" onClick={handleExport}>
 			<Download className="size-4" />
-			Download CSV
+			{label}
 		</Button>
 	);
 }

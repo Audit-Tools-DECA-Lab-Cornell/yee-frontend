@@ -28,6 +28,19 @@ export type YeeSubmissionRecord = {
 	score: BackendScoreResponse;
 };
 
+export type ManagerAuditEditState = {
+	audit_id: string;
+	submission_id: string | null;
+	place_id: string;
+	place_name: string | null;
+	auditor_id: string;
+	auditor_generated_id: string | null;
+	submitted_at: string | null;
+	participant_info: Record<string, unknown>;
+	responses: Record<string, string | Record<string, string>>;
+	score: BackendScoreResponse;
+};
+
 type SaveDraftPayload = {
 	participant_info: Record<string, unknown>;
 	responses: Record<string, string | Record<string, string>>;
@@ -82,4 +95,30 @@ export async function fetchSubmission(submissionId: string, session: FrontendSes
 		cache: "no-store"
 	});
 	return readJsonOrThrow<YeeSubmissionRecord>(response);
+}
+
+export async function fetchManagerAuditEditState(auditId: string, session: FrontendSession): Promise<ManagerAuditEditState> {
+	const response = await fetch(`/api/dashboard/audits/${encodeURIComponent(auditId)}/edit`, {
+		headers: {
+			Authorization: `Bearer ${session.accessToken}`
+		},
+		cache: "no-store"
+	});
+	return readJsonOrThrow<ManagerAuditEditState>(response);
+}
+
+export async function updateManagerAuditEditState(
+	auditId: string,
+	session: FrontendSession,
+	payload: SaveDraftPayload & { resubmit?: boolean; submission_id?: string | null }
+): Promise<ManagerAuditEditState> {
+	const response = await fetch(`/api/dashboard/audits/${encodeURIComponent(auditId)}/edit`, {
+		method: "PATCH",
+		headers: {
+			"Content-Type": "application/json",
+			Authorization: `Bearer ${session.accessToken}`
+		},
+		body: JSON.stringify(payload)
+	});
+	return readJsonOrThrow<ManagerAuditEditState>(response);
 }

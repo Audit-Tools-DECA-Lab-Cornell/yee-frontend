@@ -116,14 +116,11 @@ export function AuditorPlaceList({ compact = false }: { compact?: boolean }) {
 
 	return (
 		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
-			<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+			<CardHeader>
 				<div>
 					<CardTitle>My Audits</CardTitle>
 					<CardDescription>Choose a place by name and continue the correct audit action for that place.</CardDescription>
 				</div>
-				<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
-					<Link href="/yee/introduction">Choose Place</Link>
-				</Button>
 			</CardHeader>
 			<CardContent className="space-y-3">{content}</CardContent>
 		</Card>

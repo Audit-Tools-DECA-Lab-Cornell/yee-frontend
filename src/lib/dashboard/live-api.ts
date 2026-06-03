@@ -20,6 +20,9 @@ export type AuditRecord = {
 	date: string;
 	submitted_at?: string | null;
 	score: number;
+	total_raw_score: number;
+	total_weighted_score: number;
+	domain_weights: Record<string, number>;
 	status: string;
 };
 
@@ -31,6 +34,37 @@ export type ProjectRecord = {
 	places: number;
 	audits: number;
 	status: string;
+};
+
+export type ProjectProfilePayload = {
+	name: string;
+	description?: string;
+	place_types?: string[];
+	start_date?: string;
+	end_date?: string;
+	estimated_places?: number;
+	auditor_population_types?: string[];
+	auditor_inclusion_exclusion_criteria?: string;
+	auditor_notes?: string;
+};
+
+export type PlaceProfilePayload = {
+	project_id: string;
+	name: string;
+	address: string;
+	city?: string;
+	province?: string;
+	country?: string;
+	postal_code?: string;
+	place_type?: string;
+	start_date?: string;
+	end_date?: string;
+	estimated_auditors?: number;
+	auditor_population_types?: string[];
+	auditor_inclusion_exclusion_criteria?: string;
+	auditor_notes?: string;
+	lat?: number;
+	lng?: number;
 };
 
 export type ProjectPlaceRecord = {
@@ -88,6 +122,32 @@ export type UserRecord = {
 	profile_completed: boolean;
 	contact_info: string;
 	project_assignments: string;
+};
+
+export type InstrumentVersionRecord = {
+	id: string;
+	instrument_key: string;
+	instrument_version: string;
+	is_active: boolean;
+	content: Record<string, unknown>;
+	created_at: string;
+	updated_at: string;
+};
+
+export type InstrumentCreatePayload = {
+	instrument_key: string;
+	instrument_version: string;
+	content: Record<string, unknown>;
+};
+
+export type SiteCopyVersionRecord = {
+	id: string;
+	instrument_key: string;
+	instrument_version: string;
+	is_active: boolean;
+	content: Record<string, unknown>;
+	created_at: string;
+	updated_at: string;
 };
 
 export type DashboardOverview = {
@@ -158,6 +218,7 @@ export type PlaceComparisonAuditRecord = {
 	date: string;
 	total_raw_score: number;
 	total_weighted_score: number;
+	domain_weights: Record<string, number>;
 	raw_domain_scores: ComparisonDomainScores;
 	weighted_domain_scores: ComparisonDomainScores;
 };
@@ -176,6 +237,13 @@ export type ProjectDetailRecord = {
 	description: string;
 	status: string;
 	organization: string;
+	place_types: string[];
+	start_date?: string | null;
+	end_date?: string | null;
+	estimated_places?: number | null;
+	auditor_population_types: string[];
+	auditor_inclusion_exclusion_criteria: string;
+	auditor_notes: string;
 	total_places: number;
 	total_audits: number;
 	submitted_audits: number;
@@ -189,7 +257,19 @@ export type PlaceDetailRecord = {
 	id: string;
 	name: string;
 	address: string;
+	city: string;
+	province: string;
+	country: string;
 	postal_code?: string | null;
+	place_type: string;
+	start_date?: string | null;
+	end_date?: string | null;
+	estimated_auditors?: number | null;
+	auditor_population_types: string[];
+	auditor_inclusion_exclusion_criteria: string;
+	auditor_notes: string;
+	lat?: number | null;
+	lng?: number | null;
 	notes: string;
 	status: string;
 	project_id: string;
@@ -296,6 +376,69 @@ export function fetchUsers(session: FrontendSession) {
 	return authedFetch<UserRecord[]>("/api/dashboard/users", session);
 }
 
+export function fetchInstrumentVersions(session: FrontendSession, instrumentKey = "yee") {
+	return authedFetch<InstrumentVersionRecord[]>(
+		`/api/admin/instruments?instrument_key=${encodeURIComponent(instrumentKey)}`,
+		session
+	);
+}
+
+export function createInstrumentVersion(
+	session: FrontendSession,
+	payload: InstrumentCreatePayload,
+	activate = true
+) {
+	return authedFetch<InstrumentVersionRecord>(
+		`/api/admin/instruments?activate=${activate ? "true" : "false"}`,
+		session,
+		{
+			method: "POST",
+			body: payload
+		}
+	);
+}
+
+export function updateInstrumentStatus(
+	session: FrontendSession,
+	instrumentId: string,
+	payload: { is_active: boolean }
+) {
+	return authedFetch<InstrumentVersionRecord>(`/api/admin/instruments/${instrumentId}`, session, {
+		method: "PATCH",
+		body: payload
+	});
+}
+
+export function fetchSiteCopyVersions(session: FrontendSession) {
+	return authedFetch<SiteCopyVersionRecord[]>("/api/admin/site-copy", session);
+}
+
+export function createSiteCopyVersion(
+	session: FrontendSession,
+	payload: { instrument_version: string; content: Record<string, unknown> },
+	activate = true
+) {
+	return authedFetch<SiteCopyVersionRecord>(
+		`/api/admin/site-copy?activate=${activate ? "true" : "false"}`,
+		session,
+		{
+			method: "POST",
+			body: payload
+		}
+	);
+}
+
+export function updateSiteCopyStatus(
+	session: FrontendSession,
+	copyId: string,
+	payload: { is_active: boolean }
+) {
+	return authedFetch<SiteCopyVersionRecord>(`/api/admin/site-copy/${copyId}`, session, {
+		method: "PATCH",
+		body: payload
+	});
+}
+
 export function approveUser(
 	session: FrontendSession,
 	payload: { user_id: string; account_id?: string }
@@ -308,7 +451,7 @@ export function approveUser(
 
 export function createProject(
 	session: FrontendSession,
-	payload: { name: string; description?: string }
+	payload: ProjectProfilePayload
 ) {
 	return authedFetch<ProjectRecord>("/api/dashboard/projects", session, {
 		method: "POST",
@@ -319,7 +462,7 @@ export function createProject(
 export function updateProject(
 	session: FrontendSession,
 	projectId: string,
-	payload: { name: string; description?: string }
+	payload: ProjectProfilePayload
 ) {
 	return authedFetch<ProjectRecord>(`/api/dashboard/projects/${projectId}`, session, {
 		method: "PATCH",
@@ -329,7 +472,7 @@ export function updateProject(
 
 export function createPlace(
 	session: FrontendSession,
-	payload: { project_id: string; name: string; address: string; postal_code?: string; notes?: string }
+	payload: PlaceProfilePayload
 ) {
 	return authedFetch<PlaceRecord>("/api/dashboard/places", session, {
 		method: "POST",
@@ -340,7 +483,7 @@ export function createPlace(
 export function updatePlace(
 	session: FrontendSession,
 	placeId: string,
-	payload: { project_id: string; name: string; address: string; postal_code?: string; notes?: string }
+	payload: PlaceProfilePayload
 ) {
 	return authedFetch<PlaceRecord>(`/api/dashboard/places/${placeId}`, session, {
 		method: "PATCH",

@@ -4,9 +4,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { LogoutButton } from "@/components/auth/logout-button";
+import { useWorkspaceConfig } from "@/components/dashboard/site-copy-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { workspaceConfigs, type WorkspaceVariant } from "@/lib/dashboard/workspace-config";
+import type { WorkspaceVariant } from "@/lib/dashboard/workspace-config";
 import { cn } from "@/lib/utils";
 
 export function DashboardSidebar({
@@ -17,7 +18,7 @@ export function DashboardSidebar({
 	onNavigate?: () => void;
 }) {
 	const pathname = usePathname();
-	const config = workspaceConfigs[variant];
+	const config = useWorkspaceConfig(variant);
 	const isActive = (href: string) => pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
 
 	return (
