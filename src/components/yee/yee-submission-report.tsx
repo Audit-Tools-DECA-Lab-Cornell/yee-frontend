@@ -247,7 +247,7 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 					<div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4">
 						<p className="text-sm font-medium text-emerald-950">Domain weighting used in this audit</p>
 						<p className="mt-2 text-sm leading-6 text-emerald-900/80">
-							Youth Weighted scores apply the selected importance value to each domain before totals are combined. The percentage can stay the same as the raw percentage because the same weight scales both the achieved score and the available maximum for that domain.
+							Youth Weighted values are calculated by normalizing the participant&apos;s domain weights, computing the average score within each domain, and then applying the normalized weight to that domain average.
 						</p>
 						<div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
 							{(Object.keys(yeeDomainLabels) as YeeDomainKey[]).map(domain => (
@@ -264,7 +264,7 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 					<YeeScoreSummary
 						preview={preview}
 						title="Score results"
-						description="Read-only raw and Youth Weighted scores computed from the submitted responses."
+						description="Read-only raw scores and Youth Weighted averages computed from the submitted responses."
 					/>
 
 					<div className="grid gap-4 md:grid-cols-2 report-page-break report-no-break">

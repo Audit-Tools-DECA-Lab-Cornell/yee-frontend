@@ -18,9 +18,9 @@ import {
 import { domainLabels, domainOrder, toCsv } from "@/lib/dashboard/reporting";
 import {
 	getDomainYouthWeightedMaximum,
+	getYouthWeightedScoreMaximum,
 	rawDomainScoreMaximums,
-	totalRawScoreMaximum,
-	totalYouthWeightedScoreMaximum
+	totalRawScoreMaximum
 } from "@/lib/yee-score-limits";
 
 type CompareMode = "places" | "audits" | "individual";
@@ -116,7 +116,7 @@ function getAuditRawPercent(record: PlaceComparisonAuditRecord) {
 }
 
 function getAuditWeightedPercent(record: PlaceComparisonAuditRecord) {
-	return percentage(record.total_weighted_score, totalYouthWeightedScoreMaximum);
+	return percentage(record.total_weighted_score, getYouthWeightedScoreMaximum(record.domain_weights));
 }
 
 function buildPlaceSummaries(records: PlaceComparisonAuditRecord[]): PlaceSummary[] {
@@ -147,7 +147,7 @@ function buildPlaceSummaries(records: PlaceComparisonAuditRecord[]): PlaceSummar
 					);
 					weightedPercentByDomain[domain] += percentage(
 						record.weighted_domain_scores[domain],
-						getDomainYouthWeightedMaximum(domain, String(record.domain_weights[domain] ?? ""))
+						getDomainYouthWeightedMaximum(domain, record.domain_weights)
 					);
 				}
 			}
@@ -174,7 +174,7 @@ function buildPlaceSummaries(records: PlaceComparisonAuditRecord[]): PlaceSummar
 					(placeRecords.reduce((sum, record) => sum + record.total_raw_score, 0) / placeRecords.length).toFixed(1)
 				),
 				avgWeightedScore: Number(
-					(placeRecords.reduce((sum, record) => sum + record.total_weighted_score, 0) / placeRecords.length).toFixed(1)
+					(placeRecords.reduce((sum, record) => sum + record.total_weighted_score, 0) / placeRecords.length).toFixed(2)
 				),
 				avgRawPercent: Number(
 					(placeRecords.reduce((sum, record) => sum + getAuditRawPercent(record), 0) / placeRecords.length).toFixed(1)
@@ -287,8 +287,8 @@ function RadarComparisonChart({
 								</Link>
 							</div>
 							<p className="mt-2 text-sm text-slate-600">
-								Average Raw Score {summary.avgRawScore} ({summary.avgRawPercent.toFixed(0)}%) and Average Youth Weighted Score{" "}
-								{summary.avgWeightedScore} ({summary.avgWeightedPercent.toFixed(0)}%).
+								Average Raw Score {summary.avgRawScore} ({summary.avgRawPercent.toFixed(0)}%) and Average Youth Weighted Average{" "}
+								{summary.avgWeightedScore.toFixed(2)} ({summary.avgWeightedPercent.toFixed(0)}%).
 							</p>
 						</div>
 					))}
@@ -365,7 +365,7 @@ function TrendLineChart({
 				<div className="flex flex-wrap gap-3 text-sm text-slate-600">
 					<Badge className="rounded-full bg-blue-100 px-3 py-1 text-blue-700 hover:bg-blue-100">Raw Score trend</Badge>
 					<Badge className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700 hover:bg-emerald-100">
-						Youth Weighted Score trend
+						Youth Weighted Average trend
 					</Badge>
 				</div>
 			</CardContent>
@@ -511,7 +511,7 @@ export function LiveReports() {
 			: 0;
 	const averageWeightedScore =
 		filteredAudits.length > 0
-			? Number((filteredAudits.reduce((sum, record) => sum + record.total_weighted_score, 0) / filteredAudits.length).toFixed(1))
+			? Number((filteredAudits.reduce((sum, record) => sum + record.total_weighted_score, 0) / filteredAudits.length).toFixed(2))
 			: 0;
 	const highestPlace = placeSummaries[0] ?? null;
 	const lowestPlace = placeSummaries[placeSummaries.length - 1] ?? null;
@@ -538,7 +538,7 @@ export function LiveReports() {
 				date: record.date,
 				raw_score: `${record.total_raw_score}/${totalRawScoreMaximum}`,
 				raw_percent: `${getAuditRawPercent(record).toFixed(1)}%`,
-				youth_weighted_score: `${record.total_weighted_score}/${totalYouthWeightedScoreMaximum}`,
+				youth_weighted_score: `${record.total_weighted_score.toFixed(2)}/${getYouthWeightedScoreMaximum(record.domain_weights).toFixed(2)}`,
 				youth_weighted_percent: `${getAuditWeightedPercent(record).toFixed(1)}%`
 			}));
 			downloadTextFile("yee-audit-trend.csv", toCsv(rows));
@@ -551,7 +551,7 @@ export function LiveReports() {
 			date: record.date,
 			raw_score: `${record.total_raw_score}/${totalRawScoreMaximum}`,
 			raw_percent: `${getAuditRawPercent(record).toFixed(1)}%`,
-			youth_weighted_score: `${record.total_weighted_score}/${totalYouthWeightedScoreMaximum}`,
+			youth_weighted_score: `${record.total_weighted_score.toFixed(2)}/${getYouthWeightedScoreMaximum(record.domain_weights).toFixed(2)}`,
 			youth_weighted_percent: `${getAuditWeightedPercent(record).toFixed(1)}%`
 		}));
 		downloadTextFile("yee-individual-audit-comparison.csv", toCsv(rows));
@@ -691,19 +691,19 @@ export function LiveReports() {
 						description: `${filteredAudits.length} audits in the current view`
 					},
 					{
-						label: "Average Youth Weighted Score",
+						label: "Average Youth Weighted Average",
 						value: averageWeightedScore.toFixed(1),
 						description: "Across the currently filtered audits"
 					},
 					{
 						label: "Highest Scoring Place",
 						value: highestPlace?.place_name ?? "N/A",
-						description: highestPlace ? `${highestPlace.avgWeightedScore} Youth Weighted` : "No filtered place data"
+						description: highestPlace ? `${highestPlace.avgWeightedScore.toFixed(2)} Youth Weighted` : "No filtered place data"
 					},
 					{
 						label: "Lowest Scoring Place",
 						value: lowestPlace?.place_name ?? "N/A",
-						description: lowestPlace ? `${lowestPlace.avgWeightedScore} Youth Weighted` : "No filtered place data"
+						description: lowestPlace ? `${lowestPlace.avgWeightedScore.toFixed(2)} Youth Weighted` : "No filtered place data"
 					},
 					{
 						label: "Total Audits",
@@ -753,7 +753,7 @@ export function LiveReports() {
 						<CardHeader>
 							<CardTitle>Compare Places</CardTitle>
 							<CardDescription>
-								Compare multiple Places side-by-side using average Raw Score, Youth Weighted Score, and section-level performance.
+								Compare multiple Places side-by-side using average Raw Score, Youth Weighted Average, and section-level performance.
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="overflow-x-auto">
@@ -763,7 +763,7 @@ export function LiveReports() {
 										<th className="py-3 pr-4 font-medium">Place</th>
 										<th className="py-3 pr-4 font-medium">Project</th>
 										<th className="py-3 pr-4 font-medium">Raw Score</th>
-										<th className="py-3 pr-4 font-medium">Youth Weighted Score</th>
+										<th className="py-3 pr-4 font-medium">Youth Weighted Average</th>
 										<th className="py-3 pr-4 font-medium">Access</th>
 										<th className="py-3 pr-4 font-medium">Amenities</th>
 										<th className="py-3 font-medium">Detailed report</th>
@@ -785,7 +785,7 @@ export function LiveReports() {
 												{summary.avgRawScore} ({summary.avgRawPercent.toFixed(0)}%)
 											</td>
 											<td className="py-4 pr-4 text-slate-600">
-												{summary.avgWeightedScore} ({summary.avgWeightedPercent.toFixed(0)}%)
+												{summary.avgWeightedScore.toFixed(2)} ({summary.avgWeightedPercent.toFixed(0)}%)
 											</td>
 											<td className="py-4 pr-4 text-slate-600">{summary.rawPercentByDomain.access.toFixed(0)}%</td>
 											<td className="py-4 pr-4 text-slate-600">{summary.rawPercentByDomain.amenities.toFixed(0)}%</td>
@@ -862,7 +862,7 @@ export function LiveReports() {
 											</div>
 										</div>
 										<div>
-											<p className="mb-2 text-xs font-medium uppercase tracking-[0.16em] text-slate-500">Average Youth Weighted Score by section</p>
+											<p className="mb-2 text-xs font-medium uppercase tracking-[0.16em] text-slate-500">Average Youth Weighted Average by section</p>
 											<div className="flex h-10 overflow-hidden rounded-full border border-slate-200 bg-white">
 												{domainOrder.map(domain => (
 													<div
@@ -929,7 +929,7 @@ export function LiveReports() {
 														Raw Score {record.total_raw_score} ({getAuditRawPercent(record).toFixed(0)}%)
 													</p>
 													<p className="text-sm text-slate-600">
-														Youth Weighted Score {record.total_weighted_score} ({getAuditWeightedPercent(record).toFixed(0)}%)
+														Youth Weighted Average {record.total_weighted_score.toFixed(2)} ({getAuditWeightedPercent(record).toFixed(0)}%)
 													</p>
 													<Link
 														href={`/yee/submissions/${record.audit_id}`}
@@ -968,7 +968,7 @@ export function LiveReports() {
 										<th className="py-3 pr-4 font-medium">Auditor</th>
 										<th className="py-3 pr-4 font-medium">Date</th>
 										<th className="py-3 pr-4 font-medium">Raw Score</th>
-										<th className="py-3 pr-4 font-medium">Youth Weighted Score</th>
+										<th className="py-3 pr-4 font-medium">Youth Weighted Average</th>
 										<th className="py-3 font-medium">Full report</th>
 									</tr>
 								</thead>
@@ -1004,7 +1004,7 @@ export function LiveReports() {
 													{record.total_raw_score}/{totalRawScoreMaximum} ({getAuditRawPercent(record).toFixed(0)}%)
 												</td>
 												<td className="py-4 pr-4 text-slate-600">
-													{record.total_weighted_score}/{totalYouthWeightedScoreMaximum} ({getAuditWeightedPercent(record).toFixed(0)}%)
+													{record.total_weighted_score.toFixed(2)}/{getYouthWeightedScoreMaximum(record.domain_weights).toFixed(2)} ({getAuditWeightedPercent(record).toFixed(0)}%)
 												</td>
 												<td className="py-4 text-slate-600">
 													<Link
@@ -1041,9 +1041,9 @@ export function LiveReports() {
 											<p className="text-sm">{getAuditRawPercent(record).toFixed(0)}%</p>
 										</div>
 										<div className={`rounded-2xl border p-4 ${colorBandClasses(getAuditWeightedPercent(record))}`}>
-											<p className="text-xs font-medium uppercase tracking-[0.16em]">Youth Weighted Score</p>
+											<p className="text-xs font-medium uppercase tracking-[0.16em]">Youth Weighted Average</p>
 											<p className="mt-2 text-lg font-semibold">
-												{record.total_weighted_score}/{totalYouthWeightedScoreMaximum}
+												{record.total_weighted_score.toFixed(2)}/{getYouthWeightedScoreMaximum(record.domain_weights).toFixed(2)}
 											</p>
 											<p className="text-sm">{getAuditWeightedPercent(record).toFixed(0)}%</p>
 										</div>
@@ -1056,8 +1056,8 @@ export function LiveReports() {
 													Raw Score {record.raw_domain_scores[domain]}/{rawDomainScoreMaximums[domain]}
 												</p>
 												<p className="text-sm text-slate-600">
-													Youth Weighted Score {record.weighted_domain_scores[domain]}/
-													{getDomainYouthWeightedMaximum(domain, String(record.domain_weights[domain] ?? ""))}
+													Youth Weighted Average {record.weighted_domain_scores[domain].toFixed(2)}/
+													{getDomainYouthWeightedMaximum(domain, record.domain_weights).toFixed(2)}
 												</p>
 											</div>
 										))}

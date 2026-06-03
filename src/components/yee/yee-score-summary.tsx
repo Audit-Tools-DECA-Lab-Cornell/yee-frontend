@@ -78,7 +78,7 @@ function findScoreExtremes(
 		const maximum =
 			mode === "raw"
 				? rawDomainScoreMaximums[row.domain]
-				: getDomainYouthWeightedMaximum(row.domain, preview.selectedWeights[row.domain]);
+				: getDomainYouthWeightedMaximum(row.domain, preview.selectedWeights);
 		const value = mode === "raw" ? row.rawScore : row.weightedScore;
 		const percentage = maximum > 0 ? (value / maximum) * 100 : 0;
 		return { row, value, maximum, percentage };
@@ -118,14 +118,14 @@ export function YeeScoreSummary({
 								<th className="py-3 pr-4 font-medium">Domain</th>
 								<th className="py-3 pr-4 font-medium">Raw Domain Score</th>
 								<th className="py-3 pr-4 font-medium">Raw %</th>
-								<th className="py-3 pr-4 font-medium">Youth Weighted Domain Score</th>
+								<th className="py-3 pr-4 font-medium">Youth Weighted Domain Average</th>
 								<th className="py-3 font-medium">Youth Weighted %</th>
 							</tr>
 						</thead>
 						<tbody>
 							{rows.map(row => {
 								const rawMax = rawDomainScoreMaximums[row.domain];
-								const weightedMax = getDomainYouthWeightedMaximum(row.domain, preview.selectedWeights[row.domain]);
+								const weightedMax = getDomainYouthWeightedMaximum(row.domain, preview.selectedWeights);
 								const rawPercentage = rawMax ? (row.rawScore / rawMax) * 100 : 0;
 								const weightedPercentage = weightedMax ? (row.weightedScore / weightedMax) * 100 : 0;
 								return (
@@ -156,12 +156,12 @@ export function YeeScoreSummary({
 						</p>
 					</div>
 					<div className="rounded-2xl bg-emerald-50 p-4">
-						<p className="text-sm text-emerald-700">Total Enabling Environment Youth Weighted Score</p>
+						<p className="text-sm text-emerald-700">Total Enabling Environment Youth Weighted Average</p>
 						<p className="mt-2 text-2xl font-semibold text-emerald-900">
 							{preview.totalWeightedScore} / {youthWeightedMax} <span className="text-lg text-emerald-700">({totalYouthPercentage.toFixed(0)}%)</span>
 						</p>
 						<p className="mt-2 text-xs text-emerald-700/80">
-							This Youth Weighted maximum is based on the domain weights selected earlier in the audit.
+							This Youth Weighted maximum is based on normalized domain weights and each domain&apos;s maximum average value.
 						</p>
 					</div>
 				</div>
@@ -214,17 +214,17 @@ export function YeeScoreSummary({
 						</div>
 					</div>
 					<div className={`space-y-4 rounded-2xl border p-4 ${youthPalette.panel}`}>
-						<p className="text-sm font-medium text-emerald-900">Youth Weighted score by domain</p>
+						<p className="text-sm font-medium text-emerald-900">Youth Weighted average by domain</p>
 						<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
 							{rows.map(row => {
-								const weightedMax = getDomainYouthWeightedMaximum(row.domain, preview.selectedWeights[row.domain]);
+								const weightedMax = getDomainYouthWeightedMaximum(row.domain, preview.selectedWeights);
 								const weightedPercentage = weightedMax ? (row.weightedScore / weightedMax) * 100 : 0;
 								const palette = domainPalette[row.domain];
 								return (
 									<div key={`${row.domain}-weighted`} className={`rounded-[1.25rem] border-[3px] bg-white px-3 py-4 ${palette.border}`}>
 										<div className="space-y-1">
 											<p className={`text-sm font-semibold ${palette.text}`}>{row.label}</p>
-											<p className={`mt-1 text-xs ${youthPalette.text}`}>Youth Weighted Score</p>
+											<p className={`mt-1 text-xs ${youthPalette.text}`}>Youth Weighted Average</p>
 											<p className="text-sm font-medium text-slate-900">
 												{row.weightedScore} / {weightedMax} ({weightedPercentage.toFixed(0)}%)
 											</p>

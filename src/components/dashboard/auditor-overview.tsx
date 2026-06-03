@@ -94,7 +94,7 @@ export function AuditorOverview() {
 			<section>
 				<AuditorAuditHistory
 					title="Assigned Places"
-					description="Review audit status and the latest Raw Score and Youth Weighted score for each assigned place."
+					description="Review audit status and the latest Raw Score and Youth Weighted average for each assigned place."
 				/>
 			</section>
 		</div>
@@ -123,7 +123,7 @@ function LatestSubmittedScores({
 		return (
 			<div className="min-w-0 rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
 				<p className="text-sm text-emerald-50/70">Latest submitted scores</p>
-				<p className="mt-2 text-sm text-emerald-50/85">A Raw Score and Youth Weighted score will appear here after your first submitted audit.</p>
+				<p className="mt-2 text-sm text-emerald-50/85">A Raw Score and Youth Weighted average will appear here after your first submitted audit.</p>
 			</div>
 		);
 	}
@@ -143,7 +143,7 @@ function LatestSubmittedScores({
 					Raw Score: {preview.totalRawScore} / {totalRawScoreMaximum} ({rawPercentage.toFixed(0)}%)
 				</p>
 				<p className="font-medium text-emerald-50">
-					Youth Weighted: {preview.totalWeightedScore} / {youthMax} ({youthPercentage.toFixed(0)}%)
+					Youth Weighted: {preview.totalWeightedScore.toFixed(2)} / {youthMax.toFixed(2)} ({youthPercentage.toFixed(0)}%)
 				</p>
 			</div>
 		</div>

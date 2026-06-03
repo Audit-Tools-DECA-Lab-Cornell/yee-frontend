@@ -36,7 +36,7 @@ function toExportRows(rows: RawDataRecord[]) {
 			"Youth Weighted Aesthetics and Care": row.weighted_aesthetics_and_care,
 			"Youth Weighted Use and Usability": row.weighted_use_and_usability,
 			"Total Raw Score": row.total_raw_score,
-			"Total Youth Weighted Score": row.total_weighted_score
+			"Total Youth Weighted Average": row.total_weighted_score
 		};
 		for (const [key, value] of Object.entries(row.domain_weights)) {
 			base[`Domain Weight ${key}`] = value;
@@ -188,7 +188,7 @@ export function LiveRawDataTable({
 								<th className="py-3 pr-4 font-medium">Place</th>
 								<th className="py-3 pr-4 font-medium">Project</th>
 								<th className="py-3 pr-4 font-medium">Raw Score</th>
-								<th className="py-3 font-medium">Youth Weighted Score</th>
+								<th className="py-3 font-medium">Youth Weighted Average</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -211,7 +211,7 @@ export function LiveRawDataTable({
 									<td className="py-4 pr-4 font-medium text-slate-900">{row.place_name}</td>
 									<td className="py-4 pr-4 text-slate-600">{row.project_name}</td>
 									<td className="py-4 pr-4 text-slate-600">{row.total_raw_score}</td>
-									<td className="py-4 text-slate-600">{row.total_weighted_score}</td>
+									<td className="py-4 text-slate-600">{row.total_weighted_score.toFixed(2)}</td>
 								</tr>
 							))}
 							{filteredRows.length === 0 ? (

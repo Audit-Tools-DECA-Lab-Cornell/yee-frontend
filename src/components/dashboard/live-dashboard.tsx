@@ -26,7 +26,7 @@ import {
 	type RawDataRecord,
 	type UserRecord
 } from "@/lib/dashboard/live-api";
-import { getYouthWeightedScoreMaximum, totalRawScoreMaximum, totalYouthWeightedScoreMaximum } from "@/lib/yee-score-limits";
+import { getYouthWeightedScoreMaximum, totalRawScoreMaximum } from "@/lib/yee-score-limits";
 
 const quickLinks = [
 	{
@@ -159,7 +159,7 @@ function rawDataToRows(rows: RawDataRecord[]) {
 			"Finish Time": row.finish_time,
 			"Total Minutes": row.total_minutes,
 			"Total Raw Score": row.total_raw_score,
-			"Total Youth Weighted Score": row.total_weighted_score
+			"Total Youth Weighted Average": row.total_weighted_score
 		};
 		for (const [key, value] of Object.entries(row.domain_weights)) {
 			base[`Domain Weight ${key}`] = value;
@@ -201,12 +201,12 @@ function getMetricValue(metrics: DashboardMetric[], keyword: string) {
 
 function formatScoreValue(value: number | null) {
 	if (value === null || Number.isNaN(value)) return "Pending";
-	return Number.isInteger(value) ? String(value) : value.toFixed(1);
+	return Number.isInteger(value) ? String(value) : value.toFixed(2);
 }
 
 function formatPercent(value: number | null) {
 	if (value === null || Number.isNaN(value)) return "Pending";
-	return `${value.toFixed(1)}%`;
+	return `${value.toFixed(2)}%`;
 }
 
 function averageDomainWeights(rows: RawDataRecord[]) {
@@ -293,9 +293,9 @@ export function LiveManagerOverview() {
 			helper: "Average raw score across submitted audits in this manager view."
 		},
 		{
-			label: "Youth Weighted Score",
+			label: "Youth Weighted Average",
 			value: formatScoreValue(averageWeightedScore),
-			helper: "Average Youth Weighted score across submitted audits in this manager view."
+			helper: "Average Youth Weighted average across submitted audits in this manager view."
 		},
 		{
 			label: "Cap Score Percentage",
@@ -304,8 +304,8 @@ export function LiveManagerOverview() {
 		},
 		{
 			label: "Max Score",
-			value: `${totalRawScoreMaximum} raw / ${totalYouthWeightedScoreMaximum} Youth Weighted`,
-			helper: "Scoring-sheet maxima: raw total is fixed, while Youth Weighted maxima depend on selected domain weights."
+			value: `${totalRawScoreMaximum} raw / dynamic Youth Weighted`,
+			helper: "Raw total is fixed, while Youth Weighted maxima now depend on normalized domain weights and domain average caps."
 		}
 	];
 	const domainWeightBreakdown = averageDomainWeights(submittedRows);
@@ -363,9 +363,9 @@ export function LiveManagerOverview() {
 			</section>
 
 			<section className="rounded-[1.75rem] border border-slate-200/80 bg-white p-5 shadow-sm">
-				<p className="text-sm font-medium text-slate-900">Why Youth Weighted scores differ</p>
+				<p className="text-sm font-medium text-slate-900">Why Youth Weighted averages differ</p>
 				<p className="mt-2 text-sm leading-6 text-slate-600">
-					Youth Weighted totals apply the selected importance weight for each domain before the scores are combined. If the same weight scales both the achieved score and the available maximum for a domain, the percentage can stay the same even though the absolute Youth Weighted score changes.
+					Youth Weighted values now use normalized domain weights and per-domain averages, so they reflect both the participant&apos;s priorities and how strongly each domain performed relative to its own item set.
 				</p>
 				<div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
 					{domainWeightBreakdown.map(item => (
@@ -484,7 +484,7 @@ function AuditTableCard({ title, description, audits }: { title: string; descrip
 												</p>
 												<p>
 													<span className="font-medium text-slate-900">Youth Weighted:</span>{" "}
-													{audit.total_weighted_score}/{getYouthWeightedScoreMaximum(audit.domain_weights)}
+													{audit.total_weighted_score.toFixed(2)}/{getYouthWeightedScoreMaximum(audit.domain_weights).toFixed(2)}
 												</p>
 											</div>
 										) : (
@@ -1193,7 +1193,7 @@ export function LiveAuditsTable() {
 												</div>
 												<div>
 													<span className="font-medium text-slate-900">Youth Weighted:</span>{" "}
-													{audit.total_weighted_score} /{" "}
+													{audit.total_weighted_score.toFixed(2)} /{" "}
 													{getYouthWeightedScoreMaximum({
 														access: audit.domain_weights.access ?? 0,
 														activitySpaces: audit.domain_weights.activitySpaces ?? 0,
@@ -1201,7 +1201,7 @@ export function LiveAuditsTable() {
 														experienceOfSpace: audit.domain_weights.experienceOfSpace ?? 0,
 														aestheticsAndCare: audit.domain_weights.aestheticsAndCare ?? 0,
 														useAndUsability: audit.domain_weights.useAndUsability ?? 0
-													})}{" "}
+													}).toFixed(2)}{" "}
 													<span className="text-slate-500">
 														({(() => {
 															const denominator = getYouthWeightedScoreMaximum({

@@ -1,4 +1,9 @@
 import { yeeDomainLabels, type YeeAuditDraft, type YeeDomainKey, type YeeScorePreview } from "@/lib/yee-audit-config";
+import {
+	getDomainMaximumAverage,
+	getNormalizedWeights,
+	rawDomainQuestionCounts
+} from "@/lib/yee-score-limits";
 
 export type BackendScoreResponse = {
 	total_score: number;
@@ -6,6 +11,10 @@ export type BackendScoreResponse = {
 	category_scores: Record<string, number>;
 	matched_scored_answers: number;
 };
+
+function round2(value: number) {
+	return Math.round((value + Number.EPSILON) * 100) / 100;
+}
 
 function sectionToDomain(sectionName: string): YeeDomainKey | null {
 	const normalized = sectionName.toLowerCase();
@@ -58,20 +67,36 @@ export function buildWeightedScorePreview(
 
 	const weightedDomainScores = Object.fromEntries(
 		(Object.keys(rawDomainScores) as YeeDomainKey[]).map(domain => {
-			const weight = Number(weights[domain] || 0);
-			return [domain, rawDomainScores[domain] * weight];
+			return [domain, 0];
 		})
 	) as Record<YeeDomainKey, number>;
-	const selectedWeights = Object.fromEntries(
-		(Object.keys(rawDomainScores) as YeeDomainKey[]).map(domain => [domain, Number(weights[domain] || 0)])
+	const unweightedDomainAverages = Object.fromEntries(
+		(Object.keys(rawDomainScores) as YeeDomainKey[]).map(domain => [
+			domain,
+			round2(rawDomainScores[domain] / rawDomainQuestionCounts[domain])
+		])
 	) as Record<YeeDomainKey, number>;
+	const { selectedWeights, normalizedWeights } = getNormalizedWeights(weights);
+	const priorityGaps = Object.fromEntries(
+		(Object.keys(rawDomainScores) as YeeDomainKey[]).map(domain => [
+			domain,
+			round2((getDomainMaximumAverage(domain) - unweightedDomainAverages[domain]) * selectedWeights[domain])
+		])
+	) as Record<YeeDomainKey, number>;
+
+	for (const domain of Object.keys(rawDomainScores) as YeeDomainKey[]) {
+		weightedDomainScores[domain] = round2(normalizedWeights[domain] * unweightedDomainAverages[domain]);
+	}
 
 	return {
 		rawDomainScores,
 		weightedDomainScores,
 		selectedWeights,
+		normalizedWeights,
+		unweightedDomainAverages,
+		priorityGaps,
 		totalRawScore: Object.values(rawDomainScores).reduce((sum, value) => sum + value, 0),
-		totalWeightedScore: Object.values(weightedDomainScores).reduce((sum, value) => sum + value, 0),
+		totalWeightedScore: round2(Object.values(weightedDomainScores).reduce((sum, value) => sum + value, 0)),
 		matchedScoredAnswers: backendScore.matched_scored_answers,
 		categoryScores: backendScore.category_scores
 	};

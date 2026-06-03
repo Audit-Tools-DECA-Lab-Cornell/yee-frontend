@@ -38,12 +38,12 @@ export function getComparisonAverages<
 
 	for (const domain of domainOrder) {
 		avgRawByDomain[domain] = Number((avgRawByDomain[domain] / records.length).toFixed(1));
-		avgWeightedByDomain[domain] = Number((avgWeightedByDomain[domain] / records.length).toFixed(1));
+		avgWeightedByDomain[domain] = Number((avgWeightedByDomain[domain] / records.length).toFixed(2));
 	}
 
 	return {
 		totalRawAverage: Number((records.reduce((sum, record) => sum + record.total_raw_score, 0) / records.length).toFixed(1)),
-		totalWeightedAverage: Number((records.reduce((sum, record) => sum + record.total_weighted_score, 0) / records.length).toFixed(1)),
+		totalWeightedAverage: Number((records.reduce((sum, record) => sum + record.total_weighted_score, 0) / records.length).toFixed(2)),
 		avgRawByDomain,
 		avgWeightedByDomain
 	};

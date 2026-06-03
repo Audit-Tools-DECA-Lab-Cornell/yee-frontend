@@ -37,6 +37,9 @@ export type YeeScorePreview = {
 	rawDomainScores: Record<YeeDomainKey, number>;
 	weightedDomainScores: Record<YeeDomainKey, number>;
 	selectedWeights: Record<YeeDomainKey, number>;
+	normalizedWeights: Record<YeeDomainKey, number>;
+	unweightedDomainAverages: Record<YeeDomainKey, number>;
+	priorityGaps: Record<YeeDomainKey, number>;
 	totalRawScore: number;
 	totalWeightedScore: number;
 	matchedScoredAnswers: number;

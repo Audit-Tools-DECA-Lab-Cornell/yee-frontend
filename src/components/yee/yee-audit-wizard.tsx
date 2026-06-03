@@ -1513,7 +1513,7 @@ export function YeeAuditWizard({
 							<YeeScoreSummary
 								preview={draft.scorePreview}
 								title="Score preview"
-								description="This preview is based on the saved draft answers and shows both raw and Youth Weighted score views."
+								description="This preview is based on the saved draft answers and shows both raw scores and Youth Weighted average views."
 							/>
 						) : (
 							<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
@@ -1651,7 +1651,7 @@ export function YeeAuditWizard({
 								Please start by telling us how important each of the following issues are to you - especially about the play/recreation and green spaces in your community or neighborhood
 							</p>
 							<p className="mt-2 text-white/90">
-								These answers are also used later to calculate Youth Weighted scores alongside the raw section scores for {draft.placeName || "this place"}.
+								These answers are also used later to calculate Youth Weighted averages alongside the raw section scores for {draft.placeName || "this place"}.
 							</p>
 						</CardContent>
 					</Card>

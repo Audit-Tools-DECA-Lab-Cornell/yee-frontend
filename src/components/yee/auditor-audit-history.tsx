@@ -200,7 +200,7 @@ export function AuditorAuditHistory({
 												</p>
 												<p>
 													<span className="font-medium text-emerald-900">Youth Weighted:</span>{" "}
-													{preview.totalWeightedScore} / {youthMax} ({youthPercentage.toFixed(0)}%)
+													{preview.totalWeightedScore.toFixed(2)} / {youthMax.toFixed(2)} ({youthPercentage.toFixed(0)}%)
 												</p>
 											</div>
 										) : (
