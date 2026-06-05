@@ -44,6 +44,22 @@ export function VerifyEmailScreen({ token, email }: { token?: string; email?: st
 		};
 	}, [token]);
 
+	React.useEffect(() => {
+		if (status !== "success") return;
+
+		const params = new URLSearchParams();
+		params.set("verified", "1");
+		if (email) {
+			params.set("email", email);
+		}
+
+		const timeout = window.setTimeout(() => {
+			router.replace(`/login?${params.toString()}`);
+		}, 1500);
+
+		return () => window.clearTimeout(timeout);
+	}, [email, router, status]);
+
 	async function handleResend() {
 		if (!email) return;
 		setResending(true);
@@ -77,11 +93,13 @@ export function VerifyEmailScreen({ token, email }: { token?: string; email?: st
 				</div>
 				<div className="flex flex-wrap gap-3">
 					<Button className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]" onClick={() => router.push("/login")}>
-						Back to login
+						{status === "success" ? "Continue to login" : "Back to login"}
 					</Button>
-					<Button variant="outline" className="rounded-2xl" onClick={handleResend} disabled={!email || resending}>
-						{resending ? "Resending..." : "Resend verification"}
-					</Button>
+					{status !== "success" ? (
+						<Button variant="outline" className="rounded-2xl" onClick={handleResend} disabled={!email || resending}>
+							{resending ? "Resending..." : "Resend verification"}
+						</Button>
+					) : null}
 					{email ? (
 						<Link href={`/verify-email?email=${encodeURIComponent(email)}`} className="self-center text-sm text-slate-500">
 							{email}

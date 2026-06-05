@@ -8,12 +8,14 @@ export async function proxyJsonRequest({
 	targetPath,
 	method = "GET",
 	body,
-	authorization
+	authorization,
+	headers
 }: {
 	targetPath: string;
 	method?: "GET" | "POST";
 	body?: unknown;
 	authorization?: string | null;
+	headers?: HeadersInit;
 }) {
 	const targetUrl = `${getApiBaseUrl()}${targetPath}`;
 
@@ -22,7 +24,8 @@ export async function proxyJsonRequest({
 			method,
 			headers: {
 				"Content-Type": "application/json",
-				...(authorization ? { Authorization: authorization } : {})
+				...(authorization ? { Authorization: authorization } : {}),
+				...(headers || {})
 			},
 			...(body === undefined ? {} : { body: JSON.stringify(body) }),
 			cache: "no-store"

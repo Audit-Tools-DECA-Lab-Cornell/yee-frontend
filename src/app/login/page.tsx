@@ -20,6 +20,16 @@ export default function LoginPage() {
 	const [password, setPassword] = React.useState("");
 	const [submitting, setSubmitting] = React.useState(false);
 	const [error, setError] = React.useState<string | null>(null);
+	const [verified, setVerified] = React.useState(false);
+
+	React.useEffect(() => {
+		const params = new URLSearchParams(window.location.search);
+		const prefilledEmail = params.get("email");
+		if (prefilledEmail) {
+			setEmail(prefilledEmail);
+		}
+		setVerified(params.get("verified") === "1");
+	}, []);
 
 	React.useEffect(() => {
 		if (!loading && session) {
@@ -59,6 +69,11 @@ export default function LoginPage() {
 				</div>
 
 				<form className="space-y-4" onSubmit={handleSubmit}>
+					{verified ? (
+						<p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+							Email verified. Log in to continue to your next account setup step.
+						</p>
+					) : null}
 					<div className="space-y-2">
 						<Label htmlFor="email">Email</Label>
 						<Input
