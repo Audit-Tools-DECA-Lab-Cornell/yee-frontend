@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import type { PlaceComparisonGroupRecord } from "@/lib/dashboard/live-api";
 import { domainLabels, domainOrder, getComparisonAverages } from "@/lib/dashboard/reporting";
+import { yeeDomainThemes } from "@/lib/yee-domain-theme";
 import { getDomainYouthWeightedMaximum, getYouthWeightedScoreMaximum, rawDomainScoreMaximums, totalRawScoreMaximum } from "@/lib/yee-score-limits";
 
 function clampPercentage(value: number) {
@@ -158,7 +159,18 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 						<tbody>
 							{domainOrder.map(domain => (
 								<tr key={domain} className="border-b border-slate-100 last:border-0">
-									<td className="py-4 pr-4 font-medium text-slate-900">{domainLabels[domain]}</td>
+									<td className="py-4 pr-4">
+										<span
+											className="inline-flex rounded-full border px-3 py-1 text-sm font-medium"
+											style={{
+												borderColor: yeeDomainThemes[domain].strongFillHex,
+												backgroundColor: yeeDomainThemes[domain].lightHex,
+												color: yeeDomainThemes[domain].strongHex
+											}}
+										>
+											{domainLabels[domain]}
+										</span>
+									</td>
 									{records.map(record => (
 										<td key={`${record.audit_id}-${domain}`} className="py-4 pr-4 text-slate-600">
 											<div>{record.raw_domain_scores[domain]} / {rawDomainScoreMaximums[domain]} raw score</div>

@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import * as React from "react";
 import { Bell, Menu, Search } from "lucide-react";
 
+import { useAuth } from "@/components/auth/auth-provider";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { Badge } from "@/components/ui/badge";
@@ -11,11 +13,13 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
 import { useWorkspaceConfig } from "@/components/dashboard/site-copy-provider";
+import { fetchDashboardOverview, fetchUsers } from "@/lib/dashboard/live-api";
 import type { WorkspaceVariant } from "@/lib/dashboard/workspace-config";
 
 export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 	const pathname = usePathname();
 	const config = useWorkspaceConfig(variant);
+	const { session } = useAuth();
 	const showPrimaryAction = variant !== "auditor";
 	const hideSearch =
 		(variant === "admin" &&
@@ -26,6 +30,37 @@ export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 		Object.entries(config.pageCopy)
 			.sort((a, b) => b[0].length - a[0].length)
 			.find(([key]) => pathname === key || pathname.startsWith(`${key}/`))?.[1] ?? Object.values(config.pageCopy)[0];
+	const [liveHeaderBadges, setLiveHeaderBadges] = React.useState<string[]>(config.headerBadges);
+
+	React.useEffect(() => {
+		if (variant !== "admin" || !session) {
+			setLiveHeaderBadges(config.headerBadges);
+			return;
+		}
+		let cancelled = false;
+
+		const run = async () => {
+			try {
+				const [overview, users] = await Promise.all([fetchDashboardOverview(session), fetchUsers(session)]);
+				if (cancelled) return;
+				const completedAuditsMetric = overview.metrics.find(metric => metric.title.toLowerCase().includes("audit"));
+				const completedAudits = completedAuditsMetric?.value ? Number.parseInt(completedAuditsMetric.value, 10) : 0;
+				setLiveHeaderBadges([
+					`${users.length} users total`,
+					`${Number.isNaN(completedAudits) ? 0 : completedAudits} completed audits`
+				]);
+			} catch {
+				if (!cancelled) {
+					setLiveHeaderBadges(config.headerBadges);
+				}
+			}
+		};
+
+		void run();
+		return () => {
+			cancelled = true;
+		};
+	}, [config.headerBadges, session, variant]);
 
 	return (
 		<header className="sticky top-0 z-20 border-b border-slate-200/80 bg-[#f6f3ea]/90 backdrop-blur">
@@ -108,11 +143,11 @@ export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 								placeholder={config.searchPlaceholder}
 								className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
 							/>
-						</label>
+					</label>
 					)}
 
 					<div className="flex flex-wrap items-center gap-2">
-						{config.headerBadges.map(item => (
+						{liveHeaderBadges.map(item => (
 							<Badge
 								key={item}
 								className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700 hover:bg-emerald-100">

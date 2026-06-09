@@ -285,6 +285,7 @@ export type PlaceDetailRecord = {
 export type RawDataRecord = {
 	audit_id: string;
 	auditor_generated_id: string;
+	organization: string;
 	place_id: string;
 	place_name: string;
 	project_id: string;

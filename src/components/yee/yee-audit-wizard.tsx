@@ -36,6 +36,7 @@ import {
 	type YeeDomainKey,
 	type YeeStepNumber
 } from "@/lib/yee-audit-config";
+import { getThemeByStep } from "@/lib/yee-domain-theme";
 import {
 	fetchInstrument,
 	filterItemsForDomain,
@@ -337,21 +338,22 @@ function getStepPalette(stepValue: YeeStepNumber) {
 				active: "border-emerald-400 bg-gradient-to-br from-emerald-50 via-emerald-100 to-emerald-200 text-emerald-950 ring-2 ring-emerald-200 shadow-[0_16px_32px_-24px_rgba(6,95,70,0.38)]",
 				idle: "border-emerald-200 bg-emerald-50/80 text-emerald-900 hover:border-emerald-300 hover:bg-emerald-100/80"
 			};
-		case 2:
-			return {
-				active: "border-indigo-400 bg-gradient-to-br from-indigo-50 via-indigo-100 to-indigo-200 text-indigo-950 ring-2 ring-indigo-200 shadow-[0_16px_32px_-24px_rgba(55,48,163,0.36)]",
-				idle: "border-indigo-200 bg-indigo-50/80 text-indigo-900 hover:border-indigo-300 hover:bg-indigo-100/80"
-			};
-		case 3:
-			return {
-				active: "border-green-400 bg-gradient-to-br from-green-50 via-green-100 to-green-200 text-green-950 ring-2 ring-green-200 shadow-[0_16px_32px_-24px_rgba(22,101,52,0.36)]",
-				idle: "border-green-200 bg-green-50/80 text-green-900 hover:border-green-300 hover:bg-green-100/80"
-			};
-		case 4:
-			return {
-				active: "border-cyan-400 bg-gradient-to-br from-cyan-50 via-cyan-100 to-cyan-200 text-cyan-950 ring-2 ring-cyan-200 shadow-[0_16px_32px_-24px_rgba(21,94,117,0.34)]",
-				idle: "border-cyan-200 bg-cyan-50/80 text-cyan-900 hover:border-cyan-300 hover:bg-cyan-100/80"
-			};
+	case 2:
+		return {
+			active: "border-indigo-400 bg-gradient-to-br from-indigo-50 via-indigo-100 to-indigo-200 text-indigo-950 ring-2 ring-indigo-200 shadow-[0_16px_32px_-24px_rgba(55,48,163,0.36)]",
+			idle: "border-indigo-200 bg-indigo-50/80 text-indigo-900 hover:border-indigo-300 hover:bg-indigo-100/80"
+		};
+	case 3:
+	case 4: {
+		const theme = getThemeByStep(stepValue);
+		if (theme) {
+			return { active: theme.active, idle: theme.idle };
+		}
+		return {
+			active: "border-slate-400 bg-slate-100 text-slate-950 ring-2 ring-slate-200",
+			idle: "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300 hover:bg-slate-100"
+		};
+	}
 		case 5:
 			return {
 				active: "border-amber-400 bg-gradient-to-br from-amber-50 via-amber-100 to-amber-200 text-amber-950 ring-2 ring-amber-200 shadow-[0_16px_32px_-24px_rgba(180,83,9,0.32)]",
@@ -403,26 +405,30 @@ function getSurfacePalette(stepValue: YeeStepNumber) {
 				progress: "border-indigo-200/80 bg-indigo-50/80",
 				condition: "border-indigo-300 bg-indigo-100/85"
 			};
-		case 3:
+	case 3:
+	case 4: {
+		const theme = getThemeByStep(stepValue);
+		if (theme) {
 			return {
-				card: "border-green-200/80 bg-[#eef8f1]",
-				inner: "border-green-100 bg-white/90",
-				selected: "border-green-600 bg-green-200 text-green-950 ring-1 ring-green-300 shadow-[0_10px_22px_-18px_rgba(22,101,52,0.35)]",
-				idle: "border-green-200 bg-green-50/90 text-green-950 hover:border-green-300 hover:bg-green-100/90",
-				instruction: "border-[#85dfa0] bg-[#63c483] text-white",
-				progress: "border-green-200/80 bg-green-50/80",
-				condition: "border-green-300 bg-green-100/80"
+				card: theme.card,
+				inner: theme.inner,
+				selected: theme.selected,
+				idle: theme.idle,
+				instruction: theme.instruction,
+				progress: theme.progress,
+				condition: theme.condition
 			};
-		case 4:
-			return {
-				card: "border-cyan-200/80 bg-[#eef8fb]",
-				inner: "border-cyan-100 bg-white/92",
-				selected: "border-cyan-600 bg-cyan-200 text-cyan-950 ring-1 ring-cyan-300 shadow-[0_10px_22px_-18px_rgba(21,94,117,0.32)]",
-				idle: "border-cyan-200 bg-cyan-50/90 text-cyan-950 hover:border-cyan-300 hover:bg-cyan-100/90",
-				instruction: "border-[#8dd6f0] bg-[#5fb8dc] text-white",
-				progress: "border-cyan-200/80 bg-cyan-50/80",
-				condition: "border-cyan-300 bg-cyan-100/85"
-			};
+		}
+		return {
+			card: "border-slate-200/80 bg-slate-50",
+			inner: "border-slate-100 bg-white/92",
+			selected: "border-slate-600 bg-slate-200 text-slate-950 ring-1 ring-slate-300",
+			idle: "border-slate-200 bg-slate-50 text-slate-950 hover:border-slate-300 hover:bg-slate-100",
+			instruction: "border-slate-300 bg-slate-500 text-white",
+			progress: "border-slate-200/80 bg-slate-50/80",
+			condition: "border-slate-300 bg-slate-100/85"
+		};
+	}
 		case 5:
 			return {
 				card: "border-amber-200/80 bg-[#fff8ee]",

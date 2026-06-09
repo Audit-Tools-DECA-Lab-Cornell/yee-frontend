@@ -22,6 +22,7 @@ import {
 	rawDomainScoreMaximums,
 	totalRawScoreMaximum
 } from "@/lib/yee-score-limits";
+import { yeeDomainThemes } from "@/lib/yee-domain-theme";
 
 type CompareMode = "places" | "audits" | "individual";
 type DateRangeValue = "all" | "30" | "90" | "180" | "365";
@@ -842,18 +843,7 @@ export function LiveReports() {
 														className="flex items-center justify-center text-[11px] font-medium text-slate-700"
 														style={{
 															width: `${100 / domainOrder.length}%`,
-															backgroundColor:
-																domain === "access"
-																	? "#d1fae5"
-																	: domain === "activitySpaces"
-																		? "#dbeafe"
-																		: domain === "amenities"
-																			? "#fef3c7"
-																			: domain === "experienceOfSpace"
-																				? "#ccfbf1"
-																				: domain === "aestheticsAndCare"
-																					? "#ffe4e6"
-																					: "#ede9fe"
+															backgroundColor: yeeDomainThemes[domain].lightHex
 														}}
 													>
 														{summary.rawPercentByDomain[domain].toFixed(0)}%
@@ -870,18 +860,7 @@ export function LiveReports() {
 														className="flex items-center justify-center text-[11px] font-medium text-slate-700"
 														style={{
 															width: `${100 / domainOrder.length}%`,
-															backgroundColor:
-																domain === "access"
-																	? "#a7f3d0"
-																	: domain === "activitySpaces"
-																		? "#bfdbfe"
-																		: domain === "amenities"
-																			? "#fde68a"
-																			: domain === "experienceOfSpace"
-																				? "#99f6e4"
-																				: domain === "aestheticsAndCare"
-																					? "#fecdd3"
-																					: "#ddd6fe"
+															backgroundColor: yeeDomainThemes[domain].strongFillHex
 														}}
 													>
 														{summary.weightedPercentByDomain[domain].toFixed(0)}%
@@ -1050,8 +1029,17 @@ export function LiveReports() {
 									</div>
 									<div className="grid gap-3 sm:grid-cols-2">
 										{domainOrder.map(domain => (
-											<div key={domain} className="rounded-2xl border border-slate-200 bg-[#f8fbf9] p-4">
-												<p className="text-sm font-medium text-slate-900">{domainLabels[domain]}</p>
+											<div
+												key={domain}
+												className="rounded-2xl border p-4"
+												style={{
+													borderColor: yeeDomainThemes[domain].strongFillHex,
+													backgroundColor: "#ffffff"
+												}}
+											>
+												<p className="text-sm font-medium" style={{ color: yeeDomainThemes[domain].strongHex }}>
+													{domainLabels[domain]}
+												</p>
 												<p className="mt-2 text-sm text-slate-600">
 													Raw Score {record.raw_domain_scores[domain]}/{rawDomainScoreMaximums[domain]}
 												</p>

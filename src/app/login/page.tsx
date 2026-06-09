@@ -89,6 +89,11 @@ export default function LoginPage() {
 						<Label htmlFor="password">Password</Label>
 						<PasswordField id="password" placeholder="••••••••" value={password} onChange={setPassword} required />
 					</div>
+					<div className="flex justify-end">
+						<Link href="/forgot-password" className="text-sm font-medium text-emerald-700 hover:text-emerald-800">
+							Forgot password?
+						</Link>
+					</div>
 					{error ? <p className="text-sm text-rose-600">{error}</p> : null}
 					<Button type="submit" className="w-full rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]" disabled={submitting}>
 						{submitting ? "Logging in..." : "Log in"}

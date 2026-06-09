@@ -77,7 +77,7 @@ export const visitFrequencyOptions = [
 	{ value: "never-before", label: "I have never been here before" },
 	{ value: "every-or-almost-every-day", label: "Every day or Almost every day" },
 	{ value: "once-or-twice-a-week", label: "One or twice a week" },
-	{ value: "once-or-twice-a-month", label: "Once of twice a month" },
+	{ value: "once-or-twice-a-month", label: "Once or twice a month" },
 	{ value: "few-times-less-than-monthly", label: "Only a few times (less than once a month)" },
 	{ value: "not-in-last-6-months", label: "I have not been here in the last 6 months" }
 ];

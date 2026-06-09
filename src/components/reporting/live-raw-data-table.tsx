@@ -11,6 +11,7 @@ import { fetchRawData, type RawDataRecord } from "@/lib/dashboard/live-api";
 function toExportRows(rows: RawDataRecord[]) {
 	return rows.map(row => {
 		const base: Record<string, string | number> = {
+			Organization: row.organization,
 			"Auditor ID": row.auditor_generated_id,
 			Place: row.place_name,
 			Project: row.project_name,
@@ -63,6 +64,7 @@ export function LiveRawDataTable({
 	const [rows, setRows] = React.useState<RawDataRecord[]>([]);
 	const [loading, setLoading] = React.useState(true);
 	const [error, setError] = React.useState<string | null>(null);
+	const [selectedOrganizations, setSelectedOrganizations] = React.useState<string[]>([]);
 	const [selectedProjectIds, setSelectedProjectIds] = React.useState<string[]>([]);
 	const [selectedPlaceIds, setSelectedPlaceIds] = React.useState<string[]>([]);
 	const [selectedAuditIds, setSelectedAuditIds] = React.useState<string[]>([]);
@@ -112,21 +114,37 @@ export function LiveRawDataTable({
 		);
 	}
 
-	const projectOptions = Array.from(new Map(rows.map(row => [row.project_id, { value: row.project_id, label: row.project_name }])).values());
+	const organizationOptions = Array.from(
+		new Map(
+			rows
+				.map(row => row.organization)
+				.filter(Boolean)
+				.map(organization => [organization, { value: organization, label: organization }])
+		).values()
+	);
+	const projectOptions = Array.from(
+		new Map(
+			rows
+				.filter(row => selectedOrganizations.length === 0 || selectedOrganizations.includes(row.organization))
+				.map(row => [row.project_id, { value: row.project_id, label: row.project_name }])
+		).values()
+	);
 	const placeOptions = Array.from(
 		new Map(
 			rows
+				.filter(row => selectedOrganizations.length === 0 || selectedOrganizations.includes(row.organization))
 				.filter(row => selectedProjectIds.length === 0 || selectedProjectIds.includes(row.project_id))
 				.map(row => [row.place_id, { value: row.place_id, label: row.place_name }])
 		).values()
 	);
 	const filteredRows = rows.filter(row => {
+		if (selectedOrganizations.length > 0 && !selectedOrganizations.includes(row.organization)) return false;
 		if (selectedProjectIds.length > 0 && !selectedProjectIds.includes(row.project_id)) return false;
 		if (selectedPlaceIds.length > 0 && !selectedPlaceIds.includes(row.place_id)) return false;
 		return true;
 	});
 	const selectedRows = filteredRows.filter(row => selectedAuditIds.includes(row.audit_id));
-	const filtersActive = selectedProjectIds.length > 0 || selectedPlaceIds.length > 0;
+	const filtersActive = selectedOrganizations.length > 0 || selectedProjectIds.length > 0 || selectedPlaceIds.length > 0;
 
 	return (
 		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
@@ -143,6 +161,20 @@ export function LiveRawDataTable({
 			</CardHeader>
 			<CardContent className="space-y-4 overflow-x-auto">
 				<div className="flex flex-wrap gap-3">
+					<SearchableMultiSelectFilter
+						label="Organization"
+						options={organizationOptions}
+						selectedValues={selectedOrganizations}
+						onChange={values => {
+							setSelectedOrganizations(values);
+							const scopedRows = rows.filter(row => values.length === 0 || values.includes(row.organization));
+							const allowedProjectIds = new Set(scopedRows.map(row => row.project_id));
+							const allowedPlaceIds = new Set(scopedRows.map(row => row.place_id));
+							setSelectedProjectIds(current => current.filter(projectId => allowedProjectIds.has(projectId)));
+							setSelectedPlaceIds(current => current.filter(placeId => allowedPlaceIds.has(placeId)));
+							setSelectedAuditIds([]);
+						}}
+					/>
 					<SearchableMultiSelectFilter
 						label="Project"
 						options={projectOptions}
@@ -171,6 +203,7 @@ export function LiveRawDataTable({
 					<ClearFiltersButton
 						disabled={!filtersActive}
 						onClick={() => {
+							setSelectedOrganizations([]);
 							setSelectedProjectIds([]);
 							setSelectedPlaceIds([]);
 							setSelectedAuditIds([]);
@@ -184,6 +217,7 @@ export function LiveRawDataTable({
 						<thead className="text-slate-500">
 							<tr className="border-b border-slate-200">
 								<th className="py-3 pr-4 font-medium">Select</th>
+								<th className="py-3 pr-4 font-medium">Organization</th>
 								<th className="py-3 pr-4 font-medium">Auditor ID</th>
 								<th className="py-3 pr-4 font-medium">Place</th>
 								<th className="py-3 pr-4 font-medium">Project</th>
@@ -207,6 +241,7 @@ export function LiveRawDataTable({
 											}
 										/>
 									</td>
+									<td className="py-4 pr-4 text-slate-600">{row.organization}</td>
 									<td className="py-4 pr-4 text-slate-600">{row.auditor_generated_id}</td>
 									<td className="py-4 pr-4 font-medium text-slate-900">{row.place_name}</td>
 									<td className="py-4 pr-4 text-slate-600">{row.project_name}</td>
@@ -216,7 +251,7 @@ export function LiveRawDataTable({
 							))}
 							{filteredRows.length === 0 ? (
 								<tr>
-									<td colSpan={6} className="py-8 text-center text-sm text-slate-500">
+									<td colSpan={7} className="py-8 text-center text-sm text-slate-500">
 										No raw data rows match the selected filters.
 									</td>
 								</tr>

@@ -1,5 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { YeeScorePreview, YeeDomainKey } from "@/lib/yee-audit-config";
+import { yeeDomainThemes } from "@/lib/yee-domain-theme";
 import { getScoreRows } from "@/lib/yee-scoring";
 import {
 	getDomainYouthWeightedMaximum,
@@ -24,34 +25,34 @@ const youthPalette = {
 
 const domainPalette: Record<YeeDomainKey, { fill: string; border: string; text: string }> = {
 	access: {
-		fill: "bg-emerald-500",
-		border: "border-emerald-300",
-		text: "text-emerald-900"
+		fill: yeeDomainThemes.access.fillClass,
+		border: yeeDomainThemes.access.borderClass,
+		text: yeeDomainThemes.access.textClass
 	},
 	activitySpaces: {
-		fill: "bg-sky-500",
-		border: "border-sky-300",
-		text: "text-sky-900"
+		fill: yeeDomainThemes.activitySpaces.fillClass,
+		border: yeeDomainThemes.activitySpaces.borderClass,
+		text: yeeDomainThemes.activitySpaces.textClass
 	},
 	amenities: {
-		fill: "bg-amber-500",
-		border: "border-amber-300",
-		text: "text-amber-900"
+		fill: yeeDomainThemes.amenities.fillClass,
+		border: yeeDomainThemes.amenities.borderClass,
+		text: yeeDomainThemes.amenities.textClass
 	},
 	experienceOfSpace: {
-		fill: "bg-teal-500",
-		border: "border-teal-300",
-		text: "text-teal-900"
+		fill: yeeDomainThemes.experienceOfSpace.fillClass,
+		border: yeeDomainThemes.experienceOfSpace.borderClass,
+		text: yeeDomainThemes.experienceOfSpace.textClass
 	},
 	aestheticsAndCare: {
-		fill: "bg-rose-400",
-		border: "border-rose-300",
-		text: "text-rose-900"
+		fill: yeeDomainThemes.aestheticsAndCare.fillClass,
+		border: yeeDomainThemes.aestheticsAndCare.borderClass,
+		text: yeeDomainThemes.aestheticsAndCare.textClass
 	},
 	useAndUsability: {
-		fill: "bg-violet-500",
-		border: "border-violet-300",
-		text: "text-violet-900"
+		fill: yeeDomainThemes.useAndUsability.fillClass,
+		border: yeeDomainThemes.useAndUsability.borderClass,
+		text: yeeDomainThemes.useAndUsability.textClass
 	}
 };
 

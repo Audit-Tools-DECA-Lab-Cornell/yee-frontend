@@ -106,6 +106,20 @@ export async function resendVerification(email: string): Promise<{ message: stri
 	});
 }
 
+export async function requestPasswordReset(email: string): Promise<{ message: string }> {
+	return apiRequest<{ message: string }>("/api/auth/forgot-password", {
+		method: "POST",
+		body: JSON.stringify({ email, website: "" })
+	});
+}
+
+export async function resetPassword(token: string, password: string): Promise<{ message: string }> {
+	return apiRequest<{ message: string }>("/api/auth/reset-password", {
+		method: "POST",
+		body: JSON.stringify({ token, password, website: "" })
+	});
+}
+
 export async function completeProfile(accessToken: string, name: string): Promise<SessionUser> {
 	const data = await apiRequest<SessionResponse>("/api/auth/complete-profile", {
 		method: "POST",

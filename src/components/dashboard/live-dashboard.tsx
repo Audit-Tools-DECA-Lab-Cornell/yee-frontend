@@ -58,6 +58,47 @@ function metricHref(title: string) {
 	return "/dashboard";
 }
 
+function adminMetricHref(title: string) {
+	const normalized = title.toLowerCase();
+	if (normalized.includes("user")) return "/admin/users";
+	if (normalized.includes("project")) return "/admin/projects";
+	if (normalized.includes("place")) return "/admin/places";
+	if (normalized.includes("audit")) return "/admin/audits";
+	return "/admin";
+}
+
+function metricTone(title: string) {
+	const normalized = title.toLowerCase();
+	if (normalized.includes("user")) {
+		return {
+			card: "border-sky-200 bg-sky-50/80 hover:border-sky-300",
+			badge: "bg-sky-100 text-sky-700"
+		};
+	}
+	if (normalized.includes("project")) {
+		return {
+			card: "border-amber-200 bg-amber-50/80 hover:border-amber-300",
+			badge: "bg-amber-100 text-amber-700"
+		};
+	}
+	if (normalized.includes("place")) {
+		return {
+			card: "border-emerald-200 bg-emerald-50/80 hover:border-emerald-300",
+			badge: "bg-emerald-100 text-emerald-700"
+		};
+	}
+	if (normalized.includes("audit")) {
+		return {
+			card: "border-violet-200 bg-violet-50/80 hover:border-violet-300",
+			badge: "bg-violet-100 text-violet-700"
+		};
+	}
+	return {
+		card: "border-slate-200 bg-white hover:border-slate-300",
+		badge: "bg-slate-100 text-slate-700"
+	};
+}
+
 function useDashboardData<T>(loader: (session: NonNullable<ReturnType<typeof useAuth>["session"]>) => Promise<T>) {
 	const { session } = useAuth();
 	const [data, setData] = React.useState<T | null>(null);
@@ -150,6 +191,7 @@ function downloadCsv(filename: string, rows: Record<string, string | number>[]) 
 function rawDataToRows(rows: RawDataRecord[]) {
 	return rows.map(row => {
 		const base: Record<string, string | number> = {
+			Organization: row.organization,
 			"Auditor ID": row.auditor_generated_id,
 			Project: row.project_name,
 			Place: row.place_name,
@@ -268,22 +310,26 @@ export function LiveManagerOverview() {
 		{
 			label: "Total Places",
 			value: activePlaces,
-			helper: "Places currently in this manager's project scope."
+			helper: "Places currently in this manager's project scope.",
+			href: "/dashboard/places"
 		},
 		{
 			label: "Active Audits",
 			value: auditsLogged,
-			helper: "Draft and submitted audit records tied to this manager's places."
+			helper: "Draft and submitted audit records tied to this manager's places.",
+			href: "/dashboard/audits"
 		},
 		{
 			label: "Completed Audits",
 			value: String(completedAudits),
-			helper: "Submitted audits currently available for reports, comparisons, and exports."
+			helper: "Submitted audits currently available for reports, comparisons, and exports.",
+			href: "/dashboard/audits"
 		},
 		{
 			label: "Audits in Progress",
 			value: String(auditsInProgress),
-			helper: "Audits that are still underway and not yet locked as submitted."
+			helper: "Audits that are still underway and not yet locked as submitted.",
+			href: "/dashboard/audits"
 		}
 	];
 	const scoreSummaryItems = [
@@ -326,11 +372,16 @@ export function LiveManagerOverview() {
 						</p>
 						<div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
 							{managerSnapshotItems.map(item => (
-								<div key={item.label} className="min-w-0 rounded-[1.5rem] border border-white/12 bg-white/8 px-4 py-4 backdrop-blur-sm">
+								<Link
+									key={item.label}
+									href={item.href}
+									className="min-w-0 rounded-[1.5rem] border border-emerald-200/20 bg-linear-to-br from-white/18 to-white/8 px-4 py-4 backdrop-blur-sm transition hover:border-emerald-200/35 hover:bg-white/16"
+								>
 									<p className="break-words text-xs font-medium uppercase tracking-[0.16em] text-emerald-50/70">{item.label}</p>
 									<p className="mt-2 break-words text-2xl font-semibold text-white">{item.value}</p>
 									<p className="mt-2 break-words text-xs leading-5 text-emerald-50/65">{item.helper}</p>
-								</div>
+									<p className="mt-3 text-xs font-medium text-emerald-100">Open</p>
+								</Link>
 							))}
 						</div>
 						<div className="mt-6 flex flex-wrap gap-3">
@@ -381,7 +432,7 @@ export function LiveManagerOverview() {
 			<section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
 				{data.metrics.map(metric => (
 					<Link key={metric.title} href={metricHref(metric.title)} className="block">
-						<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm transition hover:border-emerald-300 hover:shadow-md">
+						<Card className={`rounded-[1.75rem] shadow-sm transition hover:shadow-md ${metricTone(metric.title).card}`}>
 							<CardHeader className="gap-3">
 								<CardDescription className="text-sm font-medium text-slate-500">{metric.title}</CardDescription>
 								<CardTitle className="text-3xl font-semibold tracking-tight text-slate-950">{metric.value}</CardTitle>
@@ -389,7 +440,7 @@ export function LiveManagerOverview() {
 							<CardContent className="space-y-2">
 								<p className="text-sm leading-6 text-slate-600">{metric.description}</p>
 								<div className="flex items-center justify-between">
-									<Badge variant="secondary" className="rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
+									<Badge variant="secondary" className={`rounded-full ${metricTone(metric.title).badge}`}>
 										Manager scope
 									</Badge>
 									<span className="text-xs font-medium text-slate-500">Open</span>
@@ -981,12 +1032,6 @@ export function LiveAuditsTable() {
 					setAudits(auditRows);
 					setRawData(rawRows);
 					setComparisons(comparisonRows);
-					if (auditRows.length > 0) {
-						const firstProjectId = auditRows[0]?.project_id;
-						if (firstProjectId) {
-							setSelectedProjectIds(current => (current.length > 0 ? current : [firstProjectId]));
-						}
-					}
 				}
 			} catch (err) {
 				if (!cancelled) setError(err instanceof Error ? err.message : "Could not load audits.");
@@ -1005,7 +1050,7 @@ export function LiveAuditsTable() {
 		[audits]
 	);
 	const placeOptions = React.useMemo(() => {
-		const matching = audits.filter(audit => (selectedProjectIds.length === 0 ? false : selectedProjectIds.includes(audit.project_id)));
+		const matching = audits.filter(audit => selectedProjectIds.length === 0 || selectedProjectIds.includes(audit.project_id));
 		return Array.from(new Map(matching.map(audit => [audit.place_id, { value: audit.place_id, label: audit.place }])).values());
 	}, [audits, selectedProjectIds]);
 
@@ -1104,7 +1149,7 @@ export function LiveAuditsTable() {
 						<ClearFiltersButton
 							disabled={!filtersActive}
 							onClick={() => {
-								setSelectedProjectIds(projectOptions[0] ? [projectOptions[0].value] : []);
+								setSelectedProjectIds([]);
 								setSelectedPlaceIds([]);
 								setSelectedAuditIds([]);
 							}}
@@ -1293,13 +1338,23 @@ export function LiveAdminOverview() {
 					{ title: "Users", value: `${users.data?.length ?? 0}`, description: "All roles across the platform." },
 					...overview.data.metrics
 				].slice(0, 4).map(metric => (
-					<Card key={metric.title} className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
-						<CardHeader>
-							<CardDescription>{metric.title}</CardDescription>
-							<CardTitle className="text-3xl">{metric.value}</CardTitle>
-						</CardHeader>
-						<CardContent className="text-sm text-slate-600">{metric.description}</CardContent>
-					</Card>
+					<Link key={metric.title} href={adminMetricHref(metric.title)} className="block">
+						<Card className={`rounded-[1.75rem] shadow-sm transition hover:shadow-md ${metricTone(metric.title).card}`}>
+							<CardHeader>
+								<CardDescription>{metric.title}</CardDescription>
+								<CardTitle className="text-3xl">{metric.value}</CardTitle>
+							</CardHeader>
+							<CardContent className="space-y-3 text-sm text-slate-600">
+								<p>{metric.description}</p>
+								<div className="flex items-center justify-between">
+									<Badge variant="secondary" className={`rounded-full ${metricTone(metric.title).badge}`}>
+										Admin view
+									</Badge>
+									<span className="text-xs font-medium text-slate-500">Open</span>
+								</div>
+							</CardContent>
+						</Card>
+					</Link>
 				))}
 			</section>
 			{overview.data.organization_summaries.length > 0 ? (

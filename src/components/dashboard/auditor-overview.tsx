@@ -72,18 +72,21 @@ export function AuditorOverview() {
 						<div className="mt-8 space-y-4">
 							<p className="text-sm font-medium text-emerald-50/80">My field snapshot</p>
 							<div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-								<div className="min-w-0 rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
+								<Link href="/my-dashboard/places" className="min-w-0 rounded-2xl border border-emerald-200/20 bg-linear-to-br from-white/18 to-white/8 p-4 backdrop-blur-sm transition hover:border-emerald-200/35 hover:bg-white/16">
 									<p className="break-words text-sm text-emerald-50/70">Assigned places</p>
 									<p className="mt-2 break-words text-3xl font-semibold">{places.length}</p>
-								</div>
-								<div className="min-w-0 rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
+									<p className="mt-3 text-xs font-medium text-emerald-100">Open</p>
+								</Link>
+								<Link href="/my-dashboard/places" className="min-w-0 rounded-2xl border border-sky-200/20 bg-linear-to-br from-white/18 to-white/8 p-4 backdrop-blur-sm transition hover:border-sky-200/35 hover:bg-white/16">
 									<p className="break-words text-sm text-emerald-50/70">Submitted audits</p>
 									<p className="mt-2 break-words text-3xl font-semibold">{submittedCount}</p>
-								</div>
-								<div className="min-w-0 rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
+									<p className="mt-3 text-xs font-medium text-emerald-100">Open</p>
+								</Link>
+								<Link href={continueAuditHref} className="min-w-0 rounded-2xl border border-violet-200/20 bg-linear-to-br from-white/18 to-white/8 p-4 backdrop-blur-sm transition hover:border-violet-200/35 hover:bg-white/16">
 									<p className="break-words text-sm text-emerald-50/70">Audits in progress</p>
 									<p className="mt-2 break-words text-3xl font-semibold">{draftCount}</p>
-								</div>
+									<p className="mt-3 text-xs font-medium text-emerald-100">Open</p>
+								</Link>
 								<LatestSubmittedScores places={places} auditStates={auditStates} />
 							</div>
 						</div>
@@ -121,10 +124,11 @@ function LatestSubmittedScores({
 
 	if (!latestSubmitted?.state?.score) {
 		return (
-			<div className="min-w-0 rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
+			<Link href="/my-dashboard/places" className="min-w-0 rounded-2xl border border-amber-200/20 bg-linear-to-br from-white/18 to-white/8 p-4 backdrop-blur-sm transition hover:border-amber-200/35 hover:bg-white/16">
 				<p className="text-sm text-emerald-50/70">Latest submitted scores</p>
 				<p className="mt-2 text-sm text-emerald-50/85">A Raw Score and Youth Weighted average will appear here after your first submitted audit.</p>
-			</div>
+				<p className="mt-3 text-xs font-medium text-emerald-100">Open</p>
+			</Link>
 		);
 	}
 
@@ -135,7 +139,10 @@ function LatestSubmittedScores({
 	const youthPercentage = youthMax ? (preview.totalWeightedScore / youthMax) * 100 : 0;
 
 	return (
-		<div className="min-w-0 rounded-2xl bg-white/10 p-4 backdrop-blur-sm">
+		<Link
+			href={latestSubmitted.state.submission_id ? `/yee/submissions/${latestSubmitted.state.submission_id}` : "/my-dashboard/places"}
+			className="min-w-0 rounded-2xl border border-amber-200/20 bg-linear-to-br from-white/18 to-white/8 p-4 backdrop-blur-sm transition hover:border-amber-200/35 hover:bg-white/16"
+		>
 			<p className="text-sm text-emerald-50/70">Latest submitted scores</p>
 			<p className="mt-2 text-sm text-emerald-50/85">{latestSubmitted.place.name}</p>
 			<div className="mt-3 space-y-2 text-sm">
@@ -146,6 +153,7 @@ function LatestSubmittedScores({
 					Youth Weighted: {preview.totalWeightedScore.toFixed(2)} / {youthMax.toFixed(2)} ({youthPercentage.toFixed(0)}%)
 				</p>
 			</div>
-		</div>
+			<p className="mt-3 text-xs font-medium text-emerald-100">Open</p>
+		</Link>
 	);
 }
