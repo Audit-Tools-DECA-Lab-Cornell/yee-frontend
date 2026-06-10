@@ -1546,7 +1546,7 @@ export function LiveUsersTable({ embedded = false }: { embedded?: boolean }) {
 										</Badge>
 										{!user.approved ? (
 											<div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-												{user.role === "AUDITOR" ? (
+												{user.role === "AUDITOR" || user.role === "MANAGER" ? (
 													<select
 														value={selectedAccounts[user.id] ?? ""}
 														onChange={event =>
@@ -1571,7 +1571,11 @@ export function LiveUsersTable({ embedded = false }: { embedded?: boolean }) {
 													onClick={() => void handleApprove(user)}
 													disabled={
 														submittingUserId === user.id ||
-														(user.role === "AUDITOR" && !selectedAccounts[user.id] && !user.account_id)
+														(
+															(user.role === "AUDITOR" || user.role === "MANAGER") &&
+															!selectedAccounts[user.id] &&
+															!user.account_id
+														)
 													}
 												>
 													{submittingUserId === user.id ? "Approving..." : "Approve"}
