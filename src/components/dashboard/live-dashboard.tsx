@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import * as React from "react";
-import { ArrowRight, ArrowUpRight, FilePlus2, MailPlus, MapPinned, UserPlus } from "lucide-react";
+import { ArrowRight, ArrowUpRight, FilePlus2, MailPlus, MapPinned, ShieldPlus, UserPlus } from "lucide-react";
 
 import { useAuth } from "@/components/auth/auth-provider";
 import { ClearFiltersButton, SearchableMultiSelectFilter } from "@/components/dashboard/table-filters";
@@ -28,26 +28,38 @@ import {
 } from "@/lib/dashboard/live-api";
 import { getYouthWeightedScoreMaximum, totalRawScoreMaximum } from "@/lib/yee-score-limits";
 
-const quickLinks = [
-	{
-		title: "Create Project",
-		description: "Start a new study with timeline, scope, and ownership.",
-		href: "/dashboard/projects/new",
-		icon: FilePlus2
-	},
-	{
-		title: "Add Place",
-		description: "Create a new field location under one of your projects.",
-		href: "/dashboard/places/new",
-		icon: MapPinned
-	},
-	{
-		title: "Invite New Auditor",
-		description: "Send access to a new fieldworker and track assignment status.",
-		href: "/dashboard/auditors/invite",
-		icon: UserPlus
-	}
-];
+function getManagerQuickLinks(isPrimaryManager: boolean) {
+	return [
+		{
+			title: "Create Project",
+			description: "Start a new study with timeline, scope, and ownership.",
+			href: "/dashboard/projects/new",
+			icon: FilePlus2
+		},
+		{
+			title: "Add Place",
+			description: "Create a new field location under one of your projects.",
+			href: "/dashboard/places/new",
+			icon: MapPinned
+		},
+		{
+			title: "Invite New Auditor",
+			description: "Send access to a new fieldworker and track assignment status.",
+			href: "/dashboard/auditors/invite",
+			icon: UserPlus
+		},
+		...(isPrimaryManager
+			? [
+					{
+						title: "Invite New Manager",
+						description: "Add another manager into this same organization account.",
+						href: "/dashboard/managers/invite",
+						icon: ShieldPlus
+					}
+				]
+			: [])
+	];
+}
 
 function metricHref(title: string) {
 	const normalized = title.toLowerCase();
@@ -276,6 +288,7 @@ function averageDomainWeights(rows: RawDataRecord[]) {
 }
 
 export function LiveManagerOverview() {
+	const { session } = useAuth();
 	const { data, loading, error } = useDashboardData(fetchDashboardOverview);
 	const rawData = useTableData(fetchRawData);
 
@@ -304,8 +317,10 @@ export function LiveManagerOverview() {
 	const activePlaces = getMetricValue(data.metrics, "place");
 	const auditsLogged = getMetricValue(data.metrics, "audit");
 	const completedAudits = submittedRows.length;
+	const isPrimaryManager = session?.user.is_primary_manager === true;
 	const activeAuditCount = Number.parseInt(auditsLogged, 10);
 	const auditsInProgress = Number.isNaN(activeAuditCount) ? 0 : Math.max(activeAuditCount - completedAudits, 0);
+	const quickLinks = getManagerQuickLinks(isPrimaryManager);
 	const managerSnapshotItems = [
 		{
 			label: "Total Places",
@@ -469,7 +484,7 @@ export function LiveManagerOverview() {
 				<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
 					<CardHeader>
 						<CardTitle>Manager actions</CardTitle>
-						<CardDescription>Core setup actions for projects, places, and auditor assignment.</CardDescription>
+						<CardDescription>Core setup actions for projects, places, auditors, and manager access.</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-3">
 						{quickLinks.map(link => {
@@ -967,12 +982,22 @@ export function LiveAuditorsTable() {
 							: "Auditors currently in this manager's scope, with contact info and place assignments."}
 					</CardDescription>
 				</div>
-				<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
-					<Link href="/dashboard/auditors/invite">
-						<MailPlus className="size-4" />
-						Invite New Auditor
-					</Link>
-				</Button>
+				<div className="flex flex-wrap gap-3">
+					<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
+						<Link href="/dashboard/auditors/invite">
+							<MailPlus className="size-4" />
+							Invite New Auditor
+						</Link>
+					</Button>
+					{!isAdmin && session?.user.is_primary_manager ? (
+						<Button asChild variant="outline" className="rounded-2xl">
+							<Link href="/dashboard/managers/invite">
+								<ShieldPlus className="size-4" />
+								Invite New Manager
+							</Link>
+						</Button>
+					) : null}
+				</div>
 			</CardHeader>
 			<CardContent className="overflow-x-auto">
 				<table className="min-w-full text-left text-sm">

@@ -12,7 +12,7 @@ export async function proxyDashboardRequest({
 }: {
 	targetPath: string;
 	authorization?: string | null;
-	method?: "GET" | "POST" | "PATCH";
+	method?: "GET" | "POST" | "PATCH" | "DELETE";
 	body?: unknown;
 }) {
 	const targetUrl = `${getApiBaseUrl()}${targetPath}`;

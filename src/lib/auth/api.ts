@@ -39,6 +39,14 @@ type InvitePreview = {
 	accepted: boolean;
 };
 
+type ManagerInvitePreview = {
+	email: string;
+	organization: string | null;
+	invited_by_name: string | null;
+	expires_at: string;
+	accepted: boolean;
+};
+
 async function apiRequest<T>(input: string, init?: RequestInit): Promise<T> {
 	const response = await fetch(input, {
 		...init,
@@ -139,11 +147,32 @@ export async function getInvitePreview(token: string): Promise<InvitePreview> {
 	});
 }
 
+export async function getManagerInvitePreview(token: string): Promise<ManagerInvitePreview> {
+	return apiRequest<ManagerInvitePreview>(`/api/auth/manager-invites/${encodeURIComponent(token)}`, {
+		cache: "no-store"
+	});
+}
+
 export async function acceptInvite(
 	token: string,
 	payload: { name: string; password: string }
 ): Promise<FrontendSession> {
 	const data = await apiRequest<LoginResponse>(`/api/auth/invite/${encodeURIComponent(token)}/accept`, {
+		method: "POST",
+		body: JSON.stringify(payload)
+	});
+
+	return {
+		accessToken: data.access_token,
+		user: data.user
+	};
+}
+
+export async function acceptManagerInvite(
+	token: string,
+	payload: { name: string; password: string; position?: string }
+): Promise<FrontendSession> {
+	const data = await apiRequest<LoginResponse>(`/api/auth/manager-invites/${encodeURIComponent(token)}/accept`, {
 		method: "POST",
 		body: JSON.stringify(payload)
 	});

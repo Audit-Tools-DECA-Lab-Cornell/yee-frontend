@@ -171,6 +171,16 @@ export type AuditorInviteRecord = {
 	invite_url: string;
 };
 
+export type ManagerInviteRecord = {
+	id: string;
+	email: string;
+	status: string;
+	expires_at: string;
+	invite_url?: string | null;
+	created_at?: string | null;
+	accepted_at?: string | null;
+};
+
 export type AssignmentRecord = {
 	created_count: number;
 	existing_count: number;
@@ -320,7 +330,7 @@ export type RawDataRecord = {
 async function authedFetch<T>(
 	path: string,
 	session: FrontendSession,
-	init?: { method?: "GET" | "POST" | "PATCH"; body?: unknown }
+	init?: { method?: "GET" | "POST" | "PATCH" | "DELETE"; body?: unknown }
 ): Promise<T> {
 	const response = await fetch(path, {
 		method: init?.method ?? "GET",
@@ -496,6 +506,29 @@ export function createAuditorInvite(session: FrontendSession, payload: { email: 
 	return authedFetch<AuditorInviteRecord>("/api/dashboard/auditor-invites", session, {
 		method: "POST",
 		body: payload
+	});
+}
+
+export function createManagerInvite(session: FrontendSession, payload: { email: string }) {
+	return authedFetch<ManagerInviteRecord>("/api/dashboard/manager-invites", session, {
+		method: "POST",
+		body: payload
+	});
+}
+
+export function fetchManagerInvites(session: FrontendSession) {
+	return authedFetch<ManagerInviteRecord[]>("/api/dashboard/manager-invites", session);
+}
+
+export function resendManagerInvite(session: FrontendSession, inviteId: string) {
+	return authedFetch<ManagerInviteRecord>(`/api/dashboard/manager-invites/${inviteId}/resend`, session, {
+		method: "POST"
+	});
+}
+
+export function revokeManagerInvite(session: FrontendSession, inviteId: string) {
+	return authedFetch<null>(`/api/dashboard/manager-invites/${inviteId}`, session, {
+		method: "DELETE"
 	});
 }
 

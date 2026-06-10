@@ -10,6 +10,7 @@ export type SessionUser = {
 	account_id: string | null;
 	organization: string | null;
 	account_type: UserRole;
+	is_primary_manager: boolean;
 	email_verified: boolean;
 	approved: boolean;
 	profile_completed: boolean;
