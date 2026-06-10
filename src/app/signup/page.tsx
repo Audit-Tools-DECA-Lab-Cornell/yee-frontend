@@ -19,7 +19,7 @@ export default function SignupPage() {
 	const [name, setName] = React.useState("");
 	const [email, setEmail] = React.useState("");
 	const [password, setPassword] = React.useState("");
-	const [accountType, setAccountType] = React.useState<"AUDITOR" | "MANAGER">("AUDITOR");
+	const [organization, setOrganization] = React.useState("");
 	const [submitting, setSubmitting] = React.useState(false);
 	const [error, setError] = React.useState<string | null>(null);
 
@@ -39,7 +39,8 @@ export default function SignupPage() {
 				name,
 				email,
 				password,
-				account_type: accountType
+				organization,
+				account_type: "MANAGER"
 			});
 			router.push(`/verify-email?email=${encodeURIComponent(email)}`);
 		} catch (err) {
@@ -57,9 +58,9 @@ export default function SignupPage() {
 			<div className="space-y-6">
 				<div>
 					<Badge className="rounded-full bg-sky-50 px-3 py-1 text-sky-700 hover:bg-sky-50">Shared frontend repo</Badge>
-					<h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950">Sign up</h2>
+					<h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950">Create an organization account</h2>
 					<p className="mt-2 text-sm leading-6 text-slate-600">
-						This is now connected to backend signup for YEE accounts.
+						This signup is for the primary manager who is creating a new organization account. Auditors and additional managers should join through manager-issued invites.
 					</p>
 				</div>
 
@@ -79,20 +80,19 @@ export default function SignupPage() {
 							required
 						/>
 					</div>
-					<div className="space-y-2">
+					<div className="space-y-2 sm:col-span-2">
+						<Label htmlFor="organization">Organization / Institution</Label>
+						<Input
+							id="organization"
+							placeholder="Youth Enabling Environments Collaborative"
+							value={organization}
+							onChange={event => setOrganization(event.target.value)}
+							required
+						/>
+					</div>
+					<div className="space-y-2 sm:col-span-2">
 						<Label htmlFor="password">Password</Label>
 						<PasswordField id="password" placeholder="Create a password" value={password} onChange={setPassword} required />
-					</div>
-					<div className="space-y-2">
-						<Label htmlFor="role">Account type</Label>
-						<select
-							id="role"
-							value={accountType}
-							onChange={event => setAccountType(event.target.value as "AUDITOR" | "MANAGER")}
-							className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none">
-							<option value="AUDITOR">Auditor</option>
-							<option value="MANAGER">Manager</option>
-						</select>
 					</div>
 					{error ? <p className="sm:col-span-2 text-sm text-rose-600">{error}</p> : null}
 					<div className="sm:col-span-2">

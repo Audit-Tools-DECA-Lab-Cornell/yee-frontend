@@ -9,7 +9,13 @@ import { clearSession, loadSession, saveSession } from "@/lib/auth/session";
 type AuthContextValue = {
 	session: FrontendSession | null;
 	login: (payload: { email: string; password: string }) => Promise<FrontendSession>;
-	signup: (payload: { name: string; email: string; password: string; account_type: "MANAGER" | "AUDITOR" }) => Promise<void>;
+	signup: (payload: {
+		name: string;
+		email: string;
+		password: string;
+		organization: string;
+		account_type: "MANAGER";
+	}) => Promise<void>;
 	refreshSession: () => Promise<FrontendSession | null>;
 	completeProfile: (name: string) => Promise<FrontendSession>;
 	adoptSession: (session: FrontendSession) => void;

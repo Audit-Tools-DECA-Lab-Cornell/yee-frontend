@@ -949,17 +949,23 @@ export function AdminPlacesTable() {
 }
 
 export function LiveAuditorsTable() {
+	const { session } = useAuth();
 	const { data, loading, error } = useTableData(fetchAuditors);
 	if (loading) return <LoadingCard label="auditors" />;
 	if (error) return <ErrorCard message={error} />;
 	if (!data?.length) return <EmptyState title="No auditors yet" description="Invite or create auditor profiles in the backend to populate this table." />;
+	const isAdmin = session?.user.account_type === "ADMIN";
 
 	return (
 		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
 			<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 				<div>
 					<CardTitle className="text-2xl">Auditors</CardTitle>
-					<CardDescription className="mt-2 max-w-2xl leading-6">Auditors currently in this manager&apos;s scope, with contact info and place assignments.</CardDescription>
+					<CardDescription className="mt-2 max-w-2xl leading-6">
+						{isAdmin
+							? "Platform-wide auditor records, shown using auditor IDs only to protect personal details."
+							: "Auditors currently in this manager's scope, with contact info and place assignments."}
+					</CardDescription>
 				</div>
 				<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
 					<Link href="/dashboard/auditors/invite">
@@ -974,7 +980,7 @@ export function LiveAuditorsTable() {
 						<tr className="border-b border-slate-200">
 							<th className="py-3 pr-4 font-medium">Name</th>
 							<th className="py-3 pr-4 font-medium">Auditor ID</th>
-							<th className="py-3 pr-4 font-medium">Email / Contact Info</th>
+							<th className="py-3 pr-4 font-medium">{isAdmin ? "Contact Info" : "Email / Contact Info"}</th>
 							<th className="py-3 pr-4 font-medium">Assigned Places</th>
 							<th className="py-3 pr-4 font-medium">Completed Audits</th>
 							<th className="py-3 font-medium">Status</th>
@@ -985,7 +991,7 @@ export function LiveAuditorsTable() {
 							<tr key={auditor.id} className="border-b border-slate-100 last:border-0">
 								<td className="py-4 pr-4 font-medium text-slate-900">{auditor.name}</td>
 								<td className="py-4 pr-4 text-slate-600">{auditor.auditor_id}</td>
-								<td className="py-4 pr-4 text-slate-600">{auditor.email || "-"}</td>
+								<td className="py-4 pr-4 text-slate-600">{auditor.email || (isAdmin ? "Hidden from admin" : "-")}</td>
 								<td className="py-4 pr-4 text-slate-600">
 									{auditor.assigned_places.length > 0 ? auditor.assigned_places.join(", ") : "No places assigned"}
 								</td>
@@ -1546,7 +1552,7 @@ export function LiveUsersTable({ embedded = false }: { embedded?: boolean }) {
 										</Badge>
 										{!user.approved ? (
 											<div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-												{user.role === "AUDITOR" || user.role === "MANAGER" ? (
+												{user.role === "AUDITOR" ? (
 													<select
 														value={selectedAccounts[user.id] ?? ""}
 														onChange={event =>
@@ -1571,11 +1577,7 @@ export function LiveUsersTable({ embedded = false }: { embedded?: boolean }) {
 													onClick={() => void handleApprove(user)}
 													disabled={
 														submittingUserId === user.id ||
-														(
-															(user.role === "AUDITOR" || user.role === "MANAGER") &&
-															!selectedAccounts[user.id] &&
-															!user.account_id
-														)
+														(user.role === "AUDITOR" && !selectedAccounts[user.id] && !user.account_id)
 													}
 												>
 													{submittingUserId === user.id ? "Approving..." : "Approve"}

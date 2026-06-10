@@ -1,6 +1,6 @@
 "use client";
 
-import type { FrontendSession, SessionUser, UserRole } from "@/lib/auth/session";
+import type { FrontendSession, SessionUser } from "@/lib/auth/session";
 
 type LoginPayload = {
 	email: string;
@@ -11,7 +11,8 @@ type SignupPayload = {
 	name: string;
 	email: string;
 	password: string;
-	account_type: Exclude<UserRole, "ADMIN">;
+	organization: string;
+	account_type: "MANAGER";
 };
 
 type LoginResponse = {
