@@ -8,12 +8,14 @@ export async function proxyDashboardRequest({
 	targetPath,
 	authorization,
 	method = "GET",
-	body
+	body,
+	headers
 }: {
 	targetPath: string;
 	authorization?: string | null;
 	method?: "GET" | "POST" | "PATCH" | "DELETE";
 	body?: unknown;
+	headers?: HeadersInit;
 }) {
 	const targetUrl = `${getApiBaseUrl()}${targetPath}`;
 
@@ -22,7 +24,8 @@ export async function proxyDashboardRequest({
 			method,
 			headers: {
 				"Content-Type": "application/json",
-				...(authorization ? { Authorization: authorization } : {})
+				...(authorization ? { Authorization: authorization } : {}),
+				...(headers || {})
 			},
 			...(body === undefined ? {} : { body: JSON.stringify(body) }),
 			cache: "no-store"

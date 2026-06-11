@@ -5,9 +5,13 @@ export async function POST(
 	{ params }: { params: Promise<{ inviteId: string }> }
 ) {
 	const { inviteId } = await params;
+	const frontendOrigin = new URL(request.url).origin;
 	return proxyDashboardRequest({
 		targetPath: `/yee/dashboard/manager-invites/${encodeURIComponent(inviteId)}/resend`,
 		method: "POST",
-		authorization: request.headers.get("authorization")
+		authorization: request.headers.get("authorization"),
+		headers: {
+			"X-Frontend-Origin": frontendOrigin
+		}
 	});
 }

@@ -185,12 +185,15 @@ Copy `.env.example` to `.env` and point it at the backend:
 ```bash
 API_BASE_URL=http://127.0.0.1:8000
 NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=
 ```
 
 Notes:
 
 - `API_BASE_URL` is used by server-side proxy routes
 - `NEXT_PUBLIC_API_BASE_URL` is available to client-side helpers if needed
+- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` enables Google Places autocomplete and richer map previews in manager place forms
+- In production on Vercel, `API_BASE_URL` must point to the real deployed backend. If it is missing, the frontend proxy routes fall back to `http://127.0.0.1:8000`, which causes `Could not reach backend` errors.
 
 ## Local Setup
 

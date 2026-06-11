@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import * as React from "react";
 
@@ -646,9 +647,11 @@ export function PlaceProfileForm({
 							</div>
 						) : previewMapUrl && !mapImageFailed ? (
 							<div className="overflow-hidden rounded-[1.25rem] border border-slate-200 bg-white">
-								<img
+								<Image
 									src={previewMapUrl ?? ""}
 									alt="Location preview"
+									width={1200}
+									height={520}
 									className="h-56 w-full object-cover"
 									onError={() => {
 										if (mapImageSource === "google" && fallbackStaticMapUrl) {

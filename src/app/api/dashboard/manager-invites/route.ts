@@ -8,10 +8,14 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
+	const frontendOrigin = new URL(request.url).origin;
 	return proxyDashboardRequest({
 		targetPath: "/yee/dashboard/manager-invites",
 		method: "POST",
 		body: await request.json(),
-		authorization: request.headers.get("authorization")
+		authorization: request.headers.get("authorization"),
+		headers: {
+			"X-Frontend-Origin": frontendOrigin
+		}
 	});
 }

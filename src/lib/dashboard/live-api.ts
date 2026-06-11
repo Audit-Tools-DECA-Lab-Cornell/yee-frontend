@@ -542,6 +542,16 @@ export function createAssignment(
 	});
 }
 
+export function deleteAssignment(
+	session: FrontendSession,
+	payload: { project_id: string; auditor_id: string; place_id?: string }
+) {
+	return authedFetch<{ deleted_count: number }>("/api/dashboard/assignments", session, {
+		method: "DELETE",
+		body: payload
+	});
+}
+
 export function fetchMyPlaces(session: FrontendSession) {
 	return authedFetch<AssignedPlaceRecord[]>("/api/dashboard/my-places", session);
 }

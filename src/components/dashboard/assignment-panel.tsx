@@ -17,7 +17,23 @@ import {
 	type ProjectRecord
 } from "@/lib/dashboard/live-api";
 
-export function AssignmentPanel() {
+export function AssignmentPanel({
+	initialProjectId,
+	initialPlaceId,
+	compact = false,
+	hideProjectSelector = false,
+	title = "Assign Auditors to Places and Projects",
+	description = "Choose a project, then assign one or more auditors to one or more places. Selecting every place in a project covers the whole project.",
+	onAssigned
+}: {
+	initialProjectId?: string;
+	initialPlaceId?: string;
+	compact?: boolean;
+	hideProjectSelector?: boolean;
+	title?: string;
+	description?: string;
+	onAssigned?: () => void;
+}) {
 	const searchParams = useSearchParams();
 	const { session } = useAuth();
 	const [projects, setProjects] = React.useState<ProjectRecord[]>([]);
@@ -30,8 +46,8 @@ export function AssignmentPanel() {
 	const [saving, setSaving] = React.useState(false);
 	const [message, setMessage] = React.useState<string | null>(null);
 	const [error, setError] = React.useState<string | null>(null);
-	const requestedProjectId = searchParams.get("projectId") ?? "";
-	const requestedPlaceId = searchParams.get("placeId") ?? "";
+	const requestedProjectId = initialProjectId ?? searchParams.get("projectId") ?? "";
+	const requestedPlaceId = initialPlaceId ?? searchParams.get("placeId") ?? "";
 
 	React.useEffect(() => {
 		if (!session) return;
@@ -120,6 +136,7 @@ export function AssignmentPanel() {
 			setMessage(
 				`Saved ${result.created_count} new assignments${result.existing_count ? `, skipped ${result.existing_count} existing` : ""}.`
 			);
+			onAssigned?.();
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Could not save assignments.");
 		} finally {
@@ -130,36 +147,36 @@ export function AssignmentPanel() {
 	return (
 		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
 			<CardHeader>
-				<CardTitle>Assign Auditors to Places and Projects</CardTitle>
-				<CardDescription>
-					Choose a project, then assign one or more auditors to one or more places. Selecting every place in a project covers the whole project.
-				</CardDescription>
+				<CardTitle>{title}</CardTitle>
+				<CardDescription>{description}</CardDescription>
 			</CardHeader>
 			<CardContent>
 				{loading ? (
 					<p className="text-sm text-slate-500">Loading assignment options...</p>
 				) : (
 					<form className="space-y-6" onSubmit={handleAssign}>
-						<div className="space-y-2">
-							<Label htmlFor="assignment-project">Project</Label>
-							<select
-								id="assignment-project"
-								value={projectId}
-								onChange={event => {
-									setProjectId(event.target.value);
-									setSelectedPlaceIds([]);
-								}}
-								className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm shadow-xs outline-none"
-							>
-								{projects.map(project => (
-									<option key={project.id} value={project.id}>
-										{project.name}
-									</option>
-								))}
-							</select>
-						</div>
+						{hideProjectSelector ? null : (
+							<div className="space-y-2">
+								<Label htmlFor="assignment-project">Project</Label>
+								<select
+									id="assignment-project"
+									value={projectId}
+									onChange={event => {
+										setProjectId(event.target.value);
+										setSelectedPlaceIds([]);
+									}}
+									className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm shadow-xs outline-none"
+								>
+									{projects.map(project => (
+										<option key={project.id} value={project.id}>
+											{project.name}
+										</option>
+									))}
+								</select>
+							</div>
+						)}
 
-						<div className="grid gap-6 lg:grid-cols-2">
+						<div className={`grid gap-6 ${compact ? "" : "lg:grid-cols-2"}`}>
 							<div className="space-y-3">
 								<div className="flex items-center justify-between">
 									<Label>Auditors</Label>
@@ -236,7 +253,7 @@ export function AssignmentPanel() {
 							className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]"
 							disabled={saving || !projectId || selectedAuditorIds.length === 0 || selectedPlaceIds.length === 0}
 						>
-							{saving ? "Saving assignments..." : "Assign auditors"}
+							{saving ? "Saving assignments..." : "Save assignments"}
 						</Button>
 					</form>
 				)}

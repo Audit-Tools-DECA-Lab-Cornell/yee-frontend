@@ -968,8 +968,27 @@ export function LiveAuditorsTable() {
 	const { data, loading, error } = useTableData(fetchAuditors);
 	if (loading) return <LoadingCard label="auditors" />;
 	if (error) return <ErrorCard message={error} />;
-	if (!data?.length) return <EmptyState title="No auditors yet" description="Invite or create auditor profiles in the backend to populate this table." />;
 	const isAdmin = session?.user.account_type === "ADMIN";
+	if (!data?.length) {
+		return (
+			<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+				<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+					<div>
+						<CardTitle className="text-2xl">Auditors</CardTitle>
+						<CardDescription className="mt-2 max-w-2xl leading-6">
+							No auditors are visible in this scope yet. You can still invite an auditor now.
+						</CardDescription>
+					</div>
+					<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
+						<Link href="/dashboard/auditors/invite">
+							<MailPlus className="size-4" />
+							Invite New Auditor
+						</Link>
+					</Button>
+				</CardHeader>
+			</Card>
+		);
+	}
 
 	return (
 		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">

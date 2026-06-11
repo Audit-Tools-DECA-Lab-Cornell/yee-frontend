@@ -1,15 +1,18 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import * as React from "react";
 import { ArrowRight, ClipboardList, FileBarChart2, MapPin, Users2 } from "lucide-react";
 
+import { AssignmentPanel } from "@/components/dashboard/assignment-panel";
 import { useAuth } from "@/components/auth/auth-provider";
 import { PlaceComparisonPanel } from "@/components/reporting/place-comparison-panel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+	deleteAssignment,
 	fetchPlaceDetail,
 	fetchProjectDetail,
 	type AuditRecord,
@@ -100,6 +103,7 @@ function useProtectedLoader<T>(loader: (accessToken: NonNullable<ReturnType<type
 	const [data, setData] = React.useState<T | null>(null);
 	const [loading, setLoading] = React.useState(true);
 	const [error, setError] = React.useState<string | null>(null);
+	const [reloadKey, setReloadKey] = React.useState(0);
 
 	React.useEffect(() => {
 		if (!session) return;
@@ -128,9 +132,14 @@ function useProtectedLoader<T>(loader: (accessToken: NonNullable<ReturnType<type
 		return () => {
 			cancelled = true;
 		};
-	}, [loader, session]);
+	}, [loader, reloadKey, session]);
 
-	return { data, loading, error };
+	return {
+		data,
+		loading,
+		error,
+		reload: () => setReloadKey(current => current + 1)
+	};
 }
 
 function LatestAuditTable({ audits }: { audits: AuditRecord[] }) {
@@ -230,7 +239,15 @@ function ProjectPlacesTable({ rows }: { rows: ProjectPlaceRecord[] }) {
 	);
 }
 
-function ProjectAuditorsTable({ rows }: { rows: ProjectAuditorRecord[] }) {
+function ProjectAuditorsTable({
+	rows,
+	onRemove,
+	removingAuditorId
+}: {
+	rows: ProjectAuditorRecord[];
+	onRemove?: (auditor: ProjectAuditorRecord) => void;
+	removingAuditorId?: string | null;
+}) {
 	return (
 		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
 			<CardHeader>
@@ -248,7 +265,8 @@ function ProjectAuditorsTable({ rows }: { rows: ProjectAuditorRecord[] }) {
 								<th className="py-3 pr-4 font-medium">Generated ID</th>
 								<th className="py-3 pr-4 font-medium">Assigned Places</th>
 								<th className="py-3 pr-4 font-medium">Completed Audits</th>
-								<th className="py-3 font-medium">Status</th>
+								<th className="py-3 pr-4 font-medium">Status</th>
+								<th className="py-3 font-medium">Action</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -263,6 +281,19 @@ function ProjectAuditorsTable({ rows }: { rows: ProjectAuditorRecord[] }) {
 											{auditor.status}
 										</Badge>
 									</td>
+									<td className="py-4">
+										{onRemove ? (
+											<Button
+												type="button"
+												variant="outline"
+												className="rounded-2xl"
+												disabled={removingAuditorId === auditor.id}
+												onClick={() => onRemove(auditor)}
+											>
+												{removingAuditorId === auditor.id ? "Removing..." : "Remove from project"}
+											</Button>
+										) : null}
+									</td>
 								</tr>
 							))}
 						</tbody>
@@ -273,7 +304,15 @@ function ProjectAuditorsTable({ rows }: { rows: ProjectAuditorRecord[] }) {
 	);
 }
 
-function PlaceAuditorsTable({ rows }: { rows: PlaceAuditorRecord[] }) {
+function PlaceAuditorsTable({
+	rows,
+	onRemove,
+	removingAuditorId
+}: {
+	rows: PlaceAuditorRecord[];
+	onRemove?: (auditor: PlaceAuditorRecord) => void;
+	removingAuditorId?: string | null;
+}) {
 	return (
 		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
 			<CardHeader>
@@ -291,7 +330,8 @@ function PlaceAuditorsTable({ rows }: { rows: PlaceAuditorRecord[] }) {
 								<th className="py-3 pr-4 font-medium">Generated ID</th>
 								<th className="py-3 pr-4 font-medium">Status</th>
 								<th className="py-3 pr-4 font-medium">Submitted audits</th>
-								<th className="py-3 font-medium">Last audit</th>
+								<th className="py-3 pr-4 font-medium">Last audit</th>
+								<th className="py-3 font-medium">Action</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -305,7 +345,20 @@ function PlaceAuditorsTable({ rows }: { rows: PlaceAuditorRecord[] }) {
 										</Badge>
 									</td>
 									<td className="py-4 pr-4 text-slate-600">{auditor.audit_count}</td>
-									<td className="py-4 text-slate-600">{auditor.last_audit}</td>
+									<td className="py-4 pr-4 text-slate-600">{auditor.last_audit}</td>
+									<td className="py-4">
+										{onRemove ? (
+											<Button
+												type="button"
+												variant="outline"
+												className="rounded-2xl"
+												disabled={removingAuditorId === auditor.id}
+												onClick={() => onRemove(auditor)}
+											>
+												{removingAuditorId === auditor.id ? "Removing..." : "Unassign"}
+											</Button>
+										) : null}
+									</td>
 								</tr>
 							))}
 						</tbody>
@@ -317,15 +370,33 @@ function PlaceAuditorsTable({ rows }: { rows: PlaceAuditorRecord[] }) {
 }
 
 export function LiveProjectDetail({ projectId }: { projectId: string }) {
+	const { session } = useAuth();
 	const loader = React.useCallback(
 		(session: NonNullable<ReturnType<typeof useAuth>["session"]>) => fetchProjectDetail(session, projectId),
 		[projectId]
 	);
-	const { data, loading, error } = useProtectedLoader<ProjectDetailRecord>(loader);
+	const { data, loading, error, reload } = useProtectedLoader<ProjectDetailRecord>(loader);
+	const [removingAuditorId, setRemovingAuditorId] = React.useState<string | null>(null);
 
 	if (loading) return <LoadingState label="project profile" />;
 	if (error) return <ErrorState message={error} />;
 	if (!data) return <ErrorState message="Project data could not be loaded." />;
+	const projectIdValue = data.id;
+
+	async function handleRemoveAuditor(auditor: ProjectAuditorRecord) {
+		if (!session) return;
+		if (!window.confirm(`Remove ${auditor.name} from all assignments in this project?`)) return;
+		try {
+			setRemovingAuditorId(auditor.id);
+			await deleteAssignment(session, {
+				project_id: projectIdValue,
+				auditor_id: auditor.id
+			});
+			reload();
+		} finally {
+			setRemovingAuditorId(null);
+		}
+	}
 
 	return (
 		<div className="space-y-6">
@@ -347,7 +418,7 @@ export function LiveProjectDetail({ projectId }: { projectId: string }) {
 								<Link href={`/dashboard/places/new?projectId=${data.id}`}>Add Places</Link>
 							</Button>
 							<Button asChild variant="outline" className="rounded-2xl border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
-								<Link href={`/dashboard/auditors?projectId=${data.id}`}>Add Auditors</Link>
+								<Link href={`/dashboard/auditors?projectId=${data.id}`}>Manage Auditor Assignments</Link>
 							</Button>
 							<Button asChild variant="outline" className="rounded-2xl border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
 								<Link href={`/dashboard/projects/${data.id}/edit`}>Edit Project</Link>
@@ -443,19 +514,28 @@ export function LiveProjectDetail({ projectId }: { projectId: string }) {
 				</Card>
 			</div>
 
-			<ProjectAuditorsTable rows={data.auditors} />
+			<ProjectAuditorsTable rows={data.auditors} onRemove={handleRemoveAuditor} removingAuditorId={removingAuditorId} />
+			<AssignmentPanel
+				initialProjectId={data.id}
+				hideProjectSelector
+				title="Manage auditor assignments for this project"
+				description="Choose one or more auditors and connect them to the places inside this project without leaving the project page."
+				onAssigned={reload}
+			/>
 			<LatestAuditTable audits={data.latest_audits} />
 		</div>
 	);
 }
 
 export function LivePlaceDetail({ placeId }: { placeId: string }) {
+	const { session } = useAuth();
 	const loader = React.useCallback(
 		(session: NonNullable<ReturnType<typeof useAuth>["session"]>) => fetchPlaceDetail(session, placeId),
 		[placeId]
 	);
-	const { data, loading, error } = useProtectedLoader<PlaceDetailRecord>(loader);
+	const { data, loading, error, reload } = useProtectedLoader<PlaceDetailRecord>(loader);
 	const [mapImageFailed, setMapImageFailed] = React.useState(false);
+	const [removingAuditorId, setRemovingAuditorId] = React.useState<string | null>(null);
 	const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 	React.useEffect(() => {
@@ -474,6 +554,24 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 	if (loading) return <LoadingState label="place profile" />;
 	if (error) return <ErrorState message={error} />;
 	if (!data) return <ErrorState message="Place data could not be loaded." />;
+	const projectIdValue = data.project_id;
+	const placeIdValue = data.id;
+
+	async function handleRemoveAuditor(auditor: PlaceAuditorRecord) {
+		if (!session) return;
+		if (!window.confirm(`Unassign ${auditor.name} from this place?`)) return;
+		try {
+			setRemovingAuditorId(auditor.id);
+			await deleteAssignment(session, {
+				project_id: projectIdValue,
+				auditor_id: auditor.id,
+				place_id: placeIdValue
+			});
+			reload();
+		} finally {
+			setRemovingAuditorId(null);
+		}
+	}
 	const mapQuery =
 		data.lat !== null && data.lat !== undefined && data.lng !== null && data.lng !== undefined
 			? `${data.lat},${data.lng}`
@@ -514,7 +612,7 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 								<Link href={`/dashboard/places/${data.id}/edit`}>Edit place</Link>
 							</Button>
 							<Button asChild variant="outline" className="rounded-2xl border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
-								<Link href={`/dashboard/auditors?projectId=${data.project_id}&placeId=${data.id}`}>Assign Auditors</Link>
+								<Link href={`/dashboard/auditors?projectId=${data.project_id}&placeId=${data.id}`}>Manage Auditor Assignments</Link>
 							</Button>
 							<Button asChild variant="outline" className="rounded-2xl border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
 								<Link href={`/dashboard/audits?projectId=${data.project_id}&placeId=${data.id}`}>View Audits</Link>
@@ -606,9 +704,11 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 						<div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
 							{staticMapUrl && !mapImageFailed ? (
 								<div className="overflow-hidden rounded-[1.25rem] border border-slate-200 bg-white">
-									<img
+									<Image
 										src={staticMapUrl}
 										alt="Google Maps location preview"
+										width={1200}
+										height={520}
 										className="h-64 w-full object-cover"
 										onError={() => setMapImageFailed(true)}
 									/>
@@ -638,7 +738,16 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 				</Card>
 			) : null}
 
-			<PlaceAuditorsTable rows={data.auditors} />
+			<PlaceAuditorsTable rows={data.auditors} onRemove={handleRemoveAuditor} removingAuditorId={removingAuditorId} />
+			<AssignmentPanel
+				initialProjectId={data.project_id}
+				initialPlaceId={data.id}
+				hideProjectSelector
+				compact
+				title="Manage auditor assignments for this place"
+				description="Select auditors and attach them to this place immediately. The table above will refresh after the assignment is saved."
+				onAssigned={reload}
+			/>
 
 			{data.comparisons.audits.length === 0 ? (
 				<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
