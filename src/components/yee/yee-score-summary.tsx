@@ -112,7 +112,7 @@ export function YeeScoreSummary({
 				<CardDescription>{description}</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-6">
-				<div className="overflow-x-auto">
+				<div className="overflow-x-auto report-no-break">
 					<table className="min-w-full text-sm">
 						<thead className="text-slate-500">
 							<tr className="border-b border-slate-200">
@@ -150,8 +150,8 @@ export function YeeScoreSummary({
 						</tbody>
 					</table>
 				</div>
-				<div className="grid gap-4 md:grid-cols-2">
-					<div className="rounded-2xl bg-slate-50 p-4">
+				<div className="grid gap-4 md:grid-cols-2 report-no-break">
+					<div className="rounded-2xl bg-slate-50 p-4 report-no-break">
 						<p className="text-sm text-slate-500">Total Enabling Environment Raw Score</p>
 						<p className="mt-2 text-2xl font-semibold text-slate-950">
 							{preview.totalRawScore} / {totalRawScoreMaximum} <span className="text-lg text-slate-600">({totalRawPercentage.toFixed(0)}%)</span>
@@ -160,7 +160,7 @@ export function YeeScoreSummary({
 							This percentage shows how much of the available raw score was achieved across the full audit.
 						</p>
 					</div>
-					<div className="rounded-2xl bg-emerald-100/80 p-4">
+					<div className="rounded-2xl bg-emerald-100/80 p-4 report-no-break">
 						<p className="text-sm text-emerald-700">Total Enabling Environment Youth Weighted Average</p>
 						<p className="mt-2 text-2xl font-semibold text-emerald-900">
 							{preview.totalWeightedScore} / {youthWeightedMax} <span className="text-lg text-emerald-700">({totalYouthPercentage.toFixed(0)}%)</span>
@@ -170,7 +170,7 @@ export function YeeScoreSummary({
 						</p>
 					</div>
 				</div>
-				<div className="rounded-2xl border border-slate-200 bg-[#f8fbf9] p-4 text-sm text-slate-600">
+				<div className="rounded-2xl border border-slate-200 bg-[#f8fbf9] p-4 text-sm text-slate-600 report-no-break">
 					<p className="font-medium text-slate-900">How to read these graphs</p>
 					<p className="mt-2">
 						Each bar represents 100% of the available score for that section. The colored fill shows how much of that available score was reached. Raw and Youth Weighted percentages are shown separately because they answer slightly different questions about the same audit.
@@ -181,7 +181,7 @@ export function YeeScoreSummary({
 							{ label: "Middle range", tone: "bg-amber-400", text: "34% to 66% of the available score" },
 							{ label: "Upper range", tone: "bg-emerald-500", text: "67% to 100% of the available score" }
 						].map(entry => (
-							<div key={entry.label} className="rounded-2xl border border-slate-200 bg-white p-3">
+							<div key={entry.label} className="rounded-2xl border border-slate-200 bg-white p-3 report-no-break">
 								<div className="flex items-center gap-2">
 									<span className={`h-3 w-3 rounded-full ${entry.tone}`} />
 									<p className="text-sm font-medium text-slate-900">{entry.label}</p>
@@ -192,7 +192,7 @@ export function YeeScoreSummary({
 					</div>
 				</div>
 				<div className="space-y-6">
-					<div className={`space-y-4 rounded-2xl border p-4 ${rawPalette.panel}`}>
+					<div className={`space-y-4 rounded-2xl border p-4 report-no-break ${rawPalette.panel}`}>
 						<p className="text-sm font-medium text-slate-900">Raw score by section</p>
 						<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
 							{rows.map(row => {
@@ -202,7 +202,7 @@ export function YeeScoreSummary({
 								return (
 									<div
 										key={`${row.domain}-raw`}
-										className={`rounded-[1.25rem] border-[3px] px-3 py-4 ${palette.border}`}
+										className={`rounded-[1.25rem] border-[3px] px-3 py-4 report-no-break ${palette.border}`}
 										style={{ backgroundColor: yeeDomainThemes[row.domain].lightHex }}
 									>
 										<div className="space-y-1">
@@ -222,7 +222,7 @@ export function YeeScoreSummary({
 							})}
 						</div>
 					</div>
-					<div className={`space-y-4 rounded-2xl border p-4 ${youthPalette.panel}`}>
+					<div className={`space-y-4 rounded-2xl border p-4 report-no-break ${youthPalette.panel}`}>
 						<p className="text-sm font-medium text-emerald-900">Youth-Weighted average by section</p>
 						<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
 							{rows.map(row => {
@@ -232,7 +232,7 @@ export function YeeScoreSummary({
 								return (
 									<div
 										key={`${row.domain}-weighted`}
-										className={`rounded-[1.25rem] border-[3px] px-3 py-4 ${palette.border}`}
+										className={`rounded-[1.25rem] border-[3px] px-3 py-4 report-no-break ${palette.border}`}
 										style={{ backgroundColor: yeeDomainThemes[row.domain].lightHex }}
 									>
 										<div className="space-y-1">
@@ -252,8 +252,8 @@ export function YeeScoreSummary({
 							})}
 						</div>
 					</div>
-					<div className="grid gap-4 md:grid-cols-2">
-						<div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+					<div className="grid gap-4 md:grid-cols-2 report-no-break">
+						<div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 report-no-break">
 							<p className="text-sm font-medium text-slate-900">Highest and lowest raw score sections</p>
 							<p className="mt-2 text-sm text-slate-600">
 								Highest: <span className="font-medium text-slate-900">{rawExtremes.highest.row.label}</span> ({rawExtremes.highest.percentage.toFixed(0)}%)
@@ -262,7 +262,7 @@ export function YeeScoreSummary({
 								Lowest: <span className="font-medium text-slate-900">{rawExtremes.lowest.row.label}</span> ({rawExtremes.lowest.percentage.toFixed(0)}%)
 							</p>
 						</div>
-						<div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4">
+						<div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 report-no-break">
 							<p className="text-sm font-medium text-emerald-900">Highest and lowest Youth-Weighted sections</p>
 							<p className="mt-2 text-sm text-emerald-800">
 								Highest: <span className="font-medium text-emerald-950">{weightedExtremes.highest.row.label}</span> ({weightedExtremes.highest.percentage.toFixed(0)}%)
