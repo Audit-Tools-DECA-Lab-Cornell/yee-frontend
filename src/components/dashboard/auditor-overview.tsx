@@ -33,8 +33,8 @@ function normalizeWeights(raw: unknown) {
 }
 
 export function AuditorOverview() {
-	const { places, auditStates, submittedCount, draftCount, firstDraftPlaceId, loading, error } = useAuditorAuditData();
-	const continueAuditHref = firstDraftPlaceId ? `/yee/audit/${firstDraftPlaceId}/page/1` : "/my-dashboard/places";
+	const { places, auditStates, submittedCount, draftCount, loading, error } = useAuditorAuditData();
+	const continueAuditHref = "/my-dashboard/places";
 
 	if (loading) {
 		return <main className="mx-auto max-w-5xl p-6 text-sm text-slate-500">Loading auditor dashboard...</main>;
