@@ -131,12 +131,45 @@ function isPlaceholderQuestionText(value: string) {
 function getDisplayQuestionText(item: EditableItem) {
 	const questionText = cleanInstrumentText(item.question_text || "");
 	if (!questionText || isPlaceholderQuestionText(questionText)) {
+		const choicePrompts = Object.entries(item.choices ?? {})
+			.map(([choiceId, choice]) => cleanInstrumentText(choice.Display || choiceId))
+			.filter(Boolean);
+		if (choicePrompts.length > 0) {
+			return choicePrompts.join("\n");
+		}
 		if (item.answers && Object.keys(item.answers).length > 0) {
 			return "Please answer the following questions.";
 		}
 		return item.item_id;
 	}
 	return questionText;
+}
+
+function getEditablePromptEntries(item: EditableItem) {
+	const questionText = cleanInstrumentText(item.question_text || "");
+	const choiceEntries = Object.entries(item.choices ?? {})
+		.map(([choiceId, choice]) => ({
+			entryKey: `choice-${choiceId}`,
+			choiceId,
+			label: `${item.item_id} · Prompt ${choiceId}`,
+			value: cleanInstrumentText(choice.Display || choiceId),
+			isChoice: true as const
+		}))
+		.filter(entry => entry.value);
+
+	if ((!questionText || isPlaceholderQuestionText(questionText)) && choiceEntries.length > 0) {
+		return choiceEntries;
+	}
+
+	return [
+		{
+			entryKey: "question-text",
+			choiceId: null,
+			label: item.item_id,
+			value: questionText,
+			isChoice: false as const
+		}
+	];
 }
 
 function isThrowawayVersion(version: InstrumentVersionRecord) {
@@ -737,24 +770,42 @@ export function InstrumentAdminPanel() {
 												const itemIndex = (parsedEditorInstrument.scoring_items ?? []).findIndex(
 													candidate => candidate.item_id === item.item_id
 												);
+												const editableEntries = getEditablePromptEntries(item);
 												return (
 													<div key={item.item_id} className="space-y-2 rounded-xl border border-slate-200 bg-white p-3">
 														<p className="text-xs font-medium uppercase tracking-wide text-slate-500">{item.item_id}</p>
-														<Textarea
-															value={cleanInstrumentText(item.question_text)}
-															onChange={event =>
-																updateEditor(draft => {
-																	const scoringItems = [...(draft.scoring_items ?? [])];
-																	if (itemIndex < 0 || !scoringItems[itemIndex]) return;
-																	scoringItems[itemIndex] = {
-																		...scoringItems[itemIndex],
-																		question_text: event.target.value
-																	};
-																	draft.scoring_items = scoringItems;
-																})
-															}
-															className="min-h-[5rem]"
-														/>
+														{editableEntries.map(entry => (
+															<div key={entry.entryKey} className="space-y-2">
+																<Label>{entry.label}</Label>
+																<Textarea
+																	value={entry.value}
+																	onChange={event =>
+																		updateEditor(draft => {
+																			const scoringItems = [...(draft.scoring_items ?? [])];
+																			if (itemIndex < 0 || !scoringItems[itemIndex]) return;
+																			if (entry.isChoice && entry.choiceId) {
+																				const currentChoices = { ...(scoringItems[itemIndex].choices ?? {}) };
+																				currentChoices[entry.choiceId] = {
+																					...(currentChoices[entry.choiceId] ?? {}),
+																					Display: event.target.value
+																				};
+																				scoringItems[itemIndex] = {
+																					...scoringItems[itemIndex],
+																					choices: currentChoices
+																				};
+																			} else {
+																				scoringItems[itemIndex] = {
+																					...scoringItems[itemIndex],
+																					question_text: event.target.value
+																				};
+																			}
+																			draft.scoring_items = scoringItems;
+																		})
+																	}
+																	className="min-h-[5rem]"
+																/>
+															</div>
+														))}
 													</div>
 												);
 											})}
