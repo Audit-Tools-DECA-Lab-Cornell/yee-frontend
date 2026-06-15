@@ -10,6 +10,7 @@ import { YeeScoreSummary } from "@/components/yee/yee-score-summary";
 import { fetchInstrument, filterItemsForDomain, type InstrumentItem, type InstrumentResponse } from "@/lib/yee-instrument";
 import { fetchSubmission, type YeeSubmissionRecord } from "@/lib/yee-audit-api";
 import { yeeDomainLabels, type YeeDomainKey } from "@/lib/yee-audit-config";
+import { yeeDomainThemes } from "@/lib/yee-domain-theme";
 import { buildWeightedScorePreview } from "@/lib/yee-scoring";
 
 function normalizeText(value: string) {
@@ -244,20 +245,33 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 						</div>
 					</div>
 
-					<div className="rounded-2xl border border-emerald-200 bg-emerald-50/70 p-4">
+					<div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
 						<p className="text-sm font-medium text-emerald-950">Domain weighting used in this audit</p>
 						<p className="mt-2 text-sm leading-6 text-emerald-900/80">
 							Youth Weighted values are calculated by normalizing the participant&apos;s domain weights, computing the average score within each domain, and then applying the normalized weight to that domain average.
 						</p>
 						<div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-							{(Object.keys(yeeDomainLabels) as YeeDomainKey[]).map(domain => (
-								<div
-									key={domain}
-									className={`rounded-2xl border px-4 py-3 ${getWeightBubbleClasses(normalizedWeights[domain])}`}>
-									<p className="text-sm font-medium text-emerald-950">{yeeDomainLabels[domain]}</p>
-									<p className="mt-1 text-xs text-emerald-800">{formatWeightLabel(normalizedWeights[domain])}</p>
-								</div>
-							))}
+							{(Object.keys(yeeDomainLabels) as YeeDomainKey[]).map(domain => {
+								const theme = yeeDomainThemes[domain];
+								return (
+									<div
+										key={domain}
+										className={`rounded-2xl border px-4 py-3 ${getWeightBubbleClasses(normalizedWeights[domain])}`}
+										style={{
+											borderColor: theme.strongFillHex,
+											backgroundColor: theme.lightHex,
+											color: theme.strongHex
+										}}
+									>
+										<p className="text-sm font-medium" style={{ color: theme.strongHex }}>
+											{yeeDomainLabels[domain]}
+										</p>
+										<p className="mt-1 text-xs" style={{ color: theme.strongHex }}>
+											{formatWeightLabel(normalizedWeights[domain])}
+										</p>
+									</div>
+								);
+							})}
 						</div>
 					</div>
 

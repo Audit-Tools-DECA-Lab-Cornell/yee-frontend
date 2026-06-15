@@ -20,7 +20,7 @@ const youthPalette = {
 	fill: "bg-emerald-600",
 	track: "bg-emerald-100",
 	text: "text-emerald-800",
-	panel: "border-emerald-300 bg-[#fbfefd]"
+	panel: "border-emerald-300 bg-emerald-50"
 };
 
 const domainPalette: Record<YeeDomainKey, { fill: string; border: string; text: string }> = {
@@ -196,7 +196,11 @@ export function YeeScoreSummary({
 								const rawPercentage = rawMax ? (row.rawScore / rawMax) * 100 : 0;
 								const palette = domainPalette[row.domain];
 								return (
-									<div key={`${row.domain}-raw`} className={`rounded-[1.25rem] border-[3px] bg-white px-3 py-4 ${palette.border}`}>
+									<div
+										key={`${row.domain}-raw`}
+										className={`rounded-[1.25rem] border-[3px] px-3 py-4 ${palette.border}`}
+										style={{ backgroundColor: yeeDomainThemes[row.domain].lightHex }}
+									>
 										<div className="space-y-1">
 											<p className={`text-sm font-semibold ${palette.text}`}>{row.label}</p>
 											<p className={`text-xs ${rawPalette.text}`}>Raw Score</p>
@@ -222,7 +226,11 @@ export function YeeScoreSummary({
 								const weightedPercentage = weightedMax ? (row.weightedScore / weightedMax) * 100 : 0;
 								const palette = domainPalette[row.domain];
 								return (
-									<div key={`${row.domain}-weighted`} className={`rounded-[1.25rem] border-[3px] bg-white px-3 py-4 ${palette.border}`}>
+									<div
+										key={`${row.domain}-weighted`}
+										className={`rounded-[1.25rem] border-[3px] px-3 py-4 ${palette.border}`}
+										style={{ backgroundColor: yeeDomainThemes[row.domain].lightHex }}
+									>
 										<div className="space-y-1">
 											<p className={`text-sm font-semibold ${palette.text}`}>{row.label}</p>
 											<p className={`mt-1 text-xs ${youthPalette.text}`}>Youth Weighted Average</p>

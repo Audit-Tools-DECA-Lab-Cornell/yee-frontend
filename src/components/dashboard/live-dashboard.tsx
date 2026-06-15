@@ -75,6 +75,7 @@ function adminMetricHref(title: string) {
 	if (normalized.includes("user")) return "/admin/users";
 	if (normalized.includes("project")) return "/admin/projects";
 	if (normalized.includes("place")) return "/admin/places";
+	if (normalized.includes("auditor")) return "/admin/users";
 	if (normalized.includes("audit")) return "/admin/audits";
 	return "/admin";
 }

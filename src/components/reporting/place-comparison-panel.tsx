@@ -140,7 +140,9 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 			<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
 				<CardHeader>
 					<CardTitle>Domain comparison</CardTitle>
-						<CardDescription>Raw Score and Youth Weighted averages by domain across audits plus averages.</CardDescription>
+					<CardDescription>
+						Raw Score and Youth Weighted values for each selected audit, plus the average across the selected audits for each domain.
+					</CardDescription>
 				</CardHeader>
 				<CardContent className="overflow-x-auto">
 					<table className="min-w-full text-left text-sm">
@@ -152,8 +154,8 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 										{record.auditor_id}
 									</th>
 								))}
-								<th className="py-3 pr-4 font-medium">Average Raw Score</th>
-								<th className="py-3 font-medium">Average Youth Weighted Average</th>
+								<th className="py-3 pr-4 font-medium">Average Raw Score Across Selected Audits</th>
+								<th className="py-3 font-medium">Average Youth Weighted Average Across Selected Audits</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -193,7 +195,7 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 					<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
 						<CardHeader>
 							<CardTitle>Total score averages</CardTitle>
-							<CardDescription>Average total scores across selected audits for this place.</CardDescription>
+							<CardDescription>These totals are averaged across the selected audits for this place.</CardDescription>
 						</CardHeader>
 						<CardContent className="flex flex-wrap gap-3">
 							<Badge className="rounded-full bg-slate-100 px-3 py-1 text-slate-700 hover:bg-slate-100">
