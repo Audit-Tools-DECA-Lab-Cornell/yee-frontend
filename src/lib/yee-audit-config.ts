@@ -48,7 +48,7 @@ export type YeeScorePreview = {
 
 export const yeeSteps: { step: YeeStepNumber; title: string; description: string }[] = [
 	{ step: 1, title: "Context and visit details", description: "" },
-	{ step: 2, title: "Importance weighting", description: "" },
+	{ step: 2, title: "Youth-Weighted Importance", description: "" },
 	{ step: 3, title: "Access", description: "" },
 	{ step: 4, title: "Activity Spaces", description: "" },
 	{ step: 5, title: "Amenities", description: "" },

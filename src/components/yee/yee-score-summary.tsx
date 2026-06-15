@@ -20,7 +20,7 @@ const youthPalette = {
 	fill: "bg-emerald-600",
 	track: "bg-emerald-100",
 	text: "text-emerald-800",
-	panel: "border-emerald-300 bg-emerald-50"
+	panel: "border-emerald-300 bg-emerald-100/80"
 };
 
 const domainPalette: Record<YeeDomainKey, { fill: string; border: string; text: string }> = {
@@ -113,14 +113,18 @@ export function YeeScoreSummary({
 			</CardHeader>
 			<CardContent className="space-y-6">
 				<div className="overflow-x-auto">
-					<table className="min-w-full text-left text-sm">
+					<table className="min-w-full text-sm">
 						<thead className="text-slate-500">
 							<tr className="border-b border-slate-200">
-								<th className="py-3 pr-4 font-medium">Domain</th>
-								<th className="py-3 pr-4 font-medium">Raw Domain Score</th>
-								<th className="py-3 pr-4 font-medium">Raw %</th>
-								<th className="py-3 pr-4 font-medium">Youth Weighted Domain Average</th>
-								<th className="py-3 font-medium">Youth Weighted %</th>
+								<th className="py-3 pr-4 text-left font-medium">Section</th>
+								<th className="px-3 py-3 text-center font-medium">Raw Section Score</th>
+								<th className="px-3 py-3 text-center font-medium">Raw %</th>
+								<th className="px-3 py-3 text-center font-medium">
+									<span className="inline-block max-w-[8rem] whitespace-normal leading-5">
+										Youth-Weighted Section Average
+									</span>
+								</th>
+								<th className="px-3 py-3 text-center font-medium">Youth-Weighted %</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -131,15 +135,15 @@ export function YeeScoreSummary({
 								const weightedPercentage = weightedMax ? (row.weightedScore / weightedMax) * 100 : 0;
 								return (
 								<tr key={row.domain} className="border-b border-slate-100 last:border-0">
-									<td className="py-4 pr-4 font-medium text-slate-900">{row.label}</td>
-									<td className="py-4 pr-4 text-slate-600">
+									<td className="py-4 pr-4 text-left font-medium text-slate-900">{row.label}</td>
+									<td className="px-3 py-4 text-center text-slate-600">
 										{row.rawScore} / {rawMax}
 									</td>
-									<td className="py-4 pr-4 text-slate-600">{rawPercentage.toFixed(0)}% ({row.rawScore}/{rawMax})</td>
-									<td className="py-4 pr-4 text-slate-600">
+									<td className="px-3 py-4 text-center text-slate-600">{rawPercentage.toFixed(0)}% ({row.rawScore}/{rawMax})</td>
+									<td className="px-3 py-4 text-center text-slate-600">
 										{row.weightedScore} / {weightedMax}
 									</td>
-									<td className="py-4 text-slate-600">{weightedPercentage.toFixed(0)}% ({row.weightedScore}/{weightedMax})</td>
+									<td className="px-3 py-4 text-center text-slate-600">{weightedPercentage.toFixed(0)}% ({row.weightedScore}/{weightedMax})</td>
 								</tr>
 								);
 							})}
@@ -156,7 +160,7 @@ export function YeeScoreSummary({
 							This percentage shows how much of the available raw score was achieved across the full audit.
 						</p>
 					</div>
-					<div className="rounded-2xl bg-emerald-50 p-4">
+					<div className="rounded-2xl bg-emerald-100/80 p-4">
 						<p className="text-sm text-emerald-700">Total Enabling Environment Youth Weighted Average</p>
 						<p className="mt-2 text-2xl font-semibold text-emerald-900">
 							{preview.totalWeightedScore} / {youthWeightedMax} <span className="text-lg text-emerald-700">({totalYouthPercentage.toFixed(0)}%)</span>
@@ -189,7 +193,7 @@ export function YeeScoreSummary({
 				</div>
 				<div className="space-y-6">
 					<div className={`space-y-4 rounded-2xl border p-4 ${rawPalette.panel}`}>
-						<p className="text-sm font-medium text-slate-900">Raw score by domain</p>
+						<p className="text-sm font-medium text-slate-900">Raw score by section</p>
 						<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
 							{rows.map(row => {
 								const rawMax = rawDomainScoreMaximums[row.domain];
@@ -203,8 +207,8 @@ export function YeeScoreSummary({
 									>
 										<div className="space-y-1">
 											<p className={`text-sm font-semibold ${palette.text}`}>{row.label}</p>
-											<p className={`text-xs ${rawPalette.text}`}>Raw Score</p>
-											<p className="text-sm font-medium text-slate-900">
+											<p className={`text-xs ${rawPalette.text}`}>Raw score</p>
+											<p className="text-center text-sm font-medium text-slate-900">
 												{row.rawScore} / {rawMax} ({rawPercentage.toFixed(0)}%)
 											</p>
 										</div>
@@ -219,7 +223,7 @@ export function YeeScoreSummary({
 						</div>
 					</div>
 					<div className={`space-y-4 rounded-2xl border p-4 ${youthPalette.panel}`}>
-						<p className="text-sm font-medium text-emerald-900">Youth Weighted average by domain</p>
+						<p className="text-sm font-medium text-emerald-900">Youth-Weighted average by section</p>
 						<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
 							{rows.map(row => {
 								const weightedMax = getDomainYouthWeightedMaximum(row.domain, preview.selectedWeights);
@@ -233,8 +237,8 @@ export function YeeScoreSummary({
 									>
 										<div className="space-y-1">
 											<p className={`text-sm font-semibold ${palette.text}`}>{row.label}</p>
-											<p className={`mt-1 text-xs ${youthPalette.text}`}>Youth Weighted Average</p>
-											<p className="text-sm font-medium text-slate-900">
+											<p className={`mt-1 text-xs ${youthPalette.text}`}>Youth-Weighted average</p>
+											<p className="text-center text-sm font-medium text-slate-900">
 												{row.weightedScore} / {weightedMax} ({weightedPercentage.toFixed(0)}%)
 											</p>
 										</div>
@@ -250,7 +254,7 @@ export function YeeScoreSummary({
 					</div>
 					<div className="grid gap-4 md:grid-cols-2">
 						<div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-							<p className="text-sm font-medium text-slate-900">Highest and lowest Raw Score domains</p>
+							<p className="text-sm font-medium text-slate-900">Highest and lowest raw score sections</p>
 							<p className="mt-2 text-sm text-slate-600">
 								Highest: <span className="font-medium text-slate-900">{rawExtremes.highest.row.label}</span> ({rawExtremes.highest.percentage.toFixed(0)}%)
 							</p>
@@ -259,7 +263,7 @@ export function YeeScoreSummary({
 							</p>
 						</div>
 						<div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4">
-							<p className="text-sm font-medium text-emerald-900">Highest and lowest Youth Weighted domains</p>
+							<p className="text-sm font-medium text-emerald-900">Highest and lowest Youth-Weighted sections</p>
 							<p className="mt-2 text-sm text-emerald-800">
 								Highest: <span className="font-medium text-emerald-950">{weightedExtremes.highest.row.label}</span> ({weightedExtremes.highest.percentage.toFixed(0)}%)
 							</p>

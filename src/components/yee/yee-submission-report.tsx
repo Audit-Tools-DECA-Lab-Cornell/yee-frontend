@@ -17,31 +17,50 @@ function normalizeText(value: string) {
 	return value.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
 }
 
+function ensureQuestionMark(value: string) {
+	if (!value) return value;
+	return /[?.!]$/.test(value) ? value : `${value}?`;
+}
+
+function normalizeVisibleQuestion(value: string) {
+	return ensureQuestionMark(normalizeText(value));
+}
+
+function isPlaceholderQuestionText(value: string) {
+	const normalized = normalizeText(value).toLowerCase();
+	return normalized === "" || normalized === "click to write the question text";
+}
+
 function getChoiceLabel(choice: { Display?: string } | undefined, fallback: string) {
 	return choice?.Display || fallback;
 }
 
-function getItemAnswerSummary(item: InstrumentItem, responses: Record<string, string | Record<string, string>>) {
-	const currentValue = responses[item.item_id];
-	const choices = Object.entries(item.choices || {});
-	const answers = Object.entries(item.answers || {});
+function answerLabels(item: InstrumentItem) {
+	return Object.values(item.answers || {}).map(answer => normalizeText(getChoiceLabel(answer, "")).toLowerCase());
+}
 
-	if (!currentValue) return [];
+function isConditionItem(item: InstrumentItem) {
+	if (item.item_kind) return item.item_kind === "condition";
+	const labels = answerLabels(item);
+	return (
+		normalizeText(item.question_text).toLowerCase().includes("if yes") ||
+		(labels.includes("poor") && labels.includes("acceptable") && labels.includes("great"))
+	);
+}
 
-	if (answers.length > 0) {
-		if (typeof currentValue !== "object") return [];
-		return choices
-			.map(([choiceId, choice]) => {
-				const answerId = currentValue[choiceId];
-				if (!answerId) return null;
-				const answerLabel = getChoiceLabel(item.answers?.[answerId], answerId);
-				return `${getChoiceLabel(choice, choiceId)}: ${answerLabel}`;
-			})
-			.filter((value): value is string => Boolean(value));
-	}
+function getSelectedMatrixAnswer(
+	itemId: string,
+	choiceId: string,
+	responses: Record<string, string | Record<string, string>>
+) {
+	const currentValue = responses[itemId];
+	if (typeof currentValue !== "object" || !currentValue) return "";
+	return currentValue[choiceId] || "";
+}
 
-	if (typeof currentValue !== "string") return [];
-	return [getChoiceLabel(item.choices?.[currentValue], currentValue)];
+function getSelectedAnswerLabel(item: InstrumentItem, answerId: string | null | undefined) {
+	if (!answerId) return "";
+	return getChoiceLabel(item.answers?.[answerId], answerId);
 }
 
 function buildQuestionColumns(
@@ -49,7 +68,12 @@ function buildQuestionColumns(
 	instrument: InstrumentResponse
 ) {
 	const columns: Record<string, string> = {};
-	for (const [, label] of Object.entries(yeeDomainLabels) as [YeeDomainKey, string][]) {
+	const sectionComments =
+		submission.participant_info.section_comments &&
+		typeof submission.participant_info.section_comments === "object"
+			? (submission.participant_info.section_comments as Partial<Record<YeeDomainKey, string>>)
+			: {};
+	for (const [domainKey, label] of Object.entries(yeeDomainLabels) as [YeeDomainKey, string][]) {
 		const items = filterItemsForDomain(instrument.scoring_items, label);
 		const grouped = new Map<string, InstrumentItem[]>();
 		for (const item of items) {
@@ -58,10 +82,49 @@ function buildQuestionColumns(
 			next.push(item);
 			grouped.set(key, next);
 		}
-		Array.from(grouped.values()).forEach((groupItems, index) => {
-			const answers = groupItems.flatMap(item => getItemAnswerSummary(item, submission.responses));
-			columns[`${label} Question ${index + 1}`] = answers.length > 0 ? answers.join(" | ") : "";
+		let questionIndex = 0;
+		Array.from(grouped.values()).forEach(groupItems => {
+			const presenceItem = groupItems.find(item => !isConditionItem(item)) ?? groupItems[0];
+			const conditionItem = groupItems.find(item => isConditionItem(item)) ?? null;
+			const choices = Object.entries(presenceItem.choices || {});
+			const hasMatrixAnswers = Object.keys(presenceItem.answers || {}).length > 0;
+
+			if (hasMatrixAnswers) {
+				choices.forEach(([choiceId, choice]) => {
+					questionIndex += 1;
+					const responseAnswerId = getSelectedMatrixAnswer(presenceItem.item_id, choiceId, submission.responses);
+					const conditionAnswerId = conditionItem
+						? getSelectedMatrixAnswer(conditionItem.item_id, choiceId, submission.responses)
+						: "";
+					columns[`${label} Question ${questionIndex} Prompt`] = normalizeVisibleQuestion(
+						getChoiceLabel(choice, choiceId)
+					);
+					columns[`${label} Question ${questionIndex} Response`] = responseAnswerId
+						? getSelectedAnswerLabel(presenceItem, responseAnswerId)
+						: "";
+					columns[`${label} Question ${questionIndex} Condition`] = conditionItem
+						? conditionAnswerId
+							? getSelectedAnswerLabel(conditionItem, conditionAnswerId)
+							: "n/a"
+						: "n/a";
+				});
+				return;
+			}
+
+			questionIndex += 1;
+			const currentValue = submission.responses[presenceItem.item_id];
+			const selectedValue = typeof currentValue === "string" ? currentValue : "";
+			const prompt =
+				!isPlaceholderQuestionText(presenceItem.question_text) && presenceItem.question_text
+					? normalizeVisibleQuestion(presenceItem.question_text)
+					: normalizeVisibleQuestion(presenceItem.item_id);
+			columns[`${label} Question ${questionIndex} Prompt`] = prompt;
+			columns[`${label} Question ${questionIndex} Response`] = selectedValue
+				? getChoiceLabel(presenceItem.choices?.[selectedValue], selectedValue)
+				: "";
+			columns[`${label} Question ${questionIndex} Condition`] = "n/a";
 		});
+		columns[`${label} Comments`] = sectionComments[domainKey] || "";
 	}
 	return columns;
 }
@@ -172,6 +235,17 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 		};
 	}, [session, submissionId]);
 
+	React.useEffect(() => {
+		if (!submission) return;
+		const previousTitle = document.title;
+		const placeName = (submission.place_name || submission.place_id || "Place").replace(/[\\/:*?"<>|]/g, "-").trim();
+		const auditorId = (submission.auditor_generated_id || submission.auditor_id || "AUD").replace(/[\\/:*?"<>|]/g, "-").trim();
+		document.title = `${placeName}-${auditorId}-Audit Report`;
+		return () => {
+			document.title = previousTitle;
+		};
+	}, [submission]);
+
 	if (loading) {
 		return <main className="mx-auto max-w-5xl p-6">Loading submitted audit...</main>;
 	}
@@ -211,6 +285,11 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 		<main className="mx-auto max-w-5xl space-y-6 p-6">
 			<style jsx global>{`
 				@media print {
+					* {
+						-webkit-print-color-adjust: exact;
+						print-color-adjust: exact;
+					}
+
 					.report-page-break {
 						break-before: page;
 						page-break-before: always;
@@ -219,6 +298,10 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 					.report-no-break {
 						break-inside: avoid;
 						page-break-inside: avoid;
+					}
+
+					.report-actions {
+						display: none !important;
 					}
 				}
 			`}</style>
@@ -245,10 +328,10 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 						</div>
 					</div>
 
-					<div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-						<p className="text-sm font-medium text-emerald-950">Domain weighting used in this audit</p>
+					<div className="rounded-2xl border border-emerald-300 bg-emerald-100/80 p-4">
+						<p className="text-sm font-medium text-emerald-950">Section weighting used in this audit</p>
 						<p className="mt-2 text-sm leading-6 text-emerald-900/80">
-							Youth Weighted values are calculated by normalizing the participant&apos;s domain weights, computing the average score within each domain, and then applying the normalized weight to that domain average.
+							Youth Weighted values are calculated by normalizing the participant&apos;s section weights, computing the average score within each section, and then applying the normalized weight to that section average.
 						</p>
 						<div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
 							{(Object.keys(yeeDomainLabels) as YeeDomainKey[]).map(domain => {
@@ -258,8 +341,8 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 										key={domain}
 										className={`rounded-2xl border px-4 py-3 ${getWeightBubbleClasses(normalizedWeights[domain])}`}
 										style={{
-											borderColor: theme.strongFillHex,
-											backgroundColor: theme.lightHex,
+											borderColor: theme.strongHex,
+											backgroundColor: theme.strongFillHex,
 											color: theme.strongHex
 										}}
 									>
@@ -301,7 +384,7 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 						))}
 					</div>
 
-					<div className="flex flex-wrap gap-3">
+					<div className="report-actions flex flex-wrap gap-3">
 						<Button type="button" variant="outline" className="rounded-2xl" onClick={() => window.print()}>
 							Print report
 						</Button>

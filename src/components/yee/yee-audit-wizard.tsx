@@ -154,27 +154,61 @@ function normalizeSectionComments(raw: unknown): YeeAuditDraft["sectionComments"
 	};
 }
 
-function getItemAnswerSummary(item: InstrumentItem, responses: ResponsesState) {
-	const currentValue = responses[item.item_id];
-	const choices = Object.entries(item.choices || {});
-	const answers = Object.entries(item.answers || {});
+function getSelectedAnswerLabel(item: InstrumentItem, answerId: string | null | undefined) {
+	if (!answerId) return "";
+	return getChoiceLabel(item.answers?.[answerId], answerId);
+}
 
-	if (!currentValue) return [];
+function getReviewQuestionTitle(group: QuestionGroup) {
+	const presenceItem = group.items.find(item => !isConditionItem(item)) ?? group.items[0];
+	if (presenceItem.choices && Object.keys(presenceItem.choices).length > 1 && isPlaceholderQuestionText(presenceItem.question_text)) {
+		return "";
+	}
+	if (isPlaceholderQuestionText(presenceItem.question_text)) {
+		return "";
+	}
+	return normalizeVisibleQuestion(presenceItem.question_text || presenceItem.item_id);
+}
 
-	if (answers.length > 0) {
-		if (typeof currentValue !== "object") return [];
+function getReviewAnswerRows(group: QuestionGroup, responses: ResponsesState) {
+	const presenceItem = group.items.find(item => !isConditionItem(item)) ?? group.items[0];
+	const conditionItem = group.items.find(item => isConditionItem(item)) ?? null;
+	const choices = Object.entries(presenceItem.choices || {});
+	const presenceAnswers = Object.entries(presenceItem.answers || {});
+	const hasMatrixAnswers = presenceAnswers.length > 0;
+
+	if (hasMatrixAnswers) {
 		return choices
 			.map(([choiceId, choice]) => {
-				const answerId = currentValue[choiceId];
-				if (!answerId) return null;
-				const answerLabel = getChoiceLabel(item.answers?.[answerId], answerId);
-				return `${getChoiceLabel(choice, choiceId)}: ${answerLabel}`;
+				const presenceAnswerId = getSelectedMatrixAnswer(presenceItem.item_id, choiceId, responses);
+				if (!presenceAnswerId) return null;
+				const conditionAnswerId = conditionItem
+					? getSelectedMatrixAnswer(conditionItem.item_id, choiceId, responses)
+					: "";
+				return {
+					prompt: normalizeVisibleQuestion(getChoiceLabel(choice, choiceId)),
+					response: getSelectedAnswerLabel(presenceItem, presenceAnswerId),
+					condition:
+						conditionItem && conditionAnswerId
+							? getSelectedAnswerLabel(conditionItem, conditionAnswerId)
+							: ""
+				};
 			})
-			.filter((value): value is string => Boolean(value));
+			.filter(
+				(value): value is { prompt: string; response: string; condition: string } => Boolean(value)
+			);
 	}
 
-	if (typeof currentValue !== "string") return [];
-	return [getChoiceLabel(item.choices?.[currentValue], currentValue)];
+	const currentValue = responses[presenceItem.item_id];
+	const singleValue = typeof currentValue === "string" ? currentValue : "";
+	if (!singleValue) return [];
+	return [
+		{
+			prompt: getReviewQuestionTitle(group) || normalizeVisibleQuestion(presenceItem.question_text || presenceItem.item_id),
+			response: getChoiceLabel(presenceItem.choices?.[singleValue], singleValue),
+			condition: ""
+		}
+	];
 }
 
 function getMultiOptionLabels(
@@ -188,6 +222,23 @@ function getMultiOptionLabels(
 	return selectedValues
 		.map(selectedValue => options.find(option => option.value === selectedValue)?.label ?? selectedValue)
 		.join(", ");
+}
+
+function getStepForDomainKey(domain: YeeDomainKey): YeeStepNumber {
+	switch (domain) {
+		case "access":
+			return 3;
+		case "activitySpaces":
+			return 4;
+		case "amenities":
+			return 5;
+		case "experienceOfSpace":
+			return 6;
+		case "aestheticsAndCare":
+			return 7;
+		case "useAndUsability":
+			return 8;
+	}
 }
 
 function groupInstrumentItems(items: InstrumentItem[]): QuestionGroup[] {
@@ -335,13 +386,13 @@ function getStepPalette(stepValue: YeeStepNumber) {
 	switch (stepValue) {
 		case 1:
 			return {
-				active: "border-emerald-400 bg-gradient-to-br from-emerald-50 via-emerald-100 to-emerald-200 text-emerald-950 ring-2 ring-emerald-200 shadow-[0_16px_32px_-24px_rgba(6,95,70,0.38)]",
-				idle: "border-emerald-200 bg-emerald-50/80 text-emerald-900 hover:border-emerald-300 hover:bg-emerald-100/80"
+				active: "border-sky-400 bg-gradient-to-br from-slate-50 via-sky-50 to-sky-100 text-slate-950 ring-2 ring-sky-200 shadow-[0_16px_32px_-24px_rgba(70,97,129,0.36)]",
+				idle: "border-sky-200 bg-slate-50 text-slate-900 hover:border-sky-300 hover:bg-sky-50"
 			};
 	case 2:
 		return {
-			active: "border-indigo-400 bg-gradient-to-br from-indigo-50 via-indigo-100 to-indigo-200 text-indigo-950 ring-2 ring-indigo-200 shadow-[0_16px_32px_-24px_rgba(55,48,163,0.36)]",
-			idle: "border-indigo-200 bg-indigo-50/80 text-indigo-900 hover:border-indigo-300 hover:bg-indigo-100/80"
+			active: "border-orange-300 bg-gradient-to-br from-[#fff7f2] via-[#fceee5] to-[#f7ddcc] text-[#6f3f1f] ring-2 ring-orange-100 shadow-[0_16px_32px_-24px_rgba(170,94,52,0.3)]",
+			idle: "border-orange-200 bg-[#fff8f4] text-[#7a4b2a] hover:border-orange-300 hover:bg-[#fdf0e7]"
 		};
 	case 3:
 	case 4: {
@@ -385,6 +436,25 @@ function getStepPalette(stepValue: YeeStepNumber) {
 function getSurfacePalette(stepValue: YeeStepNumber) {
 	switch (stepValue) {
 		case 1:
+			return {
+				card: "border-sky-200/80 bg-[#f2f6fa]",
+				inner: "border-sky-100 bg-white",
+				selected: "border-sky-500 bg-[#dce8f4] text-slate-950 ring-1 ring-sky-200 shadow-[0_10px_22px_-18px_rgba(70,97,129,0.3)]",
+				idle: "border-sky-200 bg-white text-slate-900 hover:border-sky-300 hover:bg-sky-50/70",
+				instruction: "border-[#b8d0e5] bg-[#7f9cb8] text-white",
+				progress: "border-sky-200/80 bg-sky-50/70",
+				condition: "border-sky-300 bg-sky-100/75"
+			};
+		case 2:
+			return {
+				card: "border-orange-200/80 bg-[#fff9f5]",
+				inner: "border-orange-100 bg-white",
+				selected: "border-orange-500 bg-[#f4ddcd] text-[#6f3f1f] ring-1 ring-orange-200 shadow-[0_10px_22px_-18px_rgba(170,94,52,0.28)]",
+				idle: "border-orange-300 bg-[#fffdfb] text-[#6f3f1f] hover:border-orange-400 hover:bg-[#fff4ed]",
+				instruction: "border-[#efcfbb] bg-[#dea882] text-white",
+				progress: "border-orange-200/80 bg-[#fff6ef]",
+				condition: "border-orange-300 bg-[#fbe7da]"
+			};
 		case 9:
 			return {
 				card: "border-emerald-200/80 bg-[#eef7f1]",
@@ -394,16 +464,6 @@ function getSurfacePalette(stepValue: YeeStepNumber) {
 				instruction: "border-[#7ed6ad] bg-[#57b894] text-white",
 				progress: "border-emerald-200/80 bg-emerald-50/80",
 				condition: "border-emerald-300 bg-emerald-100/80"
-			};
-		case 2:
-			return {
-				card: "border-indigo-200/80 bg-[#f5f4ff]",
-				inner: "border-indigo-100 bg-white/92",
-				selected: "border-indigo-600 bg-indigo-200 text-indigo-950 ring-1 ring-indigo-300 shadow-[0_10px_22px_-18px_rgba(55,48,163,0.35)]",
-				idle: "border-indigo-200 bg-indigo-50/90 text-indigo-950 hover:border-indigo-300 hover:bg-indigo-100/90",
-				instruction: "border-[#a9b2ff] bg-[#7c88ee] text-white",
-				progress: "border-indigo-200/80 bg-indigo-50/80",
-				condition: "border-indigo-300 bg-indigo-100/85"
 			};
 	case 3:
 	case 4: {
@@ -1444,7 +1504,15 @@ export function YeeAuditWizard({
 		const reviewSections = (Object.keys(yeeDomainLabels) as Array<keyof typeof yeeDomainLabels>).map(domain => ({
 			domain,
 			label: yeeDomainLabels[domain],
-			items: filterItemsForDomain(instrument.scoring_items, yeeDomainLabels[domain]).filter(item => hasAnsweredItem(item, responses))
+			step: getStepForDomainKey(domain),
+			theme: getThemeByStep(getStepForDomainKey(domain)),
+			groups: groupInstrumentItems(filterItemsForDomain(instrument.scoring_items, yeeDomainLabels[domain]))
+				.map(group => ({
+					group,
+					title: getReviewQuestionTitle(group),
+					rows: getReviewAnswerRows(group, responses)
+				}))
+				.filter(entry => entry.rows.length > 0)
 		}));
 
 		return (
@@ -1468,43 +1536,132 @@ export function YeeAuditWizard({
 								<p>Season: {getOptionLabel(seasonOptions, draft.season)}</p>
 								<p>Weather: {getMultiOptionLabels(weatherOptions, draft.weather)}</p>
 							</div>
-							<div className="rounded-2xl bg-slate-50 p-4 text-sm leading-7 text-slate-700">
-								<p className="font-medium text-slate-900">Importance weighting</p>
-								{Object.entries(draft.weights).map(([key, value]) => (
-									<p key={key}>
-										{yeeDomainLabels[key as keyof typeof draft.weights]}: {getOptionLabel(yeeWeightOptions, value)}
-									</p>
-								))}
-								<div className="mt-3 rounded-2xl border border-dashed border-slate-200 bg-white p-3">
+							<div className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-700">
+								<p className="font-medium text-slate-900">Youth-Weighted Importance of Sections</p>
+								<div className="mt-3 space-y-3">
+									{(Object.keys(yeeDomainLabels) as YeeDomainKey[]).map(key => {
+										const theme = getThemeByStep(getStepForDomainKey(key));
+										return (
+											<div
+												key={key}
+												className="flex flex-col gap-2 rounded-2xl border px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+												style={{
+													backgroundColor: theme?.lightHex ?? "#f8fafc",
+													borderColor: theme?.strongFillHex ?? "#cbd5e1"
+												}}
+											>
+												<p className="font-semibold" style={{ color: theme?.strongHex ?? "#0f172a" }}>
+													{yeeDomainLabels[key]}
+												</p>
+												<span
+													className="inline-flex max-w-full rounded-full border px-3 py-1 text-sm font-semibold"
+													style={{
+														backgroundColor: theme?.strongFillHex ?? "#e2e8f0",
+														borderColor: theme?.strongHex ?? "#94a3b8",
+														color: theme?.strongHex ?? "#0f172a"
+													}}
+												>
+													{getOptionLabel(yeeWeightOptions, draft.weights[key])}
+												</span>
+											</div>
+										);
+									})}
+								</div>
+								<div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-white p-3 leading-7">
 									<p className="font-medium text-slate-900">Weighting comments</p>
 									<p className="mt-2">{draft.weightingComments || "No weighting comments added."}</p>
 								</div>
 							</div>
 						</div>
+						<div className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-4">
+							<p className="text-sm font-medium text-slate-900">Audit overview</p>
+							<p className="mt-2 text-sm text-slate-600">
+								Choose any section below to jump back into that part of the audit and edit it before submission.
+							</p>
+							<div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+								{reviewSections.map(section => (
+									<button
+										key={`jump-${section.domain}`}
+										type="button"
+										onClick={() => void goToStep(section.step)}
+										className="rounded-[1.25rem] border px-4 py-4 text-left transition hover:shadow-sm"
+										style={{
+											backgroundColor: section.theme?.lightHex ?? "#ffffff",
+											borderColor: section.theme?.strongFillHex ?? "#cbd5e1"
+										}}
+									>
+										<p className="font-semibold" style={{ color: section.theme?.strongHex ?? "#0f172a" }}>
+											{section.label}
+										</p>
+										<p className="mt-2 text-sm text-slate-700">
+											{section.groups.length} answered question group{section.groups.length === 1 ? "" : "s"}
+										</p>
+									</button>
+								))}
+							</div>
+						</div>
 						<div className="space-y-4">
 							{reviewSections.map(section => (
-								<Card key={section.domain} className="rounded-[1.5rem] border-slate-200/80 bg-[#f7fbf8] shadow-sm">
+								<Card
+									key={section.domain}
+									className="rounded-[1.5rem] shadow-sm"
+									style={{
+										borderColor: section.theme?.strongFillHex ?? "#cbd5e1",
+										backgroundColor: section.theme?.lightHex ?? "#f8fafc"
+									}}
+								>
 									<CardHeader className="pb-3">
-										<CardTitle className="text-lg">{section.label}</CardTitle>
+										<CardTitle className="text-lg" style={{ color: section.theme?.strongHex ?? "#0f172a" }}>
+											{section.label}
+										</CardTitle>
 										<CardDescription>
-											{section.items.length > 0
-												? `${section.items.length} answered items saved for review.`
+											{section.groups.length > 0
+												? `${section.groups.length} answered question group${section.groups.length === 1 ? "" : "s"} saved for review.`
 												: "No saved answers yet for this section."}
 										</CardDescription>
 									</CardHeader>
 									<CardContent className="space-y-4">
-										{section.items.map(item => (
-											<div key={item.item_id} className="rounded-2xl border border-slate-200 bg-white p-4">
-												<p className="text-sm font-medium text-slate-900">{normalizeVisibleQuestion(item.question_text || item.item_id)}</p>
-												<div className="mt-2 space-y-1 text-sm text-slate-600">
-													{getItemAnswerSummary(item, responses).map(answer => (
-														<p key={`${item.item_id}-${answer}`}>{answer}</p>
+										{section.groups.map(({ group, title, rows }) => (
+											<div key={group.baseQuestionId} className="rounded-2xl border border-slate-200 bg-white p-4">
+												{title ? <p className="text-sm font-semibold text-slate-900">{title}</p> : null}
+												<div className={`space-y-4 text-sm text-slate-700 ${title ? "mt-3" : ""}`}>
+													{rows.map((row, index) => (
+														<div key={`${group.baseQuestionId}-${index}`} className="space-y-2">
+															<p className="font-medium text-slate-800">{row.prompt}</p>
+															<div className="pl-4">
+																<span
+																	className="inline-flex rounded-full border px-3 py-1 text-sm font-semibold"
+																	style={{
+																		backgroundColor: section.theme?.strongFillHex ?? "#e2e8f0",
+																		borderColor: section.theme?.strongHex ?? "#94a3b8",
+																		color: section.theme?.strongHex ?? "#0f172a"
+																	}}
+																>
+																	{row.response}
+																</span>
+																{row.condition ? (
+																	<div className="mt-2 pl-4">
+																		<p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Condition</p>
+																		<span
+																			className="mt-2 inline-flex rounded-full border px-3 py-1 text-sm font-semibold"
+																			style={{
+																				backgroundColor: section.theme?.lightHex ?? "#f8fafc",
+																				borderColor: section.theme?.strongFillHex ?? "#cbd5e1",
+																				color: section.theme?.strongHex ?? "#0f172a"
+																			}}
+																		>
+																			{row.condition}
+																		</span>
+																	</div>
+																) : null}
+															</div>
+														</div>
 													))}
 												</div>
 											</div>
 										))}
 										<div className="rounded-2xl border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-600">
-											<p className="font-medium text-slate-900">Section comments</p>
+											<p className="font-medium text-slate-900">{section.label} comments</p>
 											<p className="mt-2">{draft.sectionComments[section.domain] || "No section comments added."}</p>
 										</div>
 									</CardContent>
@@ -1533,20 +1690,23 @@ export function YeeAuditWizard({
 								<Link
 									href={
 										variant === "manager-edit" && basePath
-											? buildManagerEditHref(`${basePath}/page/9`)
-											: `/yee/audit/${placeId}/page/9`
+											? buildManagerEditHref(`${basePath}/page/1`)
+											: `/yee/audit/${placeId}/page/1`
 									}
 								>
-									Back to final comments
+									Edit audit
 								</Link>
 							</Button>
 							<Button type="button" variant="outline" className="rounded-2xl" onClick={() => void refreshScorePreview()} disabled={previewLoading}>
-								{previewLoading ? "Refreshing..." : "Refresh Score Preview"}
+								{previewLoading ? "Recalculating..." : "Recalculate Score Preview"}
 							</Button>
 							<Button type="button" className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]" onClick={() => void submitAudit()} disabled={submitting}>
 								{submitting ? "Submitting..." : "Submit Audit"}
 							</Button>
 						</div>
+						<p className="text-xs text-slate-500">
+							Use Recalculate Score Preview after you change any answers or section weights and want the latest totals reflected before submission.
+						</p>
 						<p className="text-xs text-slate-500">{persisting ? "Saving your latest answers..." : "All answers saved."}</p>
 						{error ? <p className="text-sm text-red-700">{error}</p> : null}
 					</CardContent>
@@ -1758,7 +1918,7 @@ export function YeeAuditWizard({
 					{domainKey ? (
 						<Card className="rounded-[1.5rem] border-slate-200/80 bg-white shadow-sm">
 							<CardHeader>
-								<CardTitle>Section comments</CardTitle>
+								<CardTitle>{yeeDomainLabels[domainKey]} comments</CardTitle>
 								<CardDescription>
 									{sectionMeta?.comment_prompt || `Add any optional notes for the ${yeeDomainLabels[domainKey]} section.`}
 								</CardDescription>
