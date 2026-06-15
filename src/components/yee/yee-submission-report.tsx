@@ -300,6 +300,16 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 						page-break-inside: avoid;
 					}
 
+					.report-print-stack {
+						display: block !important;
+					}
+
+					.report-print-stack > * {
+						break-inside: avoid;
+						page-break-inside: avoid;
+						margin-bottom: 1rem;
+					}
+
 					.report-actions {
 						display: none !important;
 					}
@@ -311,7 +321,7 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 					<CardDescription>This is a locked, read-only report for the submitted YEE audit.</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-6">
-					<div className="grid gap-4 md:grid-cols-2">
+					<div className="grid gap-4 md:grid-cols-2 report-print-stack">
 						<div className="rounded-2xl bg-slate-50 p-4 text-sm leading-7 text-slate-700">
 							<p className="font-medium text-slate-900">Submission details</p>
 							<p>Place: {submission.place_name || submission.place_id}</p>
@@ -333,7 +343,7 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 						<p className="mt-2 text-sm leading-6 text-emerald-900/80">
 							Youth Weighted values are calculated by normalizing the participant&apos;s section weights, computing the average score within each section, and then applying the normalized weight to that section average.
 						</p>
-						<div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+						<div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3 report-print-stack">
 							{(Object.keys(yeeDomainLabels) as YeeDomainKey[]).map(domain => {
 								const theme = yeeDomainThemes[domain];
 								return (
@@ -365,7 +375,7 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 						description="Read-only raw scores and Youth Weighted averages computed from the submitted responses."
 					/>
 
-					<div className="grid gap-4 md:grid-cols-2 report-page-break report-no-break">
+					<div className="grid gap-4 md:grid-cols-2 report-page-break report-no-break report-print-stack">
 						<div className="rounded-2xl border border-slate-200 p-4">
 							<p className="text-sm font-medium text-slate-900">Weighting comments</p>
 							<p className="mt-2 text-sm text-slate-600">{weightingComments || "No weighting comments submitted."}</p>
@@ -376,7 +386,7 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 						</div>
 					</div>
 
-					<div className="grid gap-4 md:grid-cols-2">
+					<div className="grid gap-4 md:grid-cols-2 report-print-stack">
 						{(Object.keys(yeeDomainLabels) as YeeDomainKey[]).map(domain => (
 							<div key={domain} className="rounded-2xl border border-slate-200 p-4">
 								<p className="text-sm font-medium text-slate-900">{yeeDomainLabels[domain]} comments</p>

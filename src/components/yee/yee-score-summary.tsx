@@ -150,7 +150,7 @@ export function YeeScoreSummary({
 						</tbody>
 					</table>
 				</div>
-				<div className="grid gap-4 md:grid-cols-2 report-no-break">
+				<div className="grid gap-4 md:grid-cols-2 report-no-break report-print-stack">
 					<div className="rounded-2xl bg-slate-50 p-4 report-no-break">
 						<p className="text-sm text-slate-500">Total Enabling Environment Raw Score</p>
 						<p className="mt-2 text-2xl font-semibold text-slate-950">
@@ -175,7 +175,7 @@ export function YeeScoreSummary({
 					<p className="mt-2">
 						Each bar represents 100% of the available score for that section. The colored fill shows how much of that available score was reached. Raw and Youth Weighted percentages are shown separately because they answer slightly different questions about the same audit.
 					</p>
-					<div className="mt-4 grid gap-3 md:grid-cols-3">
+					<div className="mt-4 grid gap-3 md:grid-cols-3 report-print-stack">
 						{[
 							{ label: "Lower range", tone: "bg-rose-400", text: "0% to 33% of the available score" },
 							{ label: "Middle range", tone: "bg-amber-400", text: "34% to 66% of the available score" },
@@ -194,7 +194,7 @@ export function YeeScoreSummary({
 				<div className="space-y-6">
 					<div className={`space-y-4 rounded-2xl border p-4 report-no-break ${rawPalette.panel}`}>
 						<p className="text-sm font-medium text-slate-900">Raw score by section</p>
-						<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+						<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 report-print-stack">
 							{rows.map(row => {
 								const rawMax = rawDomainScoreMaximums[row.domain];
 								const rawPercentage = rawMax ? (row.rawScore / rawMax) * 100 : 0;
@@ -224,7 +224,7 @@ export function YeeScoreSummary({
 					</div>
 					<div className={`space-y-4 rounded-2xl border p-4 report-no-break ${youthPalette.panel}`}>
 						<p className="text-sm font-medium text-emerald-900">Youth-Weighted average by section</p>
-						<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+						<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 report-print-stack">
 							{rows.map(row => {
 								const weightedMax = getDomainYouthWeightedMaximum(row.domain, preview.selectedWeights);
 								const weightedPercentage = weightedMax ? (row.weightedScore / weightedMax) * 100 : 0;
@@ -252,7 +252,7 @@ export function YeeScoreSummary({
 							})}
 						</div>
 					</div>
-					<div className="grid gap-4 md:grid-cols-2 report-no-break">
+					<div className="grid gap-4 md:grid-cols-2 report-no-break report-print-stack">
 						<div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 report-no-break">
 							<p className="text-sm font-medium text-slate-900">Highest and lowest raw score sections</p>
 							<p className="mt-2 text-sm text-slate-600">
