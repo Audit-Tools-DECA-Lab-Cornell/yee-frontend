@@ -342,14 +342,15 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 										className={`rounded-2xl border px-4 py-3 ${getWeightBubbleClasses(normalizedWeights[domain])}`}
 										style={{
 											borderColor: theme.strongHex,
-											backgroundColor: theme.strongFillHex,
-											color: theme.strongHex
+											backgroundColor: theme.lightHex,
+											color: "#1f2937",
+											boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35)"
 										}}
 									>
-										<p className="text-sm font-medium" style={{ color: theme.strongHex }}>
+										<p className="text-sm font-semibold leading-5" style={{ color: "#111827" }}>
 											{yeeDomainLabels[domain]}
 										</p>
-										<p className="mt-1 text-xs" style={{ color: theme.strongHex }}>
+										<p className="mt-1 text-xs font-medium leading-5" style={{ color: "#374151" }}>
 											{formatWeightLabel(normalizedWeights[domain])}
 										</p>
 									</div>
