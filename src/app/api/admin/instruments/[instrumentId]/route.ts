@@ -12,3 +12,15 @@ export async function PATCH(
 		authorization: request.headers.get("authorization")
 	});
 }
+
+export async function DELETE(
+	request: Request,
+	{ params }: { params: Promise<{ instrumentId: string }> }
+) {
+	const { instrumentId } = await params;
+	return proxyDashboardRequest({
+		targetPath: `/yee/admin/instruments/${instrumentId}`,
+		method: "DELETE",
+		authorization: request.headers.get("authorization")
+	});
+}

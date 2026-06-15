@@ -420,6 +420,16 @@ export function updateInstrumentStatus(
 	});
 }
 
+export function deleteInstrumentVersion(session: FrontendSession, instrumentId: string) {
+	return authedFetch<{ deleted: boolean; instrument_id: string }>(
+		`/api/admin/instruments/${instrumentId}`,
+		session,
+		{
+			method: "DELETE"
+		}
+	);
+}
+
 export function fetchSiteCopyVersions(session: FrontendSession) {
 	return authedFetch<SiteCopyVersionRecord[]>("/api/admin/site-copy", session);
 }
