@@ -1,5 +1,5 @@
-import { InstrumentAdminPanel } from "@/components/dashboard/instruments/instrument-admin-panel";
+import { InstrumentsAdminClient } from "@/components/dashboard/instruments/instruments-admin-client";
 
 export default function AdminInstrumentsPage() {
-	return <InstrumentAdminPanel />;
+	return <InstrumentsAdminClient />;
 }
