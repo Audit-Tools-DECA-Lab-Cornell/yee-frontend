@@ -100,6 +100,16 @@ export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 					</div>
 
 					<div className="flex items-center gap-2 sm:gap-3">
+						{variant === "manager" && session?.user.has_auditor_profile && session.user.auditor_dashboard_path ? (
+							<Button asChild variant="outline" className="hidden rounded-2xl border-slate-200 bg-white lg:inline-flex">
+								<Link href={session.user.auditor_dashboard_path}>Auditor View</Link>
+							</Button>
+						) : null}
+						{variant === "auditor" && session?.user.account_type === "MANAGER" ? (
+							<Button asChild variant="outline" className="hidden rounded-2xl border-slate-200 bg-white lg:inline-flex">
+								<Link href={session.user.dashboard_path}>Manager View</Link>
+							</Button>
+						) : null}
 						<LogoutButton className="mt-0 hidden w-auto border border-slate-200 bg-white px-4 py-2 text-slate-700 hover:bg-slate-50 hover:text-slate-950 lg:flex" />
 						<Button
 							variant="outline"

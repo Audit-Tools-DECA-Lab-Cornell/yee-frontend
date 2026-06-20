@@ -18,6 +18,7 @@ import {
 
 export default function InviteManagerPage() {
 	const { session } = useAuth();
+	const [fullName, setFullName] = React.useState("");
 	const [email, setEmail] = React.useState("");
 	const [saving, setSaving] = React.useState(false);
 	const [loadingInvites, setLoadingInvites] = React.useState(true);
@@ -52,8 +53,9 @@ export default function InviteManagerPage() {
 		setSaving(true);
 		setError(null);
 		try {
-			const result = await createManagerInvite(session, { email });
+			const result = await createManagerInvite(session, { full_name: fullName, email });
 			setInvite(result);
+			setFullName("");
 			setEmail("");
 			await loadInvites();
 		} catch (err) {
@@ -122,6 +124,16 @@ export default function InviteManagerPage() {
 				</CardHeader>
 				<CardContent className="space-y-6">
 					<form className="space-y-4" onSubmit={handleSubmit}>
+						<div className="space-y-2">
+							<Label htmlFor="manager-invite-full-name">Manager full name</Label>
+							<Input
+								id="manager-invite-full-name"
+								placeholder="Janet Loebach"
+								value={fullName}
+								onChange={event => setFullName(event.target.value)}
+								required
+							/>
+						</div>
 						<div className="space-y-2">
 							<Label htmlFor="manager-invite-email">Manager email</Label>
 							<Input id="manager-invite-email" type="email" placeholder="co-manager@example.com" value={email} onChange={event => setEmail(event.target.value)} required />

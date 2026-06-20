@@ -5,7 +5,7 @@ import { DashboardShell } from "@/components/dashboard/dashboard-shell";
 
 export default function AuditorLayout({ children }: { children: ReactNode }) {
 	return (
-		<AuthGuard allowedRoles={["AUDITOR"]}>
+		<AuthGuard allowedRoles={["AUDITOR"]} allowManagerAuditorAccess>
 			<DashboardShell variant="auditor">{children}</DashboardShell>
 		</AuthGuard>
 	);

@@ -8,13 +8,23 @@ import { getRouteForUser, type UserRole } from "@/lib/auth/session";
 
 export function AuthGuard({
 	children,
-	allowedRoles
+	allowedRoles,
+	allowManagerAuditorAccess = false
 }: {
 	children: React.ReactNode;
 	allowedRoles: UserRole[];
+	allowManagerAuditorAccess?: boolean;
 }) {
 	const router = useRouter();
 	const { session, loading } = useAuth();
+	const hasRoleAccess = React.useMemo(() => {
+		if (!session) return false;
+		if (allowedRoles.includes(session.user.account_type)) return true;
+		if (allowManagerAuditorAccess && allowedRoles.includes("AUDITOR")) {
+			return session.user.account_type === "MANAGER" && session.user.has_auditor_profile;
+		}
+		return false;
+	}, [allowManagerAuditorAccess, allowedRoles, session]);
 
 	React.useEffect(() => {
 		if (loading) return;
@@ -26,13 +36,13 @@ export function AuthGuard({
 			router.replace(getRouteForUser(session.user));
 			return;
 		}
-		if (!allowedRoles.includes(session.user.account_type)) {
+		if (!hasRoleAccess) {
 			const fallback = session.user.dashboard_path;
 			router.replace(fallback);
 		}
-	}, [allowedRoles, loading, router, session]);
+	}, [hasRoleAccess, loading, router, session]);
 
-	if (loading || !session || session.user.next_step !== "DASHBOARD" || !allowedRoles.includes(session.user.account_type)) {
+	if (loading || !session || session.user.next_step !== "DASHBOARD" || !hasRoleAccess) {
 		return <main className="mx-auto max-w-4xl p-6 text-sm text-slate-600">Checking access...</main>;
 	}
 

@@ -16,6 +16,8 @@ export type SessionUser = {
 	profile_completed: boolean;
 	next_step: AuthNextStep;
 	dashboard_path: string;
+	has_auditor_profile: boolean;
+	auditor_dashboard_path: string | null;
 };
 
 export type FrontendSession = {

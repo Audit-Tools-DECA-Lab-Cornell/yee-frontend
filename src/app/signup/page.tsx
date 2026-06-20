@@ -23,6 +23,17 @@ export default function SignupPage() {
 	const [submitting, setSubmitting] = React.useState(false);
 	const [error, setError] = React.useState<string | null>(null);
 
+	async function submitSignup(confirmNewOrganization: boolean) {
+		await signup({
+			name,
+			email,
+			password,
+			organization,
+			account_type: "MANAGER",
+			confirm_new_organization: confirmNewOrganization || undefined
+		});
+	}
+
 	React.useEffect(() => {
 		if (!loading && session) {
 			router.replace(getRouteForUser(session.user));
@@ -35,16 +46,24 @@ export default function SignupPage() {
 		setError(null);
 
 		try {
-			await signup({
-				name,
-				email,
-				password,
-				organization,
-				account_type: "MANAGER"
-			});
+			await submitSignup(false);
 			router.push(`/verify-email?email=${encodeURIComponent(email)}`);
 		} catch (err) {
-			setError(err instanceof Error ? err.message : "Signup failed.");
+			const message = err instanceof Error ? err.message : "Signup failed.";
+			if (message.includes("Creating a new organization will remove you from that organization")) {
+				const confirmed = window.confirm(message);
+				if (confirmed) {
+					try {
+						await submitSignup(true);
+						router.push(`/login?email=${encodeURIComponent(email)}`);
+						return;
+					} catch (confirmErr) {
+						setError(confirmErr instanceof Error ? confirmErr.message : "Signup failed.");
+						return;
+					}
+				}
+			}
+			setError(message);
 		} finally {
 			setSubmitting(false);
 		}
@@ -61,6 +80,9 @@ export default function SignupPage() {
 					<h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950">Create an organization account</h2>
 					<p className="mt-2 text-sm leading-6 text-slate-600">
 						This signup is for the primary manager who is creating a new organization account. Auditors and additional managers should join through manager-issued invites.
+					</p>
+					<p className="mt-2 text-sm leading-6 text-slate-500">
+						If you were already invited as a secondary manager, the system will warn you before letting this signup create a separate organization.
 					</p>
 				</div>
 

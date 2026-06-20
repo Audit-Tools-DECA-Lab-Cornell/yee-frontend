@@ -181,6 +181,28 @@ export type ManagerInviteRecord = {
 	accepted_at?: string | null;
 };
 
+export type ManagerProfileRecord = {
+	id: string;
+	full_name: string;
+	email: string;
+	job_title?: string | null;
+	profession_disciplines: string[];
+	organization?: string | null;
+	phone_number?: string | null;
+	manager_type: string;
+	date_joined: string;
+	account_creation_date?: string | null;
+	profile_completed: boolean;
+};
+
+export type CreateSelfAuditorProfileRecord = {
+	id: string;
+	auditor_id: string;
+	email?: string | null;
+	full_name: string;
+	account_id: string;
+};
+
 export type AssignmentRecord = {
 	created_count: number;
 	existing_count: number;
@@ -330,7 +352,7 @@ export type RawDataRecord = {
 async function authedFetch<T>(
 	path: string,
 	session: FrontendSession,
-	init?: { method?: "GET" | "POST" | "PATCH" | "DELETE"; body?: unknown }
+	init?: { method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE"; body?: unknown }
 ): Promise<T> {
 	const response = await fetch(path, {
 		method: init?.method ?? "GET",
@@ -519,10 +541,46 @@ export function createAuditorInvite(session: FrontendSession, payload: { email: 
 	});
 }
 
-export function createManagerInvite(session: FrontendSession, payload: { email: string }) {
+export function createManagerInvite(session: FrontendSession, payload: { full_name: string; email: string }) {
 	return authedFetch<ManagerInviteRecord>("/api/dashboard/manager-invites", session, {
 		method: "POST",
 		body: payload
+	});
+}
+
+export function fetchManagerProfile(session: FrontendSession) {
+	return authedFetch<ManagerProfileRecord>("/api/dashboard/manager-profile", session);
+}
+
+export function updateManagerProfile(
+	session: FrontendSession,
+	payload: {
+		full_name: string;
+		job_title: string;
+		profession_disciplines: string[];
+		organization: string;
+		phone_number?: string;
+	}
+) {
+	return authedFetch<ManagerProfileRecord>("/api/dashboard/manager-profile", session, {
+		method: "PUT",
+		body: payload
+	});
+}
+
+export function fetchManagers(session: FrontendSession) {
+	return authedFetch<ManagerProfileRecord[]>("/api/dashboard/managers", session);
+}
+
+export function removeManager(session: FrontendSession, managerProfileId: string) {
+	return authedFetch<null>(`/api/dashboard/managers/${managerProfileId}`, session, {
+		method: "DELETE"
+	});
+}
+
+export function createMyAuditorProfile(session: FrontendSession) {
+	return authedFetch<CreateSelfAuditorProfileRecord>("/api/dashboard/my-auditor-profile", session, {
+		method: "POST"
 	});
 }
 

@@ -13,6 +13,7 @@ type SignupPayload = {
 	password: string;
 	organization: string;
 	account_type: "MANAGER";
+	confirm_new_organization?: boolean;
 };
 
 type LoginResponse = {
@@ -129,13 +130,13 @@ export async function resetPassword(token: string, password: string): Promise<{ 
 	});
 }
 
-export async function completeProfile(accessToken: string, name: string): Promise<SessionUser> {
+export async function completeProfile(accessToken: string, payload: CompleteProfilePayload): Promise<SessionUser> {
 	const data = await apiRequest<SessionResponse>("/api/auth/complete-profile", {
 		method: "POST",
 		headers: {
 			Authorization: `Bearer ${accessToken}`
 		},
-		body: JSON.stringify({ name })
+		body: JSON.stringify(payload)
 	});
 
 	return data.user;
@@ -182,3 +183,10 @@ export async function acceptManagerInvite(
 		user: data.user
 	};
 }
+type CompleteProfilePayload = {
+	full_name: string;
+	job_title: string;
+	profession_disciplines: string[];
+	organization: string;
+	phone_number?: string;
+};

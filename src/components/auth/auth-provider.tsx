@@ -15,9 +15,16 @@ type AuthContextValue = {
 		password: string;
 		organization: string;
 		account_type: "MANAGER";
+		confirm_new_organization?: boolean;
 	}) => Promise<void>;
 	refreshSession: () => Promise<FrontendSession | null>;
-	completeProfile: (name: string) => Promise<FrontendSession>;
+	completeProfile: (payload: {
+		full_name: string;
+		job_title: string;
+		profession_disciplines: string[];
+		organization: string;
+		phone_number?: string;
+	}) => Promise<FrontendSession>;
 	adoptSession: (session: FrontendSession) => void;
 	logout: () => void;
 	loading: boolean;
@@ -99,12 +106,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 					return null;
 				}
 			},
-			completeProfile: async name => {
+			completeProfile: async payload => {
 				const stored = loadSession();
 				if (!stored) {
 					throw new Error("You need to log in again.");
 				}
-				const user = await completeProfile(stored.accessToken, name);
+				const user = await completeProfile(stored.accessToken, payload);
 				const nextSession = { accessToken: stored.accessToken, user };
 				saveSession(nextSession);
 				setSession(nextSession);
