@@ -74,7 +74,7 @@ export default function InviteAuditorPage() {
 
 					<div className="flex flex-wrap gap-3">
 						<Button type="submit" isLoading={saving}>
-							{saving ? "Creating invite\u2026" : "Create invite"}
+							{saving ? "Creating invite..." : "Create invite"}
 						</Button>
 						<Button asChild variant="outline">
 							<Link href="/dashboard/auditors">Back to auditors</Link>

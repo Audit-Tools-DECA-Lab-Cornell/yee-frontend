@@ -52,13 +52,13 @@ function getManagerQuickLinks(isPrimaryManager: boolean) {
 		},
 		...(isPrimaryManager
 			? [
-					{
-						title: "Invite New Manager",
-						description: "Add another manager into this same organization account.",
-						href: "/dashboard/managers/invite",
-						icon: ShieldPlus
-					}
-				]
+				{
+					title: "Invite New Manager",
+					description: "Add another manager into this same organization account.",
+					href: "/dashboard/managers/invite",
+					icon: ShieldPlus
+				}
+			]
 			: [])
 	];
 }
@@ -155,7 +155,7 @@ function useDashboardData<T>(loader: (session: NonNullable<ReturnType<typeof use
 function LoadingCard({ label }: { label: string }) {
 	return (
 		<Card className="rounded-lg ">
-			<CardContent className="p-6 text-sm text-muted-foreground">Loading {label}\u2026</CardContent>
+			<CardContent className="p-6 text-sm text-muted-foreground">Loading {label}...</CardContent>
 		</Card>
 	);
 }
@@ -320,10 +320,10 @@ export function LiveManagerOverview() {
 	const averageCapPercentage =
 		submittedRows.length > 0
 			? submittedRows.reduce((sum, row) => {
-					const denominator = getYouthWeightedScoreMaximum(row.domain_weights);
-					if (denominator <= 0) return sum;
-					return sum + (row.total_weighted_score / denominator) * 100;
-				}, 0) / submittedRows.length
+				const denominator = getYouthWeightedScoreMaximum(row.domain_weights);
+				if (denominator <= 0) return sum;
+				return sum + (row.total_weighted_score / denominator) * 100;
+			}, 0) / submittedRows.length
 			: null;
 	const activePlaces = getMetricValue(data.metrics, "place");
 	const auditsLogged = getMetricValue(data.metrics, "audit");
@@ -1395,21 +1395,21 @@ export function LiveAuditsTable() {
 														audit.submission_id && current.includes(audit.submission_id)
 												)
 													? current.filter(
-															id =>
-																!filteredAudits.some(
-																	audit => audit.submission_id === id
-																)
-														)
+														id =>
+															!filteredAudits.some(
+																audit => audit.submission_id === id
+															)
+													)
 													: Array.from(
-															new Set([
-																...current,
-																...filteredAudits
-																	.map(audit => audit.submission_id)
-																	.filter((submissionId): submissionId is string =>
-																		Boolean(submissionId)
-																	)
-															])
-														)
+														new Set([
+															...current,
+															...filteredAudits
+																.map(audit => audit.submission_id)
+																.filter((submissionId): submissionId is string =>
+																	Boolean(submissionId)
+																)
+														])
+													)
 											)
 										}
 									/>
@@ -1469,9 +1469,9 @@ export function LiveAuditsTable() {
 														(
 														{totalRawScoreMaximum
 															? (
-																	(audit.total_raw_score / totalRawScoreMaximum) *
-																	100
-																).toFixed(0)
+																(audit.total_raw_score / totalRawScoreMaximum) *
+																100
+															).toFixed(0)
 															: "0"}
 														%)
 													</span>
@@ -1504,9 +1504,9 @@ export function LiveAuditsTable() {
 															});
 															return denominator
 																? (
-																		(audit.total_weighted_score / denominator) *
-																		100
-																	).toFixed(0)
+																	(audit.total_weighted_score / denominator) *
+																	100
+																).toFixed(0)
 																: "0";
 														})()}
 														%)

@@ -43,7 +43,7 @@ export function AuthGuard({
 	}, [hasRoleAccess, loading, router, session]);
 
 	if (loading || !session || session.user.next_step !== "DASHBOARD" || !hasRoleAccess) {
-		return <main className="mx-auto max-w-4xl p-6 text-sm text-slate-600">Checking access\u2026</main>;
+		return <main className="mx-auto max-w-4xl p-6 text-sm text-slate-600">Checking access...</main>;
 	}
 
 	return <>{children}</>;

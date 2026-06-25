@@ -165,7 +165,7 @@ export default function SignupPage() {
 						) : null}
 
 						<Button type="submit" className="w-full" isLoading={submitting}>
-							{submitting ? "Creating account\u2026" : "Create account"}
+							{submitting ? "Creating account..." : "Create account"}
 						</Button>
 					</form>
 

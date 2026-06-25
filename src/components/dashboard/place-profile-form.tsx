@@ -564,18 +564,16 @@ export function PlaceProfileForm({
 								key={option}
 								type="button"
 								onClick={() => update("placeType", option)}
-								className={`flex w-full rounded-sm px-2 py-2 text-left text-sm transition hover:bg-accent hover:text-accent-foreground ${
-									values.placeType === option ? "bg-emerald-50 text-emerald-900" : "text-foreground"
-								}`}>
+								className={`flex w-full rounded-sm px-2 py-2 text-left text-sm transition hover:bg-accent hover:text-accent-foreground ${values.placeType === option ? "bg-emerald-50 text-emerald-900" : "text-foreground"
+									}`}>
 								{option}
 							</button>
 						))}
 						<button
 							type="button"
 							onClick={() => update("placeType", "Other")}
-							className={`flex w-full rounded-sm px-2 py-2 text-left text-sm transition hover:bg-accent hover:text-accent-foreground ${
-								values.placeType === "Other" ? "bg-emerald-50 text-emerald-900" : "text-foreground"
-							}`}>
+							className={`flex w-full rounded-sm px-2 py-2 text-left text-sm transition hover:bg-accent hover:text-accent-foreground ${values.placeType === "Other" ? "bg-emerald-50 text-emerald-900" : "text-foreground"
+								}`}>
 							Other
 						</button>
 					</DropdownMenuContent>
@@ -769,7 +767,7 @@ export function PlaceProfileForm({
 					type="submit"
 					className="rounded-lg bg-primary text-white hover:bg-primary/90"
 					disabled={saving || loadingProjects || projects.length === 0}>
-					{saving ? "Saving\u2026" : submitLabel}
+					{saving ? "Saving..." : submitLabel}
 				</Button>
 				<Button asChild variant="outline" className="rounded-lg">
 					<Link href={cancelHref}>{cancelLabel}</Link>

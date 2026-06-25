@@ -204,7 +204,7 @@ export function InstrumentEditor({
 						onClick={handleSave}
 						disabled={!canSave}>
 						{isPending
-							? "Saving\u2026"
+							? "Saving..."
 							: activateOnCreate
 								? "Save and Publish Version"
 								: "Save Draft Version"}

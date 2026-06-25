@@ -29,7 +29,7 @@ export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 		Object.values(config.pageCopy)[0];
 
 	const userDisplayName = session?.user ? getUserDisplayName(session.user) : null;
-	const userInitials = session?.user ? getUserInitials(session.user) : "\u2026";
+	const userInitials = session?.user ? getUserInitials(session.user) : "...";
 	const userRoleLabel = session?.user ? getUserRoleLabel(session.user.account_type) : "";
 
 	return (
@@ -91,8 +91,8 @@ export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 
 					{/* Role-switch links */}
 					{variant === "manager" &&
-					session?.user.has_auditor_profile &&
-					session.user.auditor_dashboard_path ? (
+						session?.user.has_auditor_profile &&
+						session.user.auditor_dashboard_path ? (
 						<Button asChild variant="outline" size="sm" className="hidden lg:inline-flex">
 							<Link href={session.user.auditor_dashboard_path}>Auditor view</Link>
 						</Button>

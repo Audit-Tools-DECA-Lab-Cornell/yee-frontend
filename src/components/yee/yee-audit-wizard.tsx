@@ -712,9 +712,9 @@ function draftFromAuditState(placeId: string, state: YeeAuditState): YeeAuditDra
 		submittedAt: state.submitted_at,
 		lastResult: state.submission_id
 			? {
-					id: state.submission_id,
-					totalScore: state.score?.total_score ?? 0
-				}
+				id: state.submission_id,
+				totalScore: state.score?.total_score ?? 0
+			}
 			: null,
 		scorePreview: state.score ? buildWeightedScorePreview(state.score, weights) : null
 	};
@@ -784,9 +784,9 @@ function draftFromStoredRecord(
 		lastResult:
 			record.submission_id || record.id
 				? {
-						id: record.submission_id || record.id || "",
-						totalScore: record.score.total_score
-					}
+					id: record.submission_id || record.id || "",
+					totalScore: record.score.total_score
+				}
 				: null,
 		scorePreview
 	};
@@ -815,9 +815,8 @@ function OptionCards({
 			{options.map(option => (
 				<label
 					key={`${name}-${option.value}`}
-					className={`rounded-lg border px-4 py-3 text-sm transition ${
-						readOnly ? "cursor-default" : "cursor-pointer"
-					} ${value === option.value ? `border-2 ${palette.selected}` : `border ${palette.idle}`}`}>
+					className={`rounded-lg border px-4 py-3 text-sm transition ${readOnly ? "cursor-default" : "cursor-pointer"
+						} ${value === option.value ? `border-2 ${palette.selected}` : `border ${palette.idle}`}`}>
 					<input
 						type="radio"
 						name={name}
@@ -854,9 +853,8 @@ function MultiSelectCards({
 				return (
 					<label
 						key={`${name}-${option.value}`}
-						className={`cursor-pointer rounded-2xl border px-4 py-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] transition ${
-							checked ? palette.selected : palette.idle
-						}`}>
+						className={`cursor-pointer rounded-2xl border px-4 py-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] transition ${checked ? palette.selected : palette.idle
+							}`}>
 						<input
 							type="checkbox"
 							name={name}
@@ -1467,7 +1465,7 @@ export function YeeAuditWizard({
 				Math.max(
 					1,
 					Math.round((now.getTime() - new Date(`${draft.auditDate}T${draft.startTime}`).getTime()) / 60000) ||
-						0
+					0
 				);
 			const submissionDraft = { ...draft, finishTime, totalMinutes };
 			const participantInfo = buildParticipantInfo(submissionDraft);
@@ -1521,9 +1519,9 @@ export function YeeAuditWizard({
 			const submittedAt = typeof data.submitted_at === "string" ? data.submitted_at : now.toISOString();
 			const preview = scorePayload
 				? buildWeightedScorePreview(
-						scorePayload as Parameters<typeof buildWeightedScorePreview>[0],
-						submissionDraft.weights
-					)
+					scorePayload as Parameters<typeof buildWeightedScorePreview>[0],
+					submissionDraft.weights
+				)
 				: draft.scorePreview;
 			const nextDraft = {
 				...submissionDraft,
@@ -1531,9 +1529,9 @@ export function YeeAuditWizard({
 				lastResult:
 					typeof data.id === "string"
 						? {
-								id: data.id,
-								totalScore: typeof scorePayload?.total_score === "number" ? scorePayload.total_score : 0
-							}
+							id: data.id,
+							totalScore: typeof scorePayload?.total_score === "number" ? scorePayload.total_score : 0
+						}
 						: draft.lastResult,
 				scorePreview: preview
 			};
@@ -1776,7 +1774,7 @@ export function YeeAuditWizard({
 								<Card elevation="flat">
 									<CardContent className="py-6 text-sm text-muted-foreground">
 										{previewLoading
-											? "Generating score preview\u2026"
+											? "Generating score preview..."
 											: "Score preview has not been generated yet."}
 									</CardContent>
 								</Card>
@@ -1797,10 +1795,10 @@ export function YeeAuditWizard({
 									variant="outline"
 									isLoading={previewLoading}
 									onClick={() => void refreshScorePreview()}>
-									{previewLoading ? "Recalculating\u2026" : "Recalculate score preview"}
+									{previewLoading ? "Recalculating..." : "Recalculate score preview"}
 								</Button>
 								<Button type="button" isLoading={submitting} onClick={() => void submitAudit()}>
-									{submitting ? "Submitting\u2026" : "Submit audit"}
+									{submitting ? "Submitting..." : "Submit audit"}
 								</Button>
 							</div>
 							<p className="text-xs text-muted-foreground">
@@ -1809,7 +1807,7 @@ export function YeeAuditWizard({
 							<div className="flex items-center gap-2">
 								<AuditSaveStatus status={wizardSaveStatus} />
 								{persisting ? (
-									<span className="text-xs text-muted-foreground">Saving latest answers\u2026</span>
+									<span className="text-xs text-muted-foreground">Saving latest answers...</span>
 								) : null}
 							</div>
 							{error ? (
@@ -1870,11 +1868,10 @@ export function YeeAuditWizard({
 							onClick={() => void goToStep(entry.step)}
 							disabled={step === entry.step}
 							aria-current={step === entry.step ? "step" : undefined}
-							className={`rounded-lg border px-3 py-2.5 text-left text-xs font-medium transition-colors ${
-								step === entry.step
+							className={`rounded-lg border px-3 py-2.5 text-left text-xs font-medium transition-colors ${step === entry.step
 									? "border-[var(--yee-green-600)] bg-[var(--yee-green-100)] text-[var(--yee-green-900)]"
 									: "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
-							}`}>
+								}`}>
 							<span className="block font-semibold">{getShortStepLabel(entry.step)}</span>
 						</button>
 					))}
@@ -1970,21 +1967,20 @@ export function YeeAuditWizard({
 						{Object.entries(yeeDomainLabels).map(([key, label]) => (
 							<Card
 								key={key}
-								className={`rounded-lg shadow-sm ${
-									getSurfacePalette(
-										key === "access"
-											? 3
-											: key === "activitySpaces"
-												? 4
-												: key === "amenities"
-													? 5
-													: key === "experienceOfSpace"
-														? 6
-														: key === "aestheticsAndCare"
-															? 7
-															: 8
-									).card
-								}`}>
+								className={`rounded-lg shadow-sm ${getSurfacePalette(
+									key === "access"
+										? 3
+										: key === "activitySpaces"
+											? 4
+											: key === "amenities"
+												? 5
+												: key === "experienceOfSpace"
+													? 6
+													: key === "aestheticsAndCare"
+														? 7
+														: 8
+								).card
+									}`}>
 								<CardHeader>
 									<CardTitle className="text-lg font-semibold">{label}</CardTitle>
 								</CardHeader>
@@ -2265,7 +2261,7 @@ function SubmittedAuditConfirmation({
 							</Button>
 						) : null}
 					</div>
-					{loading ? <p>Loading submitted audit details\u2026</p> : null}
+					{loading ? <p>Loading submitted audit details...</p> : null}
 					{loadError ? <p className="text-red-700">{loadError}</p> : null}
 				</CardContent>
 			</Card>

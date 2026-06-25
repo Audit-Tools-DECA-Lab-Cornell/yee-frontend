@@ -107,7 +107,7 @@ function LoginPageInner() {
 					) : null}
 
 					<Button type="submit" className="w-full" isLoading={submitting}>
-						{submitting ? "Signing in\u2026" : "Sign in"}
+						{submitting ? "Signing in..." : "Sign in"}
 					</Button>
 				</form>
 

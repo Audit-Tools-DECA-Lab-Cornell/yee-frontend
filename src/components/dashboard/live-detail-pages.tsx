@@ -32,7 +32,7 @@ function buildStaticMapUrl(apiKey: string | undefined, query: string) {
 function LoadingState({ label }: { label: string }) {
 	return (
 		<Card className="rounded-lg border-border/80 bg-white shadow-sm">
-			<CardContent className="p-6 text-sm text-muted-foreground">Loading {label}\u2026</CardContent>
+			<CardContent className="p-6 text-sm text-muted-foreground">Loading {label}...</CardContent>
 		</Card>
 	);
 }
@@ -299,7 +299,7 @@ function ProjectAuditorsTable({
 												disabled={removingAuditorId === auditor.id}
 												onClick={() => onRemove(auditor)}>
 												{removingAuditorId === auditor.id
-													? "Removing\u2026"
+													? "Removing..."
 													: "Remove from project"}
 											</Button>
 										) : null}
@@ -366,7 +366,7 @@ function PlaceAuditorsTable({
 												className="rounded-lg"
 												disabled={removingAuditorId === auditor.id}
 												onClick={() => onRemove(auditor)}>
-												{removingAuditorId === auditor.id ? "Removing\u2026" : "Unassign"}
+												{removingAuditorId === auditor.id ? "Removing..." : "Unassign"}
 											</Button>
 										) : null}
 									</td>
@@ -920,9 +920,9 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 										</a>
 									</Button>
 									{data.lat !== null &&
-									data.lat !== undefined &&
-									data.lng !== null &&
-									data.lng !== undefined ? (
+										data.lat !== undefined &&
+										data.lng !== null &&
+										data.lng !== undefined ? (
 										<p className="self-center text-xs text-muted-foreground">
 											GPS pin: {data.lat.toFixed(5)}, {data.lng.toFixed(5)}
 										</p>

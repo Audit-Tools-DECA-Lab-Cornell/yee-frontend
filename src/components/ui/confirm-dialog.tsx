@@ -73,7 +73,7 @@ export function ConfirmDialog({
 							e.preventDefault();
 							void handleConfirm();
 						}}>
-						{isPending ? `${confirmLabel}\u2026` : confirmLabel}
+						{isPending ? `${confirmLabel}...` : confirmLabel}
 					</AlertDialogAction>
 				</AlertDialogFooter>
 			</AlertDialogContent>

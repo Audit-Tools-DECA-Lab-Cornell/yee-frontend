@@ -430,7 +430,7 @@ export function SiteCopyAdminPanel() {
 								className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]"
 								onClick={() => void handleCreate()}
 								disabled={saving || !versionLabel.trim()}>
-								{saving ? "Saving\u2026" : "Save Website Copy Version"}
+								{saving ? "Saving..." : "Save Website Copy Version"}
 							</Button>
 							{success ? <p className="text-sm text-emerald-700">{success}</p> : null}
 							{error ? <p className="text-sm text-rose-700">{error}</p> : null}

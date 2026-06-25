@@ -169,7 +169,7 @@ export default function InviteManagerPage() {
 
 						<div className="flex flex-wrap gap-3">
 							<Button type="submit" isLoading={saving}>
-								{saving ? "Creating invite\u2026" : "Create invite"}
+								{saving ? "Creating invite..." : "Create invite"}
 							</Button>
 							<Button asChild variant="outline">
 								<Link href="/dashboard">Back to dashboard</Link>
@@ -265,7 +265,7 @@ export default function InviteManagerPage() {
 															actingInviteId === row.id || row.status === "ACCEPTED"
 														}
 														onClick={() => handleResend(row.id)}>
-														{actingInviteId === row.id ? "Working\u2026" : "Resend"}
+														{actingInviteId === row.id ? "Working..." : "Resend"}
 													</Button>
 													<Button
 														type="button"

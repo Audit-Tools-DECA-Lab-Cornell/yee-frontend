@@ -130,7 +130,7 @@ export default function CompleteProfilePage() {
 							name="job-title"
 							type="text"
 							autoComplete="organization-title"
-							placeholder="Research coordinator, project lead\u2026"
+							placeholder="Research coordinator, project lead..."
 							value={jobTitle}
 							onChange={event => setJobTitle(event.target.value)}
 							required
@@ -189,7 +189,7 @@ export default function CompleteProfilePage() {
 						<Textarea
 							id="custom-disciplines"
 							name="custom-disciplines"
-							placeholder="Other disciplines, comma-separated\u2026"
+							placeholder="Other disciplines, comma-separated..."
 							value={customDisciplineText}
 							onChange={event => setCustomDisciplineText(event.target.value)}
 							rows={2}
@@ -230,7 +230,7 @@ export default function CompleteProfilePage() {
 
 					<div className="flex gap-3">
 						<Button type="submit" className="flex-1" isLoading={submitting}>
-							{submitting ? "Saving\u2026" : "Save and continue"}
+							{submitting ? "Saving..." : "Save and continue"}
 						</Button>
 						<Button asChild variant="outline">
 							<Link href="/login">Back to sign in</Link>

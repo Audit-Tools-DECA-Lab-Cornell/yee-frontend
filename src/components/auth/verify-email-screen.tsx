@@ -82,14 +82,14 @@ export function VerifyEmailScreen({ token, email }: { token?: string; email?: st
 
 	const statusDescription =
 		status === "success"
-			? "Your email is verified. Redirecting you to sign in\u2026"
+			? "Your email is verified. Redirecting you to sign in..."
 			: status === "error"
 				? "The verification link may be invalid or expired. You can request a new one below."
 				: "Open the link in the email we sent you. If you don\u2019t see it, check your spam folder.";
 
 	const defaultMessage =
 		token && status === "verifying"
-			? "Verifying your email address\u2026"
+			? "Verifying your email address..."
 			: "Check your inbox for the verification link.";
 
 	return (
@@ -122,7 +122,7 @@ export function VerifyEmailScreen({ token, email }: { token?: string; email?: st
 					</Button>
 					{status !== "success" ? (
 						<Button variant="outline" onClick={handleResend} isLoading={resending} disabled={!email}>
-							{resending ? "Resending\u2026" : "Resend verification email"}
+							{resending ? "Resending..." : "Resend verification email"}
 						</Button>
 					) : null}
 				</div>

@@ -65,7 +65,7 @@ function ResetPasswordPageInner() {
 						className="rounded-lg border border-[var(--yee-green-200)] bg-[var(--yee-green-50)] px-4 py-3 text-sm text-[var(--yee-green-900)]"
 						role="status"
 						aria-live="polite">
-						{message} Redirecting to sign in\u2026
+						{message} Redirecting to sign in...
 					</div>
 				) : (
 					<form className="space-y-4" onSubmit={handleSubmit} noValidate>
@@ -101,7 +101,7 @@ function ResetPasswordPageInner() {
 						) : null}
 
 						<Button type="submit" className="w-full" isLoading={submitting}>
-							{submitting ? "Updating password\u2026" : "Update password"}
+							{submitting ? "Updating password..." : "Update password"}
 						</Button>
 					</form>
 				)}

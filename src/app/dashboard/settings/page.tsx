@@ -286,7 +286,7 @@ export default function SettingsPage() {
 
 							<div className="md:col-span-2 flex flex-wrap gap-3">
 								<Button type="submit" isLoading={saving}>
-									{saving ? "Saving\u2026" : "Save manager profile"}
+									{saving ? "Saving..." : "Save manager profile"}
 								</Button>
 								<Button asChild variant="outline">
 									<Link href="/dashboard/managers/invite">Invite manager</Link>
@@ -327,7 +327,7 @@ export default function SettingsPage() {
 									isLoading={creatingAuditorProfile}
 									onClick={handleCreateAuditorProfile}>
 									{creatingAuditorProfile
-										? "Creating auditor profile\u2026"
+										? "Creating auditor profile..."
 										: "Create my auditor profile"}
 								</Button>
 							)}
@@ -390,7 +390,7 @@ export default function SettingsPage() {
 												</p>
 											</div>
 											{session?.user.is_primary_manager &&
-											member.manager_type !== "Primary Manager" ? (
+												member.manager_type !== "Primary Manager" ? (
 												<Button
 													type="button"
 													variant="outline"
@@ -399,7 +399,7 @@ export default function SettingsPage() {
 													isLoading={removingManagerId === member.id}
 													onClick={() => handleRemoveManager(member.id)}>
 													{removingManagerId === member.id
-														? "Removing\u2026"
+														? "Removing..."
 														: "Remove manager"}
 												</Button>
 											) : null}

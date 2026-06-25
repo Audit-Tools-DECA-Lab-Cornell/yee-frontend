@@ -339,7 +339,7 @@ export function ProjectProfileForm({
 					type="submit"
 					className="rounded-lg bg-primary text-white hover:bg-primary/90"
 					disabled={saving}>
-					{saving ? "Saving\u2026" : submitLabel}
+					{saving ? "Saving..." : submitLabel}
 				</Button>
 				<Button asChild variant="outline" className="rounded-lg">
 					<Link href={cancelHref}>{cancelLabel}</Link>

@@ -22,7 +22,7 @@ function AuditSaveStatus({ status, className }: AuditSaveStatusProps) {
 		},
 		saving: {
 			icon: <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />,
-			text: "Saving\u2026",
+			text: "Saving...",
 			color: "text-muted-foreground"
 		},
 		saved: {

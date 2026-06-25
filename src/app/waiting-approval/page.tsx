@@ -71,7 +71,7 @@ export default function WaitingApprovalPage() {
 
 				<div className="flex flex-wrap gap-3">
 					<Button onClick={handleRefresh} isLoading={refreshing}>
-						{refreshing ? "Checking\u2026" : "Check approval status"}
+						{refreshing ? "Checking..." : "Check approval status"}
 					</Button>
 					<Button variant="outline" onClick={logout}>
 						Sign out
