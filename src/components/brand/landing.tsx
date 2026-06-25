@@ -27,16 +27,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Palette helpers — landing uses warm cream surfaces, distinct from app interior
+   Palette helpers - landing uses warm cream surfaces, distinct from app interior
 ───────────────────────────────────────────────────────────────────────────── */
 
-/** Warm cream page background — warmer than the app's cool-tinted white. */
+/** Warm cream page background - warmer than the app's cool-tinted white. */
 const CREAM = "oklch(0.975 0.012 80)";
 /** Slightly deeper cream for alternate sections. */
 const CREAM_ALT = "oklch(0.96 0.014 80)";
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Navigation — warm cream bar, charcoal type, brand-colored logo
+   Navigation - warm cream bar, charcoal type, brand-colored logo
 ───────────────────────────────────────────────────────────────────────────── */
 
 function LandingNav() {
@@ -48,7 +48,7 @@ function LandingNav() {
 				className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3.5 sm:px-6 lg:px-8"
 				aria-label="Main navigation">
 				{/* Brand */}
-				<Link href="/" aria-label="YEE — Youth Enabling Environments, go to home">
+				<Link href="/" aria-label="YEE - Youth Enabling Environments, go to home">
 					<BrandLogo variant="horizontalSubtitle" tone="light" className="h-9 w-auto" priority />
 				</Link>
 
@@ -102,7 +102,7 @@ function LandingNav() {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Hero — cream background, brand mark as hero visual (not a product screenshot)
+   Hero - cream background, brand mark as hero visual (not a product screenshot)
 ───────────────────────────────────────────────────────────────────────────── */
 
 function HeroSection() {
@@ -120,10 +120,10 @@ function HeroSection() {
 				aria-hidden="true"
 			/>
 
-			<div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8 lg:py-28">
+			<div className="relative mx-auto max-w-7xl px-4 pb-16 sm:px-6 sm:pb-20 lg:px-8 lg:pt-14">
 				<div className="grid items-center gap-12 lg:grid-cols-[1fr_auto] lg:gap-20">
-					{/* Left — text */}
-					<div className="max-w-2xl space-y-8">
+					{/* Left - text */}
+					<div className="max-w-2xl space-y-8 pt-8">
 						<div className="space-y-5">
 							<Badge
 								variant="success"
@@ -191,8 +191,8 @@ function HeroSection() {
 						</p>
 					</div>
 
-					{/* Right — brand mark as hero visual */}
-					<div className="flex justify-center lg:justify-end">
+					{/* Right - brand mark as hero visual */}
+					<div className="flex justify-center items-start -mt-10 pb-10 lg:justify-end">
 						<HeroMarkComposition />
 					</div>
 				</div>
@@ -202,7 +202,7 @@ function HeroSection() {
 }
 
 /**
- * The YEE logo mark is the hero visual — a large map-pin–with-leaf that
+ * The YEE logo mark is the hero visual - a large map-pin–with-leaf that
  * signals place, environment, and field research. Positioned over the report
  * mockup card so the brand and data artifact feel unified.
  */
@@ -213,16 +213,16 @@ function HeroMarkComposition() {
 			<div className="relative z-10">
 				<Image
 					src="/brand/logo-mark-gradient.png"
-					alt="YEE — map pin with leaf, symbolising youth-enabled places"
+					alt="YEE - map pin with leaf, symbolising youth-enabled places"
 					width={1024}
 					height={1024}
 					priority
-					className="h-auto w-52 select-none drop-shadow-sm sm:w-64 lg:w-72"
+					className="h-auto w-44 select-none drop-shadow-sm sm:w-52 lg:w-60"
 				/>
 			</div>
 
-			{/* Report card — partially behind the mark */}
-			<div className="relative -mt-10 z-0 w-72 sm:w-80 lg:w-96">
+			{/* Report card - partially behind the mark */}
+			<div className="relative -mt-8 z-0 w-64 sm:w-72 lg:w-80">
 				<ReportMockupCard />
 			</div>
 		</div>
@@ -323,7 +323,7 @@ function ReportMockupCard() {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Identity Band — dark green strip with stacked logo; brand moment
+   Identity Band - dark green strip with stacked logo; brand moment
 ───────────────────────────────────────────────────────────────────────────── */
 
 function IdentityBand() {
@@ -343,7 +343,7 @@ function IdentityBand() {
 
 			<div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 				<div className="grid items-center gap-10 lg:grid-cols-[auto_1fr]">
-					{/* Stacked logo — large brand moment */}
+					{/* Stacked logo - large brand moment */}
 					<div className="flex justify-center lg:justify-start">
 						<BrandLogo variant="stackedSubtitle" tone="dark" className="h-auto w-36 sm:w-44 lg:w-52" />
 					</div>
@@ -434,7 +434,7 @@ function ProblemSection() {
 						id="problem-heading"
 						className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl"
 						style={{ color: "oklch(0.14 0.006 240)" }}>
-						Public spaces need youth voices — in a form that drives change.
+						Public spaces need youth voices - in a form that drives change.
 					</h2>
 					<p className="mt-4 text-base leading-relaxed text-muted-foreground">
 						Youth experience parks and community spaces differently than adults. But that experience rarely
@@ -499,11 +499,11 @@ function SolutionSection() {
 							Every audit collects evidence that actually travels.
 						</h2>
 						<p className="mt-4 text-base leading-relaxed text-muted-foreground">
-							YEE structures youth observations into a rigorous evidence base — from first observation
+							YEE structures youth observations into a rigorous evidence base - from first observation
 							through to exportable reports that planners, researchers, and funders can use directly.
 						</p>
 
-						{/* Brand mark — decorative, reinforces place-based identity */}
+						{/* Brand mark - decorative, reinforces place-based identity */}
 						<div className="mt-8 flex items-center gap-4">
 							<Image
 								src="/brand/logo-mark.png"
@@ -563,13 +563,13 @@ function HowItWorksSection() {
 			number: "02",
 			icon: MapPin,
 			title: "Add Places & Assign Auditors",
-			body: "Add parks, recreation areas, or community spaces to the project. Invite youth auditors by email — they receive guided access to their assigned places."
+			body: "Add parks, recreation areas, or community spaces to the project. Invite youth auditors by email - they receive guided access to their assigned places."
 		},
 		{
 			number: "03",
 			icon: ClipboardList,
 			title: "Complete the Audit",
-			body: "Auditors use the structured YEE instrument — a multi-step, domain-based form — to record observations, conditions, and comments for each space."
+			body: "Auditors use the structured YEE instrument - a multi-step, domain-based form - to record observations, conditions, and comments for each space."
 		},
 		{
 			number: "04",
@@ -648,7 +648,7 @@ function HowItWorksSection() {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Domains — dark green panel (inverted), starkly different from COPA
+   Domains - dark green panel (inverted), starkly different from COPA
 ───────────────────────────────────────────────────────────────────────────── */
 
 type DomainCard = {
@@ -663,7 +663,7 @@ function DomainsSection() {
 			icon: MapPin,
 			name: "Access",
 			description:
-				"How easily youth can reach and enter the space — pathways, entrances, and barriers to movement."
+				"How easily youth can reach and enter the space - pathways, entrances, and barriers to movement."
 		},
 		{
 			icon: Dumbbell,
@@ -678,7 +678,7 @@ function DomainsSection() {
 		{
 			icon: Heart,
 			name: "Experience",
-			description: "How welcoming, safe, and enjoyable youth find the space — sense of belonging and comfort."
+			description: "How welcoming, safe, and enjoyable youth find the space - sense of belonging and comfort."
 		},
 		{
 			icon: Sparkles,
@@ -698,7 +698,7 @@ function DomainsSection() {
 			className="relative overflow-hidden py-16 sm:py-20 lg:py-24"
 			style={{ background: "var(--yee-green-950)" }}
 			aria-labelledby="domains-heading">
-			{/* Watermark logo mark — large decorative element */}
+			{/* Watermark logo mark - large decorative element */}
 			<div
 				className="pointer-events-none absolute -right-16 -top-16 opacity-[0.05] sm:opacity-[0.07]"
 				aria-hidden="true">
@@ -784,7 +784,7 @@ function ScoringSection() {
 							Scores that reflect what youth actually value.
 						</h2>
 						<p className="mt-4 text-base leading-relaxed text-muted-foreground">
-							YEE produces both a raw score — the straightforward average across all domains — and a
+							YEE produces both a raw score - the straightforward average across all domains - and a
 							youth-weighted score, which applies weights based on evidence of what young people
 							prioritise most in public spaces.
 						</p>
@@ -1002,7 +1002,7 @@ function ReportsSection() {
 					</h2>
 					<p className="mt-4 text-base leading-relaxed text-muted-foreground">
 						YEE generates structured, professional reports the moment an audit is submitted. No manual
-						compilation, no reformatting — just evidence ready to share.
+						compilation, no reformatting - just evidence ready to share.
 					</p>
 				</div>
 
@@ -1037,7 +1037,7 @@ function ReportsSection() {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Final CTA — uses banner-light image as a featured brand visual
+   Final CTA - uses banner-light image as a featured brand visual
 ───────────────────────────────────────────────────────────────────────────── */
 
 function FinalCtaSection() {
@@ -1046,7 +1046,7 @@ function FinalCtaSection() {
 			className="relative overflow-hidden py-20 sm:py-24 lg:py-28"
 			style={{ background: "var(--yee-green-900)" }}
 			aria-labelledby="cta-heading">
-			{/* Banner image — large, faded, placed as background texture */}
+			{/* Banner image - large, faded, placed as background texture */}
 			<div className="pointer-events-none absolute inset-0 flex items-center justify-end" aria-hidden="true">
 				<Image
 					src="/brand/banner-dark.png"
@@ -1114,7 +1114,7 @@ function FinalCtaSection() {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Footer — warm cream, uses horizontal subtitle logo
+   Footer - warm cream, uses horizontal subtitle logo
 ───────────────────────────────────────────────────────────────────────────── */
 
 function LandingFooter() {
@@ -1154,7 +1154,7 @@ function LandingFooter() {
 
 				<div className="mt-8 border-t pt-6" style={{ borderColor: "oklch(0 0 0 / 0.08)" }}>
 					<p className="text-center text-xs text-muted-foreground">
-						© {currentYear} YEE Audit Tools — Youth Enabling Environments. All rights reserved.
+						© {currentYear} YEE Audit Tools - Youth Enabling Environments. All rights reserved.
 					</p>
 				</div>
 			</div>

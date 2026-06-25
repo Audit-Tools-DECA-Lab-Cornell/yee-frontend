@@ -163,7 +163,7 @@ export function buildSpreadsheetRows(content: StructuredInstrumentContent | null
 			...group.items.map(item => ({
 				id: item.item_id,
 				number: item.item_id,
-				section: "—",
+				section: "-",
 				prompt: getDisplayQuestionText(item)
 			}))
 		];

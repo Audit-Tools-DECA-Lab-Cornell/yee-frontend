@@ -1100,7 +1100,7 @@ export function YeeAuditWizard({
 	const [error, setError] = React.useState<string | null>(null);
 	const hydratedRef = React.useRef(false);
 
-	// Confirm dialog state — replaces all window.confirm calls.
+	// Confirm dialog state - replaces all window.confirm calls.
 	type ConfirmState = {
 		open: boolean;
 		title: string;
@@ -1443,7 +1443,7 @@ export function YeeAuditWizard({
 			});
 			return;
 		}
-		// Use destructive variant — submission is irreversible.
+		// Use destructive variant - submission is irreversible.
 		openConfirm({
 			title: "Submit audit",
 			description: "Submit this audit now? After submission, you will not be able to edit the audit.",

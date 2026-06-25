@@ -75,7 +75,7 @@ export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 
 				{/* Right: actions + user */}
 				<div className="flex shrink-0 items-center gap-2">
-					{/* Command palette placeholder — visible intent for future search */}
+					{/* Command palette placeholder - visible intent for future search */}
 					<Button
 						variant="outline"
 						size="default"
@@ -107,7 +107,7 @@ export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 						</Button>
 					) : null}
 
-					{/* Notification bell — placeholder for future notification system */}
+					{/* Notification bell - placeholder for future notification system */}
 					<Button
 						variant="outline"
 						size="default"

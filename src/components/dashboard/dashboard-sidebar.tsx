@@ -20,7 +20,7 @@ export function DashboardSidebar({ variant, onNavigate }: { variant: WorkspaceVa
 		<div
 			className="flex h-full flex-col"
 			style={{ background: "var(--sidebar)", color: "var(--sidebar-foreground)" }}>
-			{/* Skip navigation target helper — the real skip link is in DashboardShell */}
+			{/* Skip navigation target helper - the real skip link is in DashboardShell */}
 			<a
 				href="#main-content"
 				className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-sm focus:bg-background focus:px-3 focus:py-1.5 focus:text-sm focus:font-medium focus:text-foreground focus:ring-2 focus:ring-ring">
@@ -85,7 +85,7 @@ export function DashboardSidebar({ variant, onNavigate }: { variant: WorkspaceVa
 					})}
 				</nav>
 
-				{/* Sidebar CTA card — only if meaningful for this workspace */}
+				{/* Sidebar CTA card - only if meaningful for this workspace */}
 				{config.sidebarCard ? (
 					<div
 						className="mt-8 rounded-md border p-4"

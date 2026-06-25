@@ -252,7 +252,7 @@ export function LiveRawDataTable({
 					<div className="overflow-x-auto rounded-md border border-border">
 						<table
 							className="min-w-full text-left text-sm"
-							aria-label={`${title} — ${filteredRows.length} rows`}>
+							aria-label={`${title} - ${filteredRows.length} rows`}>
 							<caption className="sr-only">
 								{title}: {filteredRows.length} of {rows.length} audit records shown
 							</caption>

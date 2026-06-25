@@ -23,7 +23,7 @@ const badgeVariants = cva(
 	}
 );
 
-/** Dot sizes mirror the badge text — 6px fills `text-xs` contexts well. */
+/** Dot sizes mirror the badge text - 6px fills `text-xs` contexts well. */
 const dotColorMap: Record<string, string> = {
 	default: "bg-primary-foreground",
 	secondary: "bg-secondary-foreground/60",

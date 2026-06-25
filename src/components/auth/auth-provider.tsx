@@ -81,7 +81,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 				const data = await apiGet<SessionResponse>("/api/auth/session");
 				if (!cancelled) setSession({ user: data.user });
 			} catch {
-				// 401 means no valid session — not an error state, just unauthenticated.
+				// 401 means no valid session - not an error state, just unauthenticated.
 				if (!cancelled) setSession(null);
 			} finally {
 				if (!cancelled) setLoading(false);

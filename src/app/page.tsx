@@ -17,7 +17,7 @@ import {
 } from "@/components/brand/landing";
 
 export const metadata: Metadata = {
-	title: "YEE — Youth Enabling Environments | Public Space Audit Tool",
+	title: "YEE - Youth Enabling Environments | Public Space Audit Tool",
 	description:
 		"YEE turns youth experience into structured evidence for better public spaces. Evaluate parks, recreation areas, and community spaces through youth-led audits, scoring, and clear reports.",
 	keywords: [
@@ -33,14 +33,14 @@ export const metadata: Metadata = {
 		"YEE audit"
 	],
 	openGraph: {
-		title: "YEE — Youth Enabling Environments",
+		title: "YEE - Youth Enabling Environments",
 		description:
 			"Evaluate parks, recreation areas, and community spaces through structured youth observations, scoring, and clear reports.",
 		type: "website"
 	},
 	twitter: {
 		card: "summary_large_image",
-		title: "YEE — Youth Enabling Environments",
+		title: "YEE - Youth Enabling Environments",
 		description: "Youth-led audits for better public spaces."
 	}
 };

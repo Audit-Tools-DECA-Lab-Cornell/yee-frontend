@@ -93,7 +93,7 @@ export function InstrumentEditor({
 					<CardTitle>Edit Draft Version</CardTitle>
 					<CardDescription>
 						Update wording across the tabs below, then save a new draft or publish it immediately. Changes
-						save into the version you create here — nothing is published until you save.
+						save into the version you create here - nothing is published until you save.
 					</CardDescription>
 				</div>
 				<Button type="button" variant="outline" className="rounded-lg" onClick={onCancel} disabled={isPending}>

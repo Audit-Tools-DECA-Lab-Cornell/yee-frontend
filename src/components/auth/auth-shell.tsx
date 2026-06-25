@@ -13,7 +13,7 @@ export function AuthShell({ eyebrow, title, description, children }: AuthShellPr
 	return (
 		<div className="min-h-dvh bg-background">
 			<div className="mx-auto grid min-h-dvh max-w-6xl lg:grid-cols-[minmax(0,1fr)_minmax(440px,520px)]">
-				{/* Brand panel — hidden on small screens */}
+				{/* Brand panel - hidden on small screens */}
 				<section
 					className="hidden flex-col justify-between border-r border-white/10 px-10 py-12 lg:flex"
 					style={{ background: "var(--sidebar)" }}
