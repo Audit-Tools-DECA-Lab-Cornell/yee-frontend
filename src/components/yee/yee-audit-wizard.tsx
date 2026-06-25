@@ -393,56 +393,6 @@ function getSectionIntroCopy(domain: YeeDomainKey) {
 	}
 }
 
-function getStepPalette(stepValue: YeeStepNumber) {
-	switch (stepValue) {
-		case 1:
-			return {
-				active: "border-sky-400 bg-gradient-to-br from-slate-50 via-sky-50 to-sky-100 text-slate-950 ring-2 ring-sky-200 shadow-[0_16px_32px_-24px_rgba(70,97,129,0.36)]",
-				idle: "border-sky-200 bg-slate-50 text-slate-900 hover:border-sky-300 hover:bg-sky-50"
-			};
-		case 2:
-			return {
-				active: "border-orange-300 bg-gradient-to-br from-[#fff7f2] via-[#fceee5] to-[#f7ddcc] text-[#6f3f1f] ring-2 ring-orange-100 shadow-[0_16px_32px_-24px_rgba(170,94,52,0.3)]",
-				idle: "border-orange-200 bg-[#fff8f4] text-[#7a4b2a] hover:border-orange-300 hover:bg-[#fdf0e7]"
-			};
-		case 3:
-		case 4: {
-			const theme = getThemeByStep(stepValue);
-			if (theme) {
-				return { active: theme.active, idle: theme.idle };
-			}
-			return {
-				active: "border-slate-400 bg-slate-100 text-slate-950 ring-2 ring-slate-200",
-				idle: "border-slate-200 bg-slate-50 text-slate-900 hover:border-slate-300 hover:bg-slate-100"
-			};
-		}
-		case 5:
-			return {
-				active: "border-amber-400 bg-gradient-to-br from-amber-50 via-amber-100 to-amber-200 text-amber-950 ring-2 ring-amber-200 shadow-[0_16px_32px_-24px_rgba(180,83,9,0.32)]",
-				idle: "border-amber-200 bg-amber-50/80 text-amber-900 hover:border-amber-300 hover:bg-amber-100/80"
-			};
-		case 6:
-			return {
-				active: "border-teal-400 bg-gradient-to-br from-teal-50 via-teal-100 to-teal-200 text-teal-950 ring-2 ring-teal-200 shadow-[0_16px_32px_-24px_rgba(17,94,89,0.34)]",
-				idle: "border-teal-200 bg-teal-50/80 text-teal-900 hover:border-teal-300 hover:bg-teal-100/80"
-			};
-		case 7:
-			return {
-				active: "border-rose-400 bg-gradient-to-br from-rose-50 via-rose-100 to-rose-200 text-rose-950 ring-2 ring-rose-200 shadow-[0_16px_32px_-24px_rgba(159,18,57,0.32)]",
-				idle: "border-rose-200 bg-rose-50/80 text-rose-900 hover:border-rose-300 hover:bg-rose-100/80"
-			};
-		case 8:
-			return {
-				active: "border-violet-400 bg-gradient-to-br from-violet-50 via-violet-100 to-violet-200 text-violet-950 ring-2 ring-violet-200 shadow-[0_16px_32px_-24px_rgba(91,33,182,0.34)]",
-				idle: "border-violet-200 bg-violet-50/80 text-violet-900 hover:border-violet-300 hover:bg-violet-100/80"
-			};
-		case 9:
-			return {
-				active: "border-emerald-400 bg-gradient-to-br from-emerald-50 via-emerald-100 to-emerald-200 text-emerald-950 ring-2 ring-emerald-200 shadow-[0_16px_32px_-24px_rgba(6,95,70,0.38)]",
-				idle: "border-emerald-200 bg-emerald-50/80 text-emerald-900 hover:border-emerald-300 hover:bg-emerald-100/80"
-			};
-	}
-}
 
 function getSurfacePalette(stepValue: YeeStepNumber) {
 	switch (stepValue) {
@@ -485,22 +435,22 @@ function getSurfacePalette(stepValue: YeeStepNumber) {
 			if (theme) {
 				return {
 					card: theme.card,
-					inner: theme.inner,
-					selected: theme.selected,
-					idle: theme.idle,
+					inner: "border-border bg-background/50",
+					selected: `border-2 ${theme.selectedBorderClass} ${theme.selectedBgClass} ${theme.textClass}`,
+					idle: theme.idleClass,
 					instruction: theme.instruction,
 					progress: theme.progress,
 					condition: theme.condition
 				};
 			}
 			return {
-				card: "border-slate-200/80 bg-slate-50",
-				inner: "border-slate-100 bg-white/92",
-				selected: "border-slate-600 bg-slate-200 text-slate-950 ring-1 ring-slate-300",
-				idle: "border-slate-200 bg-slate-50 text-slate-950 hover:border-slate-300 hover:bg-slate-100",
-				instruction: "border-slate-300 bg-slate-500 text-white",
-				progress: "border-slate-200/80 bg-slate-50/80",
-				condition: "border-slate-300 bg-slate-100/85"
+				card: "border-border bg-muted/30",
+				inner: "border-border bg-background/50",
+				selected: "border-2 border-[var(--yee-green-600)] bg-[var(--yee-green-50)] text-[var(--yee-green-900)]",
+				idle: "border-border bg-background text-muted-foreground hover:bg-muted",
+				instruction: "border-border bg-muted text-foreground",
+				progress: "border-border bg-muted/50",
+				condition: "border-border bg-muted"
 			};
 		}
 		case 5:
@@ -1632,6 +1582,15 @@ export function YeeAuditWizard({
 		);
 	}
 
+	const wizardSaveStatus: SaveStatusState =
+		autosaveStatus === "saving"
+			? "saving"
+			: autosaveStatus === "idle" && autosaveError
+				? "error"
+				: autosaveStatus === "idle" && !autosaveError
+					? "saved"
+					: "idle";
+
 	if (mode === "review") {
 		const reviewSections = (Object.keys(yeeDomainLabels) as Array<keyof typeof yeeDomainLabels>).map(domain => ({
 			domain,
@@ -1845,7 +1804,7 @@ export function YeeAuditWizard({
 								</Button>
 							</div>
 							<p className="text-xs text-muted-foreground">
-								Use "Recalculate score preview" after changing answers or section weights.
+								Use &ldquo;Recalculate score preview&rdquo; after changing answers or section weights.
 							</p>
 							<div className="flex items-center gap-2">
 								<AuditSaveStatus status={wizardSaveStatus} />
@@ -1875,15 +1834,6 @@ export function YeeAuditWizard({
 			</>
 		);
 	}
-
-	const wizardSaveStatus: SaveStatusState =
-		autosaveStatus === "saving"
-			? "saving"
-			: autosaveStatus === "idle" && autosaveError
-				? "error"
-				: autosaveStatus === "idle" && !autosaveError
-					? "saved"
-					: "idle";
 
 	return (
 		<>

@@ -203,7 +203,11 @@ export function InstrumentEditor({
 						className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]"
 						onClick={handleSave}
 						disabled={!canSave}>
-						{isPending ? "Saving\u2026" : activateOnCreate ? "Save and Publish Version" : "Save Draft Version"}
+						{isPending
+							? "Saving\u2026"
+							: activateOnCreate
+								? "Save and Publish Version"
+								: "Save Draft Version"}
 					</Button>
 				</div>
 			</CardContent>

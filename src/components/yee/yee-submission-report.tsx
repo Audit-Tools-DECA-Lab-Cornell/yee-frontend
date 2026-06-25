@@ -17,7 +17,6 @@ import { fetchSubmission, type YeeSubmissionRecord } from "@/lib/yee-audit-api";
 import { yeeDomainLabels, type YeeDomainKey } from "@/lib/yee-audit-config";
 import { yeeDomainThemes } from "@/lib/yee-domain-theme";
 import { buildWeightedScorePreview } from "@/lib/yee-scoring";
-import { formatDate, formatScore } from "@/lib/format";
 
 function normalizeText(value: string) {
 	return value

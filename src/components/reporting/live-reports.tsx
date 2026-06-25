@@ -23,7 +23,6 @@ import {
 	totalRawScoreMaximum
 } from "@/lib/yee-score-limits";
 import { yeeDomainThemes } from "@/lib/yee-domain-theme";
-import { formatDate, formatPercent } from "@/lib/format";
 
 type CompareMode = "places" | "audits" | "individual";
 type DateRangeValue = "all" | "30" | "90" | "180" | "365";
