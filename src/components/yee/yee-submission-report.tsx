@@ -17,6 +17,7 @@ import { fetchSubmission, type YeeSubmissionRecord } from "@/lib/yee-audit-api";
 import { yeeDomainLabels, type YeeDomainKey } from "@/lib/yee-audit-config";
 import { yeeDomainThemes } from "@/lib/yee-domain-theme";
 import { buildWeightedScorePreview } from "@/lib/yee-scoring";
+import { formatDate, formatScore } from "@/lib/format";
 
 function normalizeText(value: string) {
 	return value
@@ -211,9 +212,9 @@ function getWeightBubbleClasses(value: string) {
 		case "2":
 			return "border-lime-400 bg-lime-50 text-lime-900";
 		case "1":
-			return "border-slate-300 bg-white text-slate-800";
+			return "border-slate-300 bg-white text-foreground";
 		default:
-			return "border-slate-200 bg-white text-slate-700";
+			return "border-border bg-white text-foreground";
 	}
 }
 
@@ -325,22 +326,22 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 					}
 				}
 			`}</style>
-			<Card className="rounded-[2rem] border-slate-200/80 bg-white shadow-sm">
+			<Card className="rounded-xl border-border">
 				<CardHeader>
 					<CardTitle className="text-3xl">Submitted audit results</CardTitle>
 					<CardDescription>This is a locked, read-only report for the submitted YEE audit.</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-6">
 					<div className="grid gap-4 md:grid-cols-2 report-print-stack">
-						<div className="rounded-2xl bg-slate-50 p-4 text-sm leading-7 text-slate-700">
-							<p className="font-medium text-slate-900">Submission details</p>
+						<div className="rounded-lg bg-muted/40 p-4 text-sm leading-7 text-foreground">
+							<p className="font-medium text-foreground">Submission details</p>
 							<p>Place: {submission.place_name || submission.place_id}</p>
 							<p>Auditor ID: {submission.auditor_generated_id || submission.auditor_id}</p>
 							<p>Submitted at: {new Date(submission.submitted_at).toLocaleString()}</p>
 							<p>Submission ID: {submission.id}</p>
 						</div>
-						<div className="rounded-2xl bg-slate-50 p-4 text-sm leading-7 text-slate-700">
-							<p className="font-medium text-slate-900">Context</p>
+						<div className="rounded-lg bg-muted/40 p-4 text-sm leading-7 text-foreground">
+							<p className="font-medium text-foreground">Context</p>
 							<p>Date: {String(submission.participant_info.audit_date || "Not recorded")}</p>
 							<p>
 								Visit frequency: {String(submission.participant_info.visit_frequency || "Not recorded")}
@@ -350,7 +351,7 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 						</div>
 					</div>
 
-					<div className="rounded-2xl border border-emerald-300 bg-emerald-100/80 p-4">
+					<div className="rounded-lg border border-emerald-300 bg-emerald-100/80 p-4">
 						<p className="text-sm font-medium text-emerald-950">Section weighting used in this audit</p>
 						<p className="mt-2 text-sm leading-6 text-emerald-900/80">
 							Youth Weighted values are calculated by normalizing the participant&apos;s section weights,
@@ -363,7 +364,7 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 								return (
 									<div
 										key={domain}
-										className={`rounded-2xl border px-4 py-3 ${getWeightBubbleClasses(normalizedWeights[domain])}`}
+										className={`rounded-lg border px-4 py-3 ${getWeightBubbleClasses(normalizedWeights[domain])}`}
 										style={{
 											borderColor: theme.strongHex,
 											backgroundColor: theme.lightHex,
@@ -389,15 +390,15 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 					/>
 
 					<div className="grid gap-4 md:grid-cols-2 report-page-break report-no-break report-print-stack">
-						<div className="rounded-2xl border border-slate-200 p-4">
-							<p className="text-sm font-medium text-slate-900">Weighting comments</p>
-							<p className="mt-2 text-sm text-slate-600">
+						<div className="rounded-lg border border-border p-4">
+							<p className="text-sm font-medium text-foreground">Weighting comments</p>
+							<p className="mt-2 text-sm text-muted-foreground">
 								{weightingComments || "No weighting comments submitted."}
 							</p>
 						</div>
-						<div className="rounded-2xl border border-slate-200 p-4">
-							<p className="text-sm font-medium text-slate-900">Overall comments</p>
-							<p className="mt-2 text-sm text-slate-600">
+						<div className="rounded-lg border border-border p-4">
+							<p className="text-sm font-medium text-foreground">Overall comments</p>
+							<p className="mt-2 text-sm text-muted-foreground">
 								{String(submission.participant_info.comments || "No comments submitted.")}
 							</p>
 						</div>
@@ -405,9 +406,9 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 
 					<div className="grid gap-4 md:grid-cols-2 report-print-stack">
 						{(Object.keys(yeeDomainLabels) as YeeDomainKey[]).map(domain => (
-							<div key={domain} className="rounded-2xl border border-slate-200 p-4">
-								<p className="text-sm font-medium text-slate-900">{yeeDomainLabels[domain]} comments</p>
-								<p className="mt-2 text-sm text-slate-600">
+							<div key={domain} className="rounded-lg border border-border p-4">
+								<p className="text-sm font-medium text-foreground">{yeeDomainLabels[domain]} comments</p>
+								<p className="mt-2 text-sm text-muted-foreground">
 									{sectionComments[domain] || "No section comments submitted."}
 								</p>
 							</div>
@@ -415,20 +416,20 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 					</div>
 
 					<div className="report-actions flex flex-wrap gap-3">
-						<Button type="button" variant="outline" className="rounded-2xl" onClick={() => window.print()}>
+						<Button type="button" variant="outline" className="rounded-lg" onClick={() => window.print()}>
 							Print report
 						</Button>
 						<Button
 							type="button"
 							variant="outline"
-							className="rounded-2xl"
+							className="rounded-lg"
 							onClick={() => void downloadSingleSubmissionCsv(submission)}>
 							Export data
 						</Button>
-						<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
+						<Button asChild className="rounded-lg bg-[#10231f] text-white hover:bg-[#17302c]">
 							<Link href={auditsHref}>Back to My Audits</Link>
 						</Button>
-						<Button asChild variant="outline" className="rounded-2xl">
+						<Button asChild variant="outline" className="rounded-lg">
 							<Link href={dashboardHref}>Back to Dashboard</Link>
 						</Button>
 					</div>

@@ -474,7 +474,7 @@ export function PlaceProfileForm({
 						required
 					/>
 					{googleMapsApiKey && suggestionsOpen && suggestions.length > 0 ? (
-						<div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-20 overflow-hidden rounded-[1.25rem] border border-slate-200 bg-white shadow-lg">
+						<div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-20 overflow-hidden rounded-[1.25rem] border border-border bg-white shadow-lg">
 							<ul className="max-h-72 overflow-y-auto py-2">
 								{suggestions.map(suggestion => (
 									<li key={suggestion.placeId}>
@@ -482,12 +482,12 @@ export function PlaceProfileForm({
 											type="button"
 											onMouseDown={event => event.preventDefault()}
 											onClick={() => void applySuggestion(suggestion)}
-											className="flex w-full flex-col items-start gap-1 px-4 py-3 text-left transition hover:bg-slate-50">
-											<span className="text-sm font-medium text-slate-900">
+											className="flex w-full flex-col items-start gap-1 px-4 py-3 text-left transition hover:bg-muted/40">
+											<span className="text-sm font-medium text-foreground">
 												{suggestion.text}
 											</span>
 											{suggestion.secondaryText ? (
-												<span className="text-xs text-slate-500">
+												<span className="text-xs text-muted-foreground">
 													{suggestion.secondaryText}
 												</span>
 											) : null}
@@ -495,13 +495,13 @@ export function PlaceProfileForm({
 									</li>
 								))}
 							</ul>
-							<div className="border-t border-slate-100 px-4 py-2 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">
+							<div className="border-t border-border px-4 py-2 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400">
 								Powered by Google
 							</div>
 						</div>
 					) : null}
 				</div>
-				<p className="text-xs text-slate-500">
+				<p className="text-xs text-muted-foreground">
 					{googleMapsApiKey
 						? autocompleteFailed
 							? "Google address suggestions are unavailable right now. You can still type the address manually and use the map preview below."
@@ -548,7 +548,7 @@ export function PlaceProfileForm({
 						<Button
 							type="button"
 							variant="outline"
-							className="w-full justify-between rounded-2xl px-4 py-5 text-left font-normal">
+							className="w-full justify-between rounded-lg px-4 py-5 text-left font-normal">
 							<span className="truncate">
 								{values.placeType === "Other"
 									? `Other: ${values.otherPlaceType || "custom type"}`
@@ -556,7 +556,7 @@ export function PlaceProfileForm({
 							</span>
 						</Button>
 					</DropdownMenuTrigger>
-					<DropdownMenuContent align="start" className="w-[28rem] rounded-2xl p-2">
+					<DropdownMenuContent align="start" className="w-[28rem] rounded-lg p-2">
 						<DropdownMenuLabel>Type of Place</DropdownMenuLabel>
 						<DropdownMenuSeparator />
 						{PLACE_TYPE_OPTIONS.map(option => (
@@ -565,7 +565,7 @@ export function PlaceProfileForm({
 								type="button"
 								onClick={() => update("placeType", option)}
 								className={`flex w-full rounded-sm px-2 py-2 text-left text-sm transition hover:bg-accent hover:text-accent-foreground ${
-									values.placeType === option ? "bg-emerald-50 text-emerald-900" : "text-slate-700"
+									values.placeType === option ? "bg-emerald-50 text-emerald-900" : "text-foreground"
 								}`}>
 								{option}
 							</button>
@@ -574,7 +574,7 @@ export function PlaceProfileForm({
 							type="button"
 							onClick={() => update("placeType", "Other")}
 							className={`flex w-full rounded-sm px-2 py-2 text-left text-sm transition hover:bg-accent hover:text-accent-foreground ${
-								values.placeType === "Other" ? "bg-emerald-50 text-emerald-900" : "text-slate-700"
+								values.placeType === "Other" ? "bg-emerald-50 text-emerald-900" : "text-foreground"
 							}`}>
 							Other
 						</button>
@@ -628,7 +628,7 @@ export function PlaceProfileForm({
 						<Button
 							type="button"
 							variant="outline"
-							className="w-full justify-between rounded-2xl px-4 py-5 text-left font-normal">
+							className="w-full justify-between rounded-lg px-4 py-5 text-left font-normal">
 							<span className="truncate">
 								{summarizeSelections(
 									values.auditorPopulationTypes,
@@ -636,12 +636,12 @@ export function PlaceProfileForm({
 									"Select Auditor population types"
 								)}
 							</span>
-							<span className="ml-4 text-xs text-slate-500">
+							<span className="ml-4 text-xs text-muted-foreground">
 								{values.auditorPopulationTypes.length} selected
 							</span>
 						</Button>
 					</DropdownMenuTrigger>
-					<DropdownMenuContent align="start" className="w-[28rem] rounded-2xl p-2">
+					<DropdownMenuContent align="start" className="w-[28rem] rounded-lg p-2">
 						<DropdownMenuLabel>Auditor Population Type (check all that apply)</DropdownMenuLabel>
 						<DropdownMenuSeparator />
 						{AUDITOR_POPULATION_OPTIONS.map(option => (
@@ -703,9 +703,9 @@ export function PlaceProfileForm({
 			<div className="space-y-3 sm:col-span-2">
 				<Label>Map preview</Label>
 				{googleMapsHref ? (
-					<div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-5">
+					<div className="rounded-lg border border-border bg-muted/40 p-5">
 						{openStreetMapEmbedUrl ? (
-							<div className="overflow-hidden rounded-[1.25rem] border border-slate-200 bg-white">
+							<div className="overflow-hidden rounded-[1.25rem] border border-border bg-white">
 								<iframe
 									src={openStreetMapEmbedUrl}
 									title="Location map preview"
@@ -715,7 +715,7 @@ export function PlaceProfileForm({
 								/>
 							</div>
 						) : previewMapUrl && !mapImageFailed ? (
-							<div className="overflow-hidden rounded-[1.25rem] border border-slate-200 bg-white">
+							<div className="overflow-hidden rounded-[1.25rem] border border-border bg-white">
 								<Image
 									src={previewMapUrl ?? ""}
 									alt="Location preview"
@@ -732,30 +732,30 @@ export function PlaceProfileForm({
 								/>
 							</div>
 						) : (
-							<p className="rounded-[1.25rem] border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-500">
+							<p className="rounded-[1.25rem] border border-dashed border-slate-300 bg-white p-4 text-sm text-muted-foreground">
 								Map snapshot unavailable right now, but the Google Maps link below is still ready for
 								this Place.
 							</p>
 						)}
-						<p className="mt-4 text-sm leading-6 text-slate-600">
+						<p className="mt-4 text-sm leading-6 text-muted-foreground">
 							Use the preview and saved location details to verify the map pin, then open the Place
 							directly in Google Maps if you need a closer check.
 						</p>
 						<div className="mt-4 flex flex-wrap gap-3">
-							<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
+							<Button asChild className="rounded-lg bg-primary text-white hover:bg-primary/90">
 								<a href={googleMapsHref} target="_blank" rel="noreferrer">
 									Open in Google Maps
 								</a>
 							</Button>
 							{values.latitude !== null && values.longitude !== null ? (
-								<p className="self-center text-xs text-slate-500">
+								<p className="self-center text-xs text-muted-foreground">
 									GPS pin: {values.latitude.toFixed(5)}, {values.longitude.toFixed(5)}
 								</p>
 							) : null}
 						</div>
 					</div>
 				) : (
-					<p className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-sm text-slate-500">
+					<p className="rounded-lg border border-dashed border-slate-300 bg-muted/40 p-4 text-sm text-muted-foreground">
 						{googleMapsApiKey
 							? "Add a complete address or location details to generate a Google Maps preview link here."
 							: "Add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to enable Google Places autocomplete. The map preview link appears once a location is entered."}
@@ -767,11 +767,11 @@ export function PlaceProfileForm({
 			<div className="mt-2 flex flex-wrap gap-3 sm:col-span-2">
 				<Button
 					type="submit"
-					className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]"
+					className="rounded-lg bg-primary text-white hover:bg-primary/90"
 					disabled={saving || loadingProjects || projects.length === 0}>
 					{saving ? "Saving..." : submitLabel}
 				</Button>
-				<Button asChild variant="outline" className="rounded-2xl">
+				<Button asChild variant="outline" className="rounded-lg">
 					<Link href={cancelHref}>{cancelLabel}</Link>
 				</Button>
 			</div>

@@ -180,14 +180,14 @@ export function ProjectProfileForm({
 						<Button
 							type="button"
 							variant="outline"
-							className="w-full justify-between rounded-2xl px-4 py-5 text-left font-normal">
+							className="w-full justify-between rounded-lg px-4 py-5 text-left font-normal">
 							<span className="truncate">
 								{summarizeSelections(values.placeTypes, values.otherPlaceType, "Select Place Types")}
 							</span>
-							<span className="ml-4 text-xs text-slate-500">{values.placeTypes.length} selected</span>
+							<span className="ml-4 text-xs text-muted-foreground">{values.placeTypes.length} selected</span>
 						</Button>
 					</DropdownMenuTrigger>
-					<DropdownMenuContent align="start" className="w-[26rem] rounded-2xl p-2">
+					<DropdownMenuContent align="start" className="w-[26rem] rounded-lg p-2">
 						<DropdownMenuLabel>Type of Places to be Audited (check all that apply)</DropdownMenuLabel>
 						<DropdownMenuSeparator />
 						{PLACE_TYPE_OPTIONS.map(option => (
@@ -257,7 +257,7 @@ export function ProjectProfileForm({
 						<Button
 							type="button"
 							variant="outline"
-							className="w-full justify-between rounded-2xl px-4 py-5 text-left font-normal">
+							className="w-full justify-between rounded-lg px-4 py-5 text-left font-normal">
 							<span className="truncate">
 								{summarizeSelections(
 									values.auditorPopulationTypes,
@@ -265,12 +265,12 @@ export function ProjectProfileForm({
 									"Select Auditor population types"
 								)}
 							</span>
-							<span className="ml-4 text-xs text-slate-500">
+							<span className="ml-4 text-xs text-muted-foreground">
 								{values.auditorPopulationTypes.length} selected
 							</span>
 						</Button>
 					</DropdownMenuTrigger>
-					<DropdownMenuContent align="start" className="w-[28rem] rounded-2xl p-2">
+					<DropdownMenuContent align="start" className="w-[28rem] rounded-lg p-2">
 						<DropdownMenuLabel>Auditor Population Type (check all that apply)</DropdownMenuLabel>
 						<DropdownMenuSeparator />
 						{AUDITOR_POPULATION_OPTIONS.map(option => (
@@ -335,11 +335,11 @@ export function ProjectProfileForm({
 			<div className="mt-2 flex flex-wrap gap-3 sm:col-span-2">
 				<Button
 					type="submit"
-					className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]"
+					className="rounded-lg bg-primary text-white hover:bg-primary/90"
 					disabled={saving}>
 					{saving ? "Saving..." : submitLabel}
 				</Button>
-				<Button asChild variant="outline" className="rounded-2xl">
+				<Button asChild variant="outline" className="rounded-lg">
 					<Link href={cancelHref}>{cancelLabel}</Link>
 				</Button>
 			</div>

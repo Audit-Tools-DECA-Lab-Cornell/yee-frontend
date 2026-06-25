@@ -28,6 +28,8 @@ import {
 import { toCsv } from "@/lib/csv/to-csv";
 import { useDashboardOverview } from "@/features/dashboard/api/use-dashboard-overview";
 import { useDashboardRawData } from "@/features/dashboard/api/use-dashboard-raw-data";
+import { formatDate, formatNumber } from "@/lib/format";
+import { EmptyState } from "@/components/ui/empty-state";
 import { getYouthWeightedScoreMaximum, totalRawScoreMaximum } from "@/lib/yee-score-limits";
 
 function getManagerQuickLinks(isPrimaryManager: boolean) {
@@ -109,8 +111,8 @@ function metricTone(title: string) {
 		};
 	}
 	return {
-		card: "border-slate-200 bg-white hover:border-slate-300",
-		badge: "bg-slate-100 text-slate-700"
+		card: "border-border bg-white hover:border-slate-300",
+		badge: "bg-muted text-foreground"
 	};
 }
 
@@ -154,15 +156,15 @@ function useDashboardData<T>(loader: (session: NonNullable<ReturnType<typeof use
 
 function LoadingCard({ label }: { label: string }) {
 	return (
-		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
-			<CardContent className="p-6 text-sm text-slate-500">Loading {label}\u2026</CardContent>
+		<Card className="rounded-lg ">
+			<CardContent className="p-6 text-sm text-muted-foreground">Loading {label}\u2026</CardContent>
 		</Card>
 	);
 }
 
 function ErrorCard({ message }: { message: string }) {
 	return (
-		<Card className="rounded-[1.75rem] border-rose-200 bg-rose-50 shadow-sm">
+		<Card className="rounded-lg border-rose-200 bg-rose-50 shadow-sm">
 			<CardContent className="p-6 text-sm text-rose-700">{message}</CardContent>
 		</Card>
 	);
@@ -170,10 +172,10 @@ function ErrorCard({ message }: { message: string }) {
 
 function EmptyState({ title, description }: { title: string; description: string }) {
 	return (
-		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+		<Card className="rounded-lg ">
 			<CardContent className="p-8 text-center">
-				<p className="font-medium text-slate-900">{title}</p>
-				<p className="mt-2 text-sm leading-6 text-slate-600">{description}</p>
+				<p className="font-medium text-foreground">{title}</p>
+				<p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
 			</CardContent>
 		</Card>
 	);
@@ -384,7 +386,7 @@ export function LiveManagerOverview() {
 
 	return (
 		<div className="space-y-6">
-			<section className="overflow-hidden rounded-[2rem] border border-emerald-200/60 bg-linear-to-br from-[#10231f] via-[#17302c] to-[#21483b] text-white shadow-xl shadow-emerald-950/10">
+			<section className="overflow-hidden rounded-xl border border-emerald-200/60 bg-linear-to-br from-[#10231f] via-[#17302c] to-[#21483b] text-white shadow-xl shadow-emerald-950/10">
 				<div className="px-6 py-8 sm:px-8 lg:px-10 lg:py-10">
 					<div>
 						<Badge className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-white hover:bg-white/10">
@@ -402,8 +404,8 @@ export function LiveManagerOverview() {
 								<Link
 									key={item.label}
 									href={item.href}
-									className="min-w-0 rounded-[1.5rem] border border-emerald-200/20 bg-linear-to-br from-white/18 to-white/8 px-4 py-4 backdrop-blur-sm transition hover:border-emerald-200/35 hover:bg-white/16">
-									<p className="break-words text-xs font-medium uppercase tracking-[0.16em] text-emerald-50/70">
+									className="min-w-0 rounded-lg border border-emerald-200/20 bg-linear-to-br from-white/18 to-white/8 px-4 py-4 backdrop-blur-sm transition hover:border-emerald-200/35 hover:bg-white/16">
+									<p className="break-words text-xs font-medium uppercase tracking-normal text-emerald-50/70">
 										{item.label}
 									</p>
 									<p className="mt-2 break-words text-2xl font-semibold text-white">{item.value}</p>
@@ -415,7 +417,7 @@ export function LiveManagerOverview() {
 							))}
 						</div>
 						<div className="mt-6 flex flex-wrap gap-3">
-							<Button asChild className="rounded-2xl bg-white text-slate-950 hover:bg-emerald-50">
+							<Button asChild className="rounded-lg bg-white text-foreground hover:bg-emerald-50">
 								<Link href="/dashboard/projects/new">
 									Create Project
 									<ArrowRight className="size-4" />
@@ -424,7 +426,7 @@ export function LiveManagerOverview() {
 							<Button
 								asChild
 								variant="outline"
-								className="rounded-2xl border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+								className="rounded-lg border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
 								<Link href="/dashboard/places/new">Add Place</Link>
 							</Button>
 						</div>
@@ -434,34 +436,34 @@ export function LiveManagerOverview() {
 
 			<section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
 				{scoreSummaryItems.map(item => (
-					<Card key={item.label} className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+					<Card key={item.label} className="rounded-lg ">
 						<CardHeader className="gap-3">
-							<CardDescription className="text-sm font-medium text-slate-500">
+							<CardDescription className="text-sm font-medium text-muted-foreground">
 								{item.label}
 							</CardDescription>
-							<CardTitle className="text-3xl font-semibold tracking-tight text-slate-950">
+							<CardTitle className="text-3xl font-semibold tracking-tight text-foreground">
 								{item.value}
 							</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-3">
-							<p className="text-sm leading-6 text-slate-600">{item.helper}</p>
+							<p className="text-sm leading-6 text-muted-foreground">{item.helper}</p>
 						</CardContent>
 					</Card>
 				))}
 			</section>
 
-			<section className="rounded-[1.75rem] border border-slate-200/80 bg-white p-5 shadow-sm">
-				<p className="text-sm font-medium text-slate-900">Why Youth Weighted averages differ</p>
-				<p className="mt-2 text-sm leading-6 text-slate-600">
+			<section className="rounded-lg border border-border/80 bg-white p-5 shadow-sm">
+				<p className="text-sm font-medium text-foreground">Why Youth Weighted averages differ</p>
+				<p className="mt-2 text-sm leading-6 text-muted-foreground">
 					Youth Weighted values now use normalized domain weights and per-domain averages, so they reflect
 					both the participant&apos;s priorities and how strongly each domain performed relative to its own
 					item set.
 				</p>
 				<div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
 					{domainWeightBreakdown.map(item => (
-						<div key={item.domain} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
-							<p className="text-sm font-medium text-slate-900">{item.label}</p>
-							<p className="mt-1 text-xs text-slate-600">Average weighting across submitted audits</p>
+						<div key={item.domain} className="rounded-lg border border-border bg-muted/40 px-4 py-3">
+							<p className="text-sm font-medium text-foreground">{item.label}</p>
+							<p className="mt-1 text-xs text-muted-foreground">Average weighting across submitted audits</p>
 							<p className="mt-2 text-sm font-semibold text-emerald-800">
 								{item.average.toFixed(1)} / 3 ({item.percent.toFixed(0)}%)
 							</p>
@@ -474,24 +476,24 @@ export function LiveManagerOverview() {
 				{data.metrics.map(metric => (
 					<Link key={metric.title} href={metricHref(metric.title)} className="block">
 						<Card
-							className={`rounded-[1.75rem] shadow-sm transition hover:shadow-md ${metricTone(metric.title).card}`}>
+							className={`rounded-lg shadow-sm transition hover:shadow-md ${metricTone(metric.title).card}`}>
 							<CardHeader className="gap-3">
-								<CardDescription className="text-sm font-medium text-slate-500">
+								<CardDescription className="text-sm font-medium text-muted-foreground">
 									{metric.title}
 								</CardDescription>
-								<CardTitle className="text-3xl font-semibold tracking-tight text-slate-950">
+								<CardTitle className="text-3xl font-semibold tracking-tight text-foreground">
 									{metric.value}
 								</CardTitle>
 							</CardHeader>
 							<CardContent className="space-y-2">
-								<p className="text-sm leading-6 text-slate-600">{metric.description}</p>
+								<p className="text-sm leading-6 text-muted-foreground">{metric.description}</p>
 								<div className="flex items-center justify-between">
 									<Badge
 										variant="secondary"
 										className={`rounded-full ${metricTone(metric.title).badge}`}>
 										Manager scope
 									</Badge>
-									<span className="text-xs font-medium text-slate-500">Open</span>
+									<span className="text-xs font-medium text-muted-foreground">Open</span>
 								</div>
 							</CardContent>
 						</Card>
@@ -500,7 +502,7 @@ export function LiveManagerOverview() {
 			</section>
 
 			<section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_330px]">
-				<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+				<Card className="rounded-lg ">
 					<CardHeader>
 						<CardTitle>Recent activity</CardTitle>
 						<CardDescription>
@@ -511,14 +513,14 @@ export function LiveManagerOverview() {
 						{data.recent_activity.map(item => (
 							<div
 								key={item}
-								className="rounded-2xl bg-slate-50 px-4 py-4 text-sm leading-6 text-slate-700">
+								className="rounded-lg bg-muted/40 px-4 py-4 text-sm leading-6 text-foreground">
 								{item}
 							</div>
 						))}
 					</CardContent>
 				</Card>
 
-				<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+				<Card className="rounded-lg ">
 					<CardHeader>
 						<CardTitle>Manager actions</CardTitle>
 						<CardDescription>
@@ -532,13 +534,13 @@ export function LiveManagerOverview() {
 								<Link
 									key={link.href}
 									href={link.href}
-									className="flex items-start gap-3 rounded-2xl border border-slate-200 p-4 transition-colors hover:bg-slate-50">
-									<div className="rounded-2xl bg-[#e4f5ee] p-2 text-emerald-700">
+									className="flex items-start gap-3 rounded-lg border border-border p-4 transition-colors hover:bg-muted/40">
+									<div className="rounded-lg bg-[#e4f5ee] p-2 text-emerald-700">
 										<Icon className="size-4" />
 									</div>
 									<div className="min-w-0">
-										<p className="text-sm font-semibold text-slate-900">{link.title}</p>
-										<p className="mt-1 text-sm leading-6 text-slate-600">{link.description}</p>
+										<p className="text-sm font-semibold text-foreground">{link.title}</p>
+										<p className="mt-1 text-sm leading-6 text-muted-foreground">{link.description}</p>
 									</div>
 								</Link>
 							);
@@ -558,18 +560,18 @@ export function LiveManagerOverview() {
 
 function AuditTableCard({ title, description, audits }: { title: string; description: string; audits: AuditRecord[] }) {
 	return (
-		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+		<Card className="rounded-lg ">
 			<CardHeader>
 				<CardTitle>{title}</CardTitle>
 				<CardDescription>{description}</CardDescription>
 			</CardHeader>
 			<CardContent className="overflow-x-auto">
 				{audits.length === 0 ? (
-					<p className="text-sm text-slate-500">No audit rows are available yet.</p>
+					<p className="text-sm text-muted-foreground">No audit rows are available yet.</p>
 				) : (
 					<table className="min-w-full text-left text-sm">
-						<thead className="text-slate-500">
-							<tr className="border-b border-slate-200">
+						<thead className="text-muted-foreground">
+							<tr className="border-b border-border">
 								<th className="py-3 pr-4 font-medium">Place</th>
 								<th className="py-3 pr-4 font-medium">Auditor</th>
 								<th className="py-3 pr-4 font-medium">Date</th>
@@ -579,19 +581,19 @@ function AuditTableCard({ title, description, audits }: { title: string; descrip
 						</thead>
 						<tbody>
 							{audits.map(audit => (
-								<tr key={audit.id} className="border-b border-slate-100 last:border-0">
-									<td className="py-4 pr-4 font-medium text-slate-900">{audit.place}</td>
-									<td className="py-4 pr-4 text-slate-600">{audit.auditor}</td>
-									<td className="py-4 pr-4 text-slate-600">{audit.date}</td>
-									<td className="py-4 pr-4 text-slate-600">
+								<tr key={audit.id} className="border-b border-border last:border-0">
+									<td className="py-4 pr-4 font-medium text-foreground">{audit.place}</td>
+									<td className="py-4 pr-4 text-muted-foreground">{audit.auditor}</td>
+									<td className="py-4 pr-4 text-muted-foreground">{audit.date}</td>
+									<td className="py-4 pr-4 text-muted-foreground">
 										{audit.status === "Submitted" ? (
 											<div className="space-y-1">
 												<p>
-													<span className="font-medium text-slate-900">Raw:</span>{" "}
+													<span className="font-medium text-foreground">Raw:</span>{" "}
 													{audit.total_raw_score}/{totalRawScoreMaximum}
 												</p>
 												<p>
-													<span className="font-medium text-slate-900">Youth Weighted:</span>{" "}
+													<span className="font-medium text-foreground">Youth Weighted:</span>{" "}
 													{audit.total_weighted_score.toFixed(2)}/
 													{getYouthWeightedScoreMaximum(audit.domain_weights).toFixed(2)}
 												</p>
@@ -635,7 +637,7 @@ export function LiveProjectsTable() {
 	const showOrganization = data.some(project => project.organization);
 
 	return (
-		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+		<Card className="rounded-lg ">
 			<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 				<div>
 					<CardTitle className="text-2xl">Projects</CardTitle>
@@ -643,14 +645,14 @@ export function LiveProjectsTable() {
 						Project records for this manager, including summary, place count, and audit activity.
 					</CardDescription>
 				</div>
-				<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
+				<Button asChild className="rounded-lg bg-primary text-white hover:bg-primary/90">
 					<Link href="/dashboard/projects/new">Create Project</Link>
 				</Button>
 			</CardHeader>
 			<CardContent className="overflow-x-auto">
 				<table className="min-w-full text-left text-sm">
-					<thead className="text-slate-500">
-						<tr className="border-b border-slate-200">
+					<thead className="text-muted-foreground">
+						<tr className="border-b border-border">
 							<th className="py-3 pr-4 font-medium">Project Name</th>
 							{showOrganization ? <th className="py-3 pr-4 font-medium">Organization</th> : null}
 							<th className="py-3 pr-4 font-medium">Project Summary</th>
@@ -664,20 +666,20 @@ export function LiveProjectsTable() {
 						{data.map(project => (
 							<tr
 								key={project.id}
-								className="border-b border-slate-100 last:border-0 transition hover:bg-slate-50">
-								<td className="py-4 pr-4 font-medium text-slate-900">
+								className="border-b border-border last:border-0 transition hover:bg-muted/40">
+								<td className="py-4 pr-4 font-medium text-foreground">
 									<Link
 										href={`/dashboard/projects/${project.id}`}
-										className="hover:text-slate-950 hover:underline">
+										className="hover:text-foreground hover:underline">
 										{project.name}
 									</Link>
 								</td>
 								{showOrganization ? (
-									<td className="py-4 pr-4 text-slate-600">{project.organization ?? "-"}</td>
+									<td className="py-4 pr-4 text-muted-foreground">{project.organization ?? "-"}</td>
 								) : null}
-								<td className="py-4 pr-4 text-slate-600">{project.summary}</td>
-								<td className="py-4 pr-4 text-slate-600">{project.places}</td>
-								<td className="py-4 pr-4 text-slate-600">{project.audits}</td>
+								<td className="py-4 pr-4 text-muted-foreground">{project.summary}</td>
+								<td className="py-4 pr-4 text-muted-foreground">{project.places}</td>
+								<td className="py-4 pr-4 text-muted-foreground">{project.audits}</td>
 								<td className="py-4 pr-4">
 									<Badge
 										variant="secondary"
@@ -688,7 +690,7 @@ export function LiveProjectsTable() {
 								<td className="py-4">
 									<Link
 										href={`/dashboard/projects/${project.id}`}
-										className="inline-flex items-center gap-1 text-sm text-slate-700 hover:text-slate-950">
+										className="inline-flex items-center gap-1 text-sm text-foreground hover:text-foreground">
 										Open
 										<ArrowUpRight className="size-4" />
 									</Link>
@@ -722,7 +724,7 @@ export function LivePlacesTable() {
 	const filtersActive = selectedProjects.length > 0;
 
 	return (
-		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+		<Card className="rounded-lg ">
 			<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 				<div>
 					<CardTitle className="text-2xl">Places</CardTitle>
@@ -730,7 +732,7 @@ export function LivePlacesTable() {
 						Review place name, address, postal code, assigned auditors, and the next action for each place.
 					</CardDescription>
 				</div>
-				<Button asChild variant="outline" className="rounded-2xl">
+				<Button asChild variant="outline" className="rounded-lg">
 					<Link href="/dashboard/places/new">Add Place</Link>
 				</Button>
 			</CardHeader>
@@ -745,8 +747,8 @@ export function LivePlacesTable() {
 					<ClearFiltersButton disabled={!filtersActive} onClick={() => setSelectedProjects([])} />
 				</div>
 				<table className="min-w-full text-left text-sm">
-					<thead className="text-slate-500">
-						<tr className="border-b border-slate-200">
+					<thead className="text-muted-foreground">
+						<tr className="border-b border-border">
 							<th className="py-3 pr-4 font-medium">Place Name</th>
 							<th className="py-3 pr-4 font-medium">Address</th>
 							<th className="py-3 pr-4 font-medium">Postal Code</th>
@@ -760,21 +762,21 @@ export function LivePlacesTable() {
 					<tbody>
 						{filteredPlaces.length === 0 ? (
 							<tr>
-								<td colSpan={8} className="py-8 text-center text-sm text-slate-500">
+								<td colSpan={8} className="py-8 text-center text-sm text-muted-foreground">
 									No places match the selected filters.
 								</td>
 							</tr>
 						) : null}
 						{filteredPlaces.map(place => (
-							<tr key={place.id} className="border-b border-slate-100 last:border-0">
-								<td className="py-4 pr-4 font-medium text-slate-900">{place.name}</td>
-								<td className="py-4 pr-4 text-slate-600">{place.address}</td>
-								<td className="py-4 pr-4 text-slate-600">{place.postal_code ?? "-"}</td>
-								<td className="py-4 pr-4 text-slate-600">{place.project}</td>
+							<tr key={place.id} className="border-b border-border last:border-0">
+								<td className="py-4 pr-4 font-medium text-foreground">{place.name}</td>
+								<td className="py-4 pr-4 text-muted-foreground">{place.address}</td>
+								<td className="py-4 pr-4 text-muted-foreground">{place.postal_code ?? "-"}</td>
+								<td className="py-4 pr-4 text-muted-foreground">{place.project}</td>
 								<td className="py-4 pr-4">
 									<div className="flex flex-wrap gap-2">
 										{place.assigned_auditors.length === 0 ? (
-											<span className="text-slate-500">No auditors assigned</span>
+											<span className="text-muted-foreground">No auditors assigned</span>
 										) : (
 											place.assigned_auditors.map(auditorId => (
 												<Badge
@@ -787,11 +789,11 @@ export function LivePlacesTable() {
 										)}
 									</div>
 								</td>
-								<td className="py-4 pr-4 text-slate-600">{place.audits}</td>
+								<td className="py-4 pr-4 text-muted-foreground">{place.audits}</td>
 								<td className="py-4 pr-4">
 									<Badge
 										variant="secondary"
-										className="rounded-full bg-slate-100 text-slate-700 hover:bg-slate-100">
+										className="rounded-full bg-muted text-foreground hover:bg-muted">
 										{place.audits === 0 ? "Pending first audit" : place.status}
 									</Badge>
 								</td>
@@ -799,7 +801,7 @@ export function LivePlacesTable() {
 									<div className="flex flex-wrap gap-3">
 										<Link
 											href={`/dashboard/places/${place.id}`}
-											className="inline-flex items-center gap-1 text-sm text-slate-700 hover:text-slate-950">
+											className="inline-flex items-center gap-1 text-sm text-foreground hover:text-foreground">
 											Open
 											<ArrowUpRight className="size-4" />
 										</Link>
@@ -817,7 +819,7 @@ export function LivePlacesTable() {
 										</Link>
 										<Link
 											href={`/dashboard/audits?projectId=${place.project_id}&placeId=${place.id}`}
-											className="inline-flex items-center gap-1 text-sm text-slate-700 hover:text-slate-950">
+											className="inline-flex items-center gap-1 text-sm text-foreground hover:text-foreground">
 											View Audits
 											<ArrowUpRight className="size-4" />
 										</Link>
@@ -861,7 +863,7 @@ export function AdminProjectsTable() {
 	const filtersActive = selectedOrganizations.length > 0 || selectedProjects.length > 0;
 
 	return (
-		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+		<Card className="rounded-lg ">
 			<CardHeader>
 				<CardTitle className="text-2xl">Projects</CardTitle>
 				<CardDescription className="mt-2 max-w-2xl leading-6">
@@ -892,8 +894,8 @@ export function AdminProjectsTable() {
 					/>
 				</div>
 				<table className="min-w-full text-left text-sm">
-					<thead className="text-slate-500">
-						<tr className="border-b border-slate-200">
+					<thead className="text-muted-foreground">
+						<tr className="border-b border-border">
 							<th className="py-3 pr-4 font-medium">Organization</th>
 							<th className="py-3 pr-4 font-medium">Project Name</th>
 							<th className="py-3 pr-4 font-medium">Project Summary</th>
@@ -906,7 +908,7 @@ export function AdminProjectsTable() {
 					<tbody>
 						{filteredProjects.length === 0 ? (
 							<tr>
-								<td colSpan={7} className="py-8 text-center text-sm text-slate-500">
+								<td colSpan={7} className="py-8 text-center text-sm text-muted-foreground">
 									No projects match the selected filters.
 								</td>
 							</tr>
@@ -914,18 +916,18 @@ export function AdminProjectsTable() {
 						{filteredProjects.map(project => (
 							<tr
 								key={project.id}
-								className="border-b border-slate-100 last:border-0 transition hover:bg-slate-50">
-								<td className="py-4 pr-4 text-slate-600">{project.organization ?? "-"}</td>
-								<td className="py-4 pr-4 font-medium text-slate-900">
+								className="border-b border-border last:border-0 transition hover:bg-muted/40">
+								<td className="py-4 pr-4 text-muted-foreground">{project.organization ?? "-"}</td>
+								<td className="py-4 pr-4 font-medium text-foreground">
 									<Link
 										href={`/dashboard/projects/${project.id}`}
-										className="hover:text-slate-950 hover:underline">
+										className="hover:text-foreground hover:underline">
 										{project.name}
 									</Link>
 								</td>
-								<td className="py-4 pr-4 text-slate-600">{project.summary}</td>
-								<td className="py-4 pr-4 text-slate-600">{project.places}</td>
-								<td className="py-4 pr-4 text-slate-600">{project.audits}</td>
+								<td className="py-4 pr-4 text-muted-foreground">{project.summary}</td>
+								<td className="py-4 pr-4 text-muted-foreground">{project.places}</td>
+								<td className="py-4 pr-4 text-muted-foreground">{project.audits}</td>
 								<td className="py-4 pr-4">
 									<Badge
 										variant="secondary"
@@ -936,7 +938,7 @@ export function AdminProjectsTable() {
 								<td className="py-4">
 									<Link
 										href={`/dashboard/projects/${project.id}`}
-										className="inline-flex items-center gap-1 text-sm text-slate-700 hover:text-slate-950">
+										className="inline-flex items-center gap-1 text-sm text-foreground hover:text-foreground">
 										Open
 										<ArrowUpRight className="size-4" />
 									</Link>
@@ -979,7 +981,7 @@ export function AdminPlacesTable() {
 	const filtersActive = selectedOrganizations.length > 0 || selectedProjects.length > 0;
 
 	return (
-		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+		<Card className="rounded-lg ">
 			<CardHeader>
 				<CardTitle className="text-2xl">Places</CardTitle>
 				<CardDescription className="mt-2 max-w-2xl leading-6">
@@ -1010,8 +1012,8 @@ export function AdminPlacesTable() {
 					/>
 				</div>
 				<table className="min-w-full text-left text-sm">
-					<thead className="text-slate-500">
-						<tr className="border-b border-slate-200">
+					<thead className="text-muted-foreground">
+						<tr className="border-b border-border">
 							<th className="py-3 pr-4 font-medium">Organization</th>
 							<th className="py-3 pr-4 font-medium">Project</th>
 							<th className="py-3 pr-4 font-medium">Place Name</th>
@@ -1026,7 +1028,7 @@ export function AdminPlacesTable() {
 					<tbody>
 						{filteredPlaces.length === 0 ? (
 							<tr>
-								<td colSpan={9} className="py-8 text-center text-sm text-slate-500">
+								<td colSpan={9} className="py-8 text-center text-sm text-muted-foreground">
 									No places match the selected filters.
 								</td>
 							</tr>
@@ -1034,20 +1036,20 @@ export function AdminPlacesTable() {
 						{filteredPlaces.map(place => (
 							<tr
 								key={place.id}
-								className="border-b border-slate-100 last:border-0 transition hover:bg-slate-50">
-								<td className="py-4 pr-4 text-slate-600">{place.organization ?? "-"}</td>
-								<td className="py-4 pr-4 text-slate-600">{place.project}</td>
-								<td className="py-4 pr-4 font-medium text-slate-900">
+								className="border-b border-border last:border-0 transition hover:bg-muted/40">
+								<td className="py-4 pr-4 text-muted-foreground">{place.organization ?? "-"}</td>
+								<td className="py-4 pr-4 text-muted-foreground">{place.project}</td>
+								<td className="py-4 pr-4 font-medium text-foreground">
 									<Link
 										href={`/dashboard/places/${place.id}`}
-										className="hover:text-slate-950 hover:underline">
+										className="hover:text-foreground hover:underline">
 										{place.name}
 									</Link>
 								</td>
-								<td className="py-4 pr-4 text-slate-600">{place.address}</td>
-								<td className="py-4 pr-4 text-slate-600">{place.postal_code ?? "-"}</td>
-								<td className="py-4 pr-4 text-slate-600">{place.audits}</td>
-								<td className="py-4 pr-4 text-slate-600">{place.last_audit}</td>
+								<td className="py-4 pr-4 text-muted-foreground">{place.address}</td>
+								<td className="py-4 pr-4 text-muted-foreground">{place.postal_code ?? "-"}</td>
+								<td className="py-4 pr-4 text-muted-foreground">{place.audits}</td>
+								<td className="py-4 pr-4 text-muted-foreground">{place.last_audit}</td>
 								<td className="py-4 pr-4">
 									<Badge
 										variant="secondary"
@@ -1058,7 +1060,7 @@ export function AdminPlacesTable() {
 								<td className="py-4">
 									<Link
 										href={`/dashboard/places/${place.id}`}
-										className="inline-flex items-center gap-1 text-sm text-slate-700 hover:text-slate-950">
+										className="inline-flex items-center gap-1 text-sm text-foreground hover:text-foreground">
 										Open
 										<ArrowUpRight className="size-4" />
 									</Link>
@@ -1080,7 +1082,7 @@ export function LiveAuditorsTable() {
 	const isAdmin = session?.user.account_type === "ADMIN";
 	if (!data?.length) {
 		return (
-			<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+			<Card className="rounded-lg ">
 				<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 					<div>
 						<CardTitle className="text-2xl">Auditors</CardTitle>
@@ -1088,7 +1090,7 @@ export function LiveAuditorsTable() {
 							No auditors are visible in this scope yet. You can still invite an auditor now.
 						</CardDescription>
 					</div>
-					<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
+					<Button asChild className="rounded-lg bg-primary text-white hover:bg-primary/90">
 						<Link href="/dashboard/auditors/invite">
 							<MailPlus className="size-4" />
 							Invite New Auditor
@@ -1100,7 +1102,7 @@ export function LiveAuditorsTable() {
 	}
 
 	return (
-		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+		<Card className="rounded-lg ">
 			<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 				<div>
 					<CardTitle className="text-2xl">Auditors</CardTitle>
@@ -1111,14 +1113,14 @@ export function LiveAuditorsTable() {
 					</CardDescription>
 				</div>
 				<div className="flex flex-wrap gap-3">
-					<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
+					<Button asChild className="rounded-lg bg-primary text-white hover:bg-primary/90">
 						<Link href="/dashboard/auditors/invite">
 							<MailPlus className="size-4" />
 							Invite New Auditor
 						</Link>
 					</Button>
 					{!isAdmin && session?.user.is_primary_manager ? (
-						<Button asChild variant="outline" className="rounded-2xl">
+						<Button asChild variant="outline" className="rounded-lg">
 							<Link href="/dashboard/managers/invite">
 								<ShieldPlus className="size-4" />
 								Invite New Manager
@@ -1129,8 +1131,8 @@ export function LiveAuditorsTable() {
 			</CardHeader>
 			<CardContent className="overflow-x-auto">
 				<table className="min-w-full text-left text-sm">
-					<thead className="text-slate-500">
-						<tr className="border-b border-slate-200">
+					<thead className="text-muted-foreground">
+						<tr className="border-b border-border">
 							<th className="py-3 pr-4 font-medium">Name</th>
 							<th className="py-3 pr-4 font-medium">Auditor ID</th>
 							<th className="py-3 pr-4 font-medium">
@@ -1143,18 +1145,18 @@ export function LiveAuditorsTable() {
 					</thead>
 					<tbody>
 						{data.map(auditor => (
-							<tr key={auditor.id} className="border-b border-slate-100 last:border-0">
-								<td className="py-4 pr-4 font-medium text-slate-900">{auditor.name}</td>
-								<td className="py-4 pr-4 text-slate-600">{auditor.auditor_id}</td>
-								<td className="py-4 pr-4 text-slate-600">
+							<tr key={auditor.id} className="border-b border-border last:border-0">
+								<td className="py-4 pr-4 font-medium text-foreground">{auditor.name}</td>
+								<td className="py-4 pr-4 text-muted-foreground">{auditor.auditor_id}</td>
+								<td className="py-4 pr-4 text-muted-foreground">
 									{auditor.email || (isAdmin ? "Hidden from admin" : "-")}
 								</td>
-								<td className="py-4 pr-4 text-slate-600">
+								<td className="py-4 pr-4 text-muted-foreground">
 									{auditor.assigned_places.length > 0
 										? auditor.assigned_places.join(", ")
 										: "No places assigned"}
 								</td>
-								<td className="py-4 pr-4 text-slate-600">{auditor.completed_audits}</td>
+								<td className="py-4 pr-4 text-muted-foreground">{auditor.completed_audits}</td>
 								<td className="py-4">
 									<Badge
 										variant="secondary"
@@ -1297,7 +1299,7 @@ export function LiveAuditsTable() {
 
 	return (
 		<div className="space-y-6">
-			<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+			<Card className="rounded-lg ">
 				<CardHeader>
 					<CardTitle>Audits</CardTitle>
 					<CardDescription>
@@ -1363,7 +1365,7 @@ export function LiveAuditsTable() {
 						</Button>
 						<Button
 							type="button"
-							className="rounded-xl bg-[#10231f] text-white hover:bg-[#17302c]"
+							className="rounded-xl bg-primary text-white hover:bg-primary/90"
 							onClick={handleCompare}
 							disabled={selectedAuditIds.length < 2}>
 							Compare Selected
@@ -1371,8 +1373,8 @@ export function LiveAuditsTable() {
 					</div>
 					{compareError ? <p className="text-sm text-rose-600">{compareError}</p> : null}
 					<table className="min-w-full text-left text-sm">
-						<thead className="text-slate-500">
-							<tr className="border-b border-slate-200">
+						<thead className="text-muted-foreground">
+							<tr className="border-b border-border">
 								<th className="py-3 pr-4 font-medium">
 									<input
 										type="checkbox"
@@ -1423,13 +1425,13 @@ export function LiveAuditsTable() {
 						<tbody>
 							{filteredAudits.length === 0 ? (
 								<tr>
-									<td colSpan={9} className="py-8 text-center text-sm text-slate-500">
+									<td colSpan={9} className="py-8 text-center text-sm text-muted-foreground">
 										No audits match the selected filters.
 									</td>
 								</tr>
 							) : null}
 							{filteredAudits.map(audit => (
-								<tr key={audit.id} className="border-b border-slate-100 last:border-0">
+								<tr key={audit.id} className="border-b border-border last:border-0">
 									<td className="py-4 pr-4">
 										<input
 											type="checkbox"
@@ -1446,8 +1448,8 @@ export function LiveAuditsTable() {
 											disabled={!audit.submission_id}
 										/>
 									</td>
-									<td className="py-4 pr-4 font-medium text-slate-900">{audit.place}</td>
-									<td className="py-4 pr-4 text-slate-600">{audit.auditor}</td>
+									<td className="py-4 pr-4 font-medium text-foreground">{audit.place}</td>
+									<td className="py-4 pr-4 text-muted-foreground">{audit.auditor}</td>
 									<td className="py-4 pr-4">
 										<Badge
 											variant="secondary"
@@ -1455,13 +1457,13 @@ export function LiveAuditsTable() {
 											{audit.status}
 										</Badge>
 									</td>
-									<td className="py-4 pr-4 text-slate-600">
+									<td className="py-4 pr-4 text-muted-foreground">
 										{audit.status === "Submitted" ? (
 											<div className="space-y-1">
 												<div>
-													<span className="font-medium text-slate-900">Raw:</span>{" "}
+													<span className="font-medium text-foreground">Raw:</span>{" "}
 													{audit.total_raw_score} / {totalRawScoreMaximum}{" "}
-													<span className="text-slate-500">
+													<span className="text-muted-foreground">
 														(
 														{totalRawScoreMaximum
 															? (
@@ -1473,7 +1475,7 @@ export function LiveAuditsTable() {
 													</span>
 												</div>
 												<div>
-													<span className="font-medium text-slate-900">Youth Weighted:</span>{" "}
+													<span className="font-medium text-foreground">Youth Weighted:</span>{" "}
 													{audit.total_weighted_score.toFixed(2)} /{" "}
 													{getYouthWeightedScoreMaximum({
 														access: audit.domain_weights.access ?? 0,
@@ -1483,7 +1485,7 @@ export function LiveAuditsTable() {
 														aestheticsAndCare: audit.domain_weights.aestheticsAndCare ?? 0,
 														useAndUsability: audit.domain_weights.useAndUsability ?? 0
 													}).toFixed(2)}{" "}
-													<span className="text-slate-500">
+													<span className="text-muted-foreground">
 														(
 														{(() => {
 															const denominator = getYouthWeightedScoreMaximum({
@@ -1510,10 +1512,10 @@ export function LiveAuditsTable() {
 												</div>
 											</div>
 										) : (
-											<span className="text-slate-400">Available after submit</span>
+											<span className="text-muted-foreground/70">Available after submit</span>
 										)}
 									</td>
-									<td className="py-4 pr-4 text-slate-600">
+									<td className="py-4 pr-4 text-muted-foreground">
 										{audit.submitted_at ? new Date(audit.submitted_at).toLocaleDateString() : "-"}
 									</td>
 									<td className="py-4 pr-4">
@@ -1524,7 +1526,7 @@ export function LiveAuditsTable() {
 												</Link>
 											</Button>
 										) : (
-											<span className="text-sm text-slate-400">
+											<span className="text-sm text-muted-foreground/70">
 												{audit.status === "Submitted"
 													? "Open via Edit Audit to restore report"
 													: "Available after submit"}
@@ -1559,7 +1561,7 @@ export function LiveAuditsTable() {
 												View Raw Data
 											</Button>
 										) : (
-											<span className="text-sm text-slate-400">
+											<span className="text-sm text-muted-foreground/70">
 												{audit.status === "Submitted"
 													? "Available after report is restored"
 													: "Available after submit"}
@@ -1617,12 +1619,12 @@ export function LiveAdminOverview() {
 					.map(metric => (
 						<Link key={metric.title} href={adminMetricHref(metric.title)} className="block">
 							<Card
-								className={`rounded-[1.75rem] shadow-sm transition hover:shadow-md ${metricTone(metric.title).card}`}>
+								className={`rounded-lg shadow-sm transition hover:shadow-md ${metricTone(metric.title).card}`}>
 								<CardHeader>
 									<CardDescription>{metric.title}</CardDescription>
 									<CardTitle className="text-3xl">{metric.value}</CardTitle>
 								</CardHeader>
-								<CardContent className="space-y-3 text-sm text-slate-600">
+								<CardContent className="space-y-3 text-sm text-muted-foreground">
 									<p>{metric.description}</p>
 									<div className="flex items-center justify-between">
 										<Badge
@@ -1630,7 +1632,7 @@ export function LiveAdminOverview() {
 											className={`rounded-full ${metricTone(metric.title).badge}`}>
 											Admin view
 										</Badge>
-										<span className="text-xs font-medium text-slate-500">Open</span>
+										<span className="text-xs font-medium text-muted-foreground">Open</span>
 									</div>
 								</CardContent>
 							</Card>
@@ -1638,15 +1640,15 @@ export function LiveAdminOverview() {
 					))}
 			</section>
 			{overview.data.organization_summaries.length > 0 ? (
-				<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+				<Card className="rounded-lg ">
 					<CardHeader>
 						<CardTitle>Organization Summary</CardTitle>
 						<CardDescription>Platform-wide summary grouped by organization.</CardDescription>
 					</CardHeader>
 					<CardContent className="overflow-x-auto">
 						<table className="min-w-full text-left text-sm">
-							<thead className="text-slate-500">
-								<tr className="border-b border-slate-200">
+							<thead className="text-muted-foreground">
+								<tr className="border-b border-border">
 									<th className="py-3 pr-4 font-medium">Organization</th>
 									<th className="py-3 pr-4 font-medium">Users</th>
 									<th className="py-3 pr-4 font-medium">Projects</th>
@@ -1656,12 +1658,12 @@ export function LiveAdminOverview() {
 							</thead>
 							<tbody>
 								{overview.data.organization_summaries.map(item => (
-									<tr key={item.organization} className="border-b border-slate-100 last:border-0">
-										<td className="py-4 pr-4 font-medium text-slate-900">{item.organization}</td>
-										<td className="py-4 pr-4 text-slate-600">{item.users}</td>
-										<td className="py-4 pr-4 text-slate-600">{item.projects}</td>
-										<td className="py-4 pr-4 text-slate-600">{item.places}</td>
-										<td className="py-4 text-slate-600">{item.audits}</td>
+									<tr key={item.organization} className="border-b border-border last:border-0">
+										<td className="py-4 pr-4 font-medium text-foreground">{item.organization}</td>
+										<td className="py-4 pr-4 text-muted-foreground">{item.users}</td>
+										<td className="py-4 pr-4 text-muted-foreground">{item.projects}</td>
+										<td className="py-4 pr-4 text-muted-foreground">{item.places}</td>
+										<td className="py-4 text-muted-foreground">{item.audits}</td>
 									</tr>
 								))}
 							</tbody>
@@ -1771,7 +1773,7 @@ export function LiveUsersTable({ embedded = false }: { embedded?: boolean }) {
 	}
 
 	return (
-		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+		<Card className="rounded-lg ">
 			<CardHeader>
 				<CardTitle>Users</CardTitle>
 				<CardDescription>
@@ -1803,8 +1805,8 @@ export function LiveUsersTable({ embedded = false }: { embedded?: boolean }) {
 					<ClearFiltersButton disabled={!filtersActive} onClick={clearFilters} />
 				</div>
 				<table className="min-w-full text-left text-sm">
-					<thead className="text-slate-500">
-						<tr className="border-b border-slate-200">
+					<thead className="text-muted-foreground">
+						<tr className="border-b border-border">
 							<th className="py-3 pr-4 font-medium">Organization</th>
 							<th className="py-3 pr-4 font-medium">User Name</th>
 							<th className="py-3 pr-4 font-medium">Role</th>
@@ -1816,25 +1818,25 @@ export function LiveUsersTable({ embedded = false }: { embedded?: boolean }) {
 					<tbody>
 						{filteredRows.length === 0 ? (
 							<tr>
-								<td colSpan={6} className="py-8 text-center text-sm text-slate-500">
+								<td colSpan={6} className="py-8 text-center text-sm text-muted-foreground">
 									No users match the selected filters.
 								</td>
 							</tr>
 						) : null}
 						{filteredRows.map(user => (
-							<tr key={user.id} className="border-b border-slate-100 last:border-0">
-								<td className="py-4 pr-4 text-slate-600">{user.organization}</td>
-								<td className="py-4 pr-4 font-medium text-slate-900">{user.name}</td>
-								<td className="py-4 pr-4 text-slate-600">{user.role}</td>
-								<td className="py-4 pr-4 text-slate-600">{user.project_assignments}</td>
-								<td className="py-4 pr-4 text-slate-600">
+							<tr key={user.id} className="border-b border-border last:border-0">
+								<td className="py-4 pr-4 text-muted-foreground">{user.organization}</td>
+								<td className="py-4 pr-4 font-medium text-foreground">{user.name}</td>
+								<td className="py-4 pr-4 text-muted-foreground">{user.role}</td>
+								<td className="py-4 pr-4 text-muted-foreground">{user.project_assignments}</td>
+								<td className="py-4 pr-4 text-muted-foreground">
 									{user.role === "MANAGER" ? user.contact_info || user.email : ""}
 								</td>
 								<td className="py-4">
 									<div className="flex flex-col gap-2">
 										<Badge
 											variant="secondary"
-											className="w-fit rounded-full bg-slate-100 text-slate-700 hover:bg-slate-100">
+											className="w-fit rounded-full bg-muted text-foreground hover:bg-muted">
 											{user.status}
 										</Badge>
 										{!user.approved ? (
@@ -1848,7 +1850,7 @@ export function LiveUsersTable({ embedded = false }: { embedded?: boolean }) {
 																[user.id]: event.target.value
 															}))
 														}
-														className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700">
+														className="h-9 rounded-xl border border-border bg-white px-3 text-sm text-foreground">
 														<option value="">Select workspace</option>
 														{accountOptions.map(([accountId, organization]) => (
 															<option key={accountId} value={accountId}>
@@ -1859,7 +1861,7 @@ export function LiveUsersTable({ embedded = false }: { embedded?: boolean }) {
 												) : null}
 												<Button
 													size="sm"
-													className="rounded-xl bg-[#10231f] text-white hover:bg-[#17302c]"
+													className="rounded-xl bg-primary text-white hover:bg-primary/90"
 													onClick={() => void handleApprove(user)}
 													disabled={
 														submittingUserId === user.id ||
@@ -1871,7 +1873,7 @@ export function LiveUsersTable({ embedded = false }: { embedded?: boolean }) {
 												</Button>
 											</div>
 										) : (
-											<span className="text-sm text-slate-500">No action needed</span>
+											<span className="text-sm text-muted-foreground">No action needed</span>
 										)}
 									</div>
 								</td>
