@@ -114,7 +114,8 @@ export const defaultWorkspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> 
 			},
 			"/admin/content": {
 				title: "Website Copy",
-				description: "Edit dashboard wording across the admin, manager, and auditor website without touching code."
+				description:
+					"Edit dashboard wording across the admin, manager, and auditor website without touching code."
 			},
 			"/admin/instruments": {
 				title: "Instruments",
@@ -146,7 +147,8 @@ export const defaultWorkspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> 
 		variant: "manager",
 		badge: "Manager view",
 		title: "Coordinate projects, places, auditors, and audit results.",
-		description: "Use this workspace to create studies, set up field locations, invite auditors, and track progress.",
+		description:
+			"Use this workspace to create studies, set up field locations, invite auditors, and track progress.",
 		searchPlaceholder: "Search projects, places, auditors, or audits...",
 		primaryAction: {
 			label: "Create Project",
@@ -218,7 +220,8 @@ export const defaultWorkspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> 
 		variant: "auditor",
 		badge: "Auditor view",
 		title: "Focus on assigned places and complete fieldwork.",
-		description: "Auditors see only their own places, active audits, and personal history rather than management tools.",
+		description:
+			"Auditors see only their own places, active audits, and personal history rather than management tools.",
 		searchPlaceholder: "Search your places or saved audits...",
 		primaryAction: {
 			label: "Start Audit",

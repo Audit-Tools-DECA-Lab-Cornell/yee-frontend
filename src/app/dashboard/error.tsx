@@ -3,13 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function DashboardError({
-	error,
-	reset,
-}: {
-	error: Error;
-	reset: () => void;
-}) {
+export default function DashboardError({ error, reset }: { error: Error; reset: () => void }) {
 	return (
 		<div className="flex min-h-dvh items-center justify-center p-6">
 			<Card className="w-full max-w-md rounded-2xl border-rose-200 bg-rose-50 shadow-sm">

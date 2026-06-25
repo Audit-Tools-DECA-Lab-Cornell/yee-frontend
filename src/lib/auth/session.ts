@@ -11,15 +11,15 @@ import type { SessionUser } from "./session-types";
 
 /** Returns the correct app route for a user based on their onboarding next_step. */
 export function getRouteForUser(user: SessionUser): string {
-  switch (user.next_step) {
-    case "VERIFY_EMAIL":
-      return `/verify-email?email=${encodeURIComponent(user.email)}`;
-    case "WAITING_APPROVAL":
-      return "/waiting-approval";
-    case "COMPLETE_PROFILE":
-      return "/complete-profile";
-    case "DASHBOARD":
-    default:
-      return user.dashboard_path;
-  }
+	switch (user.next_step) {
+		case "VERIFY_EMAIL":
+			return `/verify-email?email=${encodeURIComponent(user.email)}`;
+		case "WAITING_APPROVAL":
+			return "/waiting-approval";
+		case "COMPLETE_PROFILE":
+			return "/complete-profile";
+		case "DASHBOARD":
+		default:
+			return user.dashboard_path;
+	}
 }

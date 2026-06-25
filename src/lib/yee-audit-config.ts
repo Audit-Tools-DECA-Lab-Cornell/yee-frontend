@@ -144,11 +144,11 @@ export function getDraftStorageKey(placeId: string) {
 }
 
 export function getNextStep(step: YeeStepNumber) {
-	return step < 9 ? (step + 1 as YeeStepNumber) : null;
+	return step < 9 ? ((step + 1) as YeeStepNumber) : null;
 }
 
 export function getPreviousStep(step: YeeStepNumber) {
-	return step > 1 ? (step - 1 as YeeStepNumber) : null;
+	return step > 1 ? ((step - 1) as YeeStepNumber) : null;
 }
 
 export function getDomainForStep(step: YeeStepNumber): YeeDomainKey | null {

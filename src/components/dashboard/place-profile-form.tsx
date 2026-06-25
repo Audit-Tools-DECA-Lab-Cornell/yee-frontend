@@ -10,7 +10,7 @@ import {
 	DropdownMenuContent,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
-	DropdownMenuTrigger,
+	DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,14 +25,14 @@ const PLACE_TYPE_OPTIONS = [
 	"Community gardens",
 	"Public squares / plazas",
 	"Community center outdoor spaces",
-	"Woodland / forested areas",
+	"Woodland / forested areas"
 ];
 
 const AUDITOR_POPULATION_OPTIONS = [
 	"Community youth 12 years and under",
 	"Community youth 13-17 years",
 	"Community young adults 18-25",
-	"Adults from youth / community organizations",
+	"Adults from youth / community organizations"
 ];
 
 type GoogleAutocompleteResult = {
@@ -106,29 +106,27 @@ function buildMapQuery(values: PlaceProfileFormValues) {
 function buildStaticMapUrl(apiKey: string | undefined, values: PlaceProfileFormValues, query: string) {
 	if (!apiKey || !query) return null;
 	const center =
-		values.latitude !== null && values.longitude !== null
-			? `${values.latitude},${values.longitude}`
-			: query;
+		values.latitude !== null && values.longitude !== null ? `${values.latitude},${values.longitude}` : query;
 	const marker =
-		values.latitude !== null && values.longitude !== null
-			? `${values.latitude},${values.longitude}`
-			: query;
+		values.latitude !== null && values.longitude !== null ? `${values.latitude},${values.longitude}` : query;
 	return `https://maps.googleapis.com/maps/api/staticmap?key=${encodeURIComponent(apiKey)}&size=1200x520&scale=2&zoom=15&maptype=roadmap&center=${encodeURIComponent(center)}&markers=color:0x10231f|${encodeURIComponent(marker)}`;
 }
 
 function normalizeGoogleAddressComponent(
 	components: Array<{ longText?: string; shortText?: string; types?: string[] }> | undefined,
 	type: string,
-	preferShort = false,
+	preferShort = false
 ) {
 	const component = components?.find(entry => entry.types?.includes(type));
 	if (!component) return "";
-	return preferShort ? component.shortText ?? component.longText ?? "" : component.longText ?? component.shortText ?? "";
+	return preferShort
+		? (component.shortText ?? component.longText ?? "")
+		: (component.longText ?? component.shortText ?? "");
 }
 
 function buildStreetAddress(
 	components: Array<{ longText?: string; shortText?: string; types?: string[] }> | undefined,
-	fallback: string,
+	fallback: string
 ) {
 	const streetNumber = normalizeGoogleAddressComponent(components, "street_number");
 	const route = normalizeGoogleAddressComponent(components, "route");
@@ -188,7 +186,7 @@ export function buildPlaceProfilePayload(values: PlaceProfileFormValues) {
 		auditor_inclusion_exclusion_criteria: values.auditorInclusionExclusionCriteria || undefined,
 		auditor_notes: values.auditorNotes || undefined,
 		lat: values.latitude ?? undefined,
-		lng: values.longitude ?? undefined,
+		lng: values.longitude ?? undefined
 	};
 }
 
@@ -212,10 +210,10 @@ export function derivePlaceProfileFormValues(place: {
 }): PlaceProfileFormValues {
 	const isKnownPlaceType = PLACE_TYPE_OPTIONS.includes(place.place_type);
 	const selectedPopulationTypes = place.auditor_population_types.filter(option =>
-		AUDITOR_POPULATION_OPTIONS.includes(option),
+		AUDITOR_POPULATION_OPTIONS.includes(option)
 	);
 	const customPopulationTypes = place.auditor_population_types.filter(
-		option => !AUDITOR_POPULATION_OPTIONS.includes(option),
+		option => !AUDITOR_POPULATION_OPTIONS.includes(option)
 	);
 
 	return {
@@ -231,14 +229,16 @@ export function derivePlaceProfileFormValues(place: {
 		startDate: place.start_date ?? "",
 		endDate: place.end_date ?? "",
 		estimatedAuditors:
-			place.estimated_auditors !== null && place.estimated_auditors !== undefined ? String(place.estimated_auditors) : "",
+			place.estimated_auditors !== null && place.estimated_auditors !== undefined
+				? String(place.estimated_auditors)
+				: "",
 		auditorPopulationTypes:
 			customPopulationTypes.length > 0 ? [...selectedPopulationTypes, "Other"] : selectedPopulationTypes,
 		otherAuditorPopulationType: customPopulationTypes.join(", "),
 		auditorInclusionExclusionCriteria: place.auditor_inclusion_exclusion_criteria,
 		auditorNotes: place.auditor_notes,
 		latitude: place.lat ?? null,
-		longitude: place.lng ?? null,
+		longitude: place.lng ?? null
 	};
 }
 
@@ -252,7 +252,7 @@ export function PlaceProfileForm({
 	error,
 	submitLabel,
 	cancelHref,
-	cancelLabel,
+	cancelLabel
 }: PlaceProfileFormProps) {
 	const latestValuesRef = React.useRef(values);
 	const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -293,12 +293,12 @@ export function PlaceProfileForm({
 						"Content-Type": "application/json",
 						"X-Goog-Api-Key": googleMapsApiKey,
 						"X-Goog-FieldMask":
-							"suggestions.placePrediction.placeId,suggestions.placePrediction.text.text,suggestions.placePrediction.structuredFormat.mainText.text,suggestions.placePrediction.structuredFormat.secondaryText.text",
+							"suggestions.placePrediction.placeId,suggestions.placePrediction.text.text,suggestions.placePrediction.structuredFormat.mainText.text,suggestions.placePrediction.structuredFormat.secondaryText.text"
 					},
 					body: JSON.stringify({
 						input: trimmedAddress,
-						includeQueryPredictions: false,
-					}),
+						includeQueryPredictions: false
+					})
 				});
 
 				if (!response.ok) {
@@ -328,7 +328,7 @@ export function PlaceProfileForm({
 						accumulator.push({
 							placeId: prediction.placeId,
 							text,
-							secondaryText: prediction.structuredFormat?.secondaryText?.text,
+							secondaryText: prediction.structuredFormat?.secondaryText?.text
 						});
 						return accumulator;
 					}, []) ?? [];
@@ -362,12 +362,15 @@ export function PlaceProfileForm({
 		if (!googleMapsApiKey) return;
 		try {
 			setLoadingSuggestions(true);
-			const response = await fetch(`https://places.googleapis.com/v1/places/${encodeURIComponent(suggestion.placeId)}`, {
-				headers: {
-					"X-Goog-Api-Key": googleMapsApiKey,
-					"X-Goog-FieldMask": "formattedAddress,addressComponents,location",
-				},
-			});
+			const response = await fetch(
+				`https://places.googleapis.com/v1/places/${encodeURIComponent(suggestion.placeId)}`,
+				{
+					headers: {
+						"X-Goog-Api-Key": googleMapsApiKey,
+						"X-Goog-FieldMask": "formattedAddress,addressComponents,location"
+					}
+				}
+			);
 			if (!response.ok) {
 				throw new Error(`Google place details failed with ${response.status}`);
 			}
@@ -383,10 +386,12 @@ export function PlaceProfileForm({
 				province:
 					normalizeGoogleAddressComponent(place.addressComponents, "administrative_area_level_1", true) ||
 					currentValues.province,
-				country: normalizeGoogleAddressComponent(place.addressComponents, "country", true) || currentValues.country,
-				postalCode: normalizeGoogleAddressComponent(place.addressComponents, "postal_code") || currentValues.postalCode,
+				country:
+					normalizeGoogleAddressComponent(place.addressComponents, "country", true) || currentValues.country,
+				postalCode:
+					normalizeGoogleAddressComponent(place.addressComponents, "postal_code") || currentValues.postalCode,
 				latitude: place.location?.latitude ?? currentValues.latitude,
-				longitude: place.location?.longitude ?? currentValues.longitude,
+				longitude: place.location?.longitude ?? currentValues.longitude
 			};
 			onChange(nextValues);
 			setSuggestions([]);
@@ -401,11 +406,13 @@ export function PlaceProfileForm({
 	}
 
 	const mapQuery = buildMapQuery(values);
-	const googleMapsHref = mapQuery ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}` : null;
+	const googleMapsHref = mapQuery
+		? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`
+		: null;
 	const staticMapUrl = buildStaticMapUrl(googleMapsApiKey, values, mapQuery);
 	const fallbackStaticMapUrl = buildFallbackStaticMapUrl(values, mapQuery);
 	const openStreetMapEmbedUrl = buildOpenStreetMapEmbedUrl(values);
-	const previewMapUrl = mapImageSource === "google" ? staticMapUrl ?? fallbackStaticMapUrl : fallbackStaticMapUrl;
+	const previewMapUrl = mapImageSource === "google" ? (staticMapUrl ?? fallbackStaticMapUrl) : fallbackStaticMapUrl;
 
 	React.useEffect(() => {
 		setMapImageFailed(false);
@@ -432,7 +439,13 @@ export function PlaceProfileForm({
 			</div>
 			<div className="space-y-2">
 				<Label htmlFor="place-name">Place Name</Label>
-				<Input id="place-name" placeholder="Cass Park" value={values.name} onChange={event => update("name", event.target.value)} required />
+				<Input
+					id="place-name"
+					placeholder="Cass Park"
+					value={values.name}
+					onChange={event => update("name", event.target.value)}
+					required
+				/>
 			</div>
 
 			<div className="space-y-2 sm:col-span-2">
@@ -447,7 +460,7 @@ export function PlaceProfileForm({
 								...values,
 								address: event.target.value,
 								latitude: null,
-								longitude: null,
+								longitude: null
 							});
 						}}
 						onFocus={() => {
@@ -470,9 +483,13 @@ export function PlaceProfileForm({
 											onMouseDown={event => event.preventDefault()}
 											onClick={() => void applySuggestion(suggestion)}
 											className="flex w-full flex-col items-start gap-1 px-4 py-3 text-left transition hover:bg-slate-50">
-											<span className="text-sm font-medium text-slate-900">{suggestion.text}</span>
+											<span className="text-sm font-medium text-slate-900">
+												{suggestion.text}
+											</span>
 											{suggestion.secondaryText ? (
-												<span className="text-xs text-slate-500">{suggestion.secondaryText}</span>
+												<span className="text-xs text-slate-500">
+													{suggestion.secondaryText}
+												</span>
 											) : null}
 										</button>
 									</li>
@@ -501,23 +518,42 @@ export function PlaceProfileForm({
 			</div>
 			<div className="space-y-2">
 				<Label htmlFor="place-province">State/Province</Label>
-				<Input id="place-province" value={values.province} onChange={event => update("province", event.target.value)} />
+				<Input
+					id="place-province"
+					value={values.province}
+					onChange={event => update("province", event.target.value)}
+				/>
 			</div>
 			<div className="space-y-2">
 				<Label htmlFor="place-country">Country</Label>
-				<Input id="place-country" value={values.country} onChange={event => update("country", event.target.value)} />
+				<Input
+					id="place-country"
+					value={values.country}
+					onChange={event => update("country", event.target.value)}
+				/>
 			</div>
 			<div className="space-y-2">
 				<Label htmlFor="place-postal-code">Postal Code</Label>
-				<Input id="place-postal-code" value={values.postalCode} onChange={event => update("postalCode", event.target.value)} />
+				<Input
+					id="place-postal-code"
+					value={values.postalCode}
+					onChange={event => update("postalCode", event.target.value)}
+				/>
 			</div>
 
 			<div className="space-y-3 sm:col-span-2">
 				<Label>Place Type</Label>
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
-						<Button type="button" variant="outline" className="w-full justify-between rounded-2xl px-4 py-5 text-left font-normal">
-							<span className="truncate">{values.placeType === "Other" ? `Other: ${values.otherPlaceType || "custom type"}` : values.placeType || "Select Place Type"}</span>
+						<Button
+							type="button"
+							variant="outline"
+							className="w-full justify-between rounded-2xl px-4 py-5 text-left font-normal">
+							<span className="truncate">
+								{values.placeType === "Other"
+									? `Other: ${values.otherPlaceType || "custom type"}`
+									: values.placeType || "Select Place Type"}
+							</span>
 						</Button>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="start" className="w-[28rem] rounded-2xl p-2">
@@ -547,18 +583,32 @@ export function PlaceProfileForm({
 				{values.placeType === "Other" ? (
 					<div className="space-y-2">
 						<Label htmlFor="place-type-other">Other Place Type</Label>
-						<Input id="place-type-other" value={values.otherPlaceType} onChange={event => update("otherPlaceType", event.target.value)} />
+						<Input
+							id="place-type-other"
+							value={values.otherPlaceType}
+							onChange={event => update("otherPlaceType", event.target.value)}
+						/>
 					</div>
 				) : null}
 			</div>
 
 			<div className="space-y-2">
 				<Label htmlFor="place-start-date">Anticipated Start Date</Label>
-				<Input id="place-start-date" type="date" value={values.startDate} onChange={event => update("startDate", event.target.value)} />
+				<Input
+					id="place-start-date"
+					type="date"
+					value={values.startDate}
+					onChange={event => update("startDate", event.target.value)}
+				/>
 			</div>
 			<div className="space-y-2">
 				<Label htmlFor="place-end-date">Anticipated End Date</Label>
-				<Input id="place-end-date" type="date" value={values.endDate} onChange={event => update("endDate", event.target.value)} />
+				<Input
+					id="place-end-date"
+					type="date"
+					value={values.endDate}
+					onChange={event => update("endDate", event.target.value)}
+				/>
 			</div>
 			<div className="space-y-2">
 				<Label htmlFor="place-estimated-auditors">Estimated number of Auditors</Label>
@@ -575,11 +625,20 @@ export function PlaceProfileForm({
 				<Label>Auditor Population Type (check all that apply)</Label>
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
-						<Button type="button" variant="outline" className="w-full justify-between rounded-2xl px-4 py-5 text-left font-normal">
+						<Button
+							type="button"
+							variant="outline"
+							className="w-full justify-between rounded-2xl px-4 py-5 text-left font-normal">
 							<span className="truncate">
-								{summarizeSelections(values.auditorPopulationTypes, values.otherAuditorPopulationType, "Select Auditor population types")}
+								{summarizeSelections(
+									values.auditorPopulationTypes,
+									values.otherAuditorPopulationType,
+									"Select Auditor population types"
+								)}
 							</span>
-							<span className="ml-4 text-xs text-slate-500">{values.auditorPopulationTypes.length} selected</span>
+							<span className="ml-4 text-xs text-slate-500">
+								{values.auditorPopulationTypes.length} selected
+							</span>
 						</Button>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="start" className="w-[28rem] rounded-2xl p-2">
@@ -589,13 +648,23 @@ export function PlaceProfileForm({
 							<DropdownMenuCheckboxItem
 								key={option}
 								checked={values.auditorPopulationTypes.includes(option)}
-								onCheckedChange={() => update("auditorPopulationTypes", toggleArrayValue(values.auditorPopulationTypes, option))}>
+								onCheckedChange={() =>
+									update(
+										"auditorPopulationTypes",
+										toggleArrayValue(values.auditorPopulationTypes, option)
+									)
+								}>
 								{option}
 							</DropdownMenuCheckboxItem>
 						))}
 						<DropdownMenuCheckboxItem
 							checked={values.auditorPopulationTypes.includes("Other")}
-							onCheckedChange={() => update("auditorPopulationTypes", toggleArrayValue(values.auditorPopulationTypes, "Other"))}>
+							onCheckedChange={() =>
+								update(
+									"auditorPopulationTypes",
+									toggleArrayValue(values.auditorPopulationTypes, "Other")
+								)
+							}>
 							Other
 						</DropdownMenuCheckboxItem>
 					</DropdownMenuContent>
@@ -664,11 +733,13 @@ export function PlaceProfileForm({
 							</div>
 						) : (
 							<p className="rounded-[1.25rem] border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-500">
-								Map snapshot unavailable right now, but the Google Maps link below is still ready for this Place.
+								Map snapshot unavailable right now, but the Google Maps link below is still ready for
+								this Place.
 							</p>
 						)}
 						<p className="mt-4 text-sm leading-6 text-slate-600">
-							Use the preview and saved location details to verify the map pin, then open the Place directly in Google Maps if you need a closer check.
+							Use the preview and saved location details to verify the map pin, then open the Place
+							directly in Google Maps if you need a closer check.
 						</p>
 						<div className="mt-4 flex flex-wrap gap-3">
 							<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
@@ -694,7 +765,10 @@ export function PlaceProfileForm({
 
 			{error ? <p className="sm:col-span-2 text-sm text-rose-600">{error}</p> : null}
 			<div className="mt-2 flex flex-wrap gap-3 sm:col-span-2">
-				<Button type="submit" className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]" disabled={saving || loadingProjects || projects.length === 0}>
+				<Button
+					type="submit"
+					className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]"
+					disabled={saving || loadingProjects || projects.length === 0}>
 					{saving ? "Saving..." : submitLabel}
 				</Button>
 				<Button asChild variant="outline" className="rounded-2xl">

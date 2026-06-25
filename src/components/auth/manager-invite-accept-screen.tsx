@@ -76,28 +76,41 @@ export function ManagerInviteAcceptScreen({ token }: { token: string }) {
 		<AuthShell
 			eyebrow="Manager Invite"
 			title="Join an existing organization as a manager."
-			description="This invitation adds you as an additional manager inside the same YEE organization account."
-		>
+			description="This invitation adds you as an additional manager inside the same YEE organization account.">
 			<div className="space-y-6">
 				<div>
-					<Badge className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700 hover:bg-emerald-50">Manager access</Badge>
+					<Badge className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700 hover:bg-emerald-50">
+						Manager access
+					</Badge>
 					<h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950">Invitation received</h2>
 					<p className="mt-2 text-sm leading-6 text-slate-600">
-						{loading ? "Loading invite details..." : email ? `You were invited as ${email}.` : "Invite details unavailable."}
+						{loading
+							? "Loading invite details..."
+							: email
+								? `You were invited as ${email}.`
+								: "Invite details unavailable."}
 					</p>
 				</div>
 				<div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 text-sm leading-7 text-slate-600">
 					<p>
-						Organization: <span className="font-medium text-slate-900">{organization ?? "Unknown organization"}</span>
+						Organization:{" "}
+						<span className="font-medium text-slate-900">{organization ?? "Unknown organization"}</span>
 					</p>
 					<p className="mt-2">
-						Invited by: <span className="font-medium text-slate-900">{invitedByName ?? "A primary manager"}</span>
+						Invited by:{" "}
+						<span className="font-medium text-slate-900">{invitedByName ?? "A primary manager"}</span>
 					</p>
 				</div>
 				<form className="space-y-4" onSubmit={handleSubmit}>
 					<div className="space-y-2">
 						<Label htmlFor="manager-invite-name">Full name</Label>
-						<Input id="manager-invite-name" value={name} onChange={event => setName(event.target.value)} placeholder="Your full name" required />
+						<Input
+							id="manager-invite-name"
+							value={name}
+							onChange={event => setName(event.target.value)}
+							placeholder="Your full name"
+							required
+						/>
 					</div>
 					<div className="space-y-2">
 						<Label htmlFor="manager-invite-position">Position / role</Label>
@@ -110,11 +123,20 @@ export function ManagerInviteAcceptScreen({ token }: { token: string }) {
 					</div>
 					<div className="space-y-2">
 						<Label htmlFor="manager-invite-password">Password</Label>
-						<PasswordField id="manager-invite-password" value={password} onChange={setPassword} placeholder="Create a password" required />
+						<PasswordField
+							id="manager-invite-password"
+							value={password}
+							onChange={setPassword}
+							placeholder="Create a password"
+							required
+						/>
 					</div>
 					{error ? <p className="text-sm text-rose-600">{error}</p> : null}
 					<div className="flex flex-wrap gap-3">
-						<Button type="submit" className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]" disabled={loading || saving}>
+						<Button
+							type="submit"
+							className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]"
+							disabled={loading || saving}>
 							{saving ? "Joining organization..." : "Accept invite"}
 						</Button>
 						<Button asChild variant="outline" className="rounded-2xl">

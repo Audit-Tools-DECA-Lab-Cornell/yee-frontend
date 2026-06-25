@@ -1,47 +1,101 @@
 import type { ReactNode } from "react";
 
-export function AuthShell({
-	eyebrow,
-	title,
-	description,
-	children
-}: {
-	eyebrow: string;
-	title: string;
-	description: string;
-	children: ReactNode;
-}) {
-	return (
-		<div className="min-h-screen bg-[#f6f3ea] px-4 py-8 sm:px-6 lg:px-8">
-			<div className="mx-auto grid min-h-[calc(100vh-4rem)] max-w-6xl gap-8 lg:grid-cols-[minmax(0,1fr)_460px]">
-				<section className="relative overflow-hidden rounded-[2rem] bg-linear-to-br from-[#10231f] via-[#17302c] to-[#21483b] px-8 py-10 text-white shadow-xl shadow-emerald-950/10">
-					<div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.14),transparent_28%)]" />
-					<div className="relative z-10 flex h-full flex-col justify-between">
-						<div>
-							<p className="text-xs font-medium uppercase tracking-[0.28em] text-emerald-100/80">{eyebrow}</p>
-							<h1 className="mt-4 max-w-xl text-4xl font-semibold tracking-tight text-white sm:text-5xl">
-								{title}
-							</h1>
-							<p className="mt-4 max-w-lg text-base leading-8 text-emerald-50/78">{description}</p>
-						</div>
+type AuthShellProps = {
+  eyebrow?: string;
+  title?: string;
+  description?: string;
+  children: ReactNode;
+};
 
-						<div className="grid gap-4 sm:grid-cols-2">
-							<div className="rounded-3xl border border-white/10 bg-white/8 p-5 backdrop-blur-sm">
-								<p className="text-sm text-emerald-50/70">For auditors</p>
-								<p className="mt-2 text-lg font-semibold">Assigned places, audit history, and start-audit access.</p>
-							</div>
-							<div className="rounded-3xl border border-white/10 bg-white/8 p-5 backdrop-blur-sm">
-								<p className="text-sm text-emerald-50/70">For managers</p>
-								<p className="mt-2 text-lg font-semibold">Projects, places, auditors, and workspace oversight in one app.</p>
-							</div>
-						</div>
-					</div>
-				</section>
+export function AuthShell({ children }: AuthShellProps) {
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="mx-auto grid min-h-screen max-w-6xl lg:grid-cols-[420px_minmax(0,1fr)]">
+        {/* Brand panel — hidden on small screens */}
+        <section
+          className="hidden lg:flex flex-col justify-between px-10 py-12"
+          style={{ background: "var(--sidebar)" }}
+          aria-label="YEE Audit Tools product overview">
+          {/* Logo / wordmark area */}
+          <div>
+            <div className="flex items-center gap-2.5">
+              <span
+                className="flex size-8 items-center justify-center rounded-md text-xs font-bold"
+                style={{
+                  background: "var(--sidebar-primary)",
+                  color: "var(--sidebar-primary-foreground)"
+                }}
+                aria-hidden="true">
+                YEE
+              </span>
+              <span
+                className="text-sm font-semibold tracking-tight"
+                style={{ color: "var(--sidebar-foreground)" }}>
+                Audit Tools
+              </span>
+            </div>
 
-				<section className="flex items-center">
-					<div className="w-full rounded-[2rem] border border-slate-200/80 bg-white p-6 shadow-sm sm:p-8">{children}</div>
-				</section>
-			</div>
-		</div>
-	);
+            <div className="mt-10 max-w-xs">
+              <h1
+                className="text-2xl font-semibold leading-snug tracking-tight"
+                style={{ color: "var(--sidebar-foreground)" }}>
+                Youth Enabling Environment research, structured and accessible.
+              </h1>
+              <p
+                className="mt-4 text-sm leading-relaxed"
+                style={{ color: "oklch(0.95 0.006 158 / 0.65)" }}>
+                A digital platform for conducting and managing YEE space audits.
+                Built for research teams who need reliability in the field.
+              </p>
+            </div>
+          </div>
+
+          {/* Proof points */}
+          <div className="space-y-3">
+            <div
+              className="rounded-lg border p-4"
+              style={{
+                borderColor: "var(--sidebar-border)",
+                background: "oklch(1 0 0 / 0.05)"
+              }}>
+              <p
+                className="text-xs font-medium"
+                style={{ color: "oklch(0.95 0.006 158 / 0.55)" }}>
+                For auditors
+              </p>
+              <p
+                className="mt-1.5 text-sm font-medium leading-snug"
+                style={{ color: "var(--sidebar-foreground)" }}>
+                Assigned places, structured audit form, and full submission history.
+              </p>
+            </div>
+            <div
+              className="rounded-lg border p-4"
+              style={{
+                borderColor: "var(--sidebar-border)",
+                background: "oklch(1 0 0 / 0.05)"
+              }}>
+              <p
+                className="text-xs font-medium"
+                style={{ color: "oklch(0.95 0.006 158 / 0.55)" }}>
+                For managers
+              </p>
+              <p
+                className="mt-1.5 text-sm font-medium leading-snug"
+                style={{ color: "var(--sidebar-foreground)" }}>
+                Projects, places, auditor oversight, and research reporting — in one workspace.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Form panel */}
+        <section className="flex min-h-screen items-center justify-center px-4 py-12 sm:px-8">
+          <div className="w-full max-w-md rounded-xl border border-border bg-card p-8 shadow-[var(--shadow-panel)]">
+            {children}
+          </div>
+        </section>
+      </div>
+    </div>
+  );
 }

@@ -23,7 +23,7 @@ export function AuditorPlaceList({ compact = false }: { compact?: boolean }) {
 		const run = async () => {
 			try {
 				const rows = await fetchMyPlaces(session);
-				const states = await Promise.all(rows.map((place) => fetchAuditState(place.id)));
+				const states = await Promise.all(rows.map(place => fetchAuditState(place.id)));
 				if (!cancelled) {
 					setPlaces(rows);
 					setAuditStates(Object.fromEntries(states.map(state => [state.place_id, state])));
@@ -77,17 +77,25 @@ export function AuditorPlaceList({ compact = false }: { compact?: boolean }) {
 		const hasDraft = auditState?.status === "DRAFT";
 
 		return (
-			<div key={place.id} className="flex flex-col gap-3 rounded-2xl border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between">
+			<div
+				key={place.id}
+				className="flex flex-col gap-3 rounded-2xl border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between">
 				<div>
 					<p className="font-medium text-slate-900">{place.name}</p>
 					<p className="mt-1 text-sm text-slate-600">{place.project}</p>
 					<div className="mt-2 flex flex-wrap gap-2">
 						{isSubmitted ? (
-							<Badge className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700 hover:bg-emerald-100">Submitted / Locked</Badge>
+							<Badge className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700 hover:bg-emerald-100">
+								Submitted / Locked
+							</Badge>
 						) : hasDraft ? (
-							<Badge className="rounded-full bg-amber-100 px-3 py-1 text-amber-700 hover:bg-amber-100">Draft in progress</Badge>
+							<Badge className="rounded-full bg-amber-100 px-3 py-1 text-amber-700 hover:bg-amber-100">
+								Draft in progress
+							</Badge>
 						) : (
-							<Badge className="rounded-full bg-sky-100 px-3 py-1 text-sky-700 hover:bg-sky-100">Ready to start</Badge>
+							<Badge className="rounded-full bg-sky-100 px-3 py-1 text-sky-700 hover:bg-sky-100">
+								Ready to start
+							</Badge>
 						)}
 					</div>
 				</div>
@@ -119,7 +127,9 @@ export function AuditorPlaceList({ compact = false }: { compact?: boolean }) {
 			<CardHeader>
 				<div>
 					<CardTitle>My Audits</CardTitle>
-					<CardDescription>Choose a place by name and continue the correct audit action for that place.</CardDescription>
+					<CardDescription>
+						Choose a place by name and continue the correct audit action for that place.
+					</CardDescription>
 				</div>
 			</CardHeader>
 			<CardContent className="space-y-3">{content}</CardContent>

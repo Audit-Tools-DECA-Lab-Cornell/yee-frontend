@@ -6,43 +6,40 @@ import { getApiBaseUrl } from "@/app/api/_lib/backend-config";
 import { errorResponse } from "@/app/api/_lib/api-response";
 
 type BackendLoginResponse = {
-  access_token: string;
-  token_type: "bearer";
-  expires_at: string;
-  user: SessionUser;
+	access_token: string;
+	token_type: "bearer";
+	expires_at: string;
+	user: SessionUser;
 };
 
 export async function POST(request: Request) {
-  const body: unknown = await request.json();
-  const backendUrl = `${getApiBaseUrl()}/yee/auth/login`;
+	const body: unknown = await request.json();
+	const backendUrl = `${getApiBaseUrl()}/yee/auth/login`;
 
-  try {
-    const response = await fetch(backendUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      cache: "no-store",
-    });
+	try {
+		const response = await fetch(backendUrl, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(body),
+			cache: "no-store"
+		});
 
-    const text = await response.text();
-    const data: unknown = text ? JSON.parse(text) : {};
+		const text = await response.text();
+		const data: unknown = text ? JSON.parse(text) : {};
 
-    if (!response.ok) {
-      // Forward backend error without leaking the backend URL.
-      return NextResponse.json(data, { status: response.status });
-    }
+		if (!response.ok) {
+			// Forward backend error without leaking the backend URL.
+			return NextResponse.json(data, { status: response.status });
+		}
 
-    const loginData = data as BackendLoginResponse;
+		const loginData = data as BackendLoginResponse;
 
-    // Return only the user to the browser — the raw access_token goes into
-    // an HttpOnly cookie and is never visible to client-side JavaScript.
-    const nextResponse = NextResponse.json({ user: loginData.user });
-    setSessionCookie(nextResponse, loginData.access_token);
-    return nextResponse;
-  } catch (error) {
-    return errorResponse(
-      `Login failed: ${error instanceof Error ? error.message : String(error)}`,
-      502
-    );
-  }
+		// Return only the user to the browser — the raw access_token goes into
+		// an HttpOnly cookie and is never visible to client-side JavaScript.
+		const nextResponse = NextResponse.json({ user: loginData.user });
+		setSessionCookie(nextResponse, loginData.access_token);
+		return nextResponse;
+	} catch (error) {
+		return errorResponse(`Login failed: ${error instanceof Error ? error.message : String(error)}`, 502);
+	}
 }

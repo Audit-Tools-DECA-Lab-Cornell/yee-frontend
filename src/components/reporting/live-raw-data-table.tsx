@@ -144,7 +144,8 @@ export function LiveRawDataTable({
 		return true;
 	});
 	const selectedRows = filteredRows.filter(row => selectedAuditIds.includes(row.audit_id));
-	const filtersActive = selectedOrganizations.length > 0 || selectedProjectIds.length > 0 || selectedPlaceIds.length > 0;
+	const filtersActive =
+		selectedOrganizations.length > 0 || selectedProjectIds.length > 0 || selectedPlaceIds.length > 0;
 
 	return (
 		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
@@ -155,8 +156,16 @@ export function LiveRawDataTable({
 				</div>
 				<div className="flex flex-wrap gap-2">
 					<ExportCsvButton filename={filename} rows={toExportRows(rows)} label="Export All" />
-					<ExportCsvButton filename={`filtered-${filename}`} rows={toExportRows(filteredRows)} label="Export Filtered" />
-					<ExportCsvButton filename={`selected-${filename}`} rows={toExportRows(selectedRows)} label="Export Selected" />
+					<ExportCsvButton
+						filename={`filtered-${filename}`}
+						rows={toExportRows(filteredRows)}
+						label="Export Filtered"
+					/>
+					<ExportCsvButton
+						filename={`selected-${filename}`}
+						rows={toExportRows(selectedRows)}
+						label="Export Selected"
+					/>
 				</div>
 			</CardHeader>
 			<CardContent className="space-y-4 overflow-x-auto">
@@ -167,10 +176,14 @@ export function LiveRawDataTable({
 						selectedValues={selectedOrganizations}
 						onChange={values => {
 							setSelectedOrganizations(values);
-							const scopedRows = rows.filter(row => values.length === 0 || values.includes(row.organization));
+							const scopedRows = rows.filter(
+								row => values.length === 0 || values.includes(row.organization)
+							);
 							const allowedProjectIds = new Set(scopedRows.map(row => row.project_id));
 							const allowedPlaceIds = new Set(scopedRows.map(row => row.place_id));
-							setSelectedProjectIds(current => current.filter(projectId => allowedProjectIds.has(projectId)));
+							setSelectedProjectIds(current =>
+								current.filter(projectId => allowedProjectIds.has(projectId))
+							);
 							setSelectedPlaceIds(current => current.filter(placeId => allowedPlaceIds.has(placeId)));
 							setSelectedAuditIds([]);
 						}}
@@ -186,7 +199,9 @@ export function LiveRawDataTable({
 								setSelectedAuditIds([]);
 								return;
 							}
-							const allowedPlaceIds = new Set(rows.filter(row => values.includes(row.project_id)).map(row => row.place_id));
+							const allowedPlaceIds = new Set(
+								rows.filter(row => values.includes(row.project_id)).map(row => row.place_id)
+							);
 							setSelectedPlaceIds(current => current.filter(placeId => allowedPlaceIds.has(placeId)));
 							setSelectedAuditIds([]);
 						}}
@@ -211,7 +226,9 @@ export function LiveRawDataTable({
 					/>
 				</div>
 				{rows.length === 0 ? (
-					<p className="text-sm text-slate-500">No submitted YEE audits are available yet for {scope} export.</p>
+					<p className="text-sm text-slate-500">
+						No submitted YEE audits are available yet for {scope} export.
+					</p>
 				) : (
 					<table className="min-w-full text-left text-sm">
 						<thead className="text-slate-500">

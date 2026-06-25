@@ -66,30 +66,55 @@ export function InviteAcceptScreen({ token }: { token: string }) {
 	}
 
 	return (
-		<AuthShell eyebrow="Auditor Invite" title="Accept an invite and finish account setup." description="This page now validates a real manager-issued auditor invite.">
+		<AuthShell
+			eyebrow="Auditor Invite"
+			title="Accept an invite and finish account setup."
+			description="This page now validates a real manager-issued auditor invite.">
 			<div className="space-y-6">
 				<div>
-					<Badge className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700 hover:bg-emerald-50">Invite token</Badge>
+					<Badge className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700 hover:bg-emerald-50">
+						Invite token
+					</Badge>
 					<h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950">Invitation received</h2>
 					<p className="mt-2 text-sm leading-6 text-slate-600">
-						{loading ? "Loading invite details..." : email ? `You were invited as ${email}.` : "Invite details unavailable."}
+						{loading
+							? "Loading invite details..."
+							: email
+								? `You were invited as ${email}.`
+								: "Invite details unavailable."}
 					</p>
 				</div>
 				<div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 text-sm leading-7 text-slate-600">
-					Organization: <span className="font-medium text-slate-900">{organization ?? "Unknown workspace"}</span>
+					Organization:{" "}
+					<span className="font-medium text-slate-900">{organization ?? "Unknown workspace"}</span>
 				</div>
 				<form className="space-y-4" onSubmit={handleSubmit}>
 					<div className="space-y-2">
 						<Label htmlFor="invite-name">Full name</Label>
-						<Input id="invite-name" value={name} onChange={event => setName(event.target.value)} placeholder="Your full name" required />
+						<Input
+							id="invite-name"
+							value={name}
+							onChange={event => setName(event.target.value)}
+							placeholder="Your full name"
+							required
+						/>
 					</div>
 					<div className="space-y-2">
 						<Label htmlFor="invite-password">Password</Label>
-						<PasswordField id="invite-password" value={password} onChange={setPassword} placeholder="Create a password" required />
+						<PasswordField
+							id="invite-password"
+							value={password}
+							onChange={setPassword}
+							placeholder="Create a password"
+							required
+						/>
 					</div>
 					{error ? <p className="text-sm text-rose-600">{error}</p> : null}
 					<div className="flex flex-wrap gap-3">
-						<Button type="submit" className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]" disabled={loading || saving}>
+						<Button
+							type="submit"
+							className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]"
+							disabled={loading || saving}>
 							{saving ? "Accepting invite..." : "Accept invite"}
 						</Button>
 						<Button asChild variant="outline" className="rounded-2xl">

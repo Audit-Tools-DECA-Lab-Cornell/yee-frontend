@@ -8,10 +8,10 @@ import { queryKeys } from "@/lib/api/query-keys";
 import type { RawDataRecord } from "@/lib/dashboard/live-api";
 
 export function useDashboardRawData() {
-  const { session } = useAuth();
-  return useQuery({
-    queryKey: queryKeys.dashboard.rawData(),
-    queryFn: () => apiGet<RawDataRecord[]>("/api/dashboard/raw-data"),
-    enabled: session !== null,
-  });
+	const { session } = useAuth();
+	return useQuery({
+		queryKey: queryKeys.dashboard.rawData(),
+		queryFn: () => apiGet<RawDataRecord[]>("/api/dashboard/raw-data"),
+		enabled: session !== null
+	});
 }

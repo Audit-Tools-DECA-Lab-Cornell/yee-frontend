@@ -8,10 +8,10 @@ import { queryKeys } from "@/lib/api/query-keys";
 import type { DashboardOverview } from "@/lib/dashboard/live-api";
 
 export function useDashboardOverview() {
-  const { session } = useAuth();
-  return useQuery({
-    queryKey: queryKeys.dashboard.overview(),
-    queryFn: () => apiGet<DashboardOverview>("/api/dashboard/overview"),
-    enabled: session !== null,
-  });
+	const { session } = useAuth();
+	return useQuery({
+		queryKey: queryKeys.dashboard.overview(),
+		queryFn: () => apiGet<DashboardOverview>("/api/dashboard/overview"),
+		enabled: session !== null
+	});
 }

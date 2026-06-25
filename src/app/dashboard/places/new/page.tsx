@@ -7,7 +7,7 @@ import { useAuth } from "@/components/auth/auth-provider";
 import {
 	buildPlaceProfilePayload,
 	PlaceProfileForm,
-	type PlaceProfileFormValues,
+	type PlaceProfileFormValues
 } from "@/components/dashboard/place-profile-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { createPlace, fetchProjects, type ProjectRecord } from "@/lib/dashboard/live-api";
@@ -30,7 +30,7 @@ const INITIAL_VALUES: PlaceProfileFormValues = {
 	auditorInclusionExclusionCriteria: "",
 	auditorNotes: "",
 	latitude: null,
-	longitude: null,
+	longitude: null
 };
 
 export default function NewPlacePage() {
@@ -55,7 +55,7 @@ export default function NewPlacePage() {
 					const hasRequestedProject = rows.some(project => project.id === requestedProjectId);
 					setValues(current => ({
 						...current,
-						projectId: hasRequestedProject ? requestedProjectId ?? "" : (rows[0]?.id ?? ""),
+						projectId: hasRequestedProject ? (requestedProjectId ?? "") : (rows[0]?.id ?? "")
 					}));
 				}
 			} catch (err) {
@@ -97,7 +97,8 @@ export default function NewPlacePage() {
 			<CardHeader>
 				<CardTitle className="text-2xl">Add Place</CardTitle>
 				<CardDescription className="max-w-3xl leading-6">
-					Create a richer Place profile with detailed location information, Place Type, anticipated timing, and Auditor setup details for this manager-scoped Project.
+					Create a richer Place profile with detailed location information, Place Type, anticipated timing,
+					and Auditor setup details for this manager-scoped Project.
 				</CardDescription>
 			</CardHeader>
 			<CardContent>

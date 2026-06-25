@@ -8,10 +8,10 @@ import { queryKeys } from "@/lib/api/query-keys";
 import type { PlaceRecord } from "@/lib/dashboard/live-api";
 
 export function useDashboardPlaces() {
-  const { session } = useAuth();
-  return useQuery({
-    queryKey: queryKeys.dashboard.places(),
-    queryFn: () => apiGet<PlaceRecord[]>("/api/dashboard/places"),
-    enabled: session !== null,
-  });
+	const { session } = useAuth();
+	return useQuery({
+		queryKey: queryKeys.dashboard.places(),
+		queryFn: () => apiGet<PlaceRecord[]>("/api/dashboard/places"),
+		enabled: session !== null
+	});
 }

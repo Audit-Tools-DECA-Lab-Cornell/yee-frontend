@@ -8,10 +8,10 @@ import { queryKeys } from "@/lib/api/query-keys";
 import type { ProjectRecord } from "@/lib/dashboard/live-api";
 
 export function useDashboardProjects() {
-  const { session } = useAuth();
-  return useQuery({
-    queryKey: queryKeys.dashboard.projects(),
-    queryFn: () => apiGet<ProjectRecord[]>("/api/dashboard/projects"),
-    enabled: session !== null,
-  });
+	const { session } = useAuth();
+	return useQuery({
+		queryKey: queryKeys.dashboard.projects(),
+		queryFn: () => apiGet<ProjectRecord[]>("/api/dashboard/projects"),
+		enabled: session !== null
+	});
 }

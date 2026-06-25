@@ -10,7 +10,7 @@ import {
 	DropdownMenuContent,
 	DropdownMenuLabel,
 	DropdownMenuSeparator,
-	DropdownMenuTrigger,
+	DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,14 +48,14 @@ const PLACE_TYPE_OPTIONS = [
 	"Community gardens",
 	"Public squares / plazas",
 	"Community center outdoor spaces",
-	"Woodland / forested areas",
+	"Woodland / forested areas"
 ];
 
 const AUDITOR_POPULATION_OPTIONS = [
 	"Community youth 12 years and under",
 	"Community youth 13-17 years",
 	"Community young adults 18-25",
-	"Adults from youth / community organizations",
+	"Adults from youth / community organizations"
 ];
 
 function toggleArrayValue(values: string[], nextValue: string) {
@@ -95,7 +95,7 @@ export function buildProjectProfilePayload(values: ProjectProfileFormValues) {
 		estimated_places: values.estimatedPlaces ? Number(values.estimatedPlaces) : undefined,
 		auditor_population_types: populationTypes,
 		auditor_inclusion_exclusion_criteria: values.auditorInclusionExclusionCriteria || undefined,
-		auditor_notes: values.auditorNotes || undefined,
+		auditor_notes: values.auditorNotes || undefined
 	};
 }
 
@@ -124,11 +124,15 @@ export function deriveProjectProfileFormValues(project: {
 		otherPlaceType: customPlaceTypes.join(", "),
 		startDate: project.start_date ?? "",
 		endDate: project.end_date ?? "",
-		estimatedPlaces: project.estimated_places !== null && project.estimated_places !== undefined ? String(project.estimated_places) : "",
-		auditorPopulationTypes: customPopulationTypes.length > 0 ? [...selectedBasePopulationTypes, "Other"] : selectedBasePopulationTypes,
+		estimatedPlaces:
+			project.estimated_places !== null && project.estimated_places !== undefined
+				? String(project.estimated_places)
+				: "",
+		auditorPopulationTypes:
+			customPopulationTypes.length > 0 ? [...selectedBasePopulationTypes, "Other"] : selectedBasePopulationTypes,
 		otherAuditorPopulationType: customPopulationTypes.join(", "),
 		auditorInclusionExclusionCriteria: project.auditor_inclusion_exclusion_criteria ?? "",
-		auditorNotes: project.auditor_notes ?? "",
+		auditorNotes: project.auditor_notes ?? ""
 	};
 }
 
@@ -140,7 +144,7 @@ export function ProjectProfileForm({
 	error,
 	submitLabel,
 	cancelHref,
-	cancelLabel,
+	cancelLabel
 }: ProjectProfileFormProps) {
 	function update<K extends keyof ProjectProfileFormValues>(key: K, value: ProjectProfileFormValues[K]) {
 		onChange({ ...values, [key]: value });
@@ -150,7 +154,13 @@ export function ProjectProfileForm({
 		<form className="grid gap-5 sm:grid-cols-2" onSubmit={onSubmit}>
 			<div className="space-y-2 sm:col-span-2">
 				<Label htmlFor="project-name">Project Name</Label>
-				<Input id="project-name" placeholder="Healthy Streets" value={values.name} onChange={event => update("name", event.target.value)} required />
+				<Input
+					id="project-name"
+					placeholder="Healthy Streets"
+					value={values.name}
+					onChange={event => update("name", event.target.value)}
+					required
+				/>
 			</div>
 			<div className="space-y-2 sm:col-span-2">
 				<Label htmlFor="project-summary">Project overview / aims</Label>
@@ -167,7 +177,10 @@ export function ProjectProfileForm({
 				<Label>Types of Places to be Audited</Label>
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
-						<Button type="button" variant="outline" className="w-full justify-between rounded-2xl px-4 py-5 text-left font-normal">
+						<Button
+							type="button"
+							variant="outline"
+							className="w-full justify-between rounded-2xl px-4 py-5 text-left font-normal">
 							<span className="truncate">
 								{summarizeSelections(values.placeTypes, values.otherPlaceType, "Select Place Types")}
 							</span>
@@ -181,7 +194,9 @@ export function ProjectProfileForm({
 							<DropdownMenuCheckboxItem
 								key={option}
 								checked={values.placeTypes.includes(option)}
-								onCheckedChange={() => update("placeTypes", toggleArrayValue(values.placeTypes, option))}>
+								onCheckedChange={() =>
+									update("placeTypes", toggleArrayValue(values.placeTypes, option))
+								}>
 								{option}
 							</DropdownMenuCheckboxItem>
 						))}
@@ -207,11 +222,21 @@ export function ProjectProfileForm({
 
 			<div className="space-y-2">
 				<Label htmlFor="project-start-date">Anticipated Start Date</Label>
-				<Input id="project-start-date" type="date" value={values.startDate} onChange={event => update("startDate", event.target.value)} />
+				<Input
+					id="project-start-date"
+					type="date"
+					value={values.startDate}
+					onChange={event => update("startDate", event.target.value)}
+				/>
 			</div>
 			<div className="space-y-2">
 				<Label htmlFor="project-end-date">Anticipated End Date</Label>
-				<Input id="project-end-date" type="date" value={values.endDate} onChange={event => update("endDate", event.target.value)} />
+				<Input
+					id="project-end-date"
+					type="date"
+					value={values.endDate}
+					onChange={event => update("endDate", event.target.value)}
+				/>
 			</div>
 			<div className="space-y-2">
 				<Label htmlFor="project-estimated-places">Estimated number of Places to be audited</Label>
@@ -229,11 +254,20 @@ export function ProjectProfileForm({
 				<Label>Description of Auditors: population type (check all that apply)</Label>
 				<DropdownMenu>
 					<DropdownMenuTrigger asChild>
-						<Button type="button" variant="outline" className="w-full justify-between rounded-2xl px-4 py-5 text-left font-normal">
+						<Button
+							type="button"
+							variant="outline"
+							className="w-full justify-between rounded-2xl px-4 py-5 text-left font-normal">
 							<span className="truncate">
-								{summarizeSelections(values.auditorPopulationTypes, values.otherAuditorPopulationType, "Select Auditor population types")}
+								{summarizeSelections(
+									values.auditorPopulationTypes,
+									values.otherAuditorPopulationType,
+									"Select Auditor population types"
+								)}
 							</span>
-							<span className="ml-4 text-xs text-slate-500">{values.auditorPopulationTypes.length} selected</span>
+							<span className="ml-4 text-xs text-slate-500">
+								{values.auditorPopulationTypes.length} selected
+							</span>
 						</Button>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="start" className="w-[28rem] rounded-2xl p-2">
@@ -243,13 +277,23 @@ export function ProjectProfileForm({
 							<DropdownMenuCheckboxItem
 								key={option}
 								checked={values.auditorPopulationTypes.includes(option)}
-								onCheckedChange={() => update("auditorPopulationTypes", toggleArrayValue(values.auditorPopulationTypes, option))}>
+								onCheckedChange={() =>
+									update(
+										"auditorPopulationTypes",
+										toggleArrayValue(values.auditorPopulationTypes, option)
+									)
+								}>
 								{option}
 							</DropdownMenuCheckboxItem>
 						))}
 						<DropdownMenuCheckboxItem
 							checked={values.auditorPopulationTypes.includes("Other")}
-							onCheckedChange={() => update("auditorPopulationTypes", toggleArrayValue(values.auditorPopulationTypes, "Other"))}>
+							onCheckedChange={() =>
+								update(
+									"auditorPopulationTypes",
+									toggleArrayValue(values.auditorPopulationTypes, "Other")
+								)
+							}>
 							Other
 						</DropdownMenuCheckboxItem>
 					</DropdownMenuContent>
@@ -289,7 +333,10 @@ export function ProjectProfileForm({
 
 			{error ? <p className="sm:col-span-2 text-sm text-rose-600">{error}</p> : null}
 			<div className="mt-2 flex flex-wrap gap-3 sm:col-span-2">
-				<Button type="submit" className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]" disabled={saving}>
+				<Button
+					type="submit"
+					className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]"
+					disabled={saving}>
 					{saving ? "Saving..." : submitLabel}
 				</Button>
 				<Button asChild variant="outline" className="rounded-2xl">

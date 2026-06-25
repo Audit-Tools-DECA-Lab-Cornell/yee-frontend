@@ -155,7 +155,9 @@ function buildPlaceSummaries(records: PlaceComparisonAuditRecord[]): PlaceSummar
 
 			for (const domain of domainOrder) {
 				rawPercentByDomain[domain] = Number((rawPercentByDomain[domain] / placeRecords.length).toFixed(1));
-				weightedPercentByDomain[domain] = Number((weightedPercentByDomain[domain] / placeRecords.length).toFixed(1));
+				weightedPercentByDomain[domain] = Number(
+					(weightedPercentByDomain[domain] / placeRecords.length).toFixed(1)
+				);
 			}
 
 			const sortedByDate = [...placeRecords].sort((left, right) => {
@@ -172,16 +174,25 @@ function buildPlaceSummaries(records: PlaceComparisonAuditRecord[]): PlaceSummar
 				project_name: first.project_name,
 				auditCount: placeRecords.length,
 				avgRawScore: Number(
-					(placeRecords.reduce((sum, record) => sum + record.total_raw_score, 0) / placeRecords.length).toFixed(1)
+					(
+						placeRecords.reduce((sum, record) => sum + record.total_raw_score, 0) / placeRecords.length
+					).toFixed(1)
 				),
 				avgWeightedScore: Number(
-					(placeRecords.reduce((sum, record) => sum + record.total_weighted_score, 0) / placeRecords.length).toFixed(2)
+					(
+						placeRecords.reduce((sum, record) => sum + record.total_weighted_score, 0) / placeRecords.length
+					).toFixed(2)
 				),
 				avgRawPercent: Number(
-					(placeRecords.reduce((sum, record) => sum + getAuditRawPercent(record), 0) / placeRecords.length).toFixed(1)
+					(
+						placeRecords.reduce((sum, record) => sum + getAuditRawPercent(record), 0) / placeRecords.length
+					).toFixed(1)
 				),
 				avgWeightedPercent: Number(
-					(placeRecords.reduce((sum, record) => sum + getAuditWeightedPercent(record), 0) / placeRecords.length).toFixed(1)
+					(
+						placeRecords.reduce((sum, record) => sum + getAuditWeightedPercent(record), 0) /
+						placeRecords.length
+					).toFixed(1)
 				),
 				rawPercentByDomain,
 				weightedPercentByDomain,
@@ -258,8 +269,7 @@ function RadarComparisonChart({
 									x={labelPoint.x}
 									y={labelPoint.y}
 									textAnchor="middle"
-									className="fill-slate-600 text-[8px] font-medium"
-								>
+									className="fill-slate-600 text-[8px] font-medium">
 									{domainLabels[domain]}
 								</text>
 							</g>
@@ -268,7 +278,11 @@ function RadarComparisonChart({
 					{series.map((summary, index) => (
 						<polygon
 							key={summary.place_id}
-							points={buildPolygonPoints(domainOrder.map(domain => summary.rawPercentByDomain[domain]), radius, center)}
+							points={buildPolygonPoints(
+								domainOrder.map(domain => summary.rawPercentByDomain[domain]),
+								radius,
+								center
+							)}
 							fill={colors[index].fill}
 							stroke={colors[index].stroke}
 							strokeWidth={2.5}
@@ -279,17 +293,20 @@ function RadarComparisonChart({
 					{series.map((summary, index) => (
 						<div key={summary.place_id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
 							<div className="flex items-center gap-3">
-								<span className="h-3 w-3 rounded-full" style={{ backgroundColor: colors[index].stroke }} />
+								<span
+									className="h-3 w-3 rounded-full"
+									style={{ backgroundColor: colors[index].stroke }}
+								/>
 								<Link
 									href={`/dashboard/places/${summary.place_id}`}
-									className="font-medium text-slate-900 underline decoration-slate-300 underline-offset-4 hover:text-slate-950"
-								>
+									className="font-medium text-slate-900 underline decoration-slate-300 underline-offset-4 hover:text-slate-950">
 									{summary.place_name}
 								</Link>
 							</div>
 							<p className="mt-2 text-sm text-slate-600">
-								Average Raw Score {summary.avgRawScore} ({summary.avgRawPercent.toFixed(0)}%) and Average Youth Weighted Average{" "}
-								{summary.avgWeightedScore.toFixed(2)} ({summary.avgWeightedPercent.toFixed(0)}%).
+								Average Raw Score {summary.avgRawScore} ({summary.avgRawPercent.toFixed(0)}%) and
+								Average Youth Weighted Average {summary.avgWeightedScore.toFixed(2)} (
+								{summary.avgWeightedPercent.toFixed(0)}%).
 							</p>
 						</div>
 					))}
@@ -330,7 +347,10 @@ function TrendLineChart({
 				</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-4">
-				<svg ref={svgRef} viewBox={`0 0 ${width} ${height}`} className="h-[260px] w-full rounded-2xl bg-[#f8fbf9]">
+				<svg
+					ref={svgRef}
+					viewBox={`0 0 ${width} ${height}`}
+					className="h-[260px] w-full rounded-2xl bg-[#f8fbf9]">
 					{[0, 25, 50, 75, 100].map(value => (
 						<g key={value}>
 							<line
@@ -356,15 +376,16 @@ function TrendLineChart({
 								x={pointX(point.index)}
 								y={height - 8}
 								textAnchor="middle"
-								className="fill-slate-500 text-[10px]"
-							>
+								className="fill-slate-500 text-[10px]">
 								{point.label}
 							</text>
 						</g>
 					))}
 				</svg>
 				<div className="flex flex-wrap gap-3 text-sm text-slate-600">
-					<Badge className="rounded-full bg-blue-100 px-3 py-1 text-blue-700 hover:bg-blue-100">Raw Score trend</Badge>
+					<Badge className="rounded-full bg-blue-100 px-3 py-1 text-blue-700 hover:bg-blue-100">
+						Raw Score trend
+					</Badge>
 					<Badge className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700 hover:bg-emerald-100">
 						Youth Weighted Average trend
 					</Badge>
@@ -423,7 +444,11 @@ export function LiveReports() {
 
 	const projectOptions = React.useMemo(
 		() =>
-			Array.from(new Map(groups.map(group => [group.project_id, { value: group.project_id, label: group.project_name }])).values()),
+			Array.from(
+				new Map(
+					groups.map(group => [group.project_id, { value: group.project_id, label: group.project_name }])
+				).values()
+			),
 		[groups]
 	);
 	const placeOptions = React.useMemo(
@@ -431,7 +456,9 @@ export function LiveReports() {
 			Array.from(
 				new Map(
 					groups
-						.filter(group => selectedProjectIds.length === 0 || selectedProjectIds.includes(group.project_id))
+						.filter(
+							group => selectedProjectIds.length === 0 || selectedProjectIds.includes(group.project_id)
+						)
 						.map(group => [group.place_id, { value: group.place_id, label: group.place_name }])
 				).values()
 			),
@@ -466,7 +493,8 @@ export function LiveReports() {
 			rawRows.filter(row => {
 				if (selectedProjectIds.length > 0 && !selectedProjectIds.includes(row.project_id)) return false;
 				if (selectedPlaceIds.length > 0 && !selectedPlaceIds.includes(row.place_id)) return false;
-				if (selectedAuditorIds.length > 0 && !selectedAuditorIds.includes(row.auditor_generated_id)) return false;
+				if (selectedAuditorIds.length > 0 && !selectedAuditorIds.includes(row.auditor_generated_id))
+					return false;
 				if (!withinDateRange(row.submitted_at || row.date, dateRange)) return false;
 				return true;
 			}),
@@ -502,17 +530,29 @@ export function LiveReports() {
 		() =>
 			filteredAudits
 				.filter(record => !timelinePlaceId || record.place_id === timelinePlaceId)
-				.sort((left, right) => (parseIsoDate(left.date)?.getTime() ?? 0) - (parseIsoDate(right.date)?.getTime() ?? 0)),
+				.sort(
+					(left, right) =>
+						(parseIsoDate(left.date)?.getTime() ?? 0) - (parseIsoDate(right.date)?.getTime() ?? 0)
+				),
 		[filteredAudits, timelinePlaceId]
 	);
 
 	const averageRawScore =
 		filteredAudits.length > 0
-			? Number((filteredAudits.reduce((sum, record) => sum + record.total_raw_score, 0) / filteredAudits.length).toFixed(1))
+			? Number(
+					(
+						filteredAudits.reduce((sum, record) => sum + record.total_raw_score, 0) / filteredAudits.length
+					).toFixed(1)
+				)
 			: 0;
 	const averageWeightedScore =
 		filteredAudits.length > 0
-			? Number((filteredAudits.reduce((sum, record) => sum + record.total_weighted_score, 0) / filteredAudits.length).toFixed(2))
+			? Number(
+					(
+						filteredAudits.reduce((sum, record) => sum + record.total_weighted_score, 0) /
+						filteredAudits.length
+					).toFixed(2)
+				)
 			: 0;
 	const highestPlace = placeSummaries[0] ?? null;
 	const lowestPlace = placeSummaries[placeSummaries.length - 1] ?? null;
@@ -620,7 +660,12 @@ export function LiveReports() {
 				</CardHeader>
 				<CardContent className="space-y-5">
 					<div className="flex flex-wrap gap-3">
-						<SearchableMultiSelectFilter label="Project" options={projectOptions} selectedValues={selectedProjectIds} onChange={setSelectedProjectIds} />
+						<SearchableMultiSelectFilter
+							label="Project"
+							options={projectOptions}
+							selectedValues={selectedProjectIds}
+							onChange={setSelectedProjectIds}
+						/>
 						<SearchableMultiSelectFilter
 							label="Place"
 							options={placeOptions}
@@ -632,7 +677,12 @@ export function LiveReports() {
 								}
 							}}
 						/>
-						<SearchableMultiSelectFilter label="Auditor" options={auditorOptions} selectedValues={selectedAuditorIds} onChange={setSelectedAuditorIds} />
+						<SearchableMultiSelectFilter
+							label="Auditor"
+							options={auditorOptions}
+							selectedValues={selectedAuditorIds}
+							onChange={setSelectedAuditorIds}
+						/>
 						<div className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2">
 							<span className="text-sm font-medium text-slate-700">Date range</span>
 							{(["all", "30", "90", "180", "365"] as DateRangeValue[]).map(option => (
@@ -642,8 +692,7 @@ export function LiveReports() {
 									size="sm"
 									variant={dateRange === option ? "default" : "outline"}
 									className={`rounded-xl ${dateRange === option ? "bg-[#10231f] text-white hover:bg-[#17302c]" : ""}`}
-									onClick={() => setDateRange(option)}
-								>
+									onClick={() => setDateRange(option)}>
 									{rangeLabel(option)}
 								</Button>
 							))}
@@ -670,16 +719,17 @@ export function LiveReports() {
 									if (mode === "audits" && selectedPlaceIds.length > 1) {
 										setSelectedPlaceIds(selectedPlaceIds.slice(0, 1));
 									}
-								}}
-							>
+								}}>
 								{compareModeLabel(mode)}
 							</Button>
 						))}
 					</div>
 					<p className="text-sm leading-6 text-slate-600">
-						Current scope: {selectedProjectIds.length > 0 ? `${selectedProjectIds.length} Projects` : "All Projects"},{" "}
+						Current scope:{" "}
+						{selectedProjectIds.length > 0 ? `${selectedProjectIds.length} Projects` : "All Projects"},{" "}
 						{selectedPlaceIds.length > 0 ? `${selectedPlaceIds.length} Places` : "All Places"},{" "}
-						{selectedAuditorIds.length > 0 ? `${selectedAuditorIds.length} Auditors` : "All Auditors"}, {rangeLabel(dateRange)}.
+						{selectedAuditorIds.length > 0 ? `${selectedAuditorIds.length} Auditors` : "All Auditors"},{" "}
+						{rangeLabel(dateRange)}.
 					</p>
 				</CardContent>
 			</Card>
@@ -699,12 +749,16 @@ export function LiveReports() {
 					{
 						label: "Highest Scoring Place",
 						value: highestPlace?.place_name ?? "N/A",
-						description: highestPlace ? `${highestPlace.avgWeightedScore.toFixed(2)} Youth Weighted` : "No filtered place data"
+						description: highestPlace
+							? `${highestPlace.avgWeightedScore.toFixed(2)} Youth Weighted`
+							: "No filtered place data"
 					},
 					{
 						label: "Lowest Scoring Place",
 						value: lowestPlace?.place_name ?? "N/A",
-						description: lowestPlace ? `${lowestPlace.avgWeightedScore.toFixed(2)} Youth Weighted` : "No filtered place data"
+						description: lowestPlace
+							? `${lowestPlace.avgWeightedScore.toFixed(2)} Youth Weighted`
+							: "No filtered place data"
 					},
 					{
 						label: "Total Audits",
@@ -714,7 +768,9 @@ export function LiveReports() {
 				].map(card => (
 					<Card key={card.label} className="rounded-[1.5rem] border-slate-200/80 bg-white shadow-sm">
 						<CardContent className="space-y-2 p-5">
-							<p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">{card.label}</p>
+							<p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
+								{card.label}
+							</p>
 							<p className="text-2xl font-semibold text-slate-950">{card.value}</p>
 							<p className="text-sm text-slate-600">{card.description}</p>
 						</CardContent>
@@ -726,14 +782,20 @@ export function LiveReports() {
 				<CardHeader>
 					<CardTitle>Export options</CardTitle>
 					<CardDescription>
-						Export the current comparison, selected audits, printable report view, raw CSV data, or the current chart only.
+						Export the current comparison, selected audits, printable report view, raw CSV data, or the
+						current chart only.
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="flex flex-wrap gap-3">
 					<Button type="button" variant="outline" className="rounded-2xl" onClick={exportCurrentComparison}>
 						Export current comparison
 					</Button>
-					<Button type="button" variant="outline" className="rounded-2xl" onClick={exportSelectedAudits} disabled={selectedAuditIds.length === 0}>
+					<Button
+						type="button"
+						variant="outline"
+						className="rounded-2xl"
+						onClick={exportSelectedAudits}
+						disabled={selectedAuditIds.length === 0}>
 						Export selected audits
 					</Button>
 					<Button type="button" variant="outline" className="rounded-2xl" onClick={() => window.print()}>
@@ -742,7 +804,10 @@ export function LiveReports() {
 					<Button type="button" variant="outline" className="rounded-2xl" onClick={exportRawDataCsv}>
 						Export CSV raw data
 					</Button>
-					<Button type="button" className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]" onClick={exportCurrentChart}>
+					<Button
+						type="button"
+						className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]"
+						onClick={exportCurrentChart}>
 						Export charts only
 					</Button>
 				</CardContent>
@@ -754,7 +819,8 @@ export function LiveReports() {
 						<CardHeader>
 							<CardTitle>Compare Places</CardTitle>
 							<CardDescription>
-								Compare multiple Places side-by-side using average Raw Score, Youth Weighted Average, and section-level performance.
+								Compare multiple Places side-by-side using average Raw Score, Youth Weighted Average,
+								and section-level performance.
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="overflow-x-auto">
@@ -776,8 +842,7 @@ export function LiveReports() {
 											<td className="py-4 pr-4 font-medium text-slate-900">
 												<Link
 													href={`/dashboard/places/${summary.place_id}`}
-													className="underline decoration-slate-300 underline-offset-4 hover:text-slate-950"
-												>
+													className="underline decoration-slate-300 underline-offset-4 hover:text-slate-950">
 													{summary.place_name}
 												</Link>
 											</td>
@@ -786,16 +851,20 @@ export function LiveReports() {
 												{summary.avgRawScore} ({summary.avgRawPercent.toFixed(0)}%)
 											</td>
 											<td className="py-4 pr-4 text-slate-600">
-												{summary.avgWeightedScore.toFixed(2)} ({summary.avgWeightedPercent.toFixed(0)}%)
+												{summary.avgWeightedScore.toFixed(2)} (
+												{summary.avgWeightedPercent.toFixed(0)}%)
 											</td>
-											<td className="py-4 pr-4 text-slate-600">{summary.rawPercentByDomain.access.toFixed(0)}%</td>
-											<td className="py-4 pr-4 text-slate-600">{summary.rawPercentByDomain.amenities.toFixed(0)}%</td>
+											<td className="py-4 pr-4 text-slate-600">
+												{summary.rawPercentByDomain.access.toFixed(0)}%
+											</td>
+											<td className="py-4 pr-4 text-slate-600">
+												{summary.rawPercentByDomain.amenities.toFixed(0)}%
+											</td>
 											<td className="py-4 text-slate-600">
 												{summary.latestSubmissionId ? (
 													<Link
 														href={`/yee/submissions/${summary.latestSubmissionId}`}
-														className="font-medium underline decoration-slate-300 underline-offset-4 hover:text-slate-950"
-													>
+														className="font-medium underline decoration-slate-300 underline-offset-4 hover:text-slate-950">
 														Open latest report
 													</Link>
 												) : (
@@ -813,18 +882,20 @@ export function LiveReports() {
 						<CardHeader>
 							<CardTitle>Stacked section comparison</CardTitle>
 							<CardDescription>
-								Average section performance by place. Clicking a place name opens the detailed Place page, and the latest report link opens the full audit report.
+								Average section performance by place. Clicking a place name opens the detailed Place
+								page, and the latest report link opens the full audit report.
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-4">
 							{placeSummaries.map(summary => (
-								<div key={summary.place_id} className="rounded-[1.5rem] border border-slate-200 bg-[#f8fbf9] p-4">
+								<div
+									key={summary.place_id}
+									className="rounded-[1.5rem] border border-slate-200 bg-[#f8fbf9] p-4">
 									<div className="flex flex-wrap items-center justify-between gap-3">
 										<div>
 											<Link
 												href={`/dashboard/places/${summary.place_id}`}
-												className="font-medium text-slate-900 underline decoration-slate-300 underline-offset-4 hover:text-slate-950"
-											>
+												className="font-medium text-slate-900 underline decoration-slate-300 underline-offset-4 hover:text-slate-950">
 												{summary.place_name}
 											</Link>
 											<p className="text-sm text-slate-600">{summary.project_name}</p>
@@ -835,7 +906,9 @@ export function LiveReports() {
 									</div>
 									<div className="mt-4 grid gap-3 md:grid-cols-2">
 										<div>
-											<p className="mb-2 text-xs font-medium uppercase tracking-[0.16em] text-slate-500">Average Raw Score by section</p>
+											<p className="mb-2 text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
+												Average Raw Score by section
+											</p>
 											<div className="flex h-10 overflow-hidden rounded-full border border-slate-200 bg-white">
 												{domainOrder.map(domain => (
 													<div
@@ -844,15 +917,16 @@ export function LiveReports() {
 														style={{
 															width: `${100 / domainOrder.length}%`,
 															backgroundColor: yeeDomainThemes[domain].lightHex
-														}}
-													>
+														}}>
 														{summary.rawPercentByDomain[domain].toFixed(0)}%
 													</div>
 												))}
 											</div>
 										</div>
 										<div>
-											<p className="mb-2 text-xs font-medium uppercase tracking-[0.16em] text-slate-500">Average Youth Weighted Average by section</p>
+											<p className="mb-2 text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
+												Average Youth Weighted Average by section
+											</p>
 											<div className="flex h-10 overflow-hidden rounded-full border border-slate-200 bg-white">
 												{domainOrder.map(domain => (
 													<div
@@ -861,8 +935,7 @@ export function LiveReports() {
 														style={{
 															width: `${100 / domainOrder.length}%`,
 															backgroundColor: yeeDomainThemes[domain].strongFillHex
-														}}
-													>
+														}}>
 														{summary.weightedPercentByDomain[domain].toFixed(0)}%
 													</div>
 												))}
@@ -884,14 +957,18 @@ export function LiveReports() {
 						<CardHeader>
 							<CardTitle>Compare audits over time</CardTitle>
 							<CardDescription>
-								Follow the same Place across multiple audits to identify improvement, decline, and change after interventions.
+								Follow the same Place across multiple audits to identify improvement, decline, and
+								change after interventions.
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-4">
 							<p className="text-sm text-slate-600">
 								Showing timeline for{" "}
 								<strong className="text-slate-900">
-									{timelineRecords[0]?.place_name ?? placeSummaries.find(summary => summary.place_id === timelinePlaceId)?.place_name ?? "the selected Place"}
+									{timelineRecords[0]?.place_name ??
+										placeSummaries.find(summary => summary.place_id === timelinePlaceId)
+											?.place_name ??
+										"the selected Place"}
 								</strong>
 								.
 							</p>
@@ -900,20 +977,27 @@ export function LiveReports() {
 									<TrendLineChart records={timelineRecords} svgRef={chartSvgRef} />
 									<div className="grid gap-4 md:grid-cols-3">
 										{timelineRecords.slice(-3).map(record => (
-											<Card key={record.audit_id} className="rounded-[1.5rem] border-slate-200/80 bg-white shadow-sm">
+											<Card
+												key={record.audit_id}
+												className="rounded-[1.5rem] border-slate-200/80 bg-white shadow-sm">
 												<CardContent className="space-y-2 p-5">
-													<p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">{record.date}</p>
-													<p className="text-sm font-semibold text-slate-900">{record.auditor_id}</p>
-													<p className="text-sm text-slate-600">
-														Raw Score {record.total_raw_score} ({getAuditRawPercent(record).toFixed(0)}%)
+													<p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
+														{record.date}
+													</p>
+													<p className="text-sm font-semibold text-slate-900">
+														{record.auditor_id}
 													</p>
 													<p className="text-sm text-slate-600">
-														Youth Weighted Average {record.total_weighted_score.toFixed(2)} ({getAuditWeightedPercent(record).toFixed(0)}%)
+														Raw Score {record.total_raw_score} (
+														{getAuditRawPercent(record).toFixed(0)}%)
+													</p>
+													<p className="text-sm text-slate-600">
+														Youth Weighted Average {record.total_weighted_score.toFixed(2)}{" "}
+														({getAuditWeightedPercent(record).toFixed(0)}%)
 													</p>
 													<Link
 														href={`/yee/submissions/${record.audit_id}`}
-														className="text-sm font-medium text-slate-900 underline decoration-slate-300 underline-offset-4 hover:text-slate-950"
-													>
+														className="text-sm font-medium text-slate-900 underline decoration-slate-300 underline-offset-4 hover:text-slate-950">
 														Open full report
 													</Link>
 												</CardContent>
@@ -922,7 +1006,9 @@ export function LiveReports() {
 									</div>
 								</>
 							) : (
-								<p className="text-sm text-slate-500">Choose one Place to see its audit history over time.</p>
+								<p className="text-sm text-slate-500">
+									Choose one Place to see its audit history over time.
+								</p>
 							)}
 						</CardContent>
 					</Card>
@@ -935,7 +1021,8 @@ export function LiveReports() {
 						<CardHeader>
 							<CardTitle>Compare individual audits</CardTitle>
 							<CardDescription>
-								Select audits directly to compare auditors, dates, and detailed report outcomes side-by-side.
+								Select audits directly to compare auditors, dates, and detailed report outcomes
+								side-by-side.
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="overflow-x-auto">
@@ -955,7 +1042,9 @@ export function LiveReports() {
 									{filteredAudits.map(record => {
 										const checked = selectedAuditIds.includes(record.audit_id);
 										return (
-											<tr key={record.audit_id} className="border-b border-slate-100 last:border-0">
+											<tr
+												key={record.audit_id}
+												className="border-b border-slate-100 last:border-0">
 												<td className="py-4 pr-4">
 													<input
 														type="checkbox"
@@ -972,24 +1061,25 @@ export function LiveReports() {
 												<td className="py-4 pr-4 font-medium text-slate-900">
 													<Link
 														href={`/dashboard/places/${record.place_id}`}
-														className="underline decoration-slate-300 underline-offset-4 hover:text-slate-950"
-													>
+														className="underline decoration-slate-300 underline-offset-4 hover:text-slate-950">
 														{record.place_name}
 													</Link>
 												</td>
 												<td className="py-4 pr-4 text-slate-600">{record.auditor_id}</td>
 												<td className="py-4 pr-4 text-slate-600">{record.date}</td>
 												<td className="py-4 pr-4 text-slate-600">
-													{record.total_raw_score}/{totalRawScoreMaximum} ({getAuditRawPercent(record).toFixed(0)}%)
+													{record.total_raw_score}/{totalRawScoreMaximum} (
+													{getAuditRawPercent(record).toFixed(0)}%)
 												</td>
 												<td className="py-4 pr-4 text-slate-600">
-													{record.total_weighted_score.toFixed(2)}/{getYouthWeightedScoreMaximum(record.domain_weights).toFixed(2)} ({getAuditWeightedPercent(record).toFixed(0)}%)
+													{record.total_weighted_score.toFixed(2)}/
+													{getYouthWeightedScoreMaximum(record.domain_weights).toFixed(2)} (
+													{getAuditWeightedPercent(record).toFixed(0)}%)
 												</td>
 												<td className="py-4 text-slate-600">
 													<Link
 														href={`/yee/submissions/${record.audit_id}`}
-														className="font-medium underline decoration-slate-300 underline-offset-4 hover:text-slate-950"
-													>
+														className="font-medium underline decoration-slate-300 underline-offset-4 hover:text-slate-950">
 														Open report
 													</Link>
 												</td>
@@ -1003,7 +1093,9 @@ export function LiveReports() {
 
 					<div className="grid gap-4 lg:grid-cols-2">
 						{selectedIndividualAudits.map(record => (
-							<Card key={record.audit_id} className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+							<Card
+								key={record.audit_id}
+								className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
 								<CardHeader>
 									<CardTitle>{record.place_name}</CardTitle>
 									<CardDescription>
@@ -1012,17 +1104,22 @@ export function LiveReports() {
 								</CardHeader>
 								<CardContent className="space-y-4">
 									<div className="grid gap-3 md:grid-cols-2">
-										<div className={`rounded-2xl border p-4 ${colorBandClasses(getAuditRawPercent(record))}`}>
+										<div
+											className={`rounded-2xl border p-4 ${colorBandClasses(getAuditRawPercent(record))}`}>
 											<p className="text-xs font-medium uppercase tracking-[0.16em]">Raw Score</p>
 											<p className="mt-2 text-lg font-semibold">
 												{record.total_raw_score}/{totalRawScoreMaximum}
 											</p>
 											<p className="text-sm">{getAuditRawPercent(record).toFixed(0)}%</p>
 										</div>
-										<div className={`rounded-2xl border p-4 ${colorBandClasses(getAuditWeightedPercent(record))}`}>
-											<p className="text-xs font-medium uppercase tracking-[0.16em]">Youth Weighted Average</p>
+										<div
+											className={`rounded-2xl border p-4 ${colorBandClasses(getAuditWeightedPercent(record))}`}>
+											<p className="text-xs font-medium uppercase tracking-[0.16em]">
+												Youth Weighted Average
+											</p>
 											<p className="mt-2 text-lg font-semibold">
-												{record.total_weighted_score.toFixed(2)}/{getYouthWeightedScoreMaximum(record.domain_weights).toFixed(2)}
+												{record.total_weighted_score.toFixed(2)}/
+												{getYouthWeightedScoreMaximum(record.domain_weights).toFixed(2)}
 											</p>
 											<p className="text-sm">{getAuditWeightedPercent(record).toFixed(0)}%</p>
 										</div>
@@ -1035,17 +1132,23 @@ export function LiveReports() {
 												style={{
 													borderColor: yeeDomainThemes[domain].strongFillHex,
 													backgroundColor: "#ffffff"
-												}}
-											>
-												<p className="text-sm font-medium" style={{ color: yeeDomainThemes[domain].strongHex }}>
+												}}>
+												<p
+													className="text-sm font-medium"
+													style={{ color: yeeDomainThemes[domain].strongHex }}>
 													{domainLabels[domain]}
 												</p>
 												<p className="mt-2 text-sm text-slate-600">
-													Raw Score {record.raw_domain_scores[domain]}/{rawDomainScoreMaximums[domain]}
+													Raw Score {record.raw_domain_scores[domain]}/
+													{rawDomainScoreMaximums[domain]}
 												</p>
 												<p className="text-sm text-slate-600">
-													Youth Weighted Average {record.weighted_domain_scores[domain].toFixed(2)}/
-													{getDomainYouthWeightedMaximum(domain, record.domain_weights).toFixed(2)}
+													Youth Weighted Average{" "}
+													{record.weighted_domain_scores[domain].toFixed(2)}/
+													{getDomainYouthWeightedMaximum(
+														domain,
+														record.domain_weights
+													).toFixed(2)}
 												</p>
 											</div>
 										))}

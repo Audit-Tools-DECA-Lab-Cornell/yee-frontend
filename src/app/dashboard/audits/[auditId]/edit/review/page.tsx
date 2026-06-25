@@ -1,10 +1,6 @@
 import { YeeAuditWizard } from "@/components/yee/yee-audit-wizard";
 
-export default async function ManagerAuditEditReviewPage({
-	params
-}: {
-	params: Promise<{ auditId: string }>;
-}) {
+export default async function ManagerAuditEditReviewPage({ params }: { params: Promise<{ auditId: string }> }) {
 	const { auditId } = await params;
 
 	return (

@@ -31,7 +31,7 @@ export function useAuditorAuditData(): AuditorAuditData {
 		if (!session) return;
 		setError(null);
 		const rows = await fetchMyPlaces(session);
-		const states = await Promise.all(rows.map((place) => fetchAuditState(place.id)));
+		const states = await Promise.all(rows.map(place => fetchAuditState(place.id)));
 		setPlaces(rows);
 		setAuditStates(Object.fromEntries(states.map(state => [state.place_id, state])));
 		setSubmittedCount(states.filter(state => state.status === "SUBMITTED").length);

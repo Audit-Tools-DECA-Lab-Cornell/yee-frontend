@@ -10,7 +10,8 @@ export default function YeeIntroductionPage() {
 				</Badge>
 				<h1 className="text-3xl font-semibold tracking-tight text-slate-950">Choose a place to evaluate</h1>
 				<p className="max-w-3xl text-sm leading-7 text-slate-600">
-					This is the first route in the new YEE flow. In the real app, auditors should only see places assigned to them.
+					This is the first route in the new YEE flow. In the real app, auditors should only see places
+					assigned to them.
 				</p>
 			</header>
 

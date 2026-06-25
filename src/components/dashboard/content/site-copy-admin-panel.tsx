@@ -181,17 +181,22 @@ export function SiteCopyAdminPanel() {
 				<CardHeader>
 					<CardTitle>Website copy editor</CardTitle>
 					<CardDescription className="text-slate-700">
-						Use this page to update dashboard wording across the admin, manager, and auditor website without editing code or JSON.
+						Use this page to update dashboard wording across the admin, manager, and auditor website without
+						editing code or JSON.
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="grid gap-3 text-sm text-slate-700 md:grid-cols-3">
 					<div className="rounded-2xl border border-sky-200 bg-white/80 p-4">
 						<p className="font-medium text-slate-900">Dashboard text only</p>
-						<p className="mt-1">This page changes website copy like headings, sidebar text, and page descriptions.</p>
+						<p className="mt-1">
+							This page changes website copy like headings, sidebar text, and page descriptions.
+						</p>
 					</div>
 					<div className="rounded-2xl border border-sky-200 bg-white/80 p-4">
 						<p className="font-medium text-slate-900">Survey wording stays separate</p>
-						<p className="mt-1">Survey questions and section instructions are still managed from the Instruments page.</p>
+						<p className="mt-1">
+							Survey questions and section instructions are still managed from the Instruments page.
+						</p>
 					</div>
 					<div className="rounded-2xl border border-sky-200 bg-white/80 p-4">
 						<p className="font-medium text-slate-900">Version and activate</p>
@@ -204,13 +209,18 @@ export function SiteCopyAdminPanel() {
 				<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
 					<CardHeader>
 						<CardTitle>Website copy versions</CardTitle>
-						<CardDescription>Activate the website text version that should be used across the dashboard.</CardDescription>
+						<CardDescription>
+							Activate the website text version that should be used across the dashboard.
+						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-3">
 						{loading ? (
 							<p className="text-sm text-slate-500">Loading website copy versions...</p>
 						) : versions.length === 0 ? (
-							<p className="text-sm text-slate-500">No saved website copy versions yet. The editor on the right starts from the current built-in dashboard text.</p>
+							<p className="text-sm text-slate-500">
+								No saved website copy versions yet. The editor on the right starts from the current
+								built-in dashboard text.
+							</p>
 						) : (
 							versions.map(version => (
 								<div key={version.id} className="rounded-2xl border border-slate-200 bg-white p-4">
@@ -222,7 +232,11 @@ export function SiteCopyAdminPanel() {
 											</p>
 										</div>
 										<div className="flex flex-wrap gap-2">
-											{version.is_active ? <Badge className="rounded-full bg-emerald-100 text-emerald-700 hover:bg-emerald-100">Active</Badge> : null}
+											{version.is_active ? (
+												<Badge className="rounded-full bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
+													Active
+												</Badge>
+											) : null}
 											<Button
 												type="button"
 												variant="outline"
@@ -231,8 +245,7 @@ export function SiteCopyAdminPanel() {
 													setSelectedVersionId(version.id);
 													setDraft(version.content as SiteCopyPayload);
 													setVersionLabel(`${version.instrument_version}-copy`);
-												}}
-											>
+												}}>
 												Load
 											</Button>
 											{!version.is_active ? (
@@ -240,8 +253,7 @@ export function SiteCopyAdminPanel() {
 													type="button"
 													className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]"
 													onClick={() => void handleActivate(version.id)}
-													disabled={saving}
-												>
+													disabled={saving}>
 													Activate
 												</Button>
 											) : null}
@@ -256,7 +268,10 @@ export function SiteCopyAdminPanel() {
 				<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
 					<CardHeader>
 						<CardTitle>Edit website text</CardTitle>
-						<CardDescription>These fields control dashboard wording visible to admins, managers, and auditors on the website.</CardDescription>
+						<CardDescription>
+							These fields control dashboard wording visible to admins, managers, and auditors on the
+							website.
+						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-5">
 						<div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_auto]">
@@ -286,16 +301,22 @@ export function SiteCopyAdminPanel() {
 							const config = previewConfigs[variant];
 							const original = defaultWorkspaceConfigs[variant];
 							return (
-								<div key={variant} className="rounded-[1.5rem] border border-slate-200 bg-slate-50/60 p-4 space-y-4">
+								<div
+									key={variant}
+									className="rounded-[1.5rem] border border-slate-200 bg-slate-50/60 p-4 space-y-4">
 									<div>
-										<h3 className="text-base font-semibold capitalize text-slate-900">{variant} dashboard</h3>
+										<h3 className="text-base font-semibold capitalize text-slate-900">
+											{variant} dashboard
+										</h3>
 										<p className="mt-1 text-sm text-slate-600">{original.title}</p>
 									</div>
 									<div className="space-y-2">
 										<Label>Workspace description</Label>
 										<Textarea
 											value={config.description}
-											onChange={event => updateVariantField(variant, "description", event.target.value)}
+											onChange={event =>
+												updateVariantField(variant, "description", event.target.value)
+											}
 											className="min-h-[5rem]"
 										/>
 									</div>
@@ -303,7 +324,9 @@ export function SiteCopyAdminPanel() {
 										<Label>Search placeholder</Label>
 										<Input
 											value={config.searchPlaceholder}
-											onChange={event => updateVariantField(variant, "searchPlaceholder", event.target.value)}
+											onChange={event =>
+												updateVariantField(variant, "searchPlaceholder", event.target.value)
+											}
 										/>
 									</div>
 									<div className="grid gap-4 md:grid-cols-2">
@@ -371,17 +394,27 @@ export function SiteCopyAdminPanel() {
 										/>
 									</div>
 									<div className="space-y-3">
-										<p className="text-sm font-medium text-slate-900">Page headings and descriptions</p>
+										<p className="text-sm font-medium text-slate-900">
+											Page headings and descriptions
+										</p>
 										{Object.entries(config.pageCopy).map(([path, content]) => (
-											<div key={path} className="rounded-2xl border border-slate-200 bg-white p-3 space-y-2">
-												<p className="text-xs font-medium uppercase tracking-wide text-slate-500">{path}</p>
+											<div
+												key={path}
+												className="rounded-2xl border border-slate-200 bg-white p-3 space-y-2">
+												<p className="text-xs font-medium uppercase tracking-wide text-slate-500">
+													{path}
+												</p>
 												<Input
 													value={content.title}
-													onChange={event => updatePageCopy(variant, path, "title", event.target.value)}
+													onChange={event =>
+														updatePageCopy(variant, path, "title", event.target.value)
+													}
 												/>
 												<Textarea
 													value={content.description}
-													onChange={event => updatePageCopy(variant, path, "description", event.target.value)}
+													onChange={event =>
+														updatePageCopy(variant, path, "description", event.target.value)
+													}
 													className="min-h-[4.5rem]"
 												/>
 											</div>
@@ -396,8 +429,7 @@ export function SiteCopyAdminPanel() {
 								type="button"
 								className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]"
 								onClick={() => void handleCreate()}
-								disabled={saving || !versionLabel.trim()}
-							>
+								disabled={saving || !versionLabel.trim()}>
 								{saving ? "Saving..." : "Save Website Copy Version"}
 							</Button>
 							{success ? <p className="text-sm text-emerald-700">{success}</p> : null}

@@ -8,10 +8,10 @@ import { queryKeys } from "@/lib/api/query-keys";
 import type { AuditRecord } from "@/lib/dashboard/live-api";
 
 export function useDashboardAudits() {
-  const { session } = useAuth();
-  return useQuery({
-    queryKey: queryKeys.dashboard.audits(),
-    queryFn: () => apiGet<AuditRecord[]>("/api/dashboard/audits"),
-    enabled: session !== null,
-  });
+	const { session } = useAuth();
+	return useQuery({
+		queryKey: queryKeys.dashboard.audits(),
+		queryFn: () => apiGet<AuditRecord[]>("/api/dashboard/audits"),
+		enabled: session !== null
+	});
 }

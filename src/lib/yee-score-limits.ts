@@ -32,7 +32,10 @@ function normalizeWeightValue(weight: string | number | null | undefined) {
 
 export function getNormalizedWeights(weights?: Partial<Record<YeeDomainKey, string | number>>) {
 	const selectedWeights = Object.fromEntries(
-		(Object.keys(rawDomainScoreMaximums) as YeeDomainKey[]).map(domain => [domain, normalizeWeightValue(weights?.[domain])])
+		(Object.keys(rawDomainScoreMaximums) as YeeDomainKey[]).map(domain => [
+			domain,
+			normalizeWeightValue(weights?.[domain])
+		])
 	) as Record<YeeDomainKey, number>;
 	const totalWeight = Object.values(selectedWeights).reduce((sum, value) => sum + value, 0);
 	const normalizedWeights = Object.fromEntries(

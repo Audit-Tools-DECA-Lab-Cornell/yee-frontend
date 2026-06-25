@@ -7,14 +7,22 @@ import { useAuth } from "@/components/auth/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { YeeScoreSummary } from "@/components/yee/yee-score-summary";
-import { fetchInstrument, filterItemsForDomain, type InstrumentItem, type InstrumentResponse } from "@/lib/yee-instrument";
+import {
+	fetchInstrument,
+	filterItemsForDomain,
+	type InstrumentItem,
+	type InstrumentResponse
+} from "@/lib/yee-instrument";
 import { fetchSubmission, type YeeSubmissionRecord } from "@/lib/yee-audit-api";
 import { yeeDomainLabels, type YeeDomainKey } from "@/lib/yee-audit-config";
 import { yeeDomainThemes } from "@/lib/yee-domain-theme";
 import { buildWeightedScorePreview } from "@/lib/yee-scoring";
 
 function normalizeText(value: string) {
-	return value.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+	return value
+		.replace(/<[^>]+>/g, "")
+		.replace(/\s+/g, " ")
+		.trim();
 }
 
 function ensureQuestionMark(value: string) {
@@ -63,14 +71,10 @@ function getSelectedAnswerLabel(item: InstrumentItem, answerId: string | null | 
 	return getChoiceLabel(item.answers?.[answerId], answerId);
 }
 
-function buildQuestionColumns(
-	submission: YeeSubmissionRecord,
-	instrument: InstrumentResponse
-) {
+function buildQuestionColumns(submission: YeeSubmissionRecord, instrument: InstrumentResponse) {
 	const columns: Record<string, string> = {};
 	const sectionComments =
-		submission.participant_info.section_comments &&
-		typeof submission.participant_info.section_comments === "object"
+		submission.participant_info.section_comments && typeof submission.participant_info.section_comments === "object"
 			? (submission.participant_info.section_comments as Partial<Record<YeeDomainKey, string>>)
 			: {};
 	for (const [domainKey, label] of Object.entries(yeeDomainLabels) as [YeeDomainKey, string][]) {
@@ -92,7 +96,11 @@ function buildQuestionColumns(
 			if (hasMatrixAnswers) {
 				choices.forEach(([choiceId, choice]) => {
 					questionIndex += 1;
-					const responseAnswerId = getSelectedMatrixAnswer(presenceItem.item_id, choiceId, submission.responses);
+					const responseAnswerId = getSelectedMatrixAnswer(
+						presenceItem.item_id,
+						choiceId,
+						submission.responses
+					);
 					const conditionAnswerId = conditionItem
 						? getSelectedMatrixAnswer(conditionItem.item_id, choiceId, submission.responses)
 						: "";
@@ -140,7 +148,8 @@ async function downloadSingleSubmissionCsv(submission: YeeSubmissionRecord) {
 	};
 	for (const [key, value] of Object.entries(submission.participant_info)) {
 		if (key === "domain_weights" || key === "section_comments") continue;
-		row[`Participant ${normalizeText(key.replace(/_/g, " "))}`] = typeof value === "object" ? JSON.stringify(value) : String(value ?? "");
+		row[`Participant ${normalizeText(key.replace(/_/g, " "))}`] =
+			typeof value === "object" ? JSON.stringify(value) : String(value ?? "");
 	}
 	if (instrument) {
 		Object.assign(row, buildQuestionColumns(submission, instrument));
@@ -149,9 +158,7 @@ async function downloadSingleSubmissionCsv(submission: YeeSubmissionRecord) {
 	const headers = Object.keys(row);
 	const csv = [
 		headers.join(","),
-		headers
-			.map(header => `"${String(row[header] ?? "").replace(/"/g, "\"\"")}"`)
-			.join(",")
+		headers.map(header => `"${String(row[header] ?? "").replace(/"/g, '""')}"`).join(",")
 	].join("\n");
 	const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
 	const url = URL.createObjectURL(blob);
@@ -238,8 +245,12 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 	React.useEffect(() => {
 		if (!submission) return;
 		const previousTitle = document.title;
-		const placeName = (submission.place_name || submission.place_id || "Place").replace(/[\\/:*?"<>|]/g, "-").trim();
-		const auditorId = (submission.auditor_generated_id || submission.auditor_id || "AUD").replace(/[\\/:*?"<>|]/g, "-").trim();
+		const placeName = (submission.place_name || submission.place_id || "Place")
+			.replace(/[\\/:*?"<>|]/g, "-")
+			.trim();
+		const auditorId = (submission.auditor_generated_id || submission.auditor_id || "AUD")
+			.replace(/[\\/:*?"<>|]/g, "-")
+			.trim();
 		document.title = `${placeName}-${auditorId}-Audit Report`;
 		return () => {
 			document.title = previousTitle;
@@ -260,8 +271,7 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 	);
 	const normalizedWeights = normalizeWeights(submission.participant_info.domain_weights);
 	const sectionComments =
-		submission.participant_info.section_comments &&
-		typeof submission.participant_info.section_comments === "object"
+		submission.participant_info.section_comments && typeof submission.participant_info.section_comments === "object"
 			? (submission.participant_info.section_comments as Partial<Record<YeeDomainKey, string>>)
 			: {};
 	const weightingComments =
@@ -332,7 +342,9 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 						<div className="rounded-2xl bg-slate-50 p-4 text-sm leading-7 text-slate-700">
 							<p className="font-medium text-slate-900">Context</p>
 							<p>Date: {String(submission.participant_info.audit_date || "Not recorded")}</p>
-							<p>Visit frequency: {String(submission.participant_info.visit_frequency || "Not recorded")}</p>
+							<p>
+								Visit frequency: {String(submission.participant_info.visit_frequency || "Not recorded")}
+							</p>
 							<p>Season: {String(submission.participant_info.season || "Not recorded")}</p>
 							<p>Weather: {String(submission.participant_info.weather || "Not recorded")}</p>
 						</div>
@@ -341,7 +353,9 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 					<div className="rounded-2xl border border-emerald-300 bg-emerald-100/80 p-4">
 						<p className="text-sm font-medium text-emerald-950">Section weighting used in this audit</p>
 						<p className="mt-2 text-sm leading-6 text-emerald-900/80">
-							Youth Weighted values are calculated by normalizing the participant&apos;s section weights, computing the average score within each section, and then applying the normalized weight to that section average.
+							Youth Weighted values are calculated by normalizing the participant&apos;s section weights,
+							computing the average score within each section, and then applying the normalized weight to
+							that section average.
 						</p>
 						<div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3 report-print-stack">
 							{(Object.keys(yeeDomainLabels) as YeeDomainKey[]).map(domain => {
@@ -355,8 +369,7 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 											backgroundColor: theme.lightHex,
 											color: "#1f2937",
 											boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35)"
-										}}
-									>
+										}}>
 										<p className="text-sm font-semibold leading-5" style={{ color: "#111827" }}>
 											{yeeDomainLabels[domain]}
 										</p>
@@ -378,11 +391,15 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 					<div className="grid gap-4 md:grid-cols-2 report-page-break report-no-break report-print-stack">
 						<div className="rounded-2xl border border-slate-200 p-4">
 							<p className="text-sm font-medium text-slate-900">Weighting comments</p>
-							<p className="mt-2 text-sm text-slate-600">{weightingComments || "No weighting comments submitted."}</p>
+							<p className="mt-2 text-sm text-slate-600">
+								{weightingComments || "No weighting comments submitted."}
+							</p>
 						</div>
 						<div className="rounded-2xl border border-slate-200 p-4">
 							<p className="text-sm font-medium text-slate-900">Overall comments</p>
-							<p className="mt-2 text-sm text-slate-600">{String(submission.participant_info.comments || "No comments submitted.")}</p>
+							<p className="mt-2 text-sm text-slate-600">
+								{String(submission.participant_info.comments || "No comments submitted.")}
+							</p>
 						</div>
 					</div>
 
@@ -390,7 +407,9 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 						{(Object.keys(yeeDomainLabels) as YeeDomainKey[]).map(domain => (
 							<div key={domain} className="rounded-2xl border border-slate-200 p-4">
 								<p className="text-sm font-medium text-slate-900">{yeeDomainLabels[domain]} comments</p>
-								<p className="mt-2 text-sm text-slate-600">{sectionComments[domain] || "No section comments submitted."}</p>
+								<p className="mt-2 text-sm text-slate-600">
+									{sectionComments[domain] || "No section comments submitted."}
+								</p>
 							</div>
 						))}
 					</div>
@@ -399,7 +418,11 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 						<Button type="button" variant="outline" className="rounded-2xl" onClick={() => window.print()}>
 							Print report
 						</Button>
-						<Button type="button" variant="outline" className="rounded-2xl" onClick={() => void downloadSingleSubmissionCsv(submission)}>
+						<Button
+							type="button"
+							variant="outline"
+							className="rounded-2xl"
+							onClick={() => void downloadSingleSubmissionCsv(submission)}>
 							Export data
 						</Button>
 						<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">

@@ -11,18 +11,15 @@ import { sanitizeCsvCell } from "./sanitize-cell";
  * Returns an empty string for an empty array.
  */
 export function toCsv(rows: Record<string, string | number>[]): string {
-  if (rows.length === 0) return "";
-  const headers = Object.keys(rows[0]);
+	if (rows.length === 0) return "";
+	const headers = Object.keys(rows[0]);
 
-  const escapeCell = (value: string | number): string => {
-    const sanitized = sanitizeCsvCell(String(value));
-    return `"${sanitized.replaceAll('"', '""')}"`;
-  };
+	const escapeCell = (value: string | number): string => {
+		const sanitized = sanitizeCsvCell(String(value));
+		return `"${sanitized.replaceAll('"', '""')}"`;
+	};
 
-  return [
-    headers.join(","),
-    ...rows.map((row) =>
-      headers.map((header) => escapeCell(row[header] ?? "")).join(",")
-    ),
-  ].join("\n");
+	return [headers.join(","), ...rows.map(row => headers.map(header => escapeCell(row[header] ?? "")).join(","))].join(
+		"\n"
+	);
 }

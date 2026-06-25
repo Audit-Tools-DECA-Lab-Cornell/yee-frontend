@@ -14,11 +14,11 @@ const FORMULA_STARTERS = new Set(["=", "+", "-", "@"]);
  * as a formula. The original whitespace is preserved after the quote.
  */
 export function sanitizeCsvCell(value: string): string {
-  const trimmed = value.trimStart();
-  if (trimmed.length === 0) return value;
-  const first = trimmed[0];
-  if (FORMULA_STARTERS.has(first) || first === "\t" || first === "\r") {
-    return `'${value}`;
-  }
-  return value;
+	const trimmed = value.trimStart();
+	if (trimmed.length === 0) return value;
+	const first = trimmed[0];
+	if (FORMULA_STARTERS.has(first) || first === "\t" || first === "\r") {
+		return `'${value}`;
+	}
+	return value;
 }

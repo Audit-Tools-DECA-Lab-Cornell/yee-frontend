@@ -7,7 +7,7 @@ import { getApiBaseUrl } from "@/app/api/_lib/backend-config";
 import { errorResponse } from "@/app/api/_lib/api-response";
 
 type BackendMeResponse = {
-  user: SessionUser;
+	user: SessionUser;
 };
 
 /**
@@ -18,29 +18,29 @@ type BackendMeResponse = {
  * Used by the auth provider on mount to hydrate client session state.
  */
 export async function GET(request: NextRequest) {
-  const token = getSessionToken(request);
-  if (!token) {
-    return errorResponse("Unauthorized", 401);
-  }
+	const token = getSessionToken(request);
+	if (!token) {
+		return errorResponse("Unauthorized", 401);
+	}
 
-  const backendUrl = `${getApiBaseUrl()}/yee/auth/me`;
+	const backendUrl = `${getApiBaseUrl()}/yee/auth/me`;
 
-  try {
-    const response = await fetch(backendUrl, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      cache: "no-store",
-    });
+	try {
+		const response = await fetch(backendUrl, {
+			headers: {
+				Authorization: `Bearer ${token}`,
+				"Content-Type": "application/json"
+			},
+			cache: "no-store"
+		});
 
-    if (!response.ok) {
-      return errorResponse("Unauthorized", 401);
-    }
+		if (!response.ok) {
+			return errorResponse("Unauthorized", 401);
+		}
 
-    const data = (await response.json()) as BackendMeResponse;
-    return NextResponse.json({ user: data.user });
-  } catch {
-    return errorResponse("Session validation failed", 502);
-  }
+		const data = (await response.json()) as BackendMeResponse;
+		return NextResponse.json({ user: data.user });
+	} catch {
+		return errorResponse("Session validation failed", 502);
+	}
 }

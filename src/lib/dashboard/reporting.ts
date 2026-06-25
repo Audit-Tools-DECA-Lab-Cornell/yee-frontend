@@ -26,8 +26,14 @@ export function getComparisonAverages<
 >(records: T[]) {
 	if (records.length === 0) return null;
 
-	const avgRawByDomain = Object.fromEntries(domainOrder.map(domain => [domain, 0])) as Record<(typeof domainOrder)[number], number>;
-	const avgWeightedByDomain = Object.fromEntries(domainOrder.map(domain => [domain, 0])) as Record<(typeof domainOrder)[number], number>;
+	const avgRawByDomain = Object.fromEntries(domainOrder.map(domain => [domain, 0])) as Record<
+		(typeof domainOrder)[number],
+		number
+	>;
+	const avgWeightedByDomain = Object.fromEntries(domainOrder.map(domain => [domain, 0])) as Record<
+		(typeof domainOrder)[number],
+		number
+	>;
 
 	for (const record of records) {
 		for (const domain of domainOrder) {
@@ -42,8 +48,12 @@ export function getComparisonAverages<
 	}
 
 	return {
-		totalRawAverage: Number((records.reduce((sum, record) => sum + record.total_raw_score, 0) / records.length).toFixed(1)),
-		totalWeightedAverage: Number((records.reduce((sum, record) => sum + record.total_weighted_score, 0) / records.length).toFixed(2)),
+		totalRawAverage: Number(
+			(records.reduce((sum, record) => sum + record.total_raw_score, 0) / records.length).toFixed(1)
+		),
+		totalWeightedAverage: Number(
+			(records.reduce((sum, record) => sum + record.total_weighted_score, 0) / records.length).toFixed(2)
+		),
 		avgRawByDomain,
 		avgWeightedByDomain
 	};

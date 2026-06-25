@@ -116,7 +116,9 @@ export function AuditorAuditHistory({
 								setSelectedPlaceIds([]);
 								return;
 							}
-							const allowedPlaceIds = new Set(places.filter(place => values.includes(place.project)).map(place => place.id));
+							const allowedPlaceIds = new Set(
+								places.filter(place => values.includes(place.project)).map(place => place.id)
+							);
 							setSelectedPlaceIds(current => current.filter(placeId => allowedPlaceIds.has(placeId)));
 						}}
 					/>
@@ -156,22 +158,19 @@ export function AuditorAuditHistory({
 							const auditState = auditStates[place.id];
 							const isSubmitted = auditState?.status === "SUBMITTED";
 							const hasDraft = auditState?.status === "DRAFT";
-							const preview =
-								auditState?.score
-									? buildWeightedScorePreview(
+							const preview = auditState?.score
+								? buildWeightedScorePreview(
 										auditState.score,
 										normalizeWeights(auditState.participant_info.domain_weights)
 									)
-									: null;
+								: null;
 							const youthMax = preview ? getYouthWeightedScoreMaximum(preview.selectedWeights) : 0;
 							const rawPercentage =
 								preview && totalRawScoreMaximum
 									? (preview.totalRawScore / totalRawScoreMaximum) * 100
 									: 0;
 							const youthPercentage =
-								preview && youthMax
-									? (preview.totalWeightedScore / youthMax) * 100
-									: 0;
+								preview && youthMax ? (preview.totalWeightedScore / youthMax) * 100 : 0;
 							return (
 								<tr key={place.id} className="border-b border-slate-100 last:border-0">
 									<td className="py-4 pr-4 font-medium text-slate-900">{place.name}</td>
@@ -189,18 +188,24 @@ export function AuditorAuditHistory({
 										</Badge>
 									</td>
 									<td className="py-4 pr-4 text-slate-600">
-										{auditState?.submitted_at ? new Date(auditState.submitted_at).toLocaleDateString() : "-"}
+										{auditState?.submitted_at
+											? new Date(auditState.submitted_at).toLocaleDateString()
+											: "-"}
 									</td>
 									<td className="py-4 pr-4 text-slate-600">
 										{preview ? (
 											<div className="space-y-1 text-xs leading-5">
 												<p>
 													<span className="font-medium text-slate-900">Raw Score:</span>{" "}
-													{preview.totalRawScore} / {totalRawScoreMaximum} ({rawPercentage.toFixed(0)}%)
+													{preview.totalRawScore} / {totalRawScoreMaximum} (
+													{rawPercentage.toFixed(0)}%)
 												</p>
 												<p>
-													<span className="font-medium text-emerald-900">Youth Weighted:</span>{" "}
-													{preview.totalWeightedScore.toFixed(2)} / {youthMax.toFixed(2)} ({youthPercentage.toFixed(0)}%)
+													<span className="font-medium text-emerald-900">
+														Youth Weighted:
+													</span>{" "}
+													{preview.totalWeightedScore.toFixed(2)} / {youthMax.toFixed(2)} (
+													{youthPercentage.toFixed(0)}%)
 												</p>
 											</div>
 										) : (
@@ -210,10 +215,14 @@ export function AuditorAuditHistory({
 									<td className="py-4">
 										{isSubmitted ? (
 											<Button asChild variant="outline" className="rounded-2xl">
-												<Link href={`/yee/submissions/${auditState.submission_id}`}>View Submission</Link>
+												<Link href={`/yee/submissions/${auditState.submission_id}`}>
+													View Submission
+												</Link>
 											</Button>
 										) : hasDraft ? (
-											<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
+											<Button
+												asChild
+												className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
 												<Link href={`/yee/audit/${place.id}/page/1`}>Continue In Progress</Link>
 											</Button>
 										) : (

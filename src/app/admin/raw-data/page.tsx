@@ -1,4 +1,8 @@
+import type { Metadata } from "next";
+
 import { LiveRawDataTable } from "@/components/reporting/live-raw-data-table";
+
+export const metadata: Metadata = { title: "Raw Data" };
 
 export default function AdminRawDataPage() {
 	return (

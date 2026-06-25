@@ -1,15 +1,25 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import type { Metadata } from "next";
+
+import { UserRound } from "lucide-react";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+
+export const metadata: Metadata = { title: "Settings" };
 
 export default function MyDashboardSettingsPage() {
-	return (
-		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
-			<CardHeader>
-				<CardTitle>My Settings</CardTitle>
-				<CardDescription>Profile and personal preferences for the current auditor.</CardDescription>
-			</CardHeader>
-			<CardContent className="text-sm leading-6 text-slate-600">
-				This page is reserved for personal profile updates and should not include manager or admin actions.
-			</CardContent>
-		</Card>
-	);
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Personal Settings</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <EmptyState
+          icon={UserRound}
+          title="Profile settings coming soon"
+          description="This section will let you update your personal profile, notification preferences, and auditor account details."
+        />
+      </CardContent>
+    </Card>
+  );
 }

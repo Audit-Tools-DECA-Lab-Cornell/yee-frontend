@@ -8,7 +8,7 @@ import {
 	buildPlaceProfilePayload,
 	derivePlaceProfileFormValues,
 	PlaceProfileForm,
-	type PlaceProfileFormValues,
+	type PlaceProfileFormValues
 } from "@/components/dashboard/place-profile-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchPlaceDetail, fetchProjects, updatePlace, type ProjectRecord } from "@/lib/dashboard/live-api";
@@ -28,7 +28,10 @@ export default function EditPlacePage() {
 		let cancelled = false;
 		const run = async () => {
 			try {
-				const [place, projectRows] = await Promise.all([fetchPlaceDetail(session, params.placeId), fetchProjects(session)]);
+				const [place, projectRows] = await Promise.all([
+					fetchPlaceDetail(session, params.placeId),
+					fetchProjects(session)
+				]);
 				if (!cancelled) {
 					setProjects(projectRows);
 					setValues(derivePlaceProfileFormValues(place));
@@ -68,7 +71,8 @@ export default function EditPlacePage() {
 			<CardHeader>
 				<CardTitle className="text-2xl">Edit Place</CardTitle>
 				<CardDescription className="max-w-3xl leading-6">
-					Update the Place profile, detailed location, anticipated timing, and Auditor setup information without leaving the manager workflow.
+					Update the Place profile, detailed location, anticipated timing, and Auditor setup information
+					without leaving the manager workflow.
 				</CardDescription>
 			</CardHeader>
 			<CardContent>

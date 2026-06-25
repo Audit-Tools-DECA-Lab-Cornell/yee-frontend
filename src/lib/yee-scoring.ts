@@ -1,9 +1,5 @@
 import { yeeDomainLabels, type YeeAuditDraft, type YeeDomainKey, type YeeScorePreview } from "@/lib/yee-audit-config";
-import {
-	getDomainMaximumAverage,
-	getNormalizedWeights,
-	rawDomainQuestionCounts
-} from "@/lib/yee-score-limits";
+import { getDomainMaximumAverage, getNormalizedWeights, rawDomainQuestionCounts } from "@/lib/yee-score-limits";
 
 export type BackendScoreResponse = {
 	total_score: number;

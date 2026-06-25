@@ -87,7 +87,8 @@ export function AssignmentPanel({
 		() => places.filter(place => place.project_id === projectId),
 		[places, projectId]
 	);
-	const allAuditorsSelected = auditors.length > 0 && auditors.every(auditor => selectedAuditorIds.includes(auditor.id));
+	const allAuditorsSelected =
+		auditors.length > 0 && auditors.every(auditor => selectedAuditorIds.includes(auditor.id));
 
 	React.useEffect(() => {
 		if (!requestedPlaceId) return;
@@ -95,7 +96,8 @@ export function AssignmentPanel({
 		setSelectedPlaceIds(current => (current.includes(requestedPlaceId) ? current : [...current, requestedPlaceId]));
 	}, [requestedPlaceId, visiblePlaces]);
 
-	const allVisibleSelected = visiblePlaces.length > 0 && visiblePlaces.every(place => selectedPlaceIds.includes(place.id));
+	const allVisibleSelected =
+		visiblePlaces.length > 0 && visiblePlaces.every(place => selectedPlaceIds.includes(place.id));
 
 	function toggleValue(values: string[], value: string) {
 		return values.includes(value) ? values.filter(item => item !== value) : [...values, value];
@@ -165,8 +167,7 @@ export function AssignmentPanel({
 										setProjectId(event.target.value);
 										setSelectedPlaceIds([]);
 									}}
-									className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm shadow-xs outline-none"
-								>
+									className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm shadow-xs outline-none">
 									{projects.map(project => (
 										<option key={project.id} value={project.id}>
 											{project.name}
@@ -183,24 +184,34 @@ export function AssignmentPanel({
 									<div className="flex items-center gap-2">
 										<p className="text-xs text-slate-500">{selectedAuditorIds.length} selected</p>
 										<label className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700">
-											<input type="checkbox" checked={allAuditorsSelected} onChange={toggleSelectAllAuditors} />
+											<input
+												type="checkbox"
+												checked={allAuditorsSelected}
+												onChange={toggleSelectAllAuditors}
+											/>
 											Select all
 										</label>
 									</div>
 								</div>
 								<div className="max-h-72 space-y-2 overflow-auto rounded-2xl border border-slate-200 p-3">
 									{auditors.map(auditor => (
-										<label key={auditor.id} className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-100 p-3 hover:bg-slate-50">
+										<label
+											key={auditor.id}
+											className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-100 p-3 hover:bg-slate-50">
 											<input
 												type="checkbox"
 												checked={selectedAuditorIds.includes(auditor.id)}
-												onChange={() => setSelectedAuditorIds(current => toggleValue(current, auditor.id))}
+												onChange={() =>
+													setSelectedAuditorIds(current => toggleValue(current, auditor.id))
+												}
 												className="mt-1"
 											/>
 											<div>
 												<p className="font-medium text-slate-900">{auditor.name}</p>
 												<p className="text-xs text-slate-500">{auditor.auditor_id}</p>
-												<p className="text-sm text-slate-600">{auditor.email || "No contact email"}</p>
+												<p className="text-sm text-slate-600">
+													{auditor.email || "No contact email"}
+												</p>
 											</div>
 										</label>
 									))}
@@ -213,10 +224,19 @@ export function AssignmentPanel({
 									<div className="flex items-center gap-2">
 										<p className="text-xs text-slate-500">{selectedPlaceIds.length} selected</p>
 										<label className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700">
-											<input type="checkbox" checked={allVisibleSelected} onChange={toggleSelectAllPlaces} />
+											<input
+												type="checkbox"
+												checked={allVisibleSelected}
+												onChange={toggleSelectAllPlaces}
+											/>
 											Select all
 										</label>
-										<Button type="button" variant="outline" size="sm" className="rounded-xl" onClick={selectAllPlaces}>
+										<Button
+											type="button"
+											variant="outline"
+											size="sm"
+											className="rounded-xl"
+											onClick={selectAllPlaces}>
 											All places in project
 										</Button>
 									</div>
@@ -226,17 +246,25 @@ export function AssignmentPanel({
 										<p className="text-sm text-slate-500">No places found for this project yet.</p>
 									) : (
 										visiblePlaces.map(place => (
-											<label key={place.id} className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-100 p-3 hover:bg-slate-50">
+											<label
+												key={place.id}
+												className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-100 p-3 hover:bg-slate-50">
 												<input
 													type="checkbox"
 													checked={selectedPlaceIds.includes(place.id)}
-													onChange={() => setSelectedPlaceIds(current => toggleValue(current, place.id))}
+													onChange={() =>
+														setSelectedPlaceIds(current => toggleValue(current, place.id))
+													}
 													className="mt-1"
 												/>
 												<div>
 													<p className="font-medium text-slate-900">{place.name}</p>
 													<p className="text-sm text-slate-600">{place.address}</p>
-													{place.postal_code ? <p className="text-xs text-slate-500">Postal code: {place.postal_code}</p> : null}
+													{place.postal_code ? (
+														<p className="text-xs text-slate-500">
+															Postal code: {place.postal_code}
+														</p>
+													) : null}
 												</div>
 											</label>
 										))
@@ -251,8 +279,9 @@ export function AssignmentPanel({
 						<Button
 							type="submit"
 							className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]"
-							disabled={saving || !projectId || selectedAuditorIds.length === 0 || selectedPlaceIds.length === 0}
-						>
+							disabled={
+								saving || !projectId || selectedAuditorIds.length === 0 || selectedPlaceIds.length === 0
+							}>
 							{saving ? "Saving assignments..." : "Save assignments"}
 						</Button>
 					</form>

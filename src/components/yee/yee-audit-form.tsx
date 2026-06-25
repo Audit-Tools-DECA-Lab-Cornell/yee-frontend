@@ -172,7 +172,9 @@ export function YeeAuditForm({ placeId }: { placeId: string }) {
 							{isMatrix ? (
 								choices.map(([choiceId, choice]) => {
 									const selected =
-										typeof currentValue === "object" && currentValue ? currentValue[choiceId] || "" : "";
+										typeof currentValue === "object" && currentValue
+											? currentValue[choiceId] || ""
+											: "";
 									return (
 										<div
 											key={`${item.item_id}-${choiceId}`}
@@ -181,7 +183,9 @@ export function YeeAuditForm({ placeId }: { placeId: string }) {
 											<select
 												className="rounded-md border px-3 py-2 text-sm"
 												value={selected}
-												onChange={event => updateMatrixResponse(item.item_id, choiceId, event.target.value)}>
+												onChange={event =>
+													updateMatrixResponse(item.item_id, choiceId, event.target.value)
+												}>
 												<option value="">Select one</option>
 												{answers.map(([answerId, answer]) => (
 													<option key={answerId} value={answerId}>
@@ -195,7 +199,9 @@ export function YeeAuditForm({ placeId }: { placeId: string }) {
 							) : (
 								<div className="space-y-2">
 									{choices.map(([choiceId, choice]) => (
-										<label key={`${item.item_id}-${choiceId}`} className="flex items-center gap-2 text-sm">
+										<label
+											key={`${item.item_id}-${choiceId}`}
+											className="flex items-center gap-2 text-sm">
 											<input
 												type="radio"
 												name={item.item_id}

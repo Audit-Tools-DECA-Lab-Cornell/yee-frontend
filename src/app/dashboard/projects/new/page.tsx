@@ -7,7 +7,7 @@ import { useAuth } from "@/components/auth/auth-provider";
 import {
 	buildProjectProfilePayload,
 	ProjectProfileForm,
-	type ProjectProfileFormValues,
+	type ProjectProfileFormValues
 } from "@/components/dashboard/project-profile-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { createProject } from "@/lib/dashboard/live-api";
@@ -23,7 +23,7 @@ const INITIAL_VALUES: ProjectProfileFormValues = {
 	auditorPopulationTypes: [],
 	otherAuditorPopulationType: "",
 	auditorInclusionExclusionCriteria: "",
-	auditorNotes: "",
+	auditorNotes: ""
 };
 
 export default function NewProjectPage() {
@@ -56,7 +56,8 @@ export default function NewProjectPage() {
 			<CardHeader>
 				<CardTitle className="text-2xl">Create Project</CardTitle>
 				<CardDescription className="max-w-3xl leading-6">
-					Create the Project profile first, then continue directly into that Project page to add Places and invite Auditors without leaving the setup flow.
+					Create the Project profile first, then continue directly into that Project page to add Places and
+					invite Auditors without leaving the setup flow.
 				</CardDescription>
 			</CardHeader>
 			<CardContent>

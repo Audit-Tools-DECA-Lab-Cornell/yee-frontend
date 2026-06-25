@@ -282,17 +282,31 @@ export function LiveManagerOverview() {
 	const { session } = useAuth();
 	const { data, isLoading: loading, error: queryError } = useDashboardOverview();
 	const { data: rawDataResult, isLoading: rawDataLoading, error: rawDataQueryError } = useDashboardRawData();
-	const error = queryError ? (queryError instanceof Error ? queryError.message : "Could not load dashboard data.") : null;
+	const error = queryError
+		? queryError instanceof Error
+			? queryError.message
+			: "Could not load dashboard data."
+		: null;
 	const rawData = {
 		data: rawDataResult ?? null,
 		loading: rawDataLoading,
-		error: rawDataQueryError ? (rawDataQueryError instanceof Error ? rawDataQueryError.message : "Could not load raw data.") : null
+		error: rawDataQueryError
+			? rawDataQueryError instanceof Error
+				? rawDataQueryError.message
+				: "Could not load raw data."
+			: null
 	};
 
 	if (loading || rawData.loading) return <LoadingCard label="overview" />;
 	if (error) return <ErrorCard message={error} />;
 	if (rawData.error) return <ErrorCard message={rawData.error} />;
-	if (!data) return <EmptyState title="No dashboard data yet" description="Sign in again and make sure the backend is running." />;
+	if (!data)
+		return (
+			<EmptyState
+				title="No dashboard data yet"
+				description="Sign in again and make sure the backend is running."
+			/>
+		);
 
 	const submittedRows = (rawData.data ?? []).filter(row => Boolean(row.submitted_at));
 	const averageRawScore =
@@ -380,18 +394,22 @@ export function LiveManagerOverview() {
 							Your dashboard is ready for projects, places, and YEE fieldwork.
 						</h1>
 						<p className="mt-4 max-w-2xl text-sm leading-7 text-emerald-50/80 sm:text-base">
-							Use this overview to move into projects, places, auditors, reports, and audit records without dead summary cards.
+							Use this overview to move into projects, places, auditors, reports, and audit records
+							without dead summary cards.
 						</p>
 						<div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
 							{managerSnapshotItems.map(item => (
 								<Link
 									key={item.label}
 									href={item.href}
-									className="min-w-0 rounded-[1.5rem] border border-emerald-200/20 bg-linear-to-br from-white/18 to-white/8 px-4 py-4 backdrop-blur-sm transition hover:border-emerald-200/35 hover:bg-white/16"
-								>
-									<p className="break-words text-xs font-medium uppercase tracking-[0.16em] text-emerald-50/70">{item.label}</p>
+									className="min-w-0 rounded-[1.5rem] border border-emerald-200/20 bg-linear-to-br from-white/18 to-white/8 px-4 py-4 backdrop-blur-sm transition hover:border-emerald-200/35 hover:bg-white/16">
+									<p className="break-words text-xs font-medium uppercase tracking-[0.16em] text-emerald-50/70">
+										{item.label}
+									</p>
 									<p className="mt-2 break-words text-2xl font-semibold text-white">{item.value}</p>
-									<p className="mt-2 break-words text-xs leading-5 text-emerald-50/65">{item.helper}</p>
+									<p className="mt-2 break-words text-xs leading-5 text-emerald-50/65">
+										{item.helper}
+									</p>
 									<p className="mt-3 text-xs font-medium text-emerald-100">Open</p>
 								</Link>
 							))}
@@ -403,7 +421,10 @@ export function LiveManagerOverview() {
 									<ArrowRight className="size-4" />
 								</Link>
 							</Button>
-							<Button asChild variant="outline" className="rounded-2xl border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+							<Button
+								asChild
+								variant="outline"
+								className="rounded-2xl border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
 								<Link href="/dashboard/places/new">Add Place</Link>
 							</Button>
 						</div>
@@ -415,8 +436,12 @@ export function LiveManagerOverview() {
 				{scoreSummaryItems.map(item => (
 					<Card key={item.label} className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
 						<CardHeader className="gap-3">
-							<CardDescription className="text-sm font-medium text-slate-500">{item.label}</CardDescription>
-							<CardTitle className="text-3xl font-semibold tracking-tight text-slate-950">{item.value}</CardTitle>
+							<CardDescription className="text-sm font-medium text-slate-500">
+								{item.label}
+							</CardDescription>
+							<CardTitle className="text-3xl font-semibold tracking-tight text-slate-950">
+								{item.value}
+							</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-3">
 							<p className="text-sm leading-6 text-slate-600">{item.helper}</p>
@@ -428,14 +453,18 @@ export function LiveManagerOverview() {
 			<section className="rounded-[1.75rem] border border-slate-200/80 bg-white p-5 shadow-sm">
 				<p className="text-sm font-medium text-slate-900">Why Youth Weighted averages differ</p>
 				<p className="mt-2 text-sm leading-6 text-slate-600">
-					Youth Weighted values now use normalized domain weights and per-domain averages, so they reflect both the participant&apos;s priorities and how strongly each domain performed relative to its own item set.
+					Youth Weighted values now use normalized domain weights and per-domain averages, so they reflect
+					both the participant&apos;s priorities and how strongly each domain performed relative to its own
+					item set.
 				</p>
 				<div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
 					{domainWeightBreakdown.map(item => (
 						<div key={item.domain} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
 							<p className="text-sm font-medium text-slate-900">{item.label}</p>
 							<p className="mt-1 text-xs text-slate-600">Average weighting across submitted audits</p>
-							<p className="mt-2 text-sm font-semibold text-emerald-800">{item.average.toFixed(1)} / 3 ({item.percent.toFixed(0)}%)</p>
+							<p className="mt-2 text-sm font-semibold text-emerald-800">
+								{item.average.toFixed(1)} / 3 ({item.percent.toFixed(0)}%)
+							</p>
 						</div>
 					))}
 				</div>
@@ -444,15 +473,22 @@ export function LiveManagerOverview() {
 			<section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
 				{data.metrics.map(metric => (
 					<Link key={metric.title} href={metricHref(metric.title)} className="block">
-						<Card className={`rounded-[1.75rem] shadow-sm transition hover:shadow-md ${metricTone(metric.title).card}`}>
+						<Card
+							className={`rounded-[1.75rem] shadow-sm transition hover:shadow-md ${metricTone(metric.title).card}`}>
 							<CardHeader className="gap-3">
-								<CardDescription className="text-sm font-medium text-slate-500">{metric.title}</CardDescription>
-								<CardTitle className="text-3xl font-semibold tracking-tight text-slate-950">{metric.value}</CardTitle>
+								<CardDescription className="text-sm font-medium text-slate-500">
+									{metric.title}
+								</CardDescription>
+								<CardTitle className="text-3xl font-semibold tracking-tight text-slate-950">
+									{metric.value}
+								</CardTitle>
 							</CardHeader>
 							<CardContent className="space-y-2">
 								<p className="text-sm leading-6 text-slate-600">{metric.description}</p>
 								<div className="flex items-center justify-between">
-									<Badge variant="secondary" className={`rounded-full ${metricTone(metric.title).badge}`}>
+									<Badge
+										variant="secondary"
+										className={`rounded-full ${metricTone(metric.title).badge}`}>
 										Manager scope
 									</Badge>
 									<span className="text-xs font-medium text-slate-500">Open</span>
@@ -467,11 +503,15 @@ export function LiveManagerOverview() {
 				<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
 					<CardHeader>
 						<CardTitle>Recent activity</CardTitle>
-						<CardDescription>Recent activity across your projects, places, auditors, and audits.</CardDescription>
+						<CardDescription>
+							Recent activity across your projects, places, auditors, and audits.
+						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-3">
 						{data.recent_activity.map(item => (
-							<div key={item} className="rounded-2xl bg-slate-50 px-4 py-4 text-sm leading-6 text-slate-700">
+							<div
+								key={item}
+								className="rounded-2xl bg-slate-50 px-4 py-4 text-sm leading-6 text-slate-700">
 								{item}
 							</div>
 						))}
@@ -481,13 +521,18 @@ export function LiveManagerOverview() {
 				<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
 					<CardHeader>
 						<CardTitle>Manager actions</CardTitle>
-						<CardDescription>Core setup actions for projects, places, auditors, and manager access.</CardDescription>
+						<CardDescription>
+							Core setup actions for projects, places, auditors, and manager access.
+						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-3">
 						{quickLinks.map(link => {
 							const Icon = link.icon;
 							return (
-								<Link key={link.href} href={link.href} className="flex items-start gap-3 rounded-2xl border border-slate-200 p-4 transition-colors hover:bg-slate-50">
+								<Link
+									key={link.href}
+									href={link.href}
+									className="flex items-start gap-3 rounded-2xl border border-slate-200 p-4 transition-colors hover:bg-slate-50">
 									<div className="rounded-2xl bg-[#e4f5ee] p-2 text-emerald-700">
 										<Icon className="size-4" />
 									</div>
@@ -547,7 +592,8 @@ function AuditTableCard({ title, description, audits }: { title: string; descrip
 												</p>
 												<p>
 													<span className="font-medium text-slate-900">Youth Weighted:</span>{" "}
-													{audit.total_weighted_score.toFixed(2)}/{getYouthWeightedScoreMaximum(audit.domain_weights).toFixed(2)}
+													{audit.total_weighted_score.toFixed(2)}/
+													{getYouthWeightedScoreMaximum(audit.domain_weights).toFixed(2)}
 												</p>
 											</div>
 										) : (
@@ -555,7 +601,9 @@ function AuditTableCard({ title, description, audits }: { title: string; descrip
 										)}
 									</td>
 									<td className="py-4">
-										<Badge variant="secondary" className="rounded-full bg-sky-50 text-sky-700 hover:bg-sky-50">
+										<Badge
+											variant="secondary"
+											className="rounded-full bg-sky-50 text-sky-700 hover:bg-sky-50">
 											{audit.status}
 										</Badge>
 									</td>
@@ -577,7 +625,13 @@ export function LiveProjectsTable() {
 	const { data, loading, error } = useTableData(fetchProjects);
 	if (loading) return <LoadingCard label="projects" />;
 	if (error) return <ErrorCard message={error} />;
-	if (!data?.length) return <EmptyState title="No projects yet" description="Create a project to see it appear here from the backend." />;
+	if (!data?.length)
+		return (
+			<EmptyState
+				title="No projects yet"
+				description="Create a project to see it appear here from the backend."
+			/>
+		);
 	const showOrganization = data.some(project => project.organization);
 
 	return (
@@ -585,7 +639,9 @@ export function LiveProjectsTable() {
 			<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 				<div>
 					<CardTitle className="text-2xl">Projects</CardTitle>
-					<CardDescription className="mt-2 max-w-2xl leading-6">Project records for this manager, including summary, place count, and audit activity.</CardDescription>
+					<CardDescription className="mt-2 max-w-2xl leading-6">
+						Project records for this manager, including summary, place count, and audit activity.
+					</CardDescription>
 				</div>
 				<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
 					<Link href="/dashboard/projects/new">Create Project</Link>
@@ -606,23 +662,33 @@ export function LiveProjectsTable() {
 					</thead>
 					<tbody>
 						{data.map(project => (
-							<tr key={project.id} className="border-b border-slate-100 last:border-0 transition hover:bg-slate-50">
+							<tr
+								key={project.id}
+								className="border-b border-slate-100 last:border-0 transition hover:bg-slate-50">
 								<td className="py-4 pr-4 font-medium text-slate-900">
-									<Link href={`/dashboard/projects/${project.id}`} className="hover:text-slate-950 hover:underline">
+									<Link
+										href={`/dashboard/projects/${project.id}`}
+										className="hover:text-slate-950 hover:underline">
 										{project.name}
 									</Link>
 								</td>
-								{showOrganization ? <td className="py-4 pr-4 text-slate-600">{project.organization ?? "-"}</td> : null}
+								{showOrganization ? (
+									<td className="py-4 pr-4 text-slate-600">{project.organization ?? "-"}</td>
+								) : null}
 								<td className="py-4 pr-4 text-slate-600">{project.summary}</td>
 								<td className="py-4 pr-4 text-slate-600">{project.places}</td>
 								<td className="py-4 pr-4 text-slate-600">{project.audits}</td>
 								<td className="py-4 pr-4">
-									<Badge variant="secondary" className="rounded-full bg-amber-50 text-amber-700 hover:bg-amber-50">
+									<Badge
+										variant="secondary"
+										className="rounded-full bg-amber-50 text-amber-700 hover:bg-amber-50">
 										{project.status}
 									</Badge>
 								</td>
 								<td className="py-4">
-									<Link href={`/dashboard/projects/${project.id}`} className="inline-flex items-center gap-1 text-sm text-slate-700 hover:text-slate-950">
+									<Link
+										href={`/dashboard/projects/${project.id}`}
+										className="inline-flex items-center gap-1 text-sm text-slate-700 hover:text-slate-950">
 										Open
 										<ArrowUpRight className="size-4" />
 									</Link>
@@ -641,7 +707,13 @@ export function LivePlacesTable() {
 	const [selectedProjects, setSelectedProjects] = React.useState<string[]>([]);
 	if (loading) return <LoadingCard label="places" />;
 	if (error) return <ErrorCard message={error} />;
-	if (!data?.length) return <EmptyState title="No places yet" description="Add a place under a project and it will show here from the backend." />;
+	if (!data?.length)
+		return (
+			<EmptyState
+				title="No places yet"
+				description="Add a place under a project and it will show here from the backend."
+			/>
+		);
 	const projectOptions = uniqueFilterOptions(data.map(place => place.project));
 	const filteredPlaces = data.filter(place => {
 		if (!includesSelected(selectedProjects, place.project)) return false;
@@ -705,7 +777,10 @@ export function LivePlacesTable() {
 											<span className="text-slate-500">No auditors assigned</span>
 										) : (
 											place.assigned_auditors.map(auditorId => (
-												<Badge key={auditorId} variant="secondary" className="rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
+												<Badge
+													key={auditorId}
+													variant="secondary"
+													className="rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
 													{auditorId}
 												</Badge>
 											))
@@ -714,28 +789,35 @@ export function LivePlacesTable() {
 								</td>
 								<td className="py-4 pr-4 text-slate-600">{place.audits}</td>
 								<td className="py-4 pr-4">
-									<Badge variant="secondary" className="rounded-full bg-slate-100 text-slate-700 hover:bg-slate-100">
+									<Badge
+										variant="secondary"
+										className="rounded-full bg-slate-100 text-slate-700 hover:bg-slate-100">
 										{place.audits === 0 ? "Pending first audit" : place.status}
 									</Badge>
 								</td>
 								<td className="py-4">
 									<div className="flex flex-wrap gap-3">
-										<Link href={`/dashboard/places/${place.id}`} className="inline-flex items-center gap-1 text-sm text-slate-700 hover:text-slate-950">
+										<Link
+											href={`/dashboard/places/${place.id}`}
+											className="inline-flex items-center gap-1 text-sm text-slate-700 hover:text-slate-950">
 											Open
 											<ArrowUpRight className="size-4" />
 										</Link>
-										<Link href={`/dashboard/places/${place.id}/edit`} className="inline-flex items-center gap-1 text-sm text-sky-700 hover:text-sky-900">
+										<Link
+											href={`/dashboard/places/${place.id}/edit`}
+											className="inline-flex items-center gap-1 text-sm text-sky-700 hover:text-sky-900">
 											Edit
 											<ArrowUpRight className="size-4" />
 										</Link>
 										<Link
 											href={`/dashboard/auditors?projectId=${place.project_id}&placeId=${place.id}`}
-											className="inline-flex items-center gap-1 text-sm text-emerald-700 hover:text-emerald-900"
-										>
+											className="inline-flex items-center gap-1 text-sm text-emerald-700 hover:text-emerald-900">
 											Assign Auditors
 											<ArrowUpRight className="size-4" />
 										</Link>
-										<Link href={`/dashboard/audits?projectId=${place.project_id}&placeId=${place.id}`} className="inline-flex items-center gap-1 text-sm text-slate-700 hover:text-slate-950">
+										<Link
+											href={`/dashboard/audits?projectId=${place.project_id}&placeId=${place.id}`}
+											className="inline-flex items-center gap-1 text-sm text-slate-700 hover:text-slate-950">
 											View Audits
 											<ArrowUpRight className="size-4" />
 										</Link>
@@ -757,7 +839,13 @@ export function AdminProjectsTable() {
 
 	if (loading) return <LoadingCard label="projects" />;
 	if (error) return <ErrorCard message={error} />;
-	if (!data?.length) return <EmptyState title="No projects yet" description="Create a project to see it appear here from the backend." />;
+	if (!data?.length)
+		return (
+			<EmptyState
+				title="No projects yet"
+				description="Create a project to see it appear here from the backend."
+			/>
+		);
 
 	const organizationOptions = uniqueFilterOptions(data.map(project => project.organization ?? null));
 	const projectOptions = uniqueFilterOptions(
@@ -777,7 +865,8 @@ export function AdminProjectsTable() {
 			<CardHeader>
 				<CardTitle className="text-2xl">Projects</CardTitle>
 				<CardDescription className="mt-2 max-w-2xl leading-6">
-					System-wide project records with organization-first filtering and summary columns for stakeholder review.
+					System-wide project records with organization-first filtering and summary columns for stakeholder
+					review.
 				</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-4 overflow-x-auto">
@@ -823,10 +912,14 @@ export function AdminProjectsTable() {
 							</tr>
 						) : null}
 						{filteredProjects.map(project => (
-							<tr key={project.id} className="border-b border-slate-100 last:border-0 transition hover:bg-slate-50">
+							<tr
+								key={project.id}
+								className="border-b border-slate-100 last:border-0 transition hover:bg-slate-50">
 								<td className="py-4 pr-4 text-slate-600">{project.organization ?? "-"}</td>
 								<td className="py-4 pr-4 font-medium text-slate-900">
-									<Link href={`/dashboard/projects/${project.id}`} className="hover:text-slate-950 hover:underline">
+									<Link
+										href={`/dashboard/projects/${project.id}`}
+										className="hover:text-slate-950 hover:underline">
 										{project.name}
 									</Link>
 								</td>
@@ -834,12 +927,16 @@ export function AdminProjectsTable() {
 								<td className="py-4 pr-4 text-slate-600">{project.places}</td>
 								<td className="py-4 pr-4 text-slate-600">{project.audits}</td>
 								<td className="py-4 pr-4">
-									<Badge variant="secondary" className="rounded-full bg-amber-50 text-amber-700 hover:bg-amber-50">
+									<Badge
+										variant="secondary"
+										className="rounded-full bg-amber-50 text-amber-700 hover:bg-amber-50">
 										{project.status}
 									</Badge>
 								</td>
 								<td className="py-4">
-									<Link href={`/dashboard/projects/${project.id}`} className="inline-flex items-center gap-1 text-sm text-slate-700 hover:text-slate-950">
+									<Link
+										href={`/dashboard/projects/${project.id}`}
+										className="inline-flex items-center gap-1 text-sm text-slate-700 hover:text-slate-950">
 										Open
 										<ArrowUpRight className="size-4" />
 									</Link>
@@ -860,7 +957,13 @@ export function AdminPlacesTable() {
 
 	if (loading) return <LoadingCard label="places" />;
 	if (error) return <ErrorCard message={error} />;
-	if (!data?.length) return <EmptyState title="No places yet" description="Add a place under a project and it will show here from the backend." />;
+	if (!data?.length)
+		return (
+			<EmptyState
+				title="No places yet"
+				description="Add a place under a project and it will show here from the backend."
+			/>
+		);
 
 	const organizationOptions = uniqueFilterOptions(data.map(place => place.organization ?? null));
 	const projectOptions = uniqueFilterOptions(
@@ -880,7 +983,8 @@ export function AdminPlacesTable() {
 			<CardHeader>
 				<CardTitle className="text-2xl">Places</CardTitle>
 				<CardDescription className="mt-2 max-w-2xl leading-6">
-					System-wide place rows with organization and project filters that narrow the visible records directly.
+					System-wide place rows with organization and project filters that narrow the visible records
+					directly.
 				</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-4 overflow-x-auto">
@@ -928,11 +1032,15 @@ export function AdminPlacesTable() {
 							</tr>
 						) : null}
 						{filteredPlaces.map(place => (
-							<tr key={place.id} className="border-b border-slate-100 last:border-0 transition hover:bg-slate-50">
+							<tr
+								key={place.id}
+								className="border-b border-slate-100 last:border-0 transition hover:bg-slate-50">
 								<td className="py-4 pr-4 text-slate-600">{place.organization ?? "-"}</td>
 								<td className="py-4 pr-4 text-slate-600">{place.project}</td>
 								<td className="py-4 pr-4 font-medium text-slate-900">
-									<Link href={`/dashboard/places/${place.id}`} className="hover:text-slate-950 hover:underline">
+									<Link
+										href={`/dashboard/places/${place.id}`}
+										className="hover:text-slate-950 hover:underline">
 										{place.name}
 									</Link>
 								</td>
@@ -941,12 +1049,16 @@ export function AdminPlacesTable() {
 								<td className="py-4 pr-4 text-slate-600">{place.audits}</td>
 								<td className="py-4 pr-4 text-slate-600">{place.last_audit}</td>
 								<td className="py-4 pr-4">
-									<Badge variant="secondary" className="rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
+									<Badge
+										variant="secondary"
+										className="rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
 										{place.status}
 									</Badge>
 								</td>
 								<td className="py-4">
-									<Link href={`/dashboard/places/${place.id}`} className="inline-flex items-center gap-1 text-sm text-slate-700 hover:text-slate-950">
+									<Link
+										href={`/dashboard/places/${place.id}`}
+										className="inline-flex items-center gap-1 text-sm text-slate-700 hover:text-slate-950">
 										Open
 										<ArrowUpRight className="size-4" />
 									</Link>
@@ -1021,7 +1133,9 @@ export function LiveAuditorsTable() {
 						<tr className="border-b border-slate-200">
 							<th className="py-3 pr-4 font-medium">Name</th>
 							<th className="py-3 pr-4 font-medium">Auditor ID</th>
-							<th className="py-3 pr-4 font-medium">{isAdmin ? "Contact Info" : "Email / Contact Info"}</th>
+							<th className="py-3 pr-4 font-medium">
+								{isAdmin ? "Contact Info" : "Email / Contact Info"}
+							</th>
 							<th className="py-3 pr-4 font-medium">Assigned Places</th>
 							<th className="py-3 pr-4 font-medium">Completed Audits</th>
 							<th className="py-3 font-medium">Status</th>
@@ -1032,13 +1146,19 @@ export function LiveAuditorsTable() {
 							<tr key={auditor.id} className="border-b border-slate-100 last:border-0">
 								<td className="py-4 pr-4 font-medium text-slate-900">{auditor.name}</td>
 								<td className="py-4 pr-4 text-slate-600">{auditor.auditor_id}</td>
-								<td className="py-4 pr-4 text-slate-600">{auditor.email || (isAdmin ? "Hidden from admin" : "-")}</td>
 								<td className="py-4 pr-4 text-slate-600">
-									{auditor.assigned_places.length > 0 ? auditor.assigned_places.join(", ") : "No places assigned"}
+									{auditor.email || (isAdmin ? "Hidden from admin" : "-")}
+								</td>
+								<td className="py-4 pr-4 text-slate-600">
+									{auditor.assigned_places.length > 0
+										? auditor.assigned_places.join(", ")
+										: "No places assigned"}
 								</td>
 								<td className="py-4 pr-4 text-slate-600">{auditor.completed_audits}</td>
 								<td className="py-4">
-									<Badge variant="secondary" className="rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
+									<Badge
+										variant="secondary"
+										className="rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
 										{auditor.status}
 									</Badge>
 								</td>
@@ -1093,12 +1213,21 @@ export function LiveAuditsTable() {
 	}, [session]);
 
 	const projectOptions = React.useMemo(
-		() => Array.from(new Map(audits.map(audit => [audit.project_id, { value: audit.project_id, label: audit.project_name }])).values()),
+		() =>
+			Array.from(
+				new Map(
+					audits.map(audit => [audit.project_id, { value: audit.project_id, label: audit.project_name }])
+				).values()
+			),
 		[audits]
 	);
 	const placeOptions = React.useMemo(() => {
-		const matching = audits.filter(audit => selectedProjectIds.length === 0 || selectedProjectIds.includes(audit.project_id));
-		return Array.from(new Map(matching.map(audit => [audit.place_id, { value: audit.place_id, label: audit.place }])).values());
+		const matching = audits.filter(
+			audit => selectedProjectIds.length === 0 || selectedProjectIds.includes(audit.project_id)
+		);
+		return Array.from(
+			new Map(matching.map(audit => [audit.place_id, { value: audit.place_id, label: audit.place }])).values()
+		);
 	}, [audits, selectedProjectIds]);
 
 	const filteredAudits = React.useMemo(
@@ -1123,7 +1252,9 @@ export function LiveAuditsTable() {
 
 	const selectedComparisonGroup = React.useMemo(() => {
 		if (selectedAuditIds.length < 2) return null;
-		const selectedRows = filteredAudits.filter(audit => audit.submission_id && selectedAuditIds.includes(audit.submission_id));
+		const selectedRows = filteredAudits.filter(
+			audit => audit.submission_id && selectedAuditIds.includes(audit.submission_id)
+		);
 		const uniquePlaceIds = new Set(selectedRows.map(audit => audit.place_id));
 		if (uniquePlaceIds.size !== 1) return null;
 		const group = comparisons.find(item => item.place_id === selectedRows[0]?.place_id);
@@ -1135,7 +1266,9 @@ export function LiveAuditsTable() {
 	}, [comparisons, filteredAudits, selectedAuditIds]);
 
 	function toggleAuditSelection(auditId: string) {
-		setSelectedAuditIds(current => (current.includes(auditId) ? current.filter(id => id !== auditId) : [...current, auditId]));
+		setSelectedAuditIds(current =>
+			current.includes(auditId) ? current.filter(id => id !== auditId) : [...current, auditId]
+		);
 	}
 
 	function exportRows(rows: RawDataRecord[], filename: string) {
@@ -1143,7 +1276,9 @@ export function LiveAuditsTable() {
 	}
 
 	function handleCompare() {
-		const selectedRows = filteredAudits.filter(audit => audit.submission_id && selectedAuditIds.includes(audit.submission_id));
+		const selectedRows = filteredAudits.filter(
+			audit => audit.submission_id && selectedAuditIds.includes(audit.submission_id)
+		);
 		const uniquePlaceIds = new Set(selectedRows.map(audit => audit.place_id));
 		if (selectedRows.length < 2) {
 			setCompareError("Select at least two audits to compare.");
@@ -1163,12 +1298,15 @@ export function LiveAuditsTable() {
 	return (
 		<div className="space-y-6">
 			<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
-					<CardHeader>
-						<CardTitle>Audits</CardTitle>
-						<CardDescription>Filter by project or place, compare selected audits, and export all, filtered, or selected raw data.</CardDescription>
-					</CardHeader>
-					<CardContent className="space-y-4 overflow-x-auto">
-						<div className="flex flex-wrap gap-3">
+				<CardHeader>
+					<CardTitle>Audits</CardTitle>
+					<CardDescription>
+						Filter by project or place, compare selected audits, and export all, filtered, or selected raw
+						data.
+					</CardDescription>
+				</CardHeader>
+				<CardContent className="space-y-4 overflow-x-auto">
+					<div className="flex flex-wrap gap-3">
 						<SearchableMultiSelectFilter
 							label="Project"
 							options={projectOptions}
@@ -1201,16 +1339,33 @@ export function LiveAuditsTable() {
 								setSelectedAuditIds([]);
 							}}
 						/>
-						<Button type="button" variant="outline" className="rounded-xl" onClick={() => exportRows(rawData, "all-audits.csv")}>
+						<Button
+							type="button"
+							variant="outline"
+							className="rounded-xl"
+							onClick={() => exportRows(rawData, "all-audits.csv")}>
 							Export All
 						</Button>
-						<Button type="button" variant="outline" className="rounded-xl" onClick={() => exportRows(filteredRawData, "filtered-audits.csv")}>
+						<Button
+							type="button"
+							variant="outline"
+							className="rounded-xl"
+							onClick={() => exportRows(filteredRawData, "filtered-audits.csv")}>
 							Export Filtered
 						</Button>
-						<Button type="button" variant="outline" className="rounded-xl" onClick={() => exportRows(selectedRawData, "selected-audits.csv")} disabled={selectedAuditIds.length === 0}>
+						<Button
+							type="button"
+							variant="outline"
+							className="rounded-xl"
+							onClick={() => exportRows(selectedRawData, "selected-audits.csv")}
+							disabled={selectedAuditIds.length === 0}>
 							Export Selected
 						</Button>
-						<Button type="button" className="rounded-xl bg-[#10231f] text-white hover:bg-[#17302c]" onClick={handleCompare} disabled={selectedAuditIds.length < 2}>
+						<Button
+							type="button"
+							className="rounded-xl bg-[#10231f] text-white hover:bg-[#17302c]"
+							onClick={handleCompare}
+							disabled={selectedAuditIds.length < 2}>
 							Compare Selected
 						</Button>
 					</div>
@@ -1221,19 +1376,36 @@ export function LiveAuditsTable() {
 								<th className="py-3 pr-4 font-medium">
 									<input
 										type="checkbox"
-										checked={filteredAudits.length > 0 && filteredAudits.every(audit => audit.submission_id && selectedAuditIds.includes(audit.submission_id))}
+										checked={
+											filteredAudits.length > 0 &&
+											filteredAudits.every(
+												audit =>
+													audit.submission_id &&
+													selectedAuditIds.includes(audit.submission_id)
+											)
+										}
 										onChange={() =>
 											setSelectedAuditIds(current =>
-												filteredAudits.every(audit => audit.submission_id && current.includes(audit.submission_id))
-													? current.filter(id => !filteredAudits.some(audit => audit.submission_id === id))
+												filteredAudits.every(
+													audit =>
+														audit.submission_id && current.includes(audit.submission_id)
+												)
+													? current.filter(
+															id =>
+																!filteredAudits.some(
+																	audit => audit.submission_id === id
+																)
+														)
 													: Array.from(
 															new Set([
 																...current,
 																...filteredAudits
 																	.map(audit => audit.submission_id)
-																	.filter((submissionId): submissionId is string => Boolean(submissionId))
+																	.filter((submissionId): submissionId is string =>
+																		Boolean(submissionId)
+																	)
 															])
-													  )
+														)
 											)
 										}
 									/>
@@ -1261,15 +1433,25 @@ export function LiveAuditsTable() {
 									<td className="py-4 pr-4">
 										<input
 											type="checkbox"
-											checked={audit.submission_id ? selectedAuditIds.includes(audit.submission_id) : false}
-											onChange={() => audit.submission_id ? toggleAuditSelection(audit.submission_id) : undefined}
+											checked={
+												audit.submission_id
+													? selectedAuditIds.includes(audit.submission_id)
+													: false
+											}
+											onChange={() =>
+												audit.submission_id
+													? toggleAuditSelection(audit.submission_id)
+													: undefined
+											}
 											disabled={!audit.submission_id}
 										/>
 									</td>
 									<td className="py-4 pr-4 font-medium text-slate-900">{audit.place}</td>
 									<td className="py-4 pr-4 text-slate-600">{audit.auditor}</td>
 									<td className="py-4 pr-4">
-										<Badge variant="secondary" className="rounded-full bg-sky-50 text-sky-700 hover:bg-sky-50">
+										<Badge
+											variant="secondary"
+											className="rounded-full bg-sky-50 text-sky-700 hover:bg-sky-50">
 											{audit.status}
 										</Badge>
 									</td>
@@ -1280,7 +1462,14 @@ export function LiveAuditsTable() {
 													<span className="font-medium text-slate-900">Raw:</span>{" "}
 													{audit.total_raw_score} / {totalRawScoreMaximum}{" "}
 													<span className="text-slate-500">
-														({totalRawScoreMaximum ? ((audit.total_raw_score / totalRawScoreMaximum) * 100).toFixed(0) : "0"}%)
+														(
+														{totalRawScoreMaximum
+															? (
+																	(audit.total_raw_score / totalRawScoreMaximum) *
+																	100
+																).toFixed(0)
+															: "0"}
+														%)
 													</span>
 												</div>
 												<div>
@@ -1295,17 +1484,28 @@ export function LiveAuditsTable() {
 														useAndUsability: audit.domain_weights.useAndUsability ?? 0
 													}).toFixed(2)}{" "}
 													<span className="text-slate-500">
-														({(() => {
+														(
+														{(() => {
 															const denominator = getYouthWeightedScoreMaximum({
 																access: audit.domain_weights.access ?? 0,
-																activitySpaces: audit.domain_weights.activitySpaces ?? 0,
+																activitySpaces:
+																	audit.domain_weights.activitySpaces ?? 0,
 																amenities: audit.domain_weights.amenities ?? 0,
-																experienceOfSpace: audit.domain_weights.experienceOfSpace ?? 0,
-																aestheticsAndCare: audit.domain_weights.aestheticsAndCare ?? 0,
-																useAndUsability: audit.domain_weights.useAndUsability ?? 0
+																experienceOfSpace:
+																	audit.domain_weights.experienceOfSpace ?? 0,
+																aestheticsAndCare:
+																	audit.domain_weights.aestheticsAndCare ?? 0,
+																useAndUsability:
+																	audit.domain_weights.useAndUsability ?? 0
 															});
-															return denominator ? ((audit.total_weighted_score / denominator) * 100).toFixed(0) : "0";
-														})()}%)
+															return denominator
+																? (
+																		(audit.total_weighted_score / denominator) *
+																		100
+																	).toFixed(0)
+																: "0";
+														})()}
+														%)
 													</span>
 												</div>
 											</div>
@@ -1319,11 +1519,15 @@ export function LiveAuditsTable() {
 									<td className="py-4 pr-4">
 										{audit.submission_id ? (
 											<Button asChild variant="outline" size="sm" className="rounded-xl">
-												<Link href={`/yee/submissions/${audit.submission_id}`}>View Report</Link>
+												<Link href={`/yee/submissions/${audit.submission_id}`}>
+													View Report
+												</Link>
 											</Button>
 										) : (
 											<span className="text-sm text-slate-400">
-												{audit.status === "Submitted" ? "Open via Edit Audit to restore report" : "Available after submit"}
+												{audit.status === "Submitted"
+													? "Open via Edit Audit to restore report"
+													: "Available after submit"}
 											</span>
 										)}
 									</td>
@@ -1334,8 +1538,7 @@ export function LiveAuditsTable() {
 													audit.submission_id
 														? `/dashboard/audits/${audit.id}/edit/page/1?submissionId=${encodeURIComponent(audit.submission_id)}`
 														: `/dashboard/audits/${audit.id}/edit/page/1`
-												}
-											>
+												}>
 												Edit Audit
 											</Link>
 										</Button>
@@ -1347,13 +1550,19 @@ export function LiveAuditsTable() {
 												variant="outline"
 												size="sm"
 												className="rounded-xl"
-												onClick={() => exportRows(rawData.filter(row => row.audit_id === audit.submission_id), `audit-${audit.submission_id}.csv`)}
-											>
+												onClick={() =>
+													exportRows(
+														rawData.filter(row => row.audit_id === audit.submission_id),
+														`audit-${audit.submission_id}.csv`
+													)
+												}>
 												View Raw Data
 											</Button>
 										) : (
 											<span className="text-sm text-slate-400">
-												{audit.status === "Submitted" ? "Available after report is restored" : "Available after submit"}
+												{audit.status === "Submitted"
+													? "Available after report is restored"
+													: "Available after submit"}
 											</span>
 										)}
 									</td>
@@ -1374,40 +1583,59 @@ export function LiveAdminOverview() {
 	const overview = {
 		data: overviewData ?? null,
 		loading: overviewLoading,
-		error: overviewQueryError ? (overviewQueryError instanceof Error ? overviewQueryError.message : "Could not load admin data.") : null
+		error: overviewQueryError
+			? overviewQueryError instanceof Error
+				? overviewQueryError.message
+				: "Could not load admin data."
+			: null
 	};
 	const users = useTableData(fetchUsers);
 
 	if (overview.loading || users.loading) return <LoadingCard label="admin dashboard" />;
 	if (overview.error) return <ErrorCard message={overview.error} />;
 	if (users.error) return <ErrorCard message={users.error} />;
-	if (!overview.data) return <EmptyState title="No admin data yet" description="Make sure the backend is running and you are signed in as an admin." />;
+	if (!overview.data)
+		return (
+			<EmptyState
+				title="No admin data yet"
+				description="Make sure the backend is running and you are signed in as an admin."
+			/>
+		);
 
 	return (
 		<div className="space-y-6">
 			<section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
 				{[
-					{ title: "Users", value: `${users.data?.length ?? 0}`, description: "All roles across the platform." },
+					{
+						title: "Users",
+						value: `${users.data?.length ?? 0}`,
+						description: "All roles across the platform."
+					},
 					...overview.data.metrics
-				].slice(0, 4).map(metric => (
-					<Link key={metric.title} href={adminMetricHref(metric.title)} className="block">
-						<Card className={`rounded-[1.75rem] shadow-sm transition hover:shadow-md ${metricTone(metric.title).card}`}>
-							<CardHeader>
-								<CardDescription>{metric.title}</CardDescription>
-								<CardTitle className="text-3xl">{metric.value}</CardTitle>
-							</CardHeader>
-							<CardContent className="space-y-3 text-sm text-slate-600">
-								<p>{metric.description}</p>
-								<div className="flex items-center justify-between">
-									<Badge variant="secondary" className={`rounded-full ${metricTone(metric.title).badge}`}>
-										Admin view
-									</Badge>
-									<span className="text-xs font-medium text-slate-500">Open</span>
-								</div>
-							</CardContent>
-						</Card>
-					</Link>
-				))}
+				]
+					.slice(0, 4)
+					.map(metric => (
+						<Link key={metric.title} href={adminMetricHref(metric.title)} className="block">
+							<Card
+								className={`rounded-[1.75rem] shadow-sm transition hover:shadow-md ${metricTone(metric.title).card}`}>
+								<CardHeader>
+									<CardDescription>{metric.title}</CardDescription>
+									<CardTitle className="text-3xl">{metric.value}</CardTitle>
+								</CardHeader>
+								<CardContent className="space-y-3 text-sm text-slate-600">
+									<p>{metric.description}</p>
+									<div className="flex items-center justify-between">
+										<Badge
+											variant="secondary"
+											className={`rounded-full ${metricTone(metric.title).badge}`}>
+											Admin view
+										</Badge>
+										<span className="text-xs font-medium text-slate-500">Open</span>
+									</div>
+								</CardContent>
+							</Card>
+						</Link>
+					))}
 			</section>
 			{overview.data.organization_summaries.length > 0 ? (
 				<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
@@ -1516,7 +1744,13 @@ export function LiveUsersTable({ embedded = false }: { embedded?: boolean }) {
 
 	if (!embedded && loading) return <LoadingCard label="users" />;
 	if (!embedded && error) return <ErrorCard message={error} />;
-	if (!rows.length && !loading) return <EmptyState title="No users yet" description="User records will appear here once accounts exist in the backend." />;
+	if (!rows.length && !loading)
+		return (
+			<EmptyState
+				title="No users yet"
+				description="User records will appear here once accounts exist in the backend."
+			/>
+		);
 	const organizationOptions = uniqueFilterOptions(rows.map(user => user.organization));
 	const roleOptions = uniqueFilterOptions(rows.map(user => user.role));
 	const availableProjectValues = rows
@@ -1540,7 +1774,10 @@ export function LiveUsersTable({ embedded = false }: { embedded?: boolean }) {
 		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
 			<CardHeader>
 				<CardTitle>Users</CardTitle>
-				<CardDescription>All managers, auditors, and admins across the system, including approval actions for pending accounts.</CardDescription>
+				<CardDescription>
+					All managers, auditors, and admins across the system, including approval actions for pending
+					accounts.
+				</CardDescription>
 			</CardHeader>
 			{actionError ? <CardContent className="pt-0 text-sm text-rose-700">{actionError}</CardContent> : null}
 			<CardContent className="space-y-4 overflow-x-auto">
@@ -1590,10 +1827,14 @@ export function LiveUsersTable({ embedded = false }: { embedded?: boolean }) {
 								<td className="py-4 pr-4 font-medium text-slate-900">{user.name}</td>
 								<td className="py-4 pr-4 text-slate-600">{user.role}</td>
 								<td className="py-4 pr-4 text-slate-600">{user.project_assignments}</td>
-								<td className="py-4 pr-4 text-slate-600">{user.role === "MANAGER" ? user.contact_info || user.email : ""}</td>
+								<td className="py-4 pr-4 text-slate-600">
+									{user.role === "MANAGER" ? user.contact_info || user.email : ""}
+								</td>
 								<td className="py-4">
 									<div className="flex flex-col gap-2">
-										<Badge variant="secondary" className="w-fit rounded-full bg-slate-100 text-slate-700 hover:bg-slate-100">
+										<Badge
+											variant="secondary"
+											className="w-fit rounded-full bg-slate-100 text-slate-700 hover:bg-slate-100">
 											{user.status}
 										</Badge>
 										{!user.approved ? (
@@ -1607,8 +1848,7 @@ export function LiveUsersTable({ embedded = false }: { embedded?: boolean }) {
 																[user.id]: event.target.value
 															}))
 														}
-														className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700"
-													>
+														className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700">
 														<option value="">Select workspace</option>
 														{accountOptions.map(([accountId, organization]) => (
 															<option key={accountId} value={accountId}>
@@ -1623,9 +1863,10 @@ export function LiveUsersTable({ embedded = false }: { embedded?: boolean }) {
 													onClick={() => void handleApprove(user)}
 													disabled={
 														submittingUserId === user.id ||
-														(user.role === "AUDITOR" && !selectedAccounts[user.id] && !user.account_id)
-													}
-												>
+														(user.role === "AUDITOR" &&
+															!selectedAccounts[user.id] &&
+															!user.account_id)
+													}>
 													{submittingUserId === user.id ? "Approving..." : "Approve"}
 												</Button>
 											</div>

@@ -6,43 +6,40 @@ import { getApiBaseUrl } from "@/app/api/_lib/backend-config";
 import { errorResponse } from "@/app/api/_lib/api-response";
 
 type BackendAcceptResponse = {
-  access_token: string;
-  token_type: "bearer";
-  user: SessionUser;
+	access_token: string;
+	token_type: "bearer";
+	user: SessionUser;
 };
 
-export async function POST(
-  request: Request,
-  { params }: { params: Promise<{ token: string }> }
-) {
-  const { token } = await params;
-  const body: unknown = await request.json();
+export async function POST(request: Request, { params }: { params: Promise<{ token: string }> }) {
+	const { token } = await params;
+	const body: unknown = await request.json();
 
-  const backendUrl = `${getApiBaseUrl()}/yee/auth/invite/${encodeURIComponent(token)}/accept`;
+	const backendUrl = `${getApiBaseUrl()}/yee/auth/invite/${encodeURIComponent(token)}/accept`;
 
-  try {
-    const response = await fetch(backendUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      cache: "no-store",
-    });
+	try {
+		const response = await fetch(backendUrl, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(body),
+			cache: "no-store"
+		});
 
-    const text = await response.text();
-    const data: unknown = text ? JSON.parse(text) : {};
+		const text = await response.text();
+		const data: unknown = text ? JSON.parse(text) : {};
 
-    if (!response.ok) {
-      return NextResponse.json(data, { status: response.status });
-    }
+		if (!response.ok) {
+			return NextResponse.json(data, { status: response.status });
+		}
 
-    const acceptData = data as BackendAcceptResponse;
-    const nextResponse = NextResponse.json({ user: acceptData.user });
-    setSessionCookie(nextResponse, acceptData.access_token);
-    return nextResponse;
-  } catch (error) {
-    return errorResponse(
-      `Invite acceptance failed: ${error instanceof Error ? error.message : String(error)}`,
-      502
-    );
-  }
+		const acceptData = data as BackendAcceptResponse;
+		const nextResponse = NextResponse.json({ user: acceptData.user });
+		setSessionCookie(nextResponse, acceptData.access_token);
+		return nextResponse;
+	} catch (error) {
+		return errorResponse(
+			`Invite acceptance failed: ${error instanceof Error ? error.message : String(error)}`,
+			502
+		);
+	}
 }

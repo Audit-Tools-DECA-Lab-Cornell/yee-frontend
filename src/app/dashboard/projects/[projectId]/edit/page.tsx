@@ -8,7 +8,7 @@ import {
 	buildProjectProfilePayload,
 	deriveProjectProfileFormValues,
 	ProjectProfileForm,
-	type ProjectProfileFormValues,
+	type ProjectProfileFormValues
 } from "@/components/dashboard/project-profile-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchProjectDetail, updateProject } from "@/lib/dashboard/live-api";

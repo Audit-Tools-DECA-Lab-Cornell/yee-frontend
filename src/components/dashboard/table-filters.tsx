@@ -116,7 +116,9 @@ export function SearchableMultiSelectFilter({
 					</div>
 					<div className="max-h-64 space-y-1 overflow-y-auto pr-1">
 						{visibleOptions.length === 0 ? (
-							<div className="rounded-xl bg-slate-50 px-3 py-4 text-sm text-slate-500">No results found.</div>
+							<div className="rounded-xl bg-slate-50 px-3 py-4 text-sm text-slate-500">
+								No results found.
+							</div>
 						) : (
 							visibleOptions.map(option => (
 								<DropdownMenuCheckboxItem
@@ -136,13 +138,7 @@ export function SearchableMultiSelectFilter({
 	);
 }
 
-export function ClearFiltersButton({
-	disabled,
-	onClick
-}: {
-	disabled: boolean;
-	onClick: () => void;
-}) {
+export function ClearFiltersButton({ disabled, onClick }: { disabled: boolean; onClick: () => void }) {
 	return (
 		<Button
 			type="button"
