@@ -37,7 +37,9 @@ export function AuditorOverview() {
 	const continueAuditHref = "/my-dashboard/places";
 
 	if (loading) {
-		return <main className="mx-auto max-w-5xl p-6 text-sm text-muted-foreground">Loading auditor dashboard...</main>;
+		return (
+			<main className="mx-auto max-w-5xl p-6 text-sm text-muted-foreground">Loading auditor dashboard...</main>
+		);
 	}
 
 	if (error) {

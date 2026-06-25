@@ -221,7 +221,7 @@ export function YeeAuditForm({ placeId }: { placeId: string }) {
 
 			<div className="flex items-center gap-3">
 				<Button onClick={submitAudit} disabled={submitting || !instrument}>
-					{submitting ? "Submitting..." : "Submit YEE Audit"}
+					{submitting ? "Submitting\u2026" : "Submit YEE Audit"}
 				</Button>
 				{error ? <span className="text-sm text-red-700">{error}</span> : null}
 			</div>

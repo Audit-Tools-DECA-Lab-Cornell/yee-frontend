@@ -810,10 +810,7 @@ export function LiveReports() {
 					<Button type="button" variant="outline" className="rounded-2xl" onClick={exportRawDataCsv}>
 						Export CSV raw data
 					</Button>
-					<Button
-						type="button"
-						className=""
-						onClick={exportCurrentChart}>
+					<Button type="button" className="" onClick={exportCurrentChart}>
 						Export charts only
 					</Button>
 				</CardContent>
@@ -983,9 +980,7 @@ export function LiveReports() {
 									<TrendLineChart records={timelineRecords} svgRef={chartSvgRef} />
 									<div className="grid gap-4 md:grid-cols-3">
 										{timelineRecords.slice(-3).map(record => (
-											<Card
-												key={record.audit_id}
-												className="rounded-lg border-border">
+											<Card key={record.audit_id} className="rounded-lg border-border">
 												<CardContent className="space-y-2 p-5">
 													<p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
 														{record.date}
@@ -1099,9 +1094,7 @@ export function LiveReports() {
 
 					<div className="grid gap-4 lg:grid-cols-2">
 						{selectedIndividualAudits.map(record => (
-							<Card
-								key={record.audit_id}
-								className="rounded-lg border-border">
+							<Card key={record.audit_id} className="rounded-lg border-border">
 								<CardHeader>
 									<CardTitle>{record.place_name}</CardTitle>
 									<CardDescription>

@@ -299,7 +299,7 @@ function ProjectAuditorsTable({
 												disabled={removingAuditorId === auditor.id}
 												onClick={() => onRemove(auditor)}>
 												{removingAuditorId === auditor.id
-													? "Removing..."
+													? "Removing\u2026"
 													: "Remove from project"}
 											</Button>
 										) : null}
@@ -366,7 +366,7 @@ function PlaceAuditorsTable({
 												className="rounded-lg"
 												disabled={removingAuditorId === auditor.id}
 												onClick={() => onRemove(auditor)}>
-												{removingAuditorId === auditor.id ? "Removing..." : "Unassign"}
+												{removingAuditorId === auditor.id ? "Removing\u2026" : "Unassign"}
 											</Button>
 										) : null}
 									</td>

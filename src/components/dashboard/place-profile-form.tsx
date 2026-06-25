@@ -428,7 +428,7 @@ export function PlaceProfileForm({
 					value={values.projectId}
 					onChange={event => update("projectId", event.target.value)}
 					disabled={loadingProjects || projects.length === 0}
-					className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none">
+					className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
 					{projects.length === 0 ? <option value="">No Projects available</option> : null}
 					{projects.map(project => (
 						<option key={project.id} value={project.id}>
@@ -769,7 +769,7 @@ export function PlaceProfileForm({
 					type="submit"
 					className="rounded-lg bg-primary text-white hover:bg-primary/90"
 					disabled={saving || loadingProjects || projects.length === 0}>
-					{saving ? "Saving..." : submitLabel}
+					{saving ? "Saving\u2026" : submitLabel}
 				</Button>
 				<Button asChild variant="outline" className="rounded-lg">
 					<Link href={cancelHref}>{cancelLabel}</Link>

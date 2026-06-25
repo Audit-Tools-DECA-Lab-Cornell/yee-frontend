@@ -184,7 +184,9 @@ export function ProjectProfileForm({
 							<span className="truncate">
 								{summarizeSelections(values.placeTypes, values.otherPlaceType, "Select Place Types")}
 							</span>
-							<span className="ml-4 text-xs text-muted-foreground">{values.placeTypes.length} selected</span>
+							<span className="ml-4 text-xs text-muted-foreground">
+								{values.placeTypes.length} selected
+							</span>
 						</Button>
 					</DropdownMenuTrigger>
 					<DropdownMenuContent align="start" className="w-[26rem] rounded-lg p-2">
@@ -337,7 +339,7 @@ export function ProjectProfileForm({
 					type="submit"
 					className="rounded-lg bg-primary text-white hover:bg-primary/90"
 					disabled={saving}>
-					{saving ? "Saving..." : submitLabel}
+					{saving ? "Saving\u2026" : submitLabel}
 				</Button>
 				<Button asChild variant="outline" className="rounded-lg">
 					<Link href={cancelHref}>{cancelLabel}</Link>

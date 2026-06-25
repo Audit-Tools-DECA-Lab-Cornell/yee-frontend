@@ -463,7 +463,9 @@ export function LiveManagerOverview() {
 					{domainWeightBreakdown.map(item => (
 						<div key={item.domain} className="rounded-lg border border-border bg-muted/40 px-4 py-3">
 							<p className="text-sm font-medium text-foreground">{item.label}</p>
-							<p className="mt-1 text-xs text-muted-foreground">Average weighting across submitted audits</p>
+							<p className="mt-1 text-xs text-muted-foreground">
+								Average weighting across submitted audits
+							</p>
 							<p className="mt-2 text-sm font-semibold text-emerald-800">
 								{item.average.toFixed(1)} / 3 ({item.percent.toFixed(0)}%)
 							</p>
@@ -540,7 +542,9 @@ export function LiveManagerOverview() {
 									</div>
 									<div className="min-w-0">
 										<p className="text-sm font-semibold text-foreground">{link.title}</p>
-										<p className="mt-1 text-sm leading-6 text-muted-foreground">{link.description}</p>
+										<p className="mt-1 text-sm leading-6 text-muted-foreground">
+											{link.description}
+										</p>
 									</div>
 								</Link>
 							);

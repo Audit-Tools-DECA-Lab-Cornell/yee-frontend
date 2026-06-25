@@ -78,7 +78,7 @@ export function InviteAcceptScreen({ token }: { token: string }) {
 					<h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950">Invitation received</h2>
 					<p className="mt-2 text-sm leading-6 text-slate-600">
 						{loading
-							? "Loading invite details..."
+							? "Loading invite details\u2026"
 							: email
 								? `You were invited as ${email}.`
 								: "Invite details unavailable."}

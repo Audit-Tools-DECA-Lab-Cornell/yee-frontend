@@ -282,7 +282,7 @@ export function AssignmentPanel({
 							disabled={
 								saving || !projectId || selectedAuditorIds.length === 0 || selectedPlaceIds.length === 0
 							}>
-							{saving ? "Saving assignments..." : "Save assignments"}
+							{saving ? "Saving assignments\u2026" : "Save assignments"}
 						</Button>
 					</form>
 				)}

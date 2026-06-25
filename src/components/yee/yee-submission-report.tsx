@@ -407,7 +407,9 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 					<div className="grid gap-4 md:grid-cols-2 report-print-stack">
 						{(Object.keys(yeeDomainLabels) as YeeDomainKey[]).map(domain => (
 							<div key={domain} className="rounded-lg border border-border p-4">
-								<p className="text-sm font-medium text-foreground">{yeeDomainLabels[domain]} comments</p>
+								<p className="text-sm font-medium text-foreground">
+									{yeeDomainLabels[domain]} comments
+								</p>
 								<p className="mt-2 text-sm text-muted-foreground">
 									{sectionComments[domain] || "No section comments submitted."}
 								</p>

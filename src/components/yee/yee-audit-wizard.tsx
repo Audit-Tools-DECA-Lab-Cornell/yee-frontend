@@ -1658,22 +1658,22 @@ export function YeeAuditWizard({
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-6">
-						<div className="grid gap-4 md:grid-cols-2">
-							<div className="rounded-lg border border-border bg-muted/40 p-4 text-sm leading-7 text-foreground">
-								<p className="font-medium text-foreground">Audit metadata</p>
-								<p>Place: {draft.placeName || "Not recorded"}</p>
-								<p>Generated auditor ID: {draft.auditorId}</p>
-								<p>Date: {draft.auditDate || "Not answered"}</p>
-								<p>Start time: {draft.startTime || "Not answered"}</p>
-								<p>Finish time: {draft.finishTime || "Will be recorded on submit"}</p>
-								<p>Total minutes: {draft.totalMinutes || "Will be calculated on submit"}</p>
-								<p>
-									Visit frequency: {getOptionLabel(visitFrequencyOptions, draft.visitFrequency)}
-								</p>
-								<p>Season: {getOptionLabel(seasonOptions, draft.season)}</p>
-								<p>Weather: {getMultiOptionLabels(weatherOptions, draft.weather)}</p>
-							</div>
-							<div className="rounded-lg border border-border bg-muted/40 p-4 text-sm text-foreground">
+							<div className="grid gap-4 md:grid-cols-2">
+								<div className="rounded-lg border border-border bg-muted/40 p-4 text-sm leading-7 text-foreground">
+									<p className="font-medium text-foreground">Audit metadata</p>
+									<p>Place: {draft.placeName || "Not recorded"}</p>
+									<p>Generated auditor ID: {draft.auditorId}</p>
+									<p>Date: {draft.auditDate || "Not answered"}</p>
+									<p>Start time: {draft.startTime || "Not answered"}</p>
+									<p>Finish time: {draft.finishTime || "Will be recorded on submit"}</p>
+									<p>Total minutes: {draft.totalMinutes || "Will be calculated on submit"}</p>
+									<p>
+										Visit frequency: {getOptionLabel(visitFrequencyOptions, draft.visitFrequency)}
+									</p>
+									<p>Season: {getOptionLabel(seasonOptions, draft.season)}</p>
+									<p>Weather: {getMultiOptionLabels(weatherOptions, draft.weather)}</p>
+								</div>
+								<div className="rounded-lg border border-border bg-muted/40 p-4 text-sm text-foreground">
 									<p className="font-medium text-foreground">Youth-Weighted Importance of Sections</p>
 									<div className="mt-3 space-y-3">
 										{(Object.keys(yeeDomainLabels) as YeeDomainKey[]).map(key => {
@@ -1704,48 +1704,47 @@ export function YeeAuditWizard({
 											);
 										})}
 									</div>
-								<div className="mt-4 rounded-lg border border-dashed border-border bg-background p-3 leading-7">
-									<p className="font-medium text-foreground">Weighting comments</p>
+									<div className="mt-4 rounded-lg border border-dashed border-border bg-background p-3 leading-7">
+										<p className="font-medium text-foreground">Weighting comments</p>
 										<p className="mt-2">
 											{draft.weightingComments || "No weighting comments added."}
 										</p>
 									</div>
 								</div>
 							</div>
-						<div className="rounded-lg border border-border bg-muted/40 p-4">
-							<p className="text-sm font-medium text-foreground">Audit overview</p>
+							<div className="rounded-lg border border-border bg-muted/40 p-4">
+								<p className="text-sm font-medium text-foreground">Audit overview</p>
 								<p className="mt-2 text-sm text-slate-600">
 									Choose any section below to jump back into that part of the audit and edit it before
 									submission.
 								</p>
 								<div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-								{reviewSections.map(section => (
-									<button
-										key={`jump-${section.domain}`}
-										type="button"
-										onClick={() => void goToStep(section.step)}
-										className={`rounded-lg border px-4 py-4 text-left transition hover:opacity-90 ${section.theme?.card ?? "border-border bg-muted/30"}`}>
-										<p className={`font-semibold text-sm ${section.theme?.textClass ?? "text-foreground"}`}>
-											{section.label}
-										</p>
-										<p className="mt-1.5 text-xs text-muted-foreground">
-											{section.groups.length} answered question group
-											{section.groups.length === 1 ? "" : "s"}
-										</p>
-									</button>
-								))}
+									{reviewSections.map(section => (
+										<button
+											key={`jump-${section.domain}`}
+											type="button"
+											onClick={() => void goToStep(section.step)}
+											className={`rounded-lg border px-4 py-4 text-left transition hover:opacity-90 ${section.theme?.card ?? "border-border bg-muted/30"}`}>
+											<p
+												className={`font-semibold text-sm ${section.theme?.textClass ?? "text-foreground"}`}>
+												{section.label}
+											</p>
+											<p className="mt-1.5 text-xs text-muted-foreground">
+												{section.groups.length} answered question group
+												{section.groups.length === 1 ? "" : "s"}
+											</p>
+										</button>
+									))}
 								</div>
 							</div>
-						<div className="space-y-4">
-							{reviewSections.map(section => (
-								<Card
-									key={section.domain}
-									elevation="flat"
-									className={section.theme?.card ?? ""}>
-									<CardHeader className="pb-3">
-										<CardTitle className={`text-base ${section.theme?.textClass ?? "text-foreground"}`}>
-											{section.label}
-										</CardTitle>
+							<div className="space-y-4">
+								{reviewSections.map(section => (
+									<Card key={section.domain} elevation="flat" className={section.theme?.card ?? ""}>
+										<CardHeader className="pb-3">
+											<CardTitle
+												className={`text-base ${section.theme?.textClass ?? "text-foreground"}`}>
+												{section.label}
+											</CardTitle>
 											<CardDescription>
 												{section.groups.length > 0
 													? `${section.groups.length} answered question group${section.groups.length === 1 ? "" : "s"} saved for review.`
@@ -1753,114 +1752,115 @@ export function YeeAuditWizard({
 											</CardDescription>
 										</CardHeader>
 										<CardContent className="space-y-4">
-										{section.groups.map(({ group, title, rows }) => (
-											<div
-												key={group.baseQuestionId}
-												className="rounded-lg border border-border bg-card p-4">
-												{title ? (
-													<p className="text-sm font-semibold text-foreground">{title}</p>
-												) : null}
+											{section.groups.map(({ group, title, rows }) => (
 												<div
-													className={`space-y-4 text-sm text-muted-foreground ${title ? "mt-3" : ""}`}>
-													{rows.map((row, index) => (
-														<div
-															key={`${group.baseQuestionId}-${index}`}
-															className="space-y-2">
-															<p className="font-medium text-foreground">
-																{row.prompt}
-															</p>
-															<div className="pl-4">
-																<span className={`inline-flex rounded-full border px-3 py-0.5 text-xs font-semibold ${section.theme?.condition ?? "border-border bg-muted text-foreground"}`}>
-																	{row.response}
-																</span>
-																{row.condition ? (
-																	<div className="mt-2 pl-4">
-																		<p className="text-xs font-medium text-muted-foreground">
-																			Condition
-																		</p>
-																		<span className={`mt-1.5 inline-flex rounded-full border px-3 py-0.5 text-xs font-semibold ${section.theme?.condition ?? "border-border bg-muted text-foreground"}`}>
-																			{row.condition}
-																		</span>
-																	</div>
-																) : null}
+													key={group.baseQuestionId}
+													className="rounded-lg border border-border bg-card p-4">
+													{title ? (
+														<p className="text-sm font-semibold text-foreground">{title}</p>
+													) : null}
+													<div
+														className={`space-y-4 text-sm text-muted-foreground ${title ? "mt-3" : ""}`}>
+														{rows.map((row, index) => (
+															<div
+																key={`${group.baseQuestionId}-${index}`}
+																className="space-y-2">
+																<p className="font-medium text-foreground">
+																	{row.prompt}
+																</p>
+																<div className="pl-4">
+																	<span
+																		className={`inline-flex rounded-full border px-3 py-0.5 text-xs font-semibold ${section.theme?.condition ?? "border-border bg-muted text-foreground"}`}>
+																		{row.response}
+																	</span>
+																	{row.condition ? (
+																		<div className="mt-2 pl-4">
+																			<p className="text-xs font-medium text-muted-foreground">
+																				Condition
+																			</p>
+																			<span
+																				className={`mt-1.5 inline-flex rounded-full border px-3 py-0.5 text-xs font-semibold ${section.theme?.condition ?? "border-border bg-muted text-foreground"}`}>
+																				{row.condition}
+																			</span>
+																		</div>
+																	) : null}
+																</div>
 															</div>
-														</div>
-													))}
+														))}
+													</div>
 												</div>
+											))}
+											<div className="rounded-lg border border-dashed border-border bg-background p-4 text-sm text-muted-foreground">
+												<p className="font-medium text-foreground">{section.label} comments</p>
+												<p className="mt-2">
+													{draft.sectionComments[section.domain] ||
+														"No section comments added."}
+												</p>
 											</div>
-										))}
-										<div className="rounded-lg border border-dashed border-border bg-background p-4 text-sm text-muted-foreground">
-											<p className="font-medium text-foreground">{section.label} comments</p>
-											<p className="mt-2">
-												{draft.sectionComments[section.domain] ||
-													"No section comments added."}
-											</p>
-										</div>
 										</CardContent>
 									</Card>
 								))}
 							</div>
-						<div className="rounded-lg border border-border p-4">
-							<p className="text-sm font-medium text-foreground">Overall comments</p>
-							<p className="mt-2 text-sm text-muted-foreground">{draft.comments || "No comments added."}</p>
-						</div>
-						{draft.scorePreview ? (
-							<YeeScoreSummary
-								preview={draft.scorePreview}
-								title="Score preview"
-								description="This preview is based on the saved draft answers and shows both raw scores and Youth Weighted average views."
-							/>
-						) : (
-							<Card elevation="flat">
-								<CardContent className="py-6 text-sm text-muted-foreground">
-									{previewLoading
-										? "Generating score preview\u2026"
-										: "Score preview has not been generated yet."}
-								</CardContent>
-							</Card>
-						)}
-						<div className="flex flex-wrap gap-3">
-							<Button asChild variant="outline">
-								<Link
-									href={
-										variant === "manager-edit" && basePath
-											? buildManagerEditHref(`${basePath}/page/1`)
-											: `/yee/audit/${placeId}/page/1`
-									}>
-									Edit audit
-								</Link>
-							</Button>
-							<Button
-								type="button"
-								variant="outline"
-								isLoading={previewLoading}
-								onClick={() => void refreshScorePreview()}>
-								{previewLoading ? "Recalculating\u2026" : "Recalculate score preview"}
-							</Button>
-							<Button
-								type="button"
-								isLoading={submitting}
-								onClick={() => void submitAudit()}>
-								{submitting ? "Submitting\u2026" : "Submit audit"}
-							</Button>
-						</div>
-						<p className="text-xs text-muted-foreground">
-							Use "Recalculate score preview" after changing answers or section weights.
-						</p>
-						<div className="flex items-center gap-2">
-							<AuditSaveStatus status={wizardSaveStatus} />
-							{persisting ? (
-								<span className="text-xs text-muted-foreground">Saving latest answers\u2026</span>
-							) : null}
-						</div>
-						{error ? (
-							<p
-								role="alert"
-								aria-live="polite"
-								className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
-								{error}
+							<div className="rounded-lg border border-border p-4">
+								<p className="text-sm font-medium text-foreground">Overall comments</p>
+								<p className="mt-2 text-sm text-muted-foreground">
+									{draft.comments || "No comments added."}
+								</p>
+							</div>
+							{draft.scorePreview ? (
+								<YeeScoreSummary
+									preview={draft.scorePreview}
+									title="Score preview"
+									description="This preview is based on the saved draft answers and shows both raw scores and Youth Weighted average views."
+								/>
+							) : (
+								<Card elevation="flat">
+									<CardContent className="py-6 text-sm text-muted-foreground">
+										{previewLoading
+											? "Generating score preview\u2026"
+											: "Score preview has not been generated yet."}
+									</CardContent>
+								</Card>
+							)}
+							<div className="flex flex-wrap gap-3">
+								<Button asChild variant="outline">
+									<Link
+										href={
+											variant === "manager-edit" && basePath
+												? buildManagerEditHref(`${basePath}/page/1`)
+												: `/yee/audit/${placeId}/page/1`
+										}>
+										Edit audit
+									</Link>
+								</Button>
+								<Button
+									type="button"
+									variant="outline"
+									isLoading={previewLoading}
+									onClick={() => void refreshScorePreview()}>
+									{previewLoading ? "Recalculating\u2026" : "Recalculate score preview"}
+								</Button>
+								<Button type="button" isLoading={submitting} onClick={() => void submitAudit()}>
+									{submitting ? "Submitting\u2026" : "Submit audit"}
+								</Button>
+							</div>
+							<p className="text-xs text-muted-foreground">
+								Use "Recalculate score preview" after changing answers or section weights.
 							</p>
-						) : null}
+							<div className="flex items-center gap-2">
+								<AuditSaveStatus status={wizardSaveStatus} />
+								{persisting ? (
+									<span className="text-xs text-muted-foreground">Saving latest answers\u2026</span>
+								) : null}
+							</div>
+							{error ? (
+								<p
+									role="alert"
+									aria-live="polite"
+									className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+									{error}
+								</p>
+							) : null}
 						</CardContent>
 					</Card>
 				</main>
@@ -1877,10 +1877,13 @@ export function YeeAuditWizard({
 	}
 
 	const wizardSaveStatus: SaveStatusState =
-		autosaveStatus === "saving" ? "saving" :
-		autosaveStatus === "idle" && autosaveError ? "error" :
-		autosaveStatus === "idle" && !autosaveError ? "saved" :
-		"idle";
+		autosaveStatus === "saving"
+			? "saving"
+			: autosaveStatus === "idle" && autosaveError
+				? "error"
+				: autosaveStatus === "idle" && !autosaveError
+					? "saved"
+					: "idle";
 
 	return (
 		<>
@@ -1891,12 +1894,8 @@ export function YeeAuditWizard({
 							<Badge variant="success" dot>
 								{draft.auditorId}
 							</Badge>
-							<Badge variant="secondary">
-								Step {step} of 9
-							</Badge>
-							<Badge variant="secondary">
-								{draft.placeName || "Selected place"}
-							</Badge>
+							<Badge variant="secondary">Step {step} of 9</Badge>
+							<Badge variant="secondary">{draft.placeName || "Selected place"}</Badge>
 						</div>
 						<AuditSaveStatus status={wizardSaveStatus} />
 					</div>
@@ -1910,29 +1909,29 @@ export function YeeAuditWizard({
 					) : null}
 				</header>
 
-			<div
-				className="grid gap-1.5 sm:grid-cols-3 lg:grid-cols-5"
-				role="navigation"
-				aria-label="Audit step navigation">
-				{yeeSteps.map(entry => (
-					<button
-						key={entry.step}
-						type="button"
-						onClick={() => void goToStep(entry.step)}
-						disabled={step === entry.step}
-						aria-current={step === entry.step ? "step" : undefined}
-						className={`rounded-lg border px-3 py-2.5 text-left text-xs font-medium transition-colors ${
-							step === entry.step
-								? "border-[var(--yee-green-600)] bg-[var(--yee-green-100)] text-[var(--yee-green-900)]"
-								: "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
-						}`}>
-						<span className="block font-semibold">{getShortStepLabel(entry.step)}</span>
-					</button>
-				))}
-			</div>
+				<div
+					className="grid gap-1.5 sm:grid-cols-3 lg:grid-cols-5"
+					role="navigation"
+					aria-label="Audit step navigation">
+					{yeeSteps.map(entry => (
+						<button
+							key={entry.step}
+							type="button"
+							onClick={() => void goToStep(entry.step)}
+							disabled={step === entry.step}
+							aria-current={step === entry.step ? "step" : undefined}
+							className={`rounded-lg border px-3 py-2.5 text-left text-xs font-medium transition-colors ${
+								step === entry.step
+									? "border-[var(--yee-green-600)] bg-[var(--yee-green-100)] text-[var(--yee-green-900)]"
+									: "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
+							}`}>
+							<span className="block font-semibold">{getShortStepLabel(entry.step)}</span>
+						</button>
+					))}
+				</div>
 
-			{step === 1 ? (
-				<Card>
+				{step === 1 ? (
+					<Card>
 						<CardHeader>
 							<CardTitle>Visit details</CardTitle>
 							<CardDescription>
@@ -2219,17 +2218,11 @@ export function YeeAuditWizard({
 						</Button>
 					</div>
 					{step && step < 9 ? (
-						<Button
-							type="button"
-							className=""
-							onClick={() => void goToStep(getNextStep(step))}>
+						<Button type="button" className="" onClick={() => void goToStep(getNextStep(step))}>
 							Next
 						</Button>
 					) : (
-						<Button
-							type="button"
-							className=""
-							onClick={() => void openReview()}>
+						<Button type="button" className="" onClick={() => void openReview()}>
 							{variant === "manager-edit" ? "Review Audit Changes" : "Review Audit"}
 						</Button>
 					)}
