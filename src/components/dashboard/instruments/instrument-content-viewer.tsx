@@ -68,7 +68,7 @@ function PreamblePanel({ paragraphs }: { paragraphs: string[] }) {
 	return (
 		<div className="space-y-4">
 			{paragraphs.map((paragraph, index) => (
-				<div key={`preamble-${index}`} className="rounded-2xl border border-slate-200 bg-white p-5">
+				<div key={`preamble-${index}`} className="rounded-lg border border-slate-200 bg-white p-5">
 					<p className="text-lg font-semibold text-slate-900">
 						{index === 0 ? "How the tool is structured" : `Preamble note ${index + 1}`}
 					</p>
@@ -85,9 +85,9 @@ function SectionsPanel({ groups }: { groups: QuestionGroup[] }) {
 	return (
 		<div className="space-y-4">
 			{groups.map((group, index) => (
-				<div key={group.blockKey} className="rounded-2xl border border-slate-200 bg-white p-5">
+				<div key={group.blockKey} className="rounded-lg border border-slate-200 bg-white p-5">
 					<div className="flex flex-wrap items-center gap-2">
-						<Badge className="rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-100">{index + 1}</Badge>
+						<Badge className="rounded-md bg-slate-100 text-slate-700 hover:bg-slate-100">{index + 1}</Badge>
 						<p className="break-words text-2xl font-semibold text-slate-900">
 							{cleanInstrumentText(group.section?.title || group.items[0]?.block_title || group.blockKey)}
 						</p>
@@ -97,7 +97,7 @@ function SectionsPanel({ groups }: { groups: QuestionGroup[] }) {
 						{new Set(group.items.map(item => item.item_kind || "scored")).size} unique modes
 					</p>
 					{group.section?.intro_text ? (
-						<div className="mt-4 rounded-xl border border-slate-200 bg-slate-50/80 p-3 text-sm text-slate-700">
+						<div className="mt-4 rounded-lg border border-slate-200 bg-slate-50/80 p-3 text-sm text-slate-700">
 							<span className="font-medium text-slate-900">Instruction:</span>{" "}
 							<span className="whitespace-pre-wrap break-words">
 								{cleanInstrumentText(group.section.intro_text)}
@@ -105,7 +105,7 @@ function SectionsPanel({ groups }: { groups: QuestionGroup[] }) {
 						</div>
 					) : null}
 					{group.section?.comment_prompt ? (
-						<div className="mt-3 rounded-xl border border-amber-100 bg-amber-50/70 p-3 text-sm text-slate-700">
+						<div className="mt-3 rounded-lg border border-amber-100 bg-amber-50/70 p-3 text-sm text-slate-700">
 							<span className="font-medium text-slate-900">Notes Prompt:</span>{" "}
 							<span className="whitespace-pre-wrap break-words">
 								{cleanInstrumentText(group.section.comment_prompt)}
@@ -128,15 +128,15 @@ function SectionsPanel({ groups }: { groups: QuestionGroup[] }) {
 
 function QuestionPreview({ item }: { item: EditableItem }) {
 	return (
-		<div className="rounded-2xl border border-slate-200 bg-white p-4">
+		<div className="rounded-lg border border-slate-200 bg-white p-4">
 			<div className="flex flex-wrap items-center gap-2">
-				<Badge className="rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-100">{item.item_id}</Badge>
+				<Badge className="rounded-md bg-slate-100 text-slate-700 hover:bg-slate-100">{item.item_id}</Badge>
 				{item.item_kind ? (
-					<Badge className="rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
+					<Badge className="rounded-md bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
 						{item.item_kind}
 					</Badge>
 				) : null}
-				<Badge className="rounded-lg bg-slate-900 text-white hover:bg-slate-900">
+				<Badge className="rounded-md bg-slate-900 text-white hover:bg-slate-900">
 					{item.answers && Object.keys(item.answers).length > 0 ? "Matrix" : "Single select"}
 				</Badge>
 			</div>
@@ -160,7 +160,7 @@ function QuestionPreview({ item }: { item: EditableItem }) {
 
 export function SpreadsheetPanel({ rows }: { rows: SpreadsheetRow[] }) {
 	return (
-		<div className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+		<div className="overflow-hidden rounded-lg border border-slate-200 bg-white">
 			<div className="grid grid-cols-[180px_240px_minmax(0,1fr)] border-b border-slate-200 bg-slate-50 px-6 py-4 text-sm font-semibold text-slate-700">
 				<p>#</p>
 				<p>Section</p>
@@ -185,17 +185,17 @@ function PreAuditPanel({ questions }: { questions: InstrumentPreAuditQuestion[] 
 	return (
 		<div className="space-y-4">
 			{questions.map(question => (
-				<div key={question.id} className="rounded-2xl border border-slate-200 bg-white p-5">
+				<div key={question.id} className="rounded-lg border border-slate-200 bg-white p-5">
 					<div className="flex flex-wrap items-center gap-2">
-						<Badge className="rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-100">
+						<Badge className="rounded-md bg-slate-100 text-slate-700 hover:bg-slate-100">
 							{question.id}
 						</Badge>
 						{question.auto_generated ? (
-							<Badge className="rounded-lg bg-slate-900 text-white hover:bg-slate-900">
+							<Badge className="rounded-md bg-slate-900 text-white hover:bg-slate-900">
 								Auto generated
 							</Badge>
 						) : null}
-						<Badge className="rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-100">
+						<Badge className="rounded-md bg-slate-100 text-slate-700 hover:bg-slate-100">
 							{question.multi_select ? "Multi select" : "Single select"}
 						</Badge>
 					</div>
@@ -231,8 +231,8 @@ function ScaleGuidancePanel({ scales }: { scales: InstrumentScaleGuidance[] }) {
 	return (
 		<div className="grid gap-4 md:grid-cols-2">
 			{scales.map(scale => (
-				<div key={scale.id} className="rounded-2xl border border-slate-200 bg-white p-5">
-					<Badge className="rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-100">
+				<div key={scale.id} className="rounded-lg border border-slate-200 bg-white p-5">
+					<Badge className="rounded-md bg-slate-100 text-slate-700 hover:bg-slate-100">
 						{cleanInstrumentText(scale.title)}
 					</Badge>
 					<p className="mt-4 break-words text-2xl font-semibold text-slate-900">
@@ -250,7 +250,7 @@ function ScaleGuidancePanel({ scales }: { scales: InstrumentScaleGuidance[] }) {
 						{(scale.rules ?? []).map(rule => (
 							<div
 								key={`${scale.id}-${rule.value}`}
-								className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50/70 px-3 py-2 text-sm text-slate-700">
+								className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50/70 px-3 py-2 text-sm text-slate-700">
 								<div className="flex flex-wrap items-center gap-2">
 									<span className="break-words font-medium text-slate-900">
 										{cleanInstrumentText(rule.label)}
@@ -281,7 +281,7 @@ function LegalDocumentsPanel({ documents }: { documents: InstrumentLegalDocument
 	return (
 		<div className="space-y-4">
 			{documents.map(document => (
-				<div key={document.id} className="rounded-2xl border border-slate-200 bg-white p-5">
+				<div key={document.id} className="rounded-lg border border-slate-200 bg-white p-5">
 					<div className="flex flex-wrap items-center justify-between gap-3">
 						<div className="space-y-2">
 							<p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
@@ -294,7 +294,7 @@ function LegalDocumentsPanel({ documents }: { documents: InstrumentLegalDocument
 								<p className="text-sm text-slate-500">Last Updated: {document.last_updated}</p>
 							) : null}
 						</div>
-						<Badge className="rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-100">
+						<Badge className="rounded-md bg-slate-100 text-slate-700 hover:bg-slate-100">
 							{document.id}
 						</Badge>
 					</div>

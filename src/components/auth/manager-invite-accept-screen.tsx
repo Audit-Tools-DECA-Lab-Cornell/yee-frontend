@@ -73,10 +73,7 @@ export function ManagerInviteAcceptScreen({ token }: { token: string }) {
 	}
 
 	return (
-		<AuthShell
-			eyebrow="Manager Invite"
-			title="Join an existing organization as a manager."
-			description="This invitation adds you as an additional manager inside the same YEE organization account.">
+		<AuthShell>
 			<div className="space-y-6">
 				<div>
 					<Badge className="rounded-full bg-emerald-50 px-3 py-1 text-emerald-700 hover:bg-emerald-50">
@@ -91,7 +88,7 @@ export function ManagerInviteAcceptScreen({ token }: { token: string }) {
 								: "Invite details unavailable."}
 					</p>
 				</div>
-				<div className="rounded-3xl border border-slate-200 bg-slate-50 p-5 text-sm leading-7 text-slate-600">
+				<div className="rounded-lg border border-slate-200 bg-slate-50 p-5 text-sm leading-7 text-slate-600">
 					<p>
 						Organization:{" "}
 						<span className="font-medium text-slate-900">{organization ?? "Unknown organization"}</span>
@@ -135,11 +132,11 @@ export function ManagerInviteAcceptScreen({ token }: { token: string }) {
 					<div className="flex flex-wrap gap-3">
 						<Button
 							type="submit"
-							className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]"
+							className="rounded-lg bg-[#10231f] text-white hover:bg-[#17302c]"
 							disabled={loading || saving}>
 							{saving ? "Joining organization..." : "Accept invite"}
 						</Button>
-						<Button asChild variant="outline" className="rounded-2xl">
+						<Button asChild variant="outline" className="rounded-lg">
 							<Link href="/login">Back to login</Link>
 						</Button>
 					</div>

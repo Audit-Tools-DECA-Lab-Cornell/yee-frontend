@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { BrandLogo } from "@/components/brand/brand-logo";
 import { LogoutButton } from "@/components/auth/logout-button";
 import { useWorkspaceConfig } from "@/components/dashboard/site-copy-provider";
 import { Button } from "@/components/ui/button";
@@ -22,24 +23,13 @@ export function DashboardSidebar({ variant, onNavigate }: { variant: WorkspaceVa
 			{/* Skip navigation target helper — the real skip link is in DashboardShell */}
 			<a
 				href="#main-content"
-				className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-1.5 focus:text-sm focus:font-medium focus:text-foreground focus:ring-2 focus:ring-ring">
+				className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-sm focus:bg-background focus:px-3 focus:py-1.5 focus:text-sm focus:font-medium focus:text-foreground focus:ring-2 focus:ring-ring">
 				Skip to main content
 			</a>
 
 			{/* Brand header */}
 			<div className="border-b px-6 py-6" style={{ borderColor: "var(--sidebar-border)" }}>
-				<div className="flex items-center gap-2.5">
-					<span
-						className="flex size-7 shrink-0 items-center justify-center rounded-md text-[10px] font-bold"
-						style={{
-							background: "var(--sidebar-primary)",
-							color: "var(--sidebar-primary-foreground)"
-						}}
-						aria-hidden="true">
-						YEE
-					</span>
-					<span className="text-sm font-semibold tracking-tight">Audit Tools</span>
-				</div>
+				<BrandLogo variant="horizontalSubtitle" tone="dark" className="max-w-[220px]" priority />
 
 				<div className="mt-5 space-y-1.5">
 					<h2 className="text-base font-semibold tracking-tight">{config.title ?? "YEE Audit Tools"}</h2>
@@ -66,10 +56,8 @@ export function DashboardSidebar({ variant, onNavigate }: { variant: WorkspaceVa
 								onClick={onNavigate}
 								aria-current={active ? "page" : undefined}
 								className={cn(
-									"flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-									active
-										? "text-[var(--sidebar-accent-foreground)]"
-										: "hover:text-[var(--sidebar-foreground)]"
+									"flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
+									active ? "text-sidebar-accent-foreground" : "hover:text-sidebar-foreground"
 								)}
 								style={
 									active
@@ -100,7 +88,7 @@ export function DashboardSidebar({ variant, onNavigate }: { variant: WorkspaceVa
 				{/* Sidebar CTA card — only if meaningful for this workspace */}
 				{config.sidebarCard ? (
 					<div
-						className="mt-8 rounded-lg border p-4"
+						className="mt-8 rounded-md border p-4"
 						style={{
 							borderColor: "var(--sidebar-border)",
 							background: "var(--sidebar-accent)"
@@ -139,7 +127,7 @@ export function DashboardSidebar({ variant, onNavigate }: { variant: WorkspaceVa
 									onClick={onNavigate}
 									aria-current={active ? "page" : undefined}
 									className={cn(
-										"flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+										"flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
 										active ? "" : ""
 									)}
 									style={

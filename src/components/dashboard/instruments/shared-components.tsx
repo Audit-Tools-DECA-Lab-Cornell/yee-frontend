@@ -46,7 +46,7 @@ export function EditableField({
 
 export function MetricCard({ label, value }: { label: string; value: string }) {
 	return (
-		<div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+		<div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
 			<p className="text-sm text-slate-500">{label}</p>
 			<p className="mt-2 break-words text-lg font-semibold text-slate-950">{value}</p>
 		</div>
@@ -91,7 +91,7 @@ export function TabBar({
 						type="button"
 						onClick={() => onChange(tab.key)}
 						className={cn(
-							"rounded-xl border px-3 py-2 text-sm transition",
+							"rounded-lg border px-3 py-2 text-sm transition",
 							active === tab.key
 								? "border-slate-900 bg-slate-900 text-white"
 								: "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"

@@ -393,7 +393,6 @@ function getSectionIntroCopy(domain: YeeDomainKey) {
 	}
 }
 
-
 function getSurfacePalette(stepValue: YeeStepNumber) {
 	switch (stepValue) {
 		case 1:
@@ -712,9 +711,9 @@ function draftFromAuditState(placeId: string, state: YeeAuditState): YeeAuditDra
 		submittedAt: state.submitted_at,
 		lastResult: state.submission_id
 			? {
-				id: state.submission_id,
-				totalScore: state.score?.total_score ?? 0
-			}
+					id: state.submission_id,
+					totalScore: state.score?.total_score ?? 0
+				}
 			: null,
 		scorePreview: state.score ? buildWeightedScorePreview(state.score, weights) : null
 	};
@@ -784,9 +783,9 @@ function draftFromStoredRecord(
 		lastResult:
 			record.submission_id || record.id
 				? {
-					id: record.submission_id || record.id || "",
-					totalScore: record.score.total_score
-				}
+						id: record.submission_id || record.id || "",
+						totalScore: record.score.total_score
+					}
 				: null,
 		scorePreview
 	};
@@ -815,8 +814,9 @@ function OptionCards({
 			{options.map(option => (
 				<label
 					key={`${name}-${option.value}`}
-					className={`rounded-lg border px-4 py-3 text-sm transition ${readOnly ? "cursor-default" : "cursor-pointer"
-						} ${value === option.value ? `border-2 ${palette.selected}` : `border ${palette.idle}`}`}>
+					className={`rounded-md border px-4 py-3 text-sm transition ${
+						readOnly ? "cursor-default" : "cursor-pointer"
+					} ${value === option.value ? `border-2 ${palette.selected}` : `border ${palette.idle}`}`}>
 					<input
 						type="radio"
 						name={name}
@@ -853,8 +853,9 @@ function MultiSelectCards({
 				return (
 					<label
 						key={`${name}-${option.value}`}
-						className={`cursor-pointer rounded-2xl border px-4 py-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] transition ${checked ? palette.selected : palette.idle
-							}`}>
+						className={`cursor-pointer rounded-lg border px-4 py-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] transition ${
+							checked ? palette.selected : palette.idle
+						}`}>
 						<input
 							type="checkbox"
 							name={name}
@@ -905,7 +906,7 @@ function InstrumentQuestionCard({
 
 	if (choices.length === 0 && answers.length === 0) {
 		return (
-			<Card className={`rounded-lg border shadow-[0_12px_35px_-24px_rgba(16,35,31,0.45)] ${palette.card}`}>
+			<Card className={`rounded-md border shadow-[0_12px_35px_-24px_rgba(16,35,31,0.45)] ${palette.card}`}>
 				<CardContent className="py-6 text-sm leading-7 text-slate-600">
 					{normalizeText(item.question_text)}
 				</CardContent>
@@ -918,7 +919,7 @@ function InstrumentQuestionCard({
 			? getSingleCardInstruction(getDomainForBlock(item.block) ?? "access")
 			: normalizeVisibleQuestion(item.question_text || item.item_id);
 		return (
-			<Card className={`rounded-lg border shadow-[0_18px_40px_-30px_rgba(16,35,31,0.55)] ${palette.card}`}>
+			<Card className={`rounded-md border shadow-[0_18px_40px_-30px_rgba(16,35,31,0.55)] ${palette.card}`}>
 				<CardHeader className="pb-3">
 					<CardTitle className="text-base font-semibold">{title}</CardTitle>
 				</CardHeader>
@@ -957,7 +958,7 @@ function InstrumentQuestionCard({
 		: normalizeVisibleQuestion(item.question_text || item.item_id);
 
 	return (
-		<Card className={`rounded-lg border shadow-[0_18px_40px_-30px_rgba(16,35,31,0.55)] ${palette.card}`}>
+		<Card className={`rounded-md border shadow-[0_18px_40px_-30px_rgba(16,35,31,0.55)] ${palette.card}`}>
 			<CardHeader className="pb-3">
 				<CardTitle className="text-base font-semibold">{title}</CardTitle>
 			</CardHeader>
@@ -1015,7 +1016,7 @@ function InstrumentQuestionGroupCard({
 	}
 
 	return (
-		<Card className={`rounded-lg border shadow-[0_18px_40px_-30px_rgba(16,35,31,0.55)] ${palette.card}`}>
+		<Card className={`rounded-md border shadow-[0_18px_40px_-30px_rgba(16,35,31,0.55)] ${palette.card}`}>
 			<CardHeader className="pb-3">
 				<CardTitle className="text-base font-semibold">
 					{getMatrixCardInstruction(getDomainForBlock(presenceItem.block) ?? "access")}
@@ -1046,7 +1047,7 @@ function InstrumentQuestionGroupCard({
 								palette={palette}
 							/>
 							{conditionItem && showCondition ? (
-								<div className={`space-y-2 rounded-lg border p-4 ${palette.condition}`}>
+								<div className={`space-y-2 rounded-md border p-4 ${palette.condition}`}>
 									<p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-800">
 										Condition
 									</p>
@@ -1465,7 +1466,7 @@ export function YeeAuditWizard({
 				Math.max(
 					1,
 					Math.round((now.getTime() - new Date(`${draft.auditDate}T${draft.startTime}`).getTime()) / 60000) ||
-					0
+						0
 				);
 			const submissionDraft = { ...draft, finishTime, totalMinutes };
 			const participantInfo = buildParticipantInfo(submissionDraft);
@@ -1519,9 +1520,9 @@ export function YeeAuditWizard({
 			const submittedAt = typeof data.submitted_at === "string" ? data.submitted_at : now.toISOString();
 			const preview = scorePayload
 				? buildWeightedScorePreview(
-					scorePayload as Parameters<typeof buildWeightedScorePreview>[0],
-					submissionDraft.weights
-				)
+						scorePayload as Parameters<typeof buildWeightedScorePreview>[0],
+						submissionDraft.weights
+					)
 				: draft.scorePreview;
 			const nextDraft = {
 				...submissionDraft,
@@ -1529,9 +1530,9 @@ export function YeeAuditWizard({
 				lastResult:
 					typeof data.id === "string"
 						? {
-							id: data.id,
-							totalScore: typeof scorePayload?.total_score === "number" ? scorePayload.total_score : 0
-						}
+								id: data.id,
+								totalScore: typeof scorePayload?.total_score === "number" ? scorePayload.total_score : 0
+							}
 						: draft.lastResult,
 				scorePreview: preview
 			};
@@ -1548,9 +1549,9 @@ export function YeeAuditWizard({
 		return (
 			<main className="mx-auto max-w-5xl p-6">
 				<div className="space-y-4 animate-pulse">
-					<div className="h-6 w-48 rounded-md bg-muted" />
-					<div className="h-4 w-full max-w-lg rounded-md bg-muted" />
-					<div className="h-4 w-full max-w-sm rounded-md bg-muted" />
+					<div className="h-6 w-48 rounded-sm bg-muted" />
+					<div className="h-4 w-full max-w-lg rounded-sm bg-muted" />
+					<div className="h-4 w-full max-w-sm rounded-sm bg-muted" />
 				</div>
 			</main>
 		);
@@ -1560,7 +1561,7 @@ export function YeeAuditWizard({
 		return (
 			<main className="mx-auto max-w-5xl p-6">
 				<div
-					className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive"
+					className="rounded-md border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive"
 					role="alert">
 					{error}
 				</div>
@@ -1616,7 +1617,7 @@ export function YeeAuditWizard({
 						</CardHeader>
 						<CardContent className="space-y-6">
 							<div className="grid gap-4 md:grid-cols-2">
-								<div className="rounded-lg border border-border bg-muted/40 p-4 text-sm leading-7 text-foreground">
+								<div className="rounded-md border border-border bg-muted/40 p-4 text-sm leading-7 text-foreground">
 									<p className="font-medium text-foreground">Audit metadata</p>
 									<p>Place: {draft.placeName || "Not recorded"}</p>
 									<p>Generated auditor ID: {draft.auditorId}</p>
@@ -1630,7 +1631,7 @@ export function YeeAuditWizard({
 									<p>Season: {getOptionLabel(seasonOptions, draft.season)}</p>
 									<p>Weather: {getMultiOptionLabels(weatherOptions, draft.weather)}</p>
 								</div>
-								<div className="rounded-lg border border-border bg-muted/40 p-4 text-sm text-foreground">
+								<div className="rounded-md border border-border bg-muted/40 p-4 text-sm text-foreground">
 									<p className="font-medium text-foreground">Youth-Weighted Importance of Sections</p>
 									<div className="mt-3 space-y-3">
 										{(Object.keys(yeeDomainLabels) as YeeDomainKey[]).map(key => {
@@ -1638,7 +1639,7 @@ export function YeeAuditWizard({
 											return (
 												<div
 													key={key}
-													className="flex flex-col gap-2 rounded-2xl border px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+													className="flex flex-col gap-2 rounded-lg border px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
 													style={{
 														backgroundColor: theme?.lightHex ?? "#f8fafc",
 														borderColor: theme?.strongFillHex ?? "#cbd5e1"
@@ -1661,7 +1662,7 @@ export function YeeAuditWizard({
 											);
 										})}
 									</div>
-									<div className="mt-4 rounded-lg border border-dashed border-border bg-background p-3 leading-7">
+									<div className="mt-4 rounded-md border border-dashed border-border bg-background p-3 leading-7">
 										<p className="font-medium text-foreground">Weighting comments</p>
 										<p className="mt-2">
 											{draft.weightingComments || "No weighting comments added."}
@@ -1669,7 +1670,7 @@ export function YeeAuditWizard({
 									</div>
 								</div>
 							</div>
-							<div className="rounded-lg border border-border bg-muted/40 p-4">
+							<div className="rounded-md border border-border bg-muted/40 p-4">
 								<p className="text-sm font-medium text-foreground">Audit overview</p>
 								<p className="mt-2 text-sm text-slate-600">
 									Choose any section below to jump back into that part of the audit and edit it before
@@ -1681,7 +1682,7 @@ export function YeeAuditWizard({
 											key={`jump-${section.domain}`}
 											type="button"
 											onClick={() => void goToStep(section.step)}
-											className={`rounded-lg border px-4 py-4 text-left transition hover:opacity-90 ${section.theme?.card ?? "border-border bg-muted/30"}`}>
+											className={`rounded-md border px-4 py-4 text-left transition hover:opacity-90 ${section.theme?.card ?? "border-border bg-muted/30"}`}>
 											<p
 												className={`font-semibold text-sm ${section.theme?.textClass ?? "text-foreground"}`}>
 												{section.label}
@@ -1712,7 +1713,7 @@ export function YeeAuditWizard({
 											{section.groups.map(({ group, title, rows }) => (
 												<div
 													key={group.baseQuestionId}
-													className="rounded-lg border border-border bg-card p-4">
+													className="rounded-md border border-border bg-card p-4">
 													{title ? (
 														<p className="text-sm font-semibold text-foreground">{title}</p>
 													) : null}
@@ -1747,7 +1748,7 @@ export function YeeAuditWizard({
 													</div>
 												</div>
 											))}
-											<div className="rounded-lg border border-dashed border-border bg-background p-4 text-sm text-muted-foreground">
+											<div className="rounded-md border border-dashed border-border bg-background p-4 text-sm text-muted-foreground">
 												<p className="font-medium text-foreground">{section.label} comments</p>
 												<p className="mt-2">
 													{draft.sectionComments[section.domain] ||
@@ -1758,7 +1759,7 @@ export function YeeAuditWizard({
 									</Card>
 								))}
 							</div>
-							<div className="rounded-lg border border-border p-4">
+							<div className="rounded-md border border-border p-4">
 								<p className="text-sm font-medium text-foreground">Overall comments</p>
 								<p className="mt-2 text-sm text-muted-foreground">
 									{draft.comments || "No comments added."}
@@ -1814,7 +1815,7 @@ export function YeeAuditWizard({
 								<p
 									role="alert"
 									aria-live="polite"
-									className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+									className="rounded-md border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
 									{error}
 								</p>
 							) : null}
@@ -1868,10 +1869,11 @@ export function YeeAuditWizard({
 							onClick={() => void goToStep(entry.step)}
 							disabled={step === entry.step}
 							aria-current={step === entry.step ? "step" : undefined}
-							className={`rounded-lg border px-3 py-2.5 text-left text-xs font-medium transition-colors ${step === entry.step
+							className={`rounded-md border px-3 py-2.5 text-left text-xs font-medium transition-colors ${
+								step === entry.step
 									? "border-[var(--yee-green-600)] bg-[var(--yee-green-100)] text-[var(--yee-green-900)]"
 									: "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
-								}`}>
+							}`}>
 							<span className="block font-semibold">{getShortStepLabel(entry.step)}</span>
 						</button>
 					))}
@@ -1951,7 +1953,7 @@ export function YeeAuditWizard({
 
 				{step === 2 ? (
 					<div className="space-y-4">
-						<Card className={`rounded-lg border shadow-sm ${stepPalette.instruction}`}>
+						<Card className={`rounded-md border shadow-sm ${stepPalette.instruction}`}>
 							<CardContent className="py-5 text-sm leading-7 text-white">
 								<p className="font-medium text-white">
 									Please start by telling us how important each of the following issues are to you -
@@ -1967,20 +1969,21 @@ export function YeeAuditWizard({
 						{Object.entries(yeeDomainLabels).map(([key, label]) => (
 							<Card
 								key={key}
-								className={`rounded-lg shadow-sm ${getSurfacePalette(
-									key === "access"
-										? 3
-										: key === "activitySpaces"
-											? 4
-											: key === "amenities"
-												? 5
-												: key === "experienceOfSpace"
-													? 6
-													: key === "aestheticsAndCare"
-														? 7
-														: 8
-								).card
-									}`}>
+								className={`rounded-md shadow-sm ${
+									getSurfacePalette(
+										key === "access"
+											? 3
+											: key === "activitySpaces"
+												? 4
+												: key === "amenities"
+													? 5
+													: key === "experienceOfSpace"
+														? 6
+														: key === "aestheticsAndCare"
+															? 7
+															: 8
+									).card
+								}`}>
 								<CardHeader>
 									<CardTitle className="text-lg font-semibold">{label}</CardTitle>
 								</CardHeader>
@@ -2018,7 +2021,7 @@ export function YeeAuditWizard({
 								</CardContent>
 							</Card>
 						))}
-						<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
+						<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
 							<CardHeader>
 								<CardTitle>Optional comments for importance weighting</CardTitle>
 								<CardDescription>
@@ -2040,7 +2043,7 @@ export function YeeAuditWizard({
 				{step && step >= 3 && step <= 8 ? (
 					<div className="space-y-4">
 						{domainKey ? (
-							<Card className={`rounded-lg border shadow-sm ${stepPalette.instruction}`}>
+							<Card className={`rounded-md border shadow-sm ${stepPalette.instruction}`}>
 								<CardContent className="py-5 text-sm leading-7 text-white">
 									<p className="text-lg font-semibold text-white">
 										{getSectionIntroCopy(domainKey).heading}
@@ -2059,7 +2062,7 @@ export function YeeAuditWizard({
 							/>
 						))}
 						{domainKey ? (
-							<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
+							<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
 								<CardHeader>
 									<CardTitle>{yeeDomainLabels[domainKey]} comments</CardTitle>
 									<CardDescription>
@@ -2088,7 +2091,7 @@ export function YeeAuditWizard({
 								</CardContent>
 							</Card>
 						) : null}
-						<Card className={`rounded-lg border shadow-sm ${stepPalette.progress}`}>
+						<Card className={`rounded-md border shadow-sm ${stepPalette.progress}`}>
 							<CardContent className="flex flex-wrap items-center justify-between gap-3 py-5 text-sm text-slate-600">
 								<span>
 									Section progress: {answeredDomainItems} of {requiredDomainItems} questions answered
@@ -2106,7 +2109,7 @@ export function YeeAuditWizard({
 				) : null}
 
 				{step === 9 ? (
-					<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
+					<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
 						<CardHeader>
 							<CardTitle>Final optional comments</CardTitle>
 							<CardDescription>
@@ -2129,7 +2132,7 @@ export function YeeAuditWizard({
 						<Button
 							type="button"
 							variant="outline"
-							className="rounded-2xl"
+							className="rounded-lg"
 							onClick={() => void goToStep(getPreviousStep(step!))}
 							disabled={!step || !getPreviousStep(step)}>
 							Back
@@ -2137,7 +2140,7 @@ export function YeeAuditWizard({
 						<Button
 							type="button"
 							variant="ghost"
-							className="rounded-2xl"
+							className="rounded-lg"
 							onClick={async () => {
 								try {
 									if (variant === "manager-edit") {
@@ -2231,7 +2234,7 @@ function SubmittedAuditConfirmation({
 
 	return (
 		<main className="mx-auto max-w-4xl space-y-6 p-6">
-			<Card className="rounded-xl border-slate-200/80 bg-white shadow-sm">
+			<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
 				<CardHeader>
 					<CardTitle className="text-3xl">Audit submitted</CardTitle>
 					<CardDescription>
@@ -2245,7 +2248,7 @@ function SubmittedAuditConfirmation({
 						Submitted at:{" "}
 						{submittedAt ? new Date(submittedAt).toLocaleString() : "Submission timestamp unavailable"}
 					</p>
-					<div className="rounded-2xl bg-emerald-50 p-4 text-emerald-800">
+					<div className="rounded-lg bg-emerald-50 p-4 text-emerald-800">
 						<p className="font-medium">
 							Submission ID: {submission?.id || fallbackDraft.lastResult?.id || "Unavailable"}
 						</p>
@@ -2256,7 +2259,7 @@ function SubmittedAuditConfirmation({
 							<Link href="/my-dashboard">Back to dashboard</Link>
 						</Button>
 						{submissionId ? (
-							<Button asChild variant="outline" className="rounded-2xl">
+							<Button asChild variant="outline" className="rounded-lg">
 								<Link href={`/yee/submissions/${submissionId}`}>Open read-only results</Link>
 							</Button>
 						) : null}

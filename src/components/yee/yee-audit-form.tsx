@@ -181,7 +181,7 @@ export function YeeAuditForm({ placeId }: { placeId: string }) {
 											className="grid gap-2 md:grid-cols-[1fr_240px] md:items-center">
 											<p className="text-sm">{getChoiceLabel(choice, choiceId)}</p>
 											<select
-												className="rounded-md border px-3 py-2 text-sm"
+												className="rounded-sm border px-3 py-2 text-sm"
 												value={selected}
 												onChange={event =>
 													updateMatrixResponse(item.item_id, choiceId, event.target.value)

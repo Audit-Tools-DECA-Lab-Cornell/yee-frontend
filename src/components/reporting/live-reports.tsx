@@ -239,7 +239,7 @@ function RadarComparisonChart({
 	];
 
 	return (
-		<Card className="rounded-lg border-border">
+		<Card className="rounded-md border-border">
 			<CardHeader>
 				<CardTitle>Radar comparison</CardTitle>
 				<CardDescription>
@@ -296,7 +296,7 @@ function RadarComparisonChart({
 				</svg>
 				<div className="space-y-3">
 					{series.map((summary, index) => (
-						<div key={summary.place_id} className="rounded-lg border border-border bg-muted/40 p-4">
+						<div key={summary.place_id} className="rounded-md border border-border bg-muted/40 p-4">
 							<div className="flex items-center gap-3">
 								<span
 									className="h-3 w-3 rounded-full"
@@ -344,7 +344,7 @@ function TrendLineChart({
 	const weightedPolyline = points.map(point => `${pointX(point.index)},${pointY(point.weightedPercent)}`).join(" ");
 
 	return (
-		<Card className="rounded-lg border-border">
+		<Card className="rounded-md border-border">
 			<CardHeader>
 				<CardTitle>Trend over time</CardTitle>
 				<CardDescription>
@@ -355,7 +355,7 @@ function TrendLineChart({
 				<svg
 					ref={svgRef}
 					viewBox={`0 0 ${width} ${height}`}
-					className="h-[260px] w-full rounded-2xl bg-[#f8fbf9]">
+					className="h-[260px] w-full rounded-lg bg-[#f8fbf9]">
 					{[0, 25, 50, 75, 100].map(value => (
 						<g key={value}>
 							<line
@@ -640,7 +640,7 @@ export function LiveReports() {
 
 	if (loading) {
 		return (
-			<Card className="rounded-lg border-border">
+			<Card className="rounded-md border-border">
 				<CardContent className="p-6 text-sm text-muted-foreground">Loading reports dashboard...</CardContent>
 			</Card>
 		);
@@ -648,7 +648,7 @@ export function LiveReports() {
 
 	if (error) {
 		return (
-			<Card className="rounded-lg border-rose-200 bg-rose-50 shadow-sm">
+			<Card className="rounded-md border-rose-200 bg-rose-50 shadow-sm">
 				<CardContent className="p-6 text-sm text-rose-700">{error}</CardContent>
 			</Card>
 		);
@@ -656,7 +656,7 @@ export function LiveReports() {
 
 	return (
 		<div className="space-y-6">
-			<Card className="rounded-lg border-border">
+			<Card className="rounded-md border-border">
 				<CardHeader>
 					<CardTitle>Reports dashboard</CardTitle>
 					<CardDescription>
@@ -688,7 +688,7 @@ export function LiveReports() {
 							selectedValues={selectedAuditorIds}
 							onChange={setSelectedAuditorIds}
 						/>
-						<div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-white px-3 py-2">
+						<div className="flex flex-wrap items-center gap-2 rounded-md border border-border bg-white px-3 py-2">
 							<span className="text-sm font-medium text-foreground">Date range</span>
 							{(["all", "30", "90", "180", "365"] as DateRangeValue[]).map(option => (
 								<Button
@@ -696,7 +696,7 @@ export function LiveReports() {
 									type="button"
 									size="sm"
 									variant={dateRange === option ? "default" : "outline"}
-									className={`rounded-xl ${dateRange === option ? "bg-[#10231f] text-white hover:bg-[#17302c]" : ""}`}
+									className={`rounded-lg ${dateRange === option ? "bg-[#10231f] text-white hover:bg-[#17302c]" : ""}`}
 									onClick={() => setDateRange(option)}>
 									{rangeLabel(option)}
 								</Button>
@@ -718,7 +718,7 @@ export function LiveReports() {
 								key={mode}
 								type="button"
 								variant={compareMode === mode ? "default" : "outline"}
-								className={`rounded-2xl ${compareMode === mode ? "bg-[#10231f] text-white hover:bg-[#17302c]" : ""}`}
+								className={`rounded-lg ${compareMode === mode ? "bg-[#10231f] text-white hover:bg-[#17302c]" : ""}`}
 								onClick={() => {
 									setCompareMode(mode);
 									if (mode === "audits" && selectedPlaceIds.length > 1) {
@@ -771,7 +771,7 @@ export function LiveReports() {
 						description: "Submitted audits available in this analysis view"
 					}
 				].map(card => (
-					<Card key={card.label} className="rounded-lg border-border">
+					<Card key={card.label} className="rounded-md border-border">
 						<CardContent className="space-y-2 p-5">
 							<p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
 								{card.label}
@@ -783,7 +783,7 @@ export function LiveReports() {
 				))}
 			</div>
 
-			<Card className="rounded-lg border-border">
+			<Card className="rounded-md border-border">
 				<CardHeader>
 					<CardTitle>Export options</CardTitle>
 					<CardDescription>
@@ -792,21 +792,21 @@ export function LiveReports() {
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="flex flex-wrap gap-3">
-					<Button type="button" variant="outline" className="rounded-2xl" onClick={exportCurrentComparison}>
+					<Button type="button" variant="outline" className="rounded-lg" onClick={exportCurrentComparison}>
 						Export current comparison
 					</Button>
 					<Button
 						type="button"
 						variant="outline"
-						className="rounded-2xl"
+						className="rounded-lg"
 						onClick={exportSelectedAudits}
 						disabled={selectedAuditIds.length === 0}>
 						Export selected audits
 					</Button>
-					<Button type="button" variant="outline" className="rounded-2xl" onClick={() => window.print()}>
+					<Button type="button" variant="outline" className="rounded-lg" onClick={() => window.print()}>
 						Export full PDF report
 					</Button>
-					<Button type="button" variant="outline" className="rounded-2xl" onClick={exportRawDataCsv}>
+					<Button type="button" variant="outline" className="rounded-lg" onClick={exportRawDataCsv}>
 						Export CSV raw data
 					</Button>
 					<Button type="button" className="" onClick={exportCurrentChart}>
@@ -817,7 +817,7 @@ export function LiveReports() {
 
 			{compareMode === "places" ? (
 				<div className="space-y-6">
-					<Card className="rounded-lg border-border">
+					<Card className="rounded-md border-border">
 						<CardHeader>
 							<CardTitle>Compare Places</CardTitle>
 							<CardDescription>
@@ -880,7 +880,7 @@ export function LiveReports() {
 						</CardContent>
 					</Card>
 
-					<Card className="rounded-lg border-border">
+					<Card className="rounded-md border-border">
 						<CardHeader>
 							<CardTitle>Stacked section comparison</CardTitle>
 							<CardDescription>
@@ -892,7 +892,7 @@ export function LiveReports() {
 							{placeSummaries.map(summary => (
 								<div
 									key={summary.place_id}
-									className="rounded-lg border border-border bg-[#f8fbf9] p-4">
+									className="rounded-md border border-border bg-[#f8fbf9] p-4">
 									<div className="flex flex-wrap items-center justify-between gap-3">
 										<div>
 											<Link
@@ -955,7 +955,7 @@ export function LiveReports() {
 
 			{compareMode === "audits" ? (
 				<div className="space-y-6">
-					<Card className="rounded-lg border-border">
+					<Card className="rounded-md border-border">
 						<CardHeader>
 							<CardTitle>Compare audits over time</CardTitle>
 							<CardDescription>
@@ -979,7 +979,7 @@ export function LiveReports() {
 									<TrendLineChart records={timelineRecords} svgRef={chartSvgRef} />
 									<div className="grid gap-4 md:grid-cols-3">
 										{timelineRecords.slice(-3).map(record => (
-											<Card key={record.audit_id} className="rounded-lg border-border">
+											<Card key={record.audit_id} className="rounded-md border-border">
 												<CardContent className="space-y-2 p-5">
 													<p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
 														{record.date}
@@ -1017,7 +1017,7 @@ export function LiveReports() {
 
 			{compareMode === "individual" ? (
 				<div className="space-y-6">
-					<Card className="rounded-lg border-border">
+					<Card className="rounded-md border-border">
 						<CardHeader>
 							<CardTitle>Compare individual audits</CardTitle>
 							<CardDescription>
@@ -1093,7 +1093,7 @@ export function LiveReports() {
 
 					<div className="grid gap-4 lg:grid-cols-2">
 						{selectedIndividualAudits.map(record => (
-							<Card key={record.audit_id} className="rounded-lg border-border">
+							<Card key={record.audit_id} className="rounded-md border-border">
 								<CardHeader>
 									<CardTitle>{record.place_name}</CardTitle>
 									<CardDescription>
@@ -1103,7 +1103,7 @@ export function LiveReports() {
 								<CardContent className="space-y-4">
 									<div className="grid gap-3 md:grid-cols-2">
 										<div
-											className={`rounded-2xl border p-4 ${colorBandClasses(getAuditRawPercent(record))}`}>
+											className={`rounded-lg border p-4 ${colorBandClasses(getAuditRawPercent(record))}`}>
 											<p className="text-xs font-medium uppercase tracking-[0.16em]">Raw Score</p>
 											<p className="mt-2 text-lg font-semibold">
 												{record.total_raw_score}/{totalRawScoreMaximum}
@@ -1111,7 +1111,7 @@ export function LiveReports() {
 											<p className="text-sm">{getAuditRawPercent(record).toFixed(0)}%</p>
 										</div>
 										<div
-											className={`rounded-2xl border p-4 ${colorBandClasses(getAuditWeightedPercent(record))}`}>
+											className={`rounded-lg border p-4 ${colorBandClasses(getAuditWeightedPercent(record))}`}>
 											<p className="text-xs font-medium uppercase tracking-[0.16em]">
 												Youth Weighted Average
 											</p>
@@ -1126,7 +1126,7 @@ export function LiveReports() {
 										{domainOrder.map(domain => (
 											<div
 												key={domain}
-												className="rounded-2xl border p-4"
+												className="rounded-lg border p-4"
 												style={{
 													borderColor: yeeDomainThemes[domain].strongFillHex,
 													backgroundColor: "#ffffff"

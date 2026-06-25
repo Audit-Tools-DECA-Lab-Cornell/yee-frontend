@@ -26,7 +26,7 @@ export function SectionTextEditor({ content, update }: { content: StructuredInst
 					sections.map((section, index) => (
 						<div
 							key={`${section.block}-${index}`}
-							className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
+							className="space-y-3 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
 							<p className="break-words text-sm font-semibold text-slate-900">
 								{cleanInstrumentText(section.title || section.block)}
 							</p>
@@ -80,7 +80,7 @@ export function SectionTextEditor({ content, update }: { content: StructuredInst
 				{groups.map(group => (
 					<div
 						key={group.blockKey}
-						className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
+						className="space-y-3 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
 						<p className="break-words text-sm font-semibold text-slate-900">
 							{cleanInstrumentText(group.section?.title || group.items[0]?.block_title || group.blockKey)}
 						</p>
@@ -90,7 +90,7 @@ export function SectionTextEditor({ content, update }: { content: StructuredInst
 							return (
 								<div
 									key={item.item_id}
-									className="space-y-2 rounded-xl border border-slate-200 bg-white p-3">
+									className="space-y-2 rounded-lg border border-slate-200 bg-white p-3">
 									<p className="text-xs font-medium uppercase tracking-wide text-slate-500">
 										{item.item_id}
 									</p>

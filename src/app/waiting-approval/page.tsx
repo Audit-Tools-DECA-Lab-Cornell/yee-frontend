@@ -41,7 +41,7 @@ export default function WaitingApprovalPage() {
 	return (
 		<AuthShell>
 			<div className="space-y-6">
-				<div className="flex size-12 items-center justify-center rounded-lg bg-amber-50 text-amber-700">
+				<div className="flex size-12 items-center justify-center rounded-md bg-amber-50 text-amber-700">
 					<Clock className="size-6" aria-hidden="true" />
 				</div>
 
@@ -53,13 +53,13 @@ export default function WaitingApprovalPage() {
 					</p>
 				</div>
 
-				<div className="rounded-lg border border-border bg-muted/50 px-4 py-4 text-sm text-muted-foreground">
+				<div className="rounded-md border border-border bg-muted/50 px-4 py-4 text-sm text-muted-foreground">
 					<span>Signed in as</span>{" "}
 					<span className="font-medium text-foreground">{session?.user.email ?? "Not signed in"}</span>
 				</div>
 
 				<div className="space-y-3">
-					<div className="rounded-lg border border-border bg-muted/30 px-4 py-4 text-sm leading-relaxed text-muted-foreground space-y-2">
+					<div className="rounded-md border border-border bg-muted/30 px-4 py-4 text-sm leading-relaxed text-muted-foreground space-y-2">
 						<p className="font-medium text-foreground">What happens next?</p>
 						<ol className="list-decimal list-inside space-y-1">
 							<li>A manager in your organization reviews and approves your account.</li>

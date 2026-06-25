@@ -42,7 +42,7 @@ export function AuditorPlaceList({ compact = false }: { compact?: boolean }) {
 
 	if (loading) {
 		return (
-			<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+			<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
 				<CardContent className="p-6 text-sm text-slate-500">Loading assigned places...</CardContent>
 			</Card>
 		);
@@ -50,7 +50,7 @@ export function AuditorPlaceList({ compact = false }: { compact?: boolean }) {
 
 	if (error) {
 		return (
-			<Card className="rounded-[1.75rem] border-rose-200 bg-rose-50 shadow-sm">
+			<Card className="rounded-lg border-rose-200 bg-rose-50 shadow-sm">
 				<CardContent className="p-6 text-sm text-rose-700">{error}</CardContent>
 			</Card>
 		);
@@ -58,7 +58,7 @@ export function AuditorPlaceList({ compact = false }: { compact?: boolean }) {
 
 	if (places.length === 0) {
 		return (
-			<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+			<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
 				<CardHeader>
 					<CardTitle>My Audits</CardTitle>
 					<CardDescription>No places have been assigned yet.</CardDescription>
@@ -79,7 +79,7 @@ export function AuditorPlaceList({ compact = false }: { compact?: boolean }) {
 		return (
 			<div
 				key={place.id}
-				className="flex flex-col gap-3 rounded-2xl border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between">
+				className="flex flex-col gap-3 rounded-lg border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between">
 				<div>
 					<p className="font-medium text-slate-900">{place.name}</p>
 					<p className="mt-1 text-sm text-slate-600">{place.project}</p>
@@ -101,15 +101,15 @@ export function AuditorPlaceList({ compact = false }: { compact?: boolean }) {
 				</div>
 				<div className="flex flex-wrap gap-2">
 					{isSubmitted ? (
-						<Button asChild variant="outline" className="rounded-2xl">
+						<Button asChild variant="outline" className="rounded-lg">
 							<Link href={`/yee/submissions/${auditState.submission_id}`}>View Submission</Link>
 						</Button>
 					) : hasDraft ? (
-						<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
+						<Button asChild className="rounded-lg bg-[#10231f] text-white hover:bg-[#17302c]">
 							<Link href={`/yee/audit/${place.id}/page/1`}>Continue In Progress</Link>
 						</Button>
 					) : (
-						<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
+						<Button asChild className="rounded-lg bg-[#10231f] text-white hover:bg-[#17302c]">
 							<Link href={`/yee/audit/${place.id}/page/1`}>Start Audit</Link>
 						</Button>
 					)}
@@ -123,7 +123,7 @@ export function AuditorPlaceList({ compact = false }: { compact?: boolean }) {
 	}
 
 	return (
-		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+		<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
 			<CardHeader>
 				<div>
 					<CardTitle>My Audits</CardTitle>

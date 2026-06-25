@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 export default function AuditorDashboardError({ error, reset }: { error: Error; reset: () => void }) {
 	return (
 		<div className="flex min-h-dvh items-center justify-center p-6">
-			<Card className="w-full max-w-md rounded-2xl border-rose-200 bg-rose-50 shadow-sm">
+			<Card className="w-full max-w-md rounded-lg border-rose-200 bg-rose-50 shadow-sm">
 				<CardHeader>
 					<CardTitle className="text-rose-800">Auditor dashboard error</CardTitle>
 					<CardDescription className="text-rose-700">
@@ -18,7 +18,7 @@ export default function AuditorDashboardError({ error, reset }: { error: Error; 
 					<Button
 						type="button"
 						onClick={reset}
-						className="rounded-2xl bg-rose-700 text-white hover:bg-rose-800">
+						className="rounded-lg bg-rose-700 text-white hover:bg-rose-800">
 						Try again
 					</Button>
 				</CardContent>

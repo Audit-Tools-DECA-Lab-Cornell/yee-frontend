@@ -147,7 +147,7 @@ export function AssignmentPanel({
 	}
 
 	return (
-		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+		<Card className="rounded-lg border border-slate-200/80 bg-white shadow-sm">
 			<CardHeader>
 				<CardTitle>{title}</CardTitle>
 				<CardDescription>{description}</CardDescription>
@@ -167,7 +167,7 @@ export function AssignmentPanel({
 										setProjectId(event.target.value);
 										setSelectedPlaceIds([]);
 									}}
-									className="flex h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm shadow-xs outline-none">
+									className="flex h-10 w-full rounded-lg border border-slate-200 bg-white px-3 text-sm shadow-xs outline-none">
 									{projects.map(project => (
 										<option key={project.id} value={project.id}>
 											{project.name}
@@ -183,7 +183,7 @@ export function AssignmentPanel({
 									<Label>Auditors</Label>
 									<div className="flex items-center gap-2">
 										<p className="text-xs text-slate-500">{selectedAuditorIds.length} selected</p>
-										<label className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700">
+										<label className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700">
 											<input
 												type="checkbox"
 												checked={allAuditorsSelected}
@@ -193,11 +193,11 @@ export function AssignmentPanel({
 										</label>
 									</div>
 								</div>
-								<div className="max-h-72 space-y-2 overflow-auto rounded-2xl border border-slate-200 p-3">
+								<div className="max-h-72 space-y-2 overflow-auto rounded-lg border border-slate-200 p-3">
 									{auditors.map(auditor => (
 										<label
 											key={auditor.id}
-											className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-100 p-3 hover:bg-slate-50">
+											className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-100 p-3 hover:bg-slate-50">
 											<input
 												type="checkbox"
 												checked={selectedAuditorIds.includes(auditor.id)}
@@ -223,7 +223,7 @@ export function AssignmentPanel({
 									<Label>Places</Label>
 									<div className="flex items-center gap-2">
 										<p className="text-xs text-slate-500">{selectedPlaceIds.length} selected</p>
-										<label className="inline-flex items-center gap-2 rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700">
+										<label className="inline-flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-700">
 											<input
 												type="checkbox"
 												checked={allVisibleSelected}
@@ -235,20 +235,20 @@ export function AssignmentPanel({
 											type="button"
 											variant="outline"
 											size="sm"
-											className="rounded-xl"
+											className="rounded-lg"
 											onClick={selectAllPlaces}>
 											All places in project
 										</Button>
 									</div>
 								</div>
-								<div className="max-h-72 space-y-2 overflow-auto rounded-2xl border border-slate-200 p-3">
+								<div className="max-h-72 space-y-2 overflow-auto rounded-lg border border-slate-200 p-3">
 									{visiblePlaces.length === 0 ? (
 										<p className="text-sm text-slate-500">No places found for this project yet.</p>
 									) : (
 										visiblePlaces.map(place => (
 											<label
 												key={place.id}
-												className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-100 p-3 hover:bg-slate-50">
+												className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-100 p-3 hover:bg-slate-50">
 												<input
 													type="checkbox"
 													checked={selectedPlaceIds.includes(place.id)}
@@ -278,7 +278,7 @@ export function AssignmentPanel({
 
 						<Button
 							type="submit"
-							className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]"
+							className="rounded-lg bg-[#10231f] text-white hover:bg-[#17302c]"
 							disabled={
 								saving || !projectId || selectedAuditorIds.length === 0 || selectedPlaceIds.length === 0
 							}>

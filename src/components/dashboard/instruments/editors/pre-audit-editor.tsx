@@ -17,17 +17,17 @@ export function PreAuditEditor({ content, update }: { content: StructuredInstrum
 	return (
 		<div className="space-y-4">
 			{questions.map((question, index) => (
-				<div key={question.id} className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
+				<div key={question.id} className="space-y-3 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
 					<div className="flex flex-wrap items-center gap-2">
-						<Badge className="rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-100">
+						<Badge className="rounded-md bg-slate-100 text-slate-700 hover:bg-slate-100">
 							{question.id}
 						</Badge>
 						{question.auto_generated ? (
-							<Badge className="rounded-lg bg-slate-900 text-white hover:bg-slate-900">
+							<Badge className="rounded-md bg-slate-900 text-white hover:bg-slate-900">
 								Auto generated
 							</Badge>
 						) : null}
-						<Badge className="rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-100">
+						<Badge className="rounded-md bg-slate-100 text-slate-700 hover:bg-slate-100">
 							{question.multi_select ? "Multi select" : "Single select"}
 						</Badge>
 					</div>
@@ -70,7 +70,7 @@ export function PreAuditEditor({ content, update }: { content: StructuredInstrum
 						}
 					/>
 					{(question.options ?? []).length > 0 ? (
-						<div className="space-y-3 rounded-xl border border-slate-200 bg-white p-3">
+						<div className="space-y-3 rounded-lg border border-slate-200 bg-white p-3">
 							<p className="text-xs font-medium uppercase tracking-wide text-slate-500">Option labels</p>
 							{(question.options ?? []).map((option, optionIndex) => (
 								<EditableField

@@ -23,12 +23,12 @@ export function LegalDocumentsEditor({
 	return (
 		<div className="space-y-4">
 			{documents.map((document, index) => (
-				<div key={document.id} className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
+				<div key={document.id} className="space-y-3 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
 					<div className="flex flex-wrap items-center justify-between gap-2">
 						<p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
 							{cleanInstrumentText(document.document_type?.replaceAll("_", " ") || "Document")}
 						</p>
-						<Badge className="rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-100">
+						<Badge className="rounded-md bg-slate-100 text-slate-700 hover:bg-slate-100">
 							{document.id}
 						</Badge>
 					</div>

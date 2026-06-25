@@ -428,7 +428,7 @@ export function PlaceProfileForm({
 					value={values.projectId}
 					onChange={event => update("projectId", event.target.value)}
 					disabled={loadingProjects || projects.length === 0}
-					className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+					className="flex h-10 w-full rounded-sm border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
 					{projects.length === 0 ? <option value="">No Projects available</option> : null}
 					{projects.map(project => (
 						<option key={project.id} value={project.id}>
@@ -474,7 +474,7 @@ export function PlaceProfileForm({
 						required
 					/>
 					{googleMapsApiKey && suggestionsOpen && suggestions.length > 0 ? (
-						<div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-20 overflow-hidden rounded-[1.25rem] border border-border bg-white shadow-lg">
+						<div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-20 overflow-hidden rounded-lg border border-border bg-white shadow-lg">
 							<ul className="max-h-72 overflow-y-auto py-2">
 								{suggestions.map(suggestion => (
 									<li key={suggestion.placeId}>
@@ -548,7 +548,7 @@ export function PlaceProfileForm({
 						<Button
 							type="button"
 							variant="outline"
-							className="w-full justify-between rounded-lg px-4 py-5 text-left font-normal">
+							className="w-full justify-between rounded-md px-4 py-5 text-left font-normal">
 							<span className="truncate">
 								{values.placeType === "Other"
 									? `Other: ${values.otherPlaceType || "custom type"}`
@@ -556,7 +556,7 @@ export function PlaceProfileForm({
 							</span>
 						</Button>
 					</DropdownMenuTrigger>
-					<DropdownMenuContent align="start" className="w-[28rem] rounded-lg p-2">
+					<DropdownMenuContent align="start" className="w-[28rem] rounded-md p-2">
 						<DropdownMenuLabel>Type of Place</DropdownMenuLabel>
 						<DropdownMenuSeparator />
 						{PLACE_TYPE_OPTIONS.map(option => (
@@ -564,16 +564,18 @@ export function PlaceProfileForm({
 								key={option}
 								type="button"
 								onClick={() => update("placeType", option)}
-								className={`flex w-full rounded-sm px-2 py-2 text-left text-sm transition hover:bg-accent hover:text-accent-foreground ${values.placeType === option ? "bg-emerald-50 text-emerald-900" : "text-foreground"
-									}`}>
+								className={`flex w-full rounded-xs px-2 py-2 text-left text-sm transition hover:bg-accent hover:text-accent-foreground ${
+									values.placeType === option ? "bg-emerald-50 text-emerald-900" : "text-foreground"
+								}`}>
 								{option}
 							</button>
 						))}
 						<button
 							type="button"
 							onClick={() => update("placeType", "Other")}
-							className={`flex w-full rounded-sm px-2 py-2 text-left text-sm transition hover:bg-accent hover:text-accent-foreground ${values.placeType === "Other" ? "bg-emerald-50 text-emerald-900" : "text-foreground"
-								}`}>
+							className={`flex w-full rounded-xs px-2 py-2 text-left text-sm transition hover:bg-accent hover:text-accent-foreground ${
+								values.placeType === "Other" ? "bg-emerald-50 text-emerald-900" : "text-foreground"
+							}`}>
 							Other
 						</button>
 					</DropdownMenuContent>
@@ -626,7 +628,7 @@ export function PlaceProfileForm({
 						<Button
 							type="button"
 							variant="outline"
-							className="w-full justify-between rounded-lg px-4 py-5 text-left font-normal">
+							className="w-full justify-between rounded-md px-4 py-5 text-left font-normal">
 							<span className="truncate">
 								{summarizeSelections(
 									values.auditorPopulationTypes,
@@ -639,7 +641,7 @@ export function PlaceProfileForm({
 							</span>
 						</Button>
 					</DropdownMenuTrigger>
-					<DropdownMenuContent align="start" className="w-[28rem] rounded-lg p-2">
+					<DropdownMenuContent align="start" className="w-[28rem] rounded-md p-2">
 						<DropdownMenuLabel>Auditor Population Type (check all that apply)</DropdownMenuLabel>
 						<DropdownMenuSeparator />
 						{AUDITOR_POPULATION_OPTIONS.map(option => (
@@ -701,9 +703,9 @@ export function PlaceProfileForm({
 			<div className="space-y-3 sm:col-span-2">
 				<Label>Map preview</Label>
 				{googleMapsHref ? (
-					<div className="rounded-lg border border-border bg-muted/40 p-5">
+					<div className="rounded-md border border-border bg-muted/40 p-5">
 						{openStreetMapEmbedUrl ? (
-							<div className="overflow-hidden rounded-[1.25rem] border border-border bg-white">
+							<div className="overflow-hidden rounded-lg border border-border bg-white">
 								<iframe
 									src={openStreetMapEmbedUrl}
 									title="Location map preview"
@@ -713,7 +715,7 @@ export function PlaceProfileForm({
 								/>
 							</div>
 						) : previewMapUrl && !mapImageFailed ? (
-							<div className="overflow-hidden rounded-[1.25rem] border border-border bg-white">
+							<div className="overflow-hidden rounded-lg border border-border bg-white">
 								<Image
 									src={previewMapUrl ?? ""}
 									alt="Location preview"
@@ -730,7 +732,7 @@ export function PlaceProfileForm({
 								/>
 							</div>
 						) : (
-							<p className="rounded-[1.25rem] border border-dashed border-slate-300 bg-white p-4 text-sm text-muted-foreground">
+							<p className="rounded-lg border border-dashed border-slate-300 bg-white p-4 text-sm text-muted-foreground">
 								Map snapshot unavailable right now, but the Google Maps link below is still ready for
 								this Place.
 							</p>
@@ -740,7 +742,7 @@ export function PlaceProfileForm({
 							directly in Google Maps if you need a closer check.
 						</p>
 						<div className="mt-4 flex flex-wrap gap-3">
-							<Button asChild className="rounded-lg bg-primary text-white hover:bg-primary/90">
+							<Button asChild className="rounded-md bg-primary text-white hover:bg-primary/90">
 								<a href={googleMapsHref} target="_blank" rel="noreferrer">
 									Open in Google Maps
 								</a>
@@ -753,7 +755,7 @@ export function PlaceProfileForm({
 						</div>
 					</div>
 				) : (
-					<p className="rounded-lg border border-dashed border-slate-300 bg-muted/40 p-4 text-sm text-muted-foreground">
+					<p className="rounded-md border border-dashed border-slate-300 bg-muted/40 p-4 text-sm text-muted-foreground">
 						{googleMapsApiKey
 							? "Add a complete address or location details to generate a Google Maps preview link here."
 							: "Add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to enable Google Places autocomplete. The map preview link appears once a location is entered."}
@@ -765,11 +767,11 @@ export function PlaceProfileForm({
 			<div className="mt-2 flex flex-wrap gap-3 sm:col-span-2">
 				<Button
 					type="submit"
-					className="rounded-lg bg-primary text-white hover:bg-primary/90"
+					className="rounded-md bg-primary text-white hover:bg-primary/90"
 					disabled={saving || loadingProjects || projects.length === 0}>
 					{saving ? "Saving..." : submitLabel}
 				</Button>
-				<Button asChild variant="outline" className="rounded-lg">
+				<Button asChild variant="outline" className="rounded-md">
 					<Link href={cancelHref}>{cancelLabel}</Link>
 				</Button>
 			</div>

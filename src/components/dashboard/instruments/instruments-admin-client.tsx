@@ -144,7 +144,7 @@ export function InstrumentsAdminClient() {
 
 	return (
 		<div className="space-y-6">
-			<Card className="rounded-[1.75rem] border-[#3b3027] bg-[#352b25] text-white shadow-sm">
+			<Card className="rounded-lg border-[#3b3027] bg-[#352b25] text-white shadow-sm">
 				<CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
 					<div className="space-y-2">
 						<p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#d6c9bc]">
@@ -160,14 +160,14 @@ export function InstrumentsAdminClient() {
 						<Button
 							type="button"
 							variant="outline"
-							className="rounded-2xl border-white/25 bg-white/90 text-[#352b25] hover:bg-white"
+							className="rounded-lg border-white/25 bg-white/90 text-[#352b25] hover:bg-white"
 							onClick={handleOpenCurrent}
 							disabled={!canonicalInstrument}>
 							Open Current Version
 						</Button>
 						<Button
 							type="button"
-							className="rounded-2xl bg-[#3e8f63] text-white hover:bg-[#347b55]"
+							className="rounded-lg bg-[#3e8f63] text-white hover:bg-[#347b55]"
 							onClick={handleCreateNewDraft}
 							disabled={!activeVersion && !canonicalInstrument}>
 							Create New Draft
@@ -177,7 +177,7 @@ export function InstrumentsAdminClient() {
 			</Card>
 
 			{loadError ? (
-				<Card className="rounded-[1.75rem] border-rose-200 bg-rose-50 shadow-sm">
+				<Card className="rounded-lg border-rose-200 bg-rose-50 shadow-sm">
 					<CardHeader>
 						<CardTitle>Instrument tool needs attention</CardTitle>
 						<CardDescription className="text-rose-700">
@@ -209,7 +209,7 @@ export function InstrumentsAdminClient() {
 						onCancel={() => setEditing(null)}
 					/>
 				) : (
-					<Card className="rounded-[1.75rem] border-dashed border-slate-300 bg-slate-50/70 shadow-sm">
+					<Card className="rounded-lg border-dashed border-slate-300 bg-slate-50/70 shadow-sm">
 						<CardContent className="py-8 text-center text-sm text-slate-600">
 							Open the current version or one of the saved versions above to start editing a draft.
 						</CardContent>

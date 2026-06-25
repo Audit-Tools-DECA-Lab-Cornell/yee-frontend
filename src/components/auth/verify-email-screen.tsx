@@ -95,7 +95,7 @@ export function VerifyEmailScreen({ token, email }: { token?: string; email?: st
 	return (
 		<AuthShell>
 			<div className="space-y-6">
-				<div className={`flex size-12 items-center justify-center rounded-lg ${iconColor}`}>
+				<div className={`flex size-12 items-center justify-center rounded-md ${iconColor}`}>
 					<StatusIcon className="size-6" aria-hidden="true" />
 				</div>
 
@@ -112,7 +112,7 @@ export function VerifyEmailScreen({ token, email }: { token?: string; email?: st
 
 				<div
 					aria-live="polite"
-					className="rounded-lg border border-border bg-muted/50 px-4 py-4 text-sm leading-relaxed text-muted-foreground">
+					className="rounded-md border border-border bg-muted/50 px-4 py-4 text-sm leading-relaxed text-muted-foreground">
 					{statusDescription}
 				</div>
 

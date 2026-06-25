@@ -108,7 +108,7 @@ export function YeeScoreSummary({
 	const weightedExtremes = findScoreExtremes(rows, "weighted", preview);
 
 	return (
-		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+		<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
 			<CardHeader>
 				<CardTitle>{title}</CardTitle>
 				<CardDescription>{description}</CardDescription>
@@ -157,7 +157,7 @@ export function YeeScoreSummary({
 					</table>
 				</div>
 				<div className="grid gap-4 md:grid-cols-2 report-no-break report-print-stack">
-					<div className="rounded-2xl bg-slate-50 p-4 report-no-break">
+					<div className="rounded-lg bg-slate-50 p-4 report-no-break">
 						<p className="text-sm text-slate-500">Total Enabling Environment Raw Score</p>
 						<p className="mt-2 text-2xl font-semibold text-slate-950">
 							{preview.totalRawScore} / {totalRawScoreMaximum}{" "}
@@ -168,7 +168,7 @@ export function YeeScoreSummary({
 							audit.
 						</p>
 					</div>
-					<div className="rounded-2xl bg-emerald-100/80 p-4 report-no-break">
+					<div className="rounded-lg bg-emerald-100/80 p-4 report-no-break">
 						<p className="text-sm text-emerald-700">Total Enabling Environment Youth Weighted Average</p>
 						<p className="mt-2 text-2xl font-semibold text-emerald-900">
 							{preview.totalWeightedScore} / {youthWeightedMax}{" "}
@@ -180,7 +180,7 @@ export function YeeScoreSummary({
 						</p>
 					</div>
 				</div>
-				<div className="rounded-2xl border border-slate-200 bg-[#f8fbf9] p-4 text-sm text-slate-600 report-no-break">
+				<div className="rounded-lg border border-slate-200 bg-[#f8fbf9] p-4 text-sm text-slate-600 report-no-break">
 					<p className="font-medium text-slate-900">How to read these graphs</p>
 					<p className="mt-2">
 						Each bar represents 100% of the available score for that section. The colored fill shows how
@@ -195,7 +195,7 @@ export function YeeScoreSummary({
 						].map(entry => (
 							<div
 								key={entry.label}
-								className="rounded-2xl border border-slate-200 bg-white p-3 report-no-break">
+								className="rounded-lg border border-slate-200 bg-white p-3 report-no-break">
 								<div className="flex items-center gap-2">
 									<span className={`h-3 w-3 rounded-full ${entry.tone}`} />
 									<p className="text-sm font-medium text-slate-900">{entry.label}</p>
@@ -206,7 +206,7 @@ export function YeeScoreSummary({
 					</div>
 				</div>
 				<div className="space-y-6">
-					<div className={`space-y-4 rounded-2xl border p-4 report-no-break ${rawPalette.panel}`}>
+					<div className={`space-y-4 rounded-lg border p-4 report-no-break ${rawPalette.panel}`}>
 						<p className="text-sm font-medium text-slate-900">Raw score by section</p>
 						<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 report-print-stack">
 							{rows.map(row => {
@@ -216,7 +216,7 @@ export function YeeScoreSummary({
 								return (
 									<div
 										key={`${row.domain}-raw`}
-										className={`rounded-[1.25rem] border-[3px] px-3 py-4 report-no-break ${palette.border}`}
+										className={`rounded-lg border-[3px] px-3 py-4 report-no-break ${palette.border}`}
 										style={{ backgroundColor: yeeDomainThemes[row.domain].lightHex }}>
 										<div className="space-y-1">
 											<p className={`text-sm font-semibold ${palette.text}`}>{row.label}</p>
@@ -226,9 +226,9 @@ export function YeeScoreSummary({
 											</p>
 										</div>
 										<div className="mt-4 flex justify-center">
-											<div className="flex h-28 w-9 items-end rounded-xl border border-slate-200 bg-white/80 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+											<div className="flex h-28 w-9 items-end rounded-lg border border-slate-200 bg-white/80 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
 												<div
-													className={`w-full rounded-md ${colorBand(rawPercentage)}`}
+													className={`w-full rounded-sm ${colorBand(rawPercentage)}`}
 													style={{ height: barHeight(rawPercentage) }}
 												/>
 											</div>
@@ -238,7 +238,7 @@ export function YeeScoreSummary({
 							})}
 						</div>
 					</div>
-					<div className={`space-y-4 rounded-2xl border p-4 report-no-break ${youthPalette.panel}`}>
+					<div className={`space-y-4 rounded-lg border p-4 report-no-break ${youthPalette.panel}`}>
 						<p className="text-sm font-medium text-emerald-900">Youth-Weighted average by section</p>
 						<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 report-print-stack">
 							{rows.map(row => {
@@ -248,7 +248,7 @@ export function YeeScoreSummary({
 								return (
 									<div
 										key={`${row.domain}-weighted`}
-										className={`rounded-[1.25rem] border-[3px] px-3 py-4 report-no-break ${palette.border}`}
+										className={`rounded-lg border-[3px] px-3 py-4 report-no-break ${palette.border}`}
 										style={{ backgroundColor: yeeDomainThemes[row.domain].lightHex }}>
 										<div className="space-y-1">
 											<p className={`text-sm font-semibold ${palette.text}`}>{row.label}</p>
@@ -260,9 +260,9 @@ export function YeeScoreSummary({
 											</p>
 										</div>
 										<div className="mt-4 flex justify-center">
-											<div className="flex h-28 w-9 items-end rounded-xl border border-slate-200 bg-white/80 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
+											<div className="flex h-28 w-9 items-end rounded-lg border border-slate-200 bg-white/80 p-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.95)]">
 												<div
-													className={`w-full rounded-md ${colorBand(weightedPercentage)}`}
+													className={`w-full rounded-sm ${colorBand(weightedPercentage)}`}
 													style={{ height: barHeight(weightedPercentage) }}
 												/>
 											</div>
@@ -273,7 +273,7 @@ export function YeeScoreSummary({
 						</div>
 					</div>
 					<div className="grid gap-4 md:grid-cols-2 report-no-break report-print-stack">
-						<div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 report-no-break">
+						<div className="rounded-lg border border-slate-200 bg-slate-50 p-4 report-no-break">
 							<p className="text-sm font-medium text-slate-900">Highest and lowest raw score sections</p>
 							<p className="mt-2 text-sm text-slate-600">
 								Highest:{" "}
@@ -286,7 +286,7 @@ export function YeeScoreSummary({
 								{rawExtremes.lowest.percentage.toFixed(0)}%)
 							</p>
 						</div>
-						<div className="rounded-2xl border border-emerald-200 bg-emerald-50/80 p-4 report-no-break">
+						<div className="rounded-lg border border-emerald-200 bg-emerald-50/80 p-4 report-no-break">
 							<p className="text-sm font-medium text-emerald-900">
 								Highest and lowest Youth-Weighted sections
 							</p>

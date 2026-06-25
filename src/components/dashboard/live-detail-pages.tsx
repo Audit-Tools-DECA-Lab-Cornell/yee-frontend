@@ -31,7 +31,7 @@ function buildStaticMapUrl(apiKey: string | undefined, query: string) {
 
 function LoadingState({ label }: { label: string }) {
 	return (
-		<Card className="rounded-lg border-border/80 bg-white shadow-sm">
+		<Card className="rounded-md border-border/80 bg-white shadow-sm">
 			<CardContent className="p-6 text-sm text-muted-foreground">Loading {label}...</CardContent>
 		</Card>
 	);
@@ -39,7 +39,7 @@ function LoadingState({ label }: { label: string }) {
 
 function ErrorState({ message }: { message: string }) {
 	return (
-		<Card className="rounded-lg border-rose-200 bg-rose-50 shadow-sm">
+		<Card className="rounded-md border-rose-200 bg-rose-50 shadow-sm">
 			<CardContent className="p-6 text-sm text-rose-700">{message}</CardContent>
 		</Card>
 	);
@@ -51,7 +51,7 @@ function EmptyTable({ message }: { message: string }) {
 
 function DetailMetric({ label, value, description }: { label: string; value: string; description: string }) {
 	return (
-		<Card className="rounded-lg border-border/80 bg-white shadow-sm">
+		<Card className="rounded-md border-border/80 bg-white shadow-sm">
 			<CardHeader className="pb-3">
 				<CardDescription>{label}</CardDescription>
 				<CardTitle className="text-3xl font-semibold tracking-tight text-foreground">{value}</CardTitle>
@@ -73,14 +73,14 @@ function DetailActionCard({
 	actionLabel: string;
 }) {
 	return (
-		<Card className="rounded-lg border-border/80 bg-white shadow-sm">
+		<Card className="rounded-md border-border/80 bg-white shadow-sm">
 			<CardHeader className="pb-3">
 				<CardDescription>{label}</CardDescription>
 				<CardTitle className="text-2xl font-semibold tracking-tight text-foreground">{actionLabel}</CardTitle>
 			</CardHeader>
 			<CardContent className="flex items-center justify-between gap-4 text-sm leading-6 text-muted-foreground">
 				<p>{description}</p>
-				<Button asChild className="rounded-lg bg-primary text-white hover:bg-primary/90">
+				<Button asChild className="rounded-md bg-primary text-white hover:bg-primary/90">
 					<Link href={href}>
 						{actionLabel}
 						<ArrowRight className="size-4" />
@@ -139,7 +139,7 @@ function useProtectedLoader<T>(
 
 function LatestAuditTable({ audits }: { audits: AuditRecord[] }) {
 	return (
-		<Card className="rounded-lg border-border/80 bg-white shadow-sm">
+		<Card className="rounded-md border-border/80 bg-white shadow-sm">
 			<CardHeader>
 				<CardTitle>Latest Audits</CardTitle>
 				<CardDescription>Recent Audit activity already linked to this scope.</CardDescription>
@@ -184,7 +184,7 @@ function LatestAuditTable({ audits }: { audits: AuditRecord[] }) {
 
 function ProjectPlacesTable({ rows }: { rows: ProjectPlaceRecord[] }) {
 	return (
-		<Card className="rounded-lg border-border/80 bg-white shadow-sm">
+		<Card className="rounded-md border-border/80 bg-white shadow-sm">
 			<CardHeader>
 				<CardTitle>Places in this Project</CardTitle>
 				<CardDescription>
@@ -256,7 +256,7 @@ function ProjectAuditorsTable({
 	removingAuditorId?: string | null;
 }) {
 	return (
-		<Card className="rounded-lg border-border/80 bg-white shadow-sm">
+		<Card className="rounded-md border-border/80 bg-white shadow-sm">
 			<CardHeader>
 				<CardTitle>Assigned Auditors</CardTitle>
 				<CardDescription>Auditors linked to at least one Place inside this Project.</CardDescription>
@@ -295,7 +295,7 @@ function ProjectAuditorsTable({
 											<Button
 												type="button"
 												variant="outline"
-												className="rounded-lg"
+												className="rounded-md"
 												disabled={removingAuditorId === auditor.id}
 												onClick={() => onRemove(auditor)}>
 												{removingAuditorId === auditor.id
@@ -324,7 +324,7 @@ function PlaceAuditorsTable({
 	removingAuditorId?: string | null;
 }) {
 	return (
-		<Card className="rounded-lg border-border/80 bg-white shadow-sm">
+		<Card className="rounded-md border-border/80 bg-white shadow-sm">
 			<CardHeader>
 				<CardTitle>Assigned auditors</CardTitle>
 				<CardDescription>Place assignments and submission status for each auditor.</CardDescription>
@@ -363,7 +363,7 @@ function PlaceAuditorsTable({
 											<Button
 												type="button"
 												variant="outline"
-												className="rounded-lg"
+												className="rounded-md"
 												disabled={removingAuditorId === auditor.id}
 												onClick={() => onRemove(auditor)}>
 												{removingAuditorId === auditor.id ? "Removing..." : "Unassign"}
@@ -418,7 +418,7 @@ export function LiveProjectDetail({ projectId }: { projectId: string }) {
 	return (
 		<>
 			<div className="space-y-6">
-				<section className="overflow-hidden rounded-xl border border-emerald-200/60 bg-linear-to-br from-[#10231f] via-[#17302c] to-[#21483b] text-white shadow-xl shadow-emerald-950/10">
+				<section className="overflow-hidden rounded-lg border border-emerald-200/60 bg-linear-to-br from-[#10231f] via-[#17302c] to-[#21483b] text-white shadow-xl shadow-emerald-950/10">
 					<div className="grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:px-10 lg:py-10">
 						<div>
 							<Badge className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-white hover:bg-white/10">
@@ -437,16 +437,16 @@ export function LiveProjectDetail({ projectId }: { projectId: string }) {
 								</Badge>
 							</div>
 						</div>
-						<div className="rounded-lg border border-white/10 bg-white/8 p-5 backdrop-blur-sm">
+						<div className="rounded-md border border-white/10 bg-white/8 p-5 backdrop-blur-sm">
 							<p className="text-sm font-medium text-emerald-50/80">Project actions</p>
 							<div className="mt-5 grid gap-3">
-								<Button asChild className="rounded-lg bg-white text-foreground hover:bg-emerald-50">
+								<Button asChild className="rounded-md bg-white text-foreground hover:bg-emerald-50">
 									<Link href={`/dashboard/places/new?projectId=${data.id}`}>Add Places</Link>
 								</Button>
 								<Button
 									asChild
 									variant="outline"
-									className="rounded-lg border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+									className="rounded-md border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
 									<Link href={`/dashboard/auditors?projectId=${data.id}`}>
 										Manage Auditor Assignments
 									</Link>
@@ -454,13 +454,13 @@ export function LiveProjectDetail({ projectId }: { projectId: string }) {
 								<Button
 									asChild
 									variant="outline"
-									className="rounded-lg border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+									className="rounded-md border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
 									<Link href={`/dashboard/projects/${data.id}/edit`}>Edit Project</Link>
 								</Button>
 								<Button
 									asChild
 									variant="outline"
-									className="rounded-lg border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+									className="rounded-md border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
 									<Link href="/dashboard/reports">Open Reports</Link>
 								</Button>
 							</div>
@@ -492,7 +492,7 @@ export function LiveProjectDetail({ projectId }: { projectId: string }) {
 				</section>
 
 				<section className="grid gap-4 xl:grid-cols-2">
-					<Card className="rounded-lg border-border/80 bg-white shadow-sm">
+					<Card className="rounded-md border-border/80 bg-white shadow-sm">
 						<CardHeader>
 							<CardTitle>Project setup details</CardTitle>
 							<CardDescription>
@@ -501,13 +501,13 @@ export function LiveProjectDetail({ projectId }: { projectId: string }) {
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="grid gap-4 sm:grid-cols-2 text-sm leading-6 text-foreground">
-							<div className="rounded-lg bg-muted/40 p-4 sm:col-span-2">
+							<div className="rounded-md bg-muted/40 p-4 sm:col-span-2">
 								<p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 									Project overview / aims
 								</p>
 								<p className="mt-2">{data.description}</p>
 							</div>
-							<div className="rounded-lg bg-muted/40 p-4">
+							<div className="rounded-md bg-muted/40 p-4">
 								<p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 									Types of Places to be Audited
 								</p>
@@ -515,19 +515,19 @@ export function LiveProjectDetail({ projectId }: { projectId: string }) {
 									{data.place_types.length > 0 ? data.place_types.join(", ") : "Not specified yet."}
 								</p>
 							</div>
-							<div className="rounded-lg bg-muted/40 p-4">
+							<div className="rounded-md bg-muted/40 p-4">
 								<p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 									Estimated number of Places
 								</p>
 								<p className="mt-2">{data.estimated_places ?? "Not specified yet."}</p>
 							</div>
-							<div className="rounded-lg bg-muted/40 p-4">
+							<div className="rounded-md bg-muted/40 p-4">
 								<p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 									Anticipated Start Date
 								</p>
 								<p className="mt-2">{data.start_date ?? "Not specified yet."}</p>
 							</div>
-							<div className="rounded-lg bg-muted/40 p-4">
+							<div className="rounded-md bg-muted/40 p-4">
 								<p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 									Anticipated End Date
 								</p>
@@ -536,7 +536,7 @@ export function LiveProjectDetail({ projectId }: { projectId: string }) {
 						</CardContent>
 					</Card>
 
-					<Card className="rounded-lg border-border/80 bg-white shadow-sm">
+					<Card className="rounded-md border-border/80 bg-white shadow-sm">
 						<CardHeader>
 							<CardTitle>Auditor setup details</CardTitle>
 							<CardDescription>
@@ -545,7 +545,7 @@ export function LiveProjectDetail({ projectId }: { projectId: string }) {
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-4 text-sm leading-6 text-foreground">
-							<div className="rounded-lg bg-muted/40 p-4">
+							<div className="rounded-md bg-muted/40 p-4">
 								<p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 									Population type
 								</p>
@@ -555,7 +555,7 @@ export function LiveProjectDetail({ projectId }: { projectId: string }) {
 										: "Not specified yet."}
 								</p>
 							</div>
-							<div className="rounded-lg bg-muted/40 p-4">
+							<div className="rounded-md bg-muted/40 p-4">
 								<p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 									Inclusion / exclusion criteria
 								</p>
@@ -563,7 +563,7 @@ export function LiveProjectDetail({ projectId }: { projectId: string }) {
 									{data.auditor_inclusion_exclusion_criteria || "Not specified yet."}
 								</p>
 							</div>
-							<div className="rounded-lg bg-muted/40 p-4">
+							<div className="rounded-md bg-muted/40 p-4">
 								<p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 									Other notes about Auditors
 								</p>
@@ -575,7 +575,7 @@ export function LiveProjectDetail({ projectId }: { projectId: string }) {
 
 				<div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
 					<ProjectPlacesTable rows={data.places} />
-					<Card className="rounded-lg border-border/80 bg-white shadow-sm">
+					<Card className="rounded-md border-border/80 bg-white shadow-sm">
 						<CardHeader>
 							<CardTitle>Project workflow</CardTitle>
 							<CardDescription>
@@ -583,21 +583,21 @@ export function LiveProjectDetail({ projectId }: { projectId: string }) {
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-4 text-sm leading-6 text-muted-foreground">
-							<div className="flex items-start gap-3 rounded-lg bg-muted/40 p-4">
+							<div className="flex items-start gap-3 rounded-md bg-muted/40 p-4">
 								<MapPin className="mt-0.5 size-4 text-emerald-700" />
 								<p>
 									Place rows show the live Project scope so you can move directly into each Place
 									profile and see how many Audits already exist.
 								</p>
 							</div>
-							<div className="flex items-start gap-3 rounded-lg bg-muted/40 p-4">
+							<div className="flex items-start gap-3 rounded-md bg-muted/40 p-4">
 								<Users2 className="mt-0.5 size-4 text-emerald-700" />
 								<p>
 									Assigned Auditors stay grouped here so managers can review coverage and add more
 									fieldworkers without leaving the Project flow.
 								</p>
 							</div>
-							<div className="flex items-start gap-3 rounded-lg bg-muted/40 p-4">
+							<div className="flex items-start gap-3 rounded-md bg-muted/40 p-4">
 								<ClipboardList className="mt-0.5 size-4 text-emerald-700" />
 								<p>
 									Latest Audit activity stays visible here so it is easier to jump from Project setup
@@ -700,7 +700,7 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 	return (
 		<>
 			<div className="space-y-6">
-				<section className="overflow-hidden rounded-xl border border-sky-200/60 bg-linear-to-br from-[#0f172a] via-[#17324d] to-[#14532d] text-white shadow-xl shadow-sky-950/10">
+				<section className="overflow-hidden rounded-lg border border-sky-200/60 bg-linear-to-br from-[#0f172a] via-[#17324d] to-[#14532d] text-white shadow-xl shadow-sky-950/10">
 					<div className="grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:px-10 lg:py-10">
 						<div>
 							<Badge className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-white hover:bg-white/10">
@@ -732,22 +732,22 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 								) : null}
 							</div>
 						</div>
-						<div className="rounded-lg border border-white/10 bg-white/8 p-5 backdrop-blur-sm">
+						<div className="rounded-md border border-white/10 bg-white/8 p-5 backdrop-blur-sm">
 							<p className="text-sm font-medium text-sky-50/80">Place actions</p>
 							<div className="mt-5 grid gap-3">
-								<Button asChild className="rounded-lg bg-white text-foreground hover:bg-sky-50">
+								<Button asChild className="rounded-md bg-white text-foreground hover:bg-sky-50">
 									<Link href={`/dashboard/projects/${data.project_id}`}>Open project</Link>
 								</Button>
 								<Button
 									asChild
 									variant="outline"
-									className="rounded-lg border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+									className="rounded-md border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
 									<Link href={`/dashboard/places/${data.id}/edit`}>Edit place</Link>
 								</Button>
 								<Button
 									asChild
 									variant="outline"
-									className="rounded-lg border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+									className="rounded-md border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
 									<Link href={`/dashboard/auditors?projectId=${data.project_id}&placeId=${data.id}`}>
 										Manage Auditor Assignments
 									</Link>
@@ -755,7 +755,7 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 								<Button
 									asChild
 									variant="outline"
-									className="rounded-lg border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+									className="rounded-md border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
 									<Link href={`/dashboard/audits?projectId=${data.project_id}&placeId=${data.id}`}>
 										View Audits
 									</Link>
@@ -763,7 +763,7 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 								<Button
 									asChild
 									variant="outline"
-									className="rounded-lg border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+									className="rounded-md border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
 									<Link href="/dashboard/reports">
 										View comparison reports
 										<FileBarChart2 className="size-4" />
@@ -799,7 +799,7 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 				</section>
 
 				<section className="grid gap-4 xl:grid-cols-2">
-					<Card className="rounded-lg border-border/80 bg-white shadow-sm">
+					<Card className="rounded-md border-border/80 bg-white shadow-sm">
 						<CardHeader>
 							<CardTitle>Place setup details</CardTitle>
 							<CardDescription>
@@ -808,31 +808,31 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="grid gap-4 sm:grid-cols-2 text-sm leading-6 text-foreground">
-							<div className="rounded-lg bg-muted/40 p-4">
+							<div className="rounded-md bg-muted/40 p-4">
 								<p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 									Place Type
 								</p>
 								<p className="mt-2">{data.place_type || "Not specified yet."}</p>
 							</div>
-							<div className="rounded-lg bg-muted/40 p-4">
+							<div className="rounded-md bg-muted/40 p-4">
 								<p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 									Estimated number of Auditors
 								</p>
 								<p className="mt-2">{data.estimated_auditors ?? "Not specified yet."}</p>
 							</div>
-							<div className="rounded-lg bg-muted/40 p-4">
+							<div className="rounded-md bg-muted/40 p-4">
 								<p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 									Anticipated Start Date
 								</p>
 								<p className="mt-2">{data.start_date ?? "Not specified yet."}</p>
 							</div>
-							<div className="rounded-lg bg-muted/40 p-4">
+							<div className="rounded-md bg-muted/40 p-4">
 								<p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 									Anticipated End Date
 								</p>
 								<p className="mt-2">{data.end_date ?? "Not specified yet."}</p>
 							</div>
-							<div className="rounded-lg bg-muted/40 p-4 sm:col-span-2">
+							<div className="rounded-md bg-muted/40 p-4 sm:col-span-2">
 								<p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 									Detailed location
 								</p>
@@ -844,7 +844,7 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 						</CardContent>
 					</Card>
 
-					<Card className="rounded-lg border-border/80 bg-white shadow-sm">
+					<Card className="rounded-md border-border/80 bg-white shadow-sm">
 						<CardHeader>
 							<CardTitle>Auditor setup details</CardTitle>
 							<CardDescription>
@@ -853,7 +853,7 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-4 text-sm leading-6 text-foreground">
-							<div className="rounded-lg bg-muted/40 p-4">
+							<div className="rounded-md bg-muted/40 p-4">
 								<p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 									Population type
 								</p>
@@ -863,7 +863,7 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 										: "Not specified yet."}
 								</p>
 							</div>
-							<div className="rounded-lg bg-muted/40 p-4">
+							<div className="rounded-md bg-muted/40 p-4">
 								<p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 									Inclusion / exclusion criteria
 								</p>
@@ -871,7 +871,7 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 									{data.auditor_inclusion_exclusion_criteria || "Not specified yet."}
 								</p>
 							</div>
-							<div className="rounded-lg bg-muted/40 p-4">
+							<div className="rounded-md bg-muted/40 p-4">
 								<p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 									Other notes about Auditors
 								</p>
@@ -882,7 +882,7 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 				</section>
 
 				{googleMapsHref ? (
-					<Card className="rounded-lg border-border/80 bg-white shadow-sm">
+					<Card className="rounded-md border-border/80 bg-white shadow-sm">
 						<CardHeader>
 							<CardTitle>Map preview</CardTitle>
 							<CardDescription>
@@ -891,9 +891,9 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
-							<div className="rounded-lg border border-border bg-muted/40 p-5">
+							<div className="rounded-md border border-border bg-muted/40 p-5">
 								{staticMapUrl && !mapImageFailed ? (
-									<div className="overflow-hidden rounded-[1.25rem] border border-border bg-white">
+									<div className="overflow-hidden rounded-lg border border-border bg-white">
 										<Image
 											src={staticMapUrl}
 											alt="Google Maps location preview"
@@ -904,7 +904,7 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 										/>
 									</div>
 								) : (
-									<p className="rounded-[1.25rem] border border-dashed border-slate-300 bg-white p-4 text-sm text-muted-foreground">
+									<p className="rounded-lg border border-dashed border-slate-300 bg-white p-4 text-sm text-muted-foreground">
 										Map snapshot unavailable right now, but the Google Maps link below is still
 										ready for this Place.
 									</p>
@@ -914,15 +914,15 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 									the manager dashboard on an embedded map request.
 								</p>
 								<div className="mt-4 flex flex-wrap gap-3">
-									<Button asChild className="rounded-lg bg-primary text-white hover:bg-primary/90">
+									<Button asChild className="rounded-md bg-primary text-white hover:bg-primary/90">
 										<a href={googleMapsHref} target="_blank" rel="noreferrer">
 											Open in Google Maps
 										</a>
 									</Button>
 									{data.lat !== null &&
-										data.lat !== undefined &&
-										data.lng !== null &&
-										data.lng !== undefined ? (
+									data.lat !== undefined &&
+									data.lng !== null &&
+									data.lng !== undefined ? (
 										<p className="self-center text-xs text-muted-foreground">
 											GPS pin: {data.lat.toFixed(5)}, {data.lng.toFixed(5)}
 										</p>
@@ -949,7 +949,7 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 				/>
 
 				{data.comparisons.audits.length === 0 ? (
-					<Card className="rounded-lg border-border/80 bg-white shadow-sm">
+					<Card className="rounded-md border-border/80 bg-white shadow-sm">
 						<CardHeader>
 							<CardTitle>Comparison view</CardTitle>
 							<CardDescription>

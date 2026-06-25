@@ -159,7 +159,7 @@ export default function SignupPage() {
 							<p
 								role="alert"
 								aria-live="polite"
-								className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+								className="rounded-md border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
 								{error}
 							</p>
 						) : null}

@@ -81,7 +81,7 @@ export function AuditorAuditHistory({
 
 	if (loading) {
 		return (
-			<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+			<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
 				<CardContent className="p-6 text-sm text-slate-500">Loading audit history...</CardContent>
 			</Card>
 		);
@@ -89,14 +89,14 @@ export function AuditorAuditHistory({
 
 	if (error) {
 		return (
-			<Card className="rounded-[1.75rem] border-rose-200 bg-rose-50 shadow-sm">
+			<Card className="rounded-lg border-rose-200 bg-rose-50 shadow-sm">
 				<CardContent className="p-6 text-sm text-rose-700">{error}</CardContent>
 			</Card>
 		);
 	}
 
 	return (
-		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+		<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
 			<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 				<div>
 					<CardTitle>{title}</CardTitle>
@@ -214,7 +214,7 @@ export function AuditorAuditHistory({
 									</td>
 									<td className="py-4">
 										{isSubmitted ? (
-											<Button asChild variant="outline" className="rounded-2xl">
+											<Button asChild variant="outline" className="rounded-lg">
 												<Link href={`/yee/submissions/${auditState.submission_id}`}>
 													View Submission
 												</Link>
@@ -222,11 +222,11 @@ export function AuditorAuditHistory({
 										) : hasDraft ? (
 											<Button
 												asChild
-												className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
+												className="rounded-lg bg-[#10231f] text-white hover:bg-[#17302c]">
 												<Link href={`/yee/audit/${place.id}/page/1`}>Continue In Progress</Link>
 											</Button>
 										) : (
-											<Button asChild variant="outline" className="rounded-2xl">
+											<Button asChild variant="outline" className="rounded-lg">
 												<Link href={`/yee/audit/${place.id}/page/1`}>Start New Audit</Link>
 											</Button>
 										)}

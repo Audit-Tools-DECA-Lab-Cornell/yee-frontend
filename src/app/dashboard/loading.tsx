@@ -4,20 +4,20 @@ export default function DashboardLoading() {
 	return (
 		<div className="flex min-h-dvh">
 			<div className="hidden w-[260px] shrink-0 border-r border-slate-200 bg-white p-4 lg:flex lg:flex-col lg:gap-2">
-				<Skeleton className="mb-4 h-10 w-32 rounded-xl" />
+				<Skeleton className="mb-4 h-10 w-32 rounded-lg" />
 				{Array.from({ length: 7 }).map((_, i) => (
-					<Skeleton key={i} className="h-9 rounded-xl" />
+					<Skeleton key={i} className="h-9 rounded-lg" />
 				))}
 			</div>
 			<div className="flex-1 space-y-6 p-6">
-				<Skeleton className="h-8 w-48 rounded-xl" />
-				<Skeleton className="h-4 w-96 rounded-lg" />
+				<Skeleton className="h-8 w-48 rounded-lg" />
+				<Skeleton className="h-4 w-96 rounded-md" />
 				<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
 					{Array.from({ length: 4 }).map((_, i) => (
-						<Skeleton key={i} className="h-36 rounded-2xl" />
+						<Skeleton key={i} className="h-36 rounded-lg" />
 					))}
 				</div>
-				<Skeleton className="h-64 rounded-2xl" />
+				<Skeleton className="h-64 rounded-lg" />
 			</div>
 		</div>
 	);

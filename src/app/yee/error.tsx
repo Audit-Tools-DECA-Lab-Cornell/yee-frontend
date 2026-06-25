@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 export default function YeeError({ error, reset }: { error: Error; reset: () => void }) {
 	return (
 		<main className="mx-auto max-w-4xl p-6">
-			<Card className="rounded-2xl border-rose-200 bg-rose-50 shadow-sm">
+			<Card className="rounded-lg border-rose-200 bg-rose-50 shadow-sm">
 				<CardHeader>
 					<CardTitle className="text-rose-800">YEE audit error</CardTitle>
 					<CardDescription className="text-rose-700">Something went wrong in the audit flow.</CardDescription>
@@ -16,7 +16,7 @@ export default function YeeError({ error, reset }: { error: Error; reset: () => 
 					<Button
 						type="button"
 						onClick={reset}
-						className="rounded-2xl bg-rose-700 text-white hover:bg-rose-800">
+						className="rounded-lg bg-rose-700 text-white hover:bg-rose-800">
 						Try again
 					</Button>
 				</CardContent>

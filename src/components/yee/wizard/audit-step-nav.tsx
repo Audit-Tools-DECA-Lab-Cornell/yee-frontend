@@ -48,7 +48,7 @@ function AuditStepNav({ steps, currentStep, onStepClick }: AuditStepNavProps) {
 							aria-current={isActive ? "step" : undefined}
 							aria-label={`Step ${item.step}: ${item.label}${isPast ? " (complete)" : ""}${isActive ? " (current)" : ""}`}
 							className={cn(
-								"flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors",
+								"flex shrink-0 items-center gap-1.5 rounded-sm px-2.5 py-1.5 text-xs font-medium transition-colors",
 								isActive
 									? "bg-[var(--yee-green-900)] text-[var(--primary-foreground)]"
 									: isPast

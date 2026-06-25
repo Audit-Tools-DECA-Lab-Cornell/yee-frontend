@@ -162,7 +162,7 @@ export default function InviteManagerPage() {
 							<p
 								role="alert"
 								aria-live="polite"
-								className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+								className="rounded-md border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
 								{error}
 							</p>
 						) : null}
@@ -179,15 +179,15 @@ export default function InviteManagerPage() {
 
 					{invite ? (
 						<div
-							className="rounded-lg border border-[var(--yee-green-200)] bg-[var(--yee-green-50)] p-5 text-sm space-y-3"
+							className="rounded-md border border-(--yee-green-200) bg-(--yee-green-50) p-5 text-sm space-y-3"
 							role="status"
 							aria-live="polite">
-							<div className="flex items-center gap-2 text-[var(--yee-green-900)]">
+							<div className="flex items-center gap-2 text-(--yee-green-900)">
 								<CheckCircle2 className="size-4" aria-hidden="true" />
 								<p className="font-semibold">Invite created for {invite.email}</p>
 							</div>
 							<p className="text-muted-foreground">Copy and share this link with the invited manager:</p>
-							<p className="break-all rounded-lg border border-border bg-card px-4 py-3 font-mono text-xs text-foreground">
+							<p className="break-all rounded-md border border-border bg-card px-4 py-3 font-mono text-xs text-foreground">
 								{invite.invite_url}
 							</p>
 							<p className="text-xs text-muted-foreground">
@@ -219,7 +219,7 @@ export default function InviteManagerPage() {
 							description="Create an invite above to bring a co-manager into your organization."
 						/>
 					) : (
-						<div className="overflow-x-auto rounded-lg border border-border">
+						<div className="overflow-x-auto rounded-md border border-border">
 							<table className="min-w-full text-left text-sm" aria-label="Manager invites">
 								<caption className="sr-only">Manager invites: {invites.length} total</caption>
 								<thead>

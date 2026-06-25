@@ -325,21 +325,21 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 					}
 				}
 			`}</style>
-			<Card className="rounded-xl border-border">
+			<Card className="rounded-lg border-border">
 				<CardHeader>
 					<CardTitle className="text-3xl">Submitted audit results</CardTitle>
 					<CardDescription>This is a locked, read-only report for the submitted YEE audit.</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-6">
 					<div className="grid gap-4 md:grid-cols-2 report-print-stack">
-						<div className="rounded-lg bg-muted/40 p-4 text-sm leading-7 text-foreground">
+						<div className="rounded-md bg-muted/40 p-4 text-sm leading-7 text-foreground">
 							<p className="font-medium text-foreground">Submission details</p>
 							<p>Place: {submission.place_name || submission.place_id}</p>
 							<p>Auditor ID: {submission.auditor_generated_id || submission.auditor_id}</p>
 							<p>Submitted at: {new Date(submission.submitted_at).toLocaleString()}</p>
 							<p>Submission ID: {submission.id}</p>
 						</div>
-						<div className="rounded-lg bg-muted/40 p-4 text-sm leading-7 text-foreground">
+						<div className="rounded-md bg-muted/40 p-4 text-sm leading-7 text-foreground">
 							<p className="font-medium text-foreground">Context</p>
 							<p>Date: {String(submission.participant_info.audit_date || "Not recorded")}</p>
 							<p>
@@ -350,7 +350,7 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 						</div>
 					</div>
 
-					<div className="rounded-lg border border-emerald-300 bg-emerald-100/80 p-4">
+					<div className="rounded-md border border-emerald-300 bg-emerald-100/80 p-4">
 						<p className="text-sm font-medium text-emerald-950">Section weighting used in this audit</p>
 						<p className="mt-2 text-sm leading-6 text-emerald-900/80">
 							Youth Weighted values are calculated by normalizing the participant&apos;s section weights,
@@ -363,7 +363,7 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 								return (
 									<div
 										key={domain}
-										className={`rounded-lg border px-4 py-3 ${getWeightBubbleClasses(normalizedWeights[domain])}`}
+										className={`rounded-md border px-4 py-3 ${getWeightBubbleClasses(normalizedWeights[domain])}`}
 										style={{
 											borderColor: theme.strongHex,
 											backgroundColor: theme.lightHex,
@@ -389,13 +389,13 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 					/>
 
 					<div className="grid gap-4 md:grid-cols-2 report-page-break report-no-break report-print-stack">
-						<div className="rounded-lg border border-border p-4">
+						<div className="rounded-md border border-border p-4">
 							<p className="text-sm font-medium text-foreground">Weighting comments</p>
 							<p className="mt-2 text-sm text-muted-foreground">
 								{weightingComments || "No weighting comments submitted."}
 							</p>
 						</div>
-						<div className="rounded-lg border border-border p-4">
+						<div className="rounded-md border border-border p-4">
 							<p className="text-sm font-medium text-foreground">Overall comments</p>
 							<p className="mt-2 text-sm text-muted-foreground">
 								{String(submission.participant_info.comments || "No comments submitted.")}
@@ -405,7 +405,7 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 
 					<div className="grid gap-4 md:grid-cols-2 report-print-stack">
 						{(Object.keys(yeeDomainLabels) as YeeDomainKey[]).map(domain => (
-							<div key={domain} className="rounded-lg border border-border p-4">
+							<div key={domain} className="rounded-md border border-border p-4">
 								<p className="text-sm font-medium text-foreground">
 									{yeeDomainLabels[domain]} comments
 								</p>
@@ -417,20 +417,20 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 					</div>
 
 					<div className="report-actions flex flex-wrap gap-3">
-						<Button type="button" variant="outline" className="rounded-lg" onClick={() => window.print()}>
+						<Button type="button" variant="outline" className="rounded-md" onClick={() => window.print()}>
 							Print report
 						</Button>
 						<Button
 							type="button"
 							variant="outline"
-							className="rounded-lg"
+							className="rounded-md"
 							onClick={() => void downloadSingleSubmissionCsv(submission)}>
 							Export data
 						</Button>
-						<Button asChild className="rounded-lg bg-[#10231f] text-white hover:bg-[#17302c]">
+						<Button asChild className="rounded-md bg-[#10231f] text-white hover:bg-[#17302c]">
 							<Link href={auditsHref}>Back to My Audits</Link>
 						</Button>
-						<Button asChild variant="outline" className="rounded-lg">
+						<Button asChild variant="outline" className="rounded-md">
 							<Link href={dashboardHref}>Back to Dashboard</Link>
 						</Button>
 					</div>

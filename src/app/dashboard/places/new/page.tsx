@@ -93,7 +93,7 @@ export default function NewPlacePage() {
 	}
 
 	return (
-		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+		<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
 			<CardHeader>
 				<CardTitle className="text-2xl">Add Place</CardTitle>
 				<CardDescription className="max-w-3xl leading-6">

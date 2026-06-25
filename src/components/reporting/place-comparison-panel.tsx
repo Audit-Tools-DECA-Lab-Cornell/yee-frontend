@@ -30,7 +30,7 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 
 	if (records.length === 0) {
 		return (
-			<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+			<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
 				<CardHeader>
 					<CardTitle>Place comparison</CardTitle>
 					<CardDescription>No comparison audits are available for this place yet.</CardDescription>
@@ -41,7 +41,7 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 
 	return (
 		<div className="space-y-6">
-			<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+			<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
 				<CardHeader>
 					<CardTitle>Place-level comparison</CardTitle>
 					<CardDescription>
@@ -78,7 +78,7 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 				</CardContent>
 			</Card>
 
-			<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+			<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
 				<CardHeader>
 					<CardTitle>Score bar graphs</CardTitle>
 					<CardDescription>
@@ -94,7 +94,7 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 							{ label: "Middle range", tone: "bg-amber-400", text: "34% to 66% of the available score" },
 							{ label: "Upper range", tone: "bg-emerald-500", text: "67% to 100% of the available score" }
 						].map(entry => (
-							<div key={entry.label} className="rounded-2xl border border-slate-200 bg-[#f8fbf9] p-3">
+							<div key={entry.label} className="rounded-lg border border-slate-200 bg-[#f8fbf9] p-3">
 								<div className="flex items-center gap-2">
 									<span className={`h-3 w-3 rounded-full ${entry.tone}`} />
 									<p className="text-sm font-medium text-slate-900">{entry.label}</p>
@@ -111,9 +111,7 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 							const youthMax = getYouthWeightedScoreMaximum(record.domain_weights);
 							const youthPercent = youthMax ? (record.total_weighted_score / youthMax) * 100 : 0;
 							return (
-								<div
-									key={record.audit_id}
-									className="rounded-[1.5rem] border border-slate-200 bg-white p-4">
+								<div key={record.audit_id} className="rounded-xl border border-slate-200 bg-white p-4">
 									<div className="flex items-center justify-between gap-3">
 										<div>
 											<p className="text-sm font-semibold text-slate-900">{record.auditor_id}</p>
@@ -124,7 +122,7 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 										</Badge>
 									</div>
 									<div className="mt-4 space-y-4">
-										<div className="rounded-[1.25rem] border-4 border-slate-300 bg-white p-4">
+										<div className="rounded-lg border-4 border-slate-300 bg-white p-4">
 											<p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
 												Total Raw Score
 											</p>
@@ -146,7 +144,7 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 												</div>
 											</div>
 										</div>
-										<div className="rounded-[1.25rem] border-4 border-emerald-300 bg-white p-4">
+										<div className="rounded-lg border-4 border-emerald-300 bg-white p-4">
 											<p className="text-xs font-medium uppercase tracking-[0.16em] text-emerald-700">
 												Total Youth Weighted Average
 											</p>
@@ -176,7 +174,7 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 				</CardContent>
 			</Card>
 
-			<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+			<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
 				<CardHeader>
 					<CardTitle>Domain comparison</CardTitle>
 					<CardDescription>
@@ -244,7 +242,7 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 
 			{averages ? (
 				<div className="grid gap-4 md:grid-cols-2">
-					<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+					<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
 						<CardHeader>
 							<CardTitle>Total score averages</CardTitle>
 							<CardDescription>

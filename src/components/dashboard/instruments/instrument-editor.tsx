@@ -87,7 +87,7 @@ export function InstrumentEditor({
 	const canSave = !isPending && draftVersion.trim().length > 0 && parsed !== null;
 
 	return (
-		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+		<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
 			<CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
 				<div className="space-y-2">
 					<CardTitle>Edit Draft Version</CardTitle>
@@ -96,7 +96,7 @@ export function InstrumentEditor({
 						save into the version you create here — nothing is published until you save.
 					</CardDescription>
 				</div>
-				<Button type="button" variant="outline" className="rounded-2xl" onClick={onCancel} disabled={isPending}>
+				<Button type="button" variant="outline" className="rounded-lg" onClick={onCancel} disabled={isPending}>
 					Close Editor
 				</Button>
 			</CardHeader>
@@ -136,7 +136,7 @@ export function InstrumentEditor({
 					}}
 				/>
 
-				<div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-sm">
+				<div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
 					{parsed ? (
 						<>
 							{activeTab === "preamble" ? <PreambleEditor content={parsed} update={update} /> : null}
@@ -151,14 +151,14 @@ export function InstrumentEditor({
 							) : null}
 						</>
 					) : (
-						<div className="rounded-2xl border border-rose-200 bg-rose-50/70 p-4 text-sm text-rose-700">
+						<div className="rounded-lg border border-rose-200 bg-rose-50/70 p-4 text-sm text-rose-700">
 							The advanced JSON editor currently contains invalid JSON, so the tab editors are paused. Fix
 							the JSON below to continue editing.
 						</div>
 					)}
 				</div>
 
-				<div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+				<div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
 					<input
 						id="activate-on-create"
 						type="checkbox"
@@ -175,13 +175,13 @@ export function InstrumentEditor({
 					<Button
 						type="button"
 						variant="ghost"
-						className="rounded-2xl px-0 text-slate-700 hover:bg-transparent hover:text-slate-900"
+						className="rounded-lg px-0 text-slate-700 hover:bg-transparent hover:text-slate-900"
 						onClick={() => setShowAdvancedEditor(current => !current)}>
 						{showAdvancedEditor ? "Hide Advanced JSON Editor" : "Show Advanced JSON Editor"}
 					</Button>
 					{showAdvancedEditor ? (
 						<div className="space-y-2">
-							<div className="rounded-2xl border border-amber-200 bg-amber-50/80 px-4 py-3 text-sm text-amber-900">
+							<div className="rounded-lg border border-amber-200 bg-amber-50/80 px-4 py-3 text-sm text-amber-900">
 								<span className="font-medium">Advanced only:</span> the raw JSON editor changes the
 								survey definition itself, not ordinary dashboard wording.
 							</div>
@@ -200,14 +200,10 @@ export function InstrumentEditor({
 				<div className="flex flex-wrap items-center gap-3">
 					<Button
 						type="button"
-						className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]"
+						className="rounded-lg bg-[#10231f] text-white hover:bg-[#17302c]"
 						onClick={handleSave}
 						disabled={!canSave}>
-						{isPending
-							? "Saving..."
-							: activateOnCreate
-								? "Save and Publish Version"
-								: "Save Draft Version"}
+						{isPending ? "Saving..." : activateOnCreate ? "Save and Publish Version" : "Save Draft Version"}
 					</Button>
 				</div>
 			</CardContent>

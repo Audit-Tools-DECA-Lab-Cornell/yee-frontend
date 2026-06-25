@@ -179,7 +179,7 @@ export default function SettingsPage() {
 										: "Not recorded"
 								}
 							].map(({ label, value }) => (
-								<div key={label} className="rounded-lg border border-border bg-muted/40 p-4">
+								<div key={label} className="rounded-md border border-border bg-muted/40 p-4">
 									<p className="text-xs font-medium text-muted-foreground">{label}</p>
 									<p className="mt-1.5 text-sm font-semibold text-foreground">{value}</p>
 								</div>
@@ -271,7 +271,7 @@ export default function SettingsPage() {
 								<p
 									role="alert"
 									aria-live="polite"
-									className="md:col-span-2 rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+									className="md:col-span-2 rounded-md border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
 									{error}
 								</p>
 							) : null}
@@ -279,7 +279,7 @@ export default function SettingsPage() {
 								<p
 									role="status"
 									aria-live="polite"
-									className="md:col-span-2 rounded-lg border border-[var(--yee-green-200)] bg-[var(--yee-green-50)] px-4 py-3 text-sm text-[var(--yee-green-900)]">
+									className="md:col-span-2 rounded-md border border-[var(--yee-green-200)] bg-[var(--yee-green-50)] px-4 py-3 text-sm text-[var(--yee-green-900)]">
 									{success}
 								</p>
 							) : null}
@@ -306,7 +306,7 @@ export default function SettingsPage() {
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">
-						<div className="rounded-lg border border-border bg-muted/40 px-4 py-4 text-sm text-muted-foreground">
+						<div className="rounded-md border border-border bg-muted/40 px-4 py-4 text-sm text-muted-foreground">
 							Current status:{" "}
 							<span className="font-medium text-foreground">
 								{session?.user.has_auditor_profile
@@ -356,7 +356,7 @@ export default function SettingsPage() {
 								action={{ label: "Invite manager", href: "/dashboard/managers/invite" }}
 							/>
 						) : (
-							<div className="divide-y divide-border rounded-lg border border-border">
+							<div className="divide-y divide-border rounded-md border border-border">
 								{team.map(member => (
 									<div key={member.id} className="p-4">
 										<div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -390,7 +390,7 @@ export default function SettingsPage() {
 												</p>
 											</div>
 											{session?.user.is_primary_manager &&
-												member.manager_type !== "Primary Manager" ? (
+											member.manager_type !== "Primary Manager" ? (
 												<Button
 													type="button"
 													variant="outline"
@@ -398,9 +398,7 @@ export default function SettingsPage() {
 													className="border-destructive/30 text-destructive hover:bg-destructive/5 hover:text-destructive"
 													isLoading={removingManagerId === member.id}
 													onClick={() => handleRemoveManager(member.id)}>
-													{removingManagerId === member.id
-														? "Removing..."
-														: "Remove manager"}
+													{removingManagerId === member.id ? "Removing..." : "Remove manager"}
 												</Button>
 											) : null}
 										</div>

@@ -121,7 +121,7 @@ export function LiveRawDataTable({
 				<CardContent className="pt-2">
 					<p
 						role="alert"
-						className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+						className="rounded-md border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
 						{error}
 					</p>
 				</CardContent>
@@ -249,7 +249,7 @@ export function LiveRawDataTable({
 						description={`No submitted YEE audits are available for ${scope} export. Data will appear here once audits are completed and submitted.`}
 					/>
 				) : (
-					<div className="overflow-x-auto rounded-lg border border-border">
+					<div className="overflow-x-auto rounded-md border border-border">
 						<table
 							className="min-w-full text-left text-sm"
 							aria-label={`${title} — ${filteredRows.length} rows`}>

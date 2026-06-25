@@ -23,8 +23,8 @@ export function ScaleGuidanceEditor({
 	return (
 		<div className="space-y-4">
 			{scales.map((scale, index) => (
-				<div key={scale.id} className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50/60 p-4">
-					<Badge className="rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-100">{scale.id}</Badge>
+				<div key={scale.id} className="space-y-3 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
+					<Badge className="rounded-md bg-slate-100 text-slate-700 hover:bg-slate-100">{scale.id}</Badge>
 					<EditableField
 						label="Title"
 						value={cleanInstrumentText(scale.title)}
@@ -64,7 +64,7 @@ export function ScaleGuidanceEditor({
 						}
 					/>
 					{(scale.rules ?? []).length > 0 ? (
-						<div className="space-y-3 rounded-xl border border-slate-200 bg-white p-3">
+						<div className="space-y-3 rounded-lg border border-slate-200 bg-white p-3">
 							<p className="text-xs font-medium uppercase tracking-wide text-slate-500">Rule labels</p>
 							{(scale.rules ?? []).map((rule, ruleIndex) => (
 								<EditableField

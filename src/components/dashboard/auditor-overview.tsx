@@ -48,7 +48,7 @@ export function AuditorOverview() {
 
 	return (
 		<div className="space-y-6">
-			<section className="overflow-hidden rounded-xl border border-emerald-200/60 bg-linear-to-br from-[#10231f] via-[#17302c] to-[#21483b] text-white shadow-xl shadow-emerald-950/10">
+			<section className="overflow-hidden rounded-lg border border-emerald-200/60 bg-linear-to-br from-[#10231f] via-[#17302c] to-[#21483b] text-white shadow-xl shadow-emerald-950/10">
 				<div className="px-6 py-8 sm:px-8 lg:px-10 lg:py-10">
 					<div>
 						<Badge className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-white hover:bg-white/10">
@@ -62,19 +62,19 @@ export function AuditorOverview() {
 							work by place name.
 						</p>
 						<div className="mt-6 flex flex-wrap gap-3">
-							<Button asChild className="rounded-lg bg-white text-foreground hover:bg-emerald-50">
+							<Button asChild className="rounded-md bg-white text-foreground hover:bg-emerald-50">
 								<Link href="/my-dashboard/places">View My Audits</Link>
 							</Button>
 							<Button
 								asChild
 								variant="outline"
-								className="rounded-lg border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+								className="rounded-md border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
 								<Link href="/yee/introduction">Start New Audit</Link>
 							</Button>
 							<Button
 								asChild
 								variant="outline"
-								className="rounded-lg border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+								className="rounded-md border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
 								<Link href={continueAuditHref}>Continue Audits in Progress</Link>
 							</Button>
 						</div>
@@ -83,21 +83,21 @@ export function AuditorOverview() {
 							<div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
 								<Link
 									href="/my-dashboard/places"
-									className="min-w-0 rounded-lg border border-emerald-200/20 bg-linear-to-br from-white/18 to-white/8 p-4 backdrop-blur-sm transition hover:border-emerald-200/35 hover:bg-white/16">
+									className="min-w-0 rounded-md border border-emerald-200/20 bg-linear-to-br from-white/18 to-white/8 p-4 backdrop-blur-sm transition hover:border-emerald-200/35 hover:bg-white/16">
 									<p className="break-words text-sm text-emerald-50/70">Assigned places</p>
 									<p className="mt-2 break-words text-3xl font-semibold">{places.length}</p>
 									<p className="mt-3 text-xs font-medium text-emerald-100">Open</p>
 								</Link>
 								<Link
 									href="/my-dashboard/places"
-									className="min-w-0 rounded-lg border border-sky-200/20 bg-linear-to-br from-white/18 to-white/8 p-4 backdrop-blur-sm transition hover:border-sky-200/35 hover:bg-white/16">
+									className="min-w-0 rounded-md border border-sky-200/20 bg-linear-to-br from-white/18 to-white/8 p-4 backdrop-blur-sm transition hover:border-sky-200/35 hover:bg-white/16">
 									<p className="break-words text-sm text-emerald-50/70">Submitted audits</p>
 									<p className="mt-2 break-words text-3xl font-semibold">{submittedCount}</p>
 									<p className="mt-3 text-xs font-medium text-emerald-100">Open</p>
 								</Link>
 								<Link
 									href={continueAuditHref}
-									className="min-w-0 rounded-lg border border-violet-200/20 bg-linear-to-br from-white/18 to-white/8 p-4 backdrop-blur-sm transition hover:border-violet-200/35 hover:bg-white/16">
+									className="min-w-0 rounded-md border border-violet-200/20 bg-linear-to-br from-white/18 to-white/8 p-4 backdrop-blur-sm transition hover:border-violet-200/35 hover:bg-white/16">
 									<p className="break-words text-sm text-emerald-50/70">Audits in progress</p>
 									<p className="mt-2 break-words text-3xl font-semibold">{draftCount}</p>
 									<p className="mt-3 text-xs font-medium text-emerald-100">Open</p>
@@ -143,7 +143,7 @@ function LatestSubmittedScores({
 		return (
 			<Link
 				href="/my-dashboard/places"
-				className="min-w-0 rounded-lg border border-amber-200/20 bg-linear-to-br from-white/18 to-white/8 p-4 backdrop-blur-sm transition hover:border-amber-200/35 hover:bg-white/16">
+				className="min-w-0 rounded-md border border-amber-200/20 bg-linear-to-br from-white/18 to-white/8 p-4 backdrop-blur-sm transition hover:border-amber-200/35 hover:bg-white/16">
 				<p className="text-sm text-emerald-50/70">Latest submitted scores</p>
 				<p className="mt-2 text-sm text-emerald-50/85">
 					A Raw Score and Youth Weighted average will appear here after your first submitted audit.
@@ -166,7 +166,7 @@ function LatestSubmittedScores({
 					? `/yee/submissions/${latestSubmitted.state.submission_id}`
 					: "/my-dashboard/places"
 			}
-			className="min-w-0 rounded-lg border border-amber-200/20 bg-linear-to-br from-white/18 to-white/8 p-4 backdrop-blur-sm transition hover:border-amber-200/35 hover:bg-white/16">
+			className="min-w-0 rounded-md border border-amber-200/20 bg-linear-to-br from-white/18 to-white/8 p-4 backdrop-blur-sm transition hover:border-amber-200/35 hover:bg-white/16">
 			<p className="text-sm text-emerald-50/70">Latest submitted scores</p>
 			<p className="mt-2 text-sm text-emerald-50/85">{latestSubmitted.place.name}</p>
 			<div className="mt-3 space-y-2 text-sm">

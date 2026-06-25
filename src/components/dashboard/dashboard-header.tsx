@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import * as React from "react";
 import { Bell, Menu, Search } from "lucide-react";
 
+import { BrandLogo } from "@/components/brand/brand-logo";
 import { useAuth } from "@/components/auth/auth-provider";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { LogoutButton } from "@/components/auth/logout-button";
@@ -37,6 +38,9 @@ export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 			<div className="flex items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
 				{/* Left: mobile menu + page heading */}
 				<div className="flex min-w-0 items-center gap-3">
+					<div className="block shrink-0 rounded-md border border-border bg-card p-1.5 shadow-(--shadow-card) lg:hidden">
+						<BrandLogo variant="mark" tone="light" className="h-7 w-7" />
+					</div>
 					<Sheet>
 						<SheetTrigger asChild>
 							<Button
@@ -74,13 +78,13 @@ export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 					{/* Command palette placeholder — visible intent for future search */}
 					<Button
 						variant="outline"
-						size="sm"
-						className="hidden items-center gap-2 text-muted-foreground sm:inline-flex"
+						size="default"
+						className="hidden items-center gap-6.5 text-muted-foreground sm:inline-flex"
 						aria-label="Open command palette (keyboard shortcut: Command K)"
 						onClick={() => {
 							/* Command palette will be wired here in a future pass */
 						}}>
-						<Search className="size-3.5" aria-hidden="true" />
+						<Search className="size-4.5" aria-hidden="true" />
 						<span className="text-xs">Search</span>
 						<kbd
 							className="ml-1 hidden rounded border border-border bg-muted px-1 py-0.5 text-[10px] font-mono leading-none text-muted-foreground lg:inline"
@@ -91,8 +95,8 @@ export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 
 					{/* Role-switch links */}
 					{variant === "manager" &&
-						session?.user.has_auditor_profile &&
-						session.user.auditor_dashboard_path ? (
+					session?.user.has_auditor_profile &&
+					session.user.auditor_dashboard_path ? (
 						<Button asChild variant="outline" size="sm" className="hidden lg:inline-flex">
 							<Link href={session.user.auditor_dashboard_path}>Auditor view</Link>
 						</Button>
@@ -106,15 +110,15 @@ export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 					{/* Notification bell — placeholder for future notification system */}
 					<Button
 						variant="outline"
-						size="icon"
+						size="default"
 						className="hidden sm:inline-flex"
 						aria-label="Notifications (coming soon)">
-						<Bell className="size-4" aria-hidden="true" />
+						<Bell className="size-3.5" aria-hidden="true" />
 					</Button>
 
 					{/* Primary action CTA */}
 					{showPrimaryAction ? (
-						<Button asChild size="sm" className="hidden sm:inline-flex">
+						<Button asChild size="default" className="hidden sm:inline-flex">
 							<Link href={config.primaryAction.href}>
 								<config.primaryAction.icon className="size-3.5" aria-hidden="true" />
 								{config.primaryAction.label}
@@ -123,13 +127,13 @@ export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 					) : null}
 
 					{/* User identity chip */}
-					<div className="hidden items-center gap-2.5 rounded-lg border border-border bg-card px-3 py-1.5 sm:flex">
-						<Avatar size="sm">
-							<AvatarFallback className="bg-[var(--yee-green-100)] text-xs font-semibold text-[var(--yee-green-900)]">
+					<div className="hidden items-center gap-2.5 rounded-md border border-border bg-card px-4 py-0.5 sm:flex">
+						<Avatar size="default">
+							<AvatarFallback className="bg-(--yee-green-100) text-xs font-semibold leading-3 text-(--yee-green-900)">
 								{userInitials}
 							</AvatarFallback>
 						</Avatar>
-						<div className="min-w-0">
+						<div className="min-w-0 flex flex-col">
 							<p className="truncate text-xs font-medium text-foreground">
 								{userDisplayName ?? "\u00A0"}
 							</p>
@@ -137,7 +141,7 @@ export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 						</div>
 					</div>
 
-					<LogoutButton className="hidden w-auto lg:flex" />
+					{/* <LogoutButton className="flex items-center gap-2" /> */}
 				</div>
 			</div>
 		</header>

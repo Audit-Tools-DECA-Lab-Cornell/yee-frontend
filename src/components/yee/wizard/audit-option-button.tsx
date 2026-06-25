@@ -44,7 +44,7 @@ function AuditOptionButton({
 			<span
 				aria-pressed={selected}
 				className={cn(
-					"flex items-start gap-3 rounded-lg border p-3.5 text-sm font-medium text-foreground transition-colors",
+					"flex items-start gap-3 rounded-md border p-3.5 text-sm font-medium text-foreground transition-colors",
 					selected ? cn("border-2", selectedBorderClass, selectedBgClass) : cn("border", idleClass)
 				)}>
 				{/* Custom visual indicator */}

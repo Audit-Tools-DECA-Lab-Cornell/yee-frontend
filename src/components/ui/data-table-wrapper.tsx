@@ -47,7 +47,7 @@ function DataTableWrapper({
 	if (isLoading) {
 		return (
 			<div
-				className={cn("overflow-x-auto rounded-lg border border-border", className)}
+				className={cn("overflow-x-auto rounded-md border border-border", className)}
 				aria-busy="true"
 				aria-label="Loading table data">
 				<table className="w-full text-sm">
@@ -62,13 +62,13 @@ function DataTableWrapper({
 	}
 
 	if (isEmpty && emptyState) {
-		return <div className={cn("rounded-lg border border-border", className)}>{emptyState}</div>;
+		return <div className={cn("rounded-md border border-border", className)}>{emptyState}</div>;
 	}
 
 	return (
 		<div
 			className={cn(
-				"overflow-x-auto rounded-lg border border-border",
+				"overflow-x-auto rounded-md border border-border",
 				stickyFirstColumn &&
 					"[&_td:first-child]:sticky [&_td:first-child]:left-0 [&_td:first-child]:bg-card [&_th:first-child]:sticky [&_th:first-child]:left-0 [&_th:first-child]:bg-muted",
 				className

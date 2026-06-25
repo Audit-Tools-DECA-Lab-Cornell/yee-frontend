@@ -8,8 +8,8 @@ import type { WorkspaceVariant } from "@/lib/dashboard/workspace-config";
 export function DashboardShell({ children, variant }: { children: ReactNode; variant: WorkspaceVariant }) {
 	return (
 		<SiteCopyProvider>
-			<div className="min-h-screen bg-background text-foreground">
-				<div className="relative min-h-screen lg:grid lg:grid-cols-[292px_minmax(0,1fr)]">
+			<div className="min-h-dvh bg-background text-foreground">
+				<div className="relative min-h-dvh lg:grid lg:grid-cols-[292px_minmax(0,1fr)]">
 					<aside className="hidden border-r border-border lg:sticky lg:top-0 lg:block lg:h-screen">
 						<DashboardSidebar variant={variant} />
 					</aside>

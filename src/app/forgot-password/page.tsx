@@ -43,7 +43,7 @@ export default function ForgotPasswordPage() {
 
 				{message ? (
 					<div
-						className="rounded-lg border border-[var(--yee-green-200)] bg-[var(--yee-green-50)] px-4 py-3 text-sm text-[var(--yee-green-900)]"
+						className="rounded-md border border-[var(--yee-green-200)] bg-[var(--yee-green-50)] px-4 py-3 text-sm text-[var(--yee-green-900)]"
 						role="status"
 						aria-live="polite">
 						{message}
@@ -68,7 +68,7 @@ export default function ForgotPasswordPage() {
 							<p
 								role="alert"
 								aria-live="polite"
-								className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+								className="rounded-md border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
 								{error}
 							</p>
 						) : null}

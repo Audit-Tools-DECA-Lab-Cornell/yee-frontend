@@ -52,13 +52,13 @@ function getManagerQuickLinks(isPrimaryManager: boolean) {
 		},
 		...(isPrimaryManager
 			? [
-				{
-					title: "Invite New Manager",
-					description: "Add another manager into this same organization account.",
-					href: "/dashboard/managers/invite",
-					icon: ShieldPlus
-				}
-			]
+					{
+						title: "Invite New Manager",
+						description: "Add another manager into this same organization account.",
+						href: "/dashboard/managers/invite",
+						icon: ShieldPlus
+					}
+				]
 			: [])
 	];
 }
@@ -154,7 +154,7 @@ function useDashboardData<T>(loader: (session: NonNullable<ReturnType<typeof use
 
 function LoadingCard({ label }: { label: string }) {
 	return (
-		<Card className="rounded-lg ">
+		<Card className="rounded-md ">
 			<CardContent className="p-6 text-sm text-muted-foreground">Loading {label}...</CardContent>
 		</Card>
 	);
@@ -162,7 +162,7 @@ function LoadingCard({ label }: { label: string }) {
 
 function ErrorCard({ message }: { message: string }) {
 	return (
-		<Card className="rounded-lg border-rose-200 bg-rose-50 shadow-sm">
+		<Card className="rounded-md border-rose-200 bg-rose-50 shadow-sm">
 			<CardContent className="p-6 text-sm text-rose-700">{message}</CardContent>
 		</Card>
 	);
@@ -170,7 +170,7 @@ function ErrorCard({ message }: { message: string }) {
 
 function EmptyState({ title, description }: { title: string; description: string }) {
 	return (
-		<Card className="rounded-lg ">
+		<Card className="rounded-md ">
 			<CardContent className="p-8 text-center">
 				<p className="font-medium text-foreground">{title}</p>
 				<p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
@@ -320,10 +320,10 @@ export function LiveManagerOverview() {
 	const averageCapPercentage =
 		submittedRows.length > 0
 			? submittedRows.reduce((sum, row) => {
-				const denominator = getYouthWeightedScoreMaximum(row.domain_weights);
-				if (denominator <= 0) return sum;
-				return sum + (row.total_weighted_score / denominator) * 100;
-			}, 0) / submittedRows.length
+					const denominator = getYouthWeightedScoreMaximum(row.domain_weights);
+					if (denominator <= 0) return sum;
+					return sum + (row.total_weighted_score / denominator) * 100;
+				}, 0) / submittedRows.length
 			: null;
 	const activePlaces = getMetricValue(data.metrics, "place");
 	const auditsLogged = getMetricValue(data.metrics, "audit");
@@ -384,7 +384,7 @@ export function LiveManagerOverview() {
 
 	return (
 		<div className="space-y-6">
-			<section className="overflow-hidden rounded-xl border border-emerald-200/60 bg-linear-to-br from-[#10231f] via-[#17302c] to-[#21483b] text-white shadow-xl shadow-emerald-950/10">
+			<section className="overflow-hidden rounded-lg border border-emerald-200/60 bg-linear-to-br from-[#10231f] via-[#17302c] to-[#21483b] text-white shadow-xl shadow-emerald-950/10">
 				<div className="px-6 py-8 sm:px-8 lg:px-10 lg:py-10">
 					<div>
 						<Badge className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-white hover:bg-white/10">
@@ -402,7 +402,7 @@ export function LiveManagerOverview() {
 								<Link
 									key={item.label}
 									href={item.href}
-									className="min-w-0 rounded-lg border border-emerald-200/20 bg-linear-to-br from-white/18 to-white/8 px-4 py-4 backdrop-blur-sm transition hover:border-emerald-200/35 hover:bg-white/16">
+									className="min-w-0 rounded-md border border-emerald-200/20 bg-linear-to-br from-white/18 to-white/8 px-4 py-4 backdrop-blur-sm transition hover:border-emerald-200/35 hover:bg-white/16">
 									<p className="break-words text-xs font-medium uppercase tracking-normal text-emerald-50/70">
 										{item.label}
 									</p>
@@ -415,7 +415,7 @@ export function LiveManagerOverview() {
 							))}
 						</div>
 						<div className="mt-6 flex flex-wrap gap-3">
-							<Button asChild className="rounded-lg bg-white text-foreground hover:bg-emerald-50">
+							<Button asChild className="rounded-md bg-white text-foreground hover:bg-emerald-50">
 								<Link href="/dashboard/projects/new">
 									Create Project
 									<ArrowRight className="size-4" />
@@ -424,7 +424,7 @@ export function LiveManagerOverview() {
 							<Button
 								asChild
 								variant="outline"
-								className="rounded-lg border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+								className="rounded-md border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
 								<Link href="/dashboard/places/new">Add Place</Link>
 							</Button>
 						</div>
@@ -434,7 +434,7 @@ export function LiveManagerOverview() {
 
 			<section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
 				{scoreSummaryItems.map(item => (
-					<Card key={item.label} className="rounded-lg ">
+					<Card key={item.label} className="rounded-md ">
 						<CardHeader className="gap-3">
 							<CardDescription className="text-sm font-medium text-muted-foreground">
 								{item.label}
@@ -450,7 +450,7 @@ export function LiveManagerOverview() {
 				))}
 			</section>
 
-			<section className="rounded-lg border border-border/80 bg-white p-5 shadow-sm">
+			<section className="rounded-md border border-border/80 bg-white p-5 shadow-sm">
 				<p className="text-sm font-medium text-foreground">Why Youth Weighted averages differ</p>
 				<p className="mt-2 text-sm leading-6 text-muted-foreground">
 					Youth Weighted values now use normalized domain weights and per-domain averages, so they reflect
@@ -459,7 +459,7 @@ export function LiveManagerOverview() {
 				</p>
 				<div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
 					{domainWeightBreakdown.map(item => (
-						<div key={item.domain} className="rounded-lg border border-border bg-muted/40 px-4 py-3">
+						<div key={item.domain} className="rounded-md border border-border bg-muted/40 px-4 py-3">
 							<p className="text-sm font-medium text-foreground">{item.label}</p>
 							<p className="mt-1 text-xs text-muted-foreground">
 								Average weighting across submitted audits
@@ -476,7 +476,7 @@ export function LiveManagerOverview() {
 				{data.metrics.map(metric => (
 					<Link key={metric.title} href={metricHref(metric.title)} className="block">
 						<Card
-							className={`rounded-lg shadow-sm transition hover:shadow-md ${metricTone(metric.title).card}`}>
+							className={`rounded-md shadow-sm transition hover:shadow-md ${metricTone(metric.title).card}`}>
 							<CardHeader className="gap-3">
 								<CardDescription className="text-sm font-medium text-muted-foreground">
 									{metric.title}
@@ -502,7 +502,7 @@ export function LiveManagerOverview() {
 			</section>
 
 			<section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_330px]">
-				<Card className="rounded-lg ">
+				<Card className="rounded-md ">
 					<CardHeader>
 						<CardTitle>Recent activity</CardTitle>
 						<CardDescription>
@@ -513,14 +513,14 @@ export function LiveManagerOverview() {
 						{data.recent_activity.map(item => (
 							<div
 								key={item}
-								className="rounded-lg bg-muted/40 px-4 py-4 text-sm leading-6 text-foreground">
+								className="rounded-md bg-muted/40 px-4 py-4 text-sm leading-6 text-foreground">
 								{item}
 							</div>
 						))}
 					</CardContent>
 				</Card>
 
-				<Card className="rounded-lg ">
+				<Card className="rounded-md ">
 					<CardHeader>
 						<CardTitle>Manager actions</CardTitle>
 						<CardDescription>
@@ -534,8 +534,8 @@ export function LiveManagerOverview() {
 								<Link
 									key={link.href}
 									href={link.href}
-									className="flex items-start gap-3 rounded-lg border border-border p-4 transition-colors hover:bg-muted/40">
-									<div className="rounded-lg bg-[#e4f5ee] p-2 text-emerald-700">
+									className="flex items-start gap-3 rounded-md border border-border p-4 transition-colors hover:bg-muted/40">
+									<div className="rounded-md bg-[#e4f5ee] p-2 text-emerald-700">
 										<Icon className="size-4" />
 									</div>
 									<div className="min-w-0">
@@ -562,7 +562,7 @@ export function LiveManagerOverview() {
 
 function AuditTableCard({ title, description, audits }: { title: string; description: string; audits: AuditRecord[] }) {
 	return (
-		<Card className="rounded-lg ">
+		<Card className="rounded-md ">
 			<CardHeader>
 				<CardTitle>{title}</CardTitle>
 				<CardDescription>{description}</CardDescription>
@@ -639,7 +639,7 @@ export function LiveProjectsTable() {
 	const showOrganization = data.some(project => project.organization);
 
 	return (
-		<Card className="rounded-lg ">
+		<Card className="rounded-md ">
 			<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 				<div>
 					<CardTitle className="text-2xl">Projects</CardTitle>
@@ -647,7 +647,7 @@ export function LiveProjectsTable() {
 						Project records for this manager, including summary, place count, and audit activity.
 					</CardDescription>
 				</div>
-				<Button asChild className="rounded-lg bg-primary text-white hover:bg-primary/90">
+				<Button asChild className="rounded-md bg-primary text-white hover:bg-primary/90">
 					<Link href="/dashboard/projects/new">Create Project</Link>
 				</Button>
 			</CardHeader>
@@ -726,7 +726,7 @@ export function LivePlacesTable() {
 	const filtersActive = selectedProjects.length > 0;
 
 	return (
-		<Card className="rounded-lg ">
+		<Card className="rounded-md ">
 			<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 				<div>
 					<CardTitle className="text-2xl">Places</CardTitle>
@@ -734,7 +734,7 @@ export function LivePlacesTable() {
 						Review place name, address, postal code, assigned auditors, and the next action for each place.
 					</CardDescription>
 				</div>
-				<Button asChild variant="outline" className="rounded-lg">
+				<Button asChild variant="outline" className="rounded-md">
 					<Link href="/dashboard/places/new">Add Place</Link>
 				</Button>
 			</CardHeader>
@@ -865,7 +865,7 @@ export function AdminProjectsTable() {
 	const filtersActive = selectedOrganizations.length > 0 || selectedProjects.length > 0;
 
 	return (
-		<Card className="rounded-lg ">
+		<Card className="rounded-md ">
 			<CardHeader>
 				<CardTitle className="text-2xl">Projects</CardTitle>
 				<CardDescription className="mt-2 max-w-2xl leading-6">
@@ -983,7 +983,7 @@ export function AdminPlacesTable() {
 	const filtersActive = selectedOrganizations.length > 0 || selectedProjects.length > 0;
 
 	return (
-		<Card className="rounded-lg ">
+		<Card className="rounded-md ">
 			<CardHeader>
 				<CardTitle className="text-2xl">Places</CardTitle>
 				<CardDescription className="mt-2 max-w-2xl leading-6">
@@ -1084,7 +1084,7 @@ export function LiveAuditorsTable() {
 	const isAdmin = session?.user.account_type === "ADMIN";
 	if (!data?.length) {
 		return (
-			<Card className="rounded-lg ">
+			<Card className="rounded-md ">
 				<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 					<div>
 						<CardTitle className="text-2xl">Auditors</CardTitle>
@@ -1092,7 +1092,7 @@ export function LiveAuditorsTable() {
 							No auditors are visible in this scope yet. You can still invite an auditor now.
 						</CardDescription>
 					</div>
-					<Button asChild className="rounded-lg bg-primary text-white hover:bg-primary/90">
+					<Button asChild className="rounded-md bg-primary text-white hover:bg-primary/90">
 						<Link href="/dashboard/auditors/invite">
 							<MailPlus className="size-4" />
 							Invite New Auditor
@@ -1104,7 +1104,7 @@ export function LiveAuditorsTable() {
 	}
 
 	return (
-		<Card className="rounded-lg ">
+		<Card className="rounded-md ">
 			<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 				<div>
 					<CardTitle className="text-2xl">Auditors</CardTitle>
@@ -1115,14 +1115,14 @@ export function LiveAuditorsTable() {
 					</CardDescription>
 				</div>
 				<div className="flex flex-wrap gap-3">
-					<Button asChild className="rounded-lg bg-primary text-white hover:bg-primary/90">
+					<Button asChild className="rounded-md bg-primary text-white hover:bg-primary/90">
 						<Link href="/dashboard/auditors/invite">
 							<MailPlus className="size-4" />
 							Invite New Auditor
 						</Link>
 					</Button>
 					{!isAdmin && session?.user.is_primary_manager ? (
-						<Button asChild variant="outline" className="rounded-lg">
+						<Button asChild variant="outline" className="rounded-md">
 							<Link href="/dashboard/managers/invite">
 								<ShieldPlus className="size-4" />
 								Invite New Manager
@@ -1301,7 +1301,7 @@ export function LiveAuditsTable() {
 
 	return (
 		<div className="space-y-6">
-			<Card className="rounded-lg ">
+			<Card className="rounded-md ">
 				<CardHeader>
 					<CardTitle>Audits</CardTitle>
 					<CardDescription>
@@ -1346,28 +1346,28 @@ export function LiveAuditsTable() {
 						<Button
 							type="button"
 							variant="outline"
-							className="rounded-xl"
+							className="rounded-lg"
 							onClick={() => exportRows(rawData, "all-audits.csv")}>
 							Export All
 						</Button>
 						<Button
 							type="button"
 							variant="outline"
-							className="rounded-xl"
+							className="rounded-lg"
 							onClick={() => exportRows(filteredRawData, "filtered-audits.csv")}>
 							Export Filtered
 						</Button>
 						<Button
 							type="button"
 							variant="outline"
-							className="rounded-xl"
+							className="rounded-lg"
 							onClick={() => exportRows(selectedRawData, "selected-audits.csv")}
 							disabled={selectedAuditIds.length === 0}>
 							Export Selected
 						</Button>
 						<Button
 							type="button"
-							className="rounded-xl bg-primary text-white hover:bg-primary/90"
+							className="rounded-lg bg-primary text-white hover:bg-primary/90"
 							onClick={handleCompare}
 							disabled={selectedAuditIds.length < 2}>
 							Compare Selected
@@ -1395,21 +1395,21 @@ export function LiveAuditsTable() {
 														audit.submission_id && current.includes(audit.submission_id)
 												)
 													? current.filter(
-														id =>
-															!filteredAudits.some(
-																audit => audit.submission_id === id
-															)
-													)
-													: Array.from(
-														new Set([
-															...current,
-															...filteredAudits
-																.map(audit => audit.submission_id)
-																.filter((submissionId): submissionId is string =>
-																	Boolean(submissionId)
+															id =>
+																!filteredAudits.some(
+																	audit => audit.submission_id === id
 																)
-														])
-													)
+														)
+													: Array.from(
+															new Set([
+																...current,
+																...filteredAudits
+																	.map(audit => audit.submission_id)
+																	.filter((submissionId): submissionId is string =>
+																		Boolean(submissionId)
+																	)
+															])
+														)
 											)
 										}
 									/>
@@ -1469,9 +1469,9 @@ export function LiveAuditsTable() {
 														(
 														{totalRawScoreMaximum
 															? (
-																(audit.total_raw_score / totalRawScoreMaximum) *
-																100
-															).toFixed(0)
+																	(audit.total_raw_score / totalRawScoreMaximum) *
+																	100
+																).toFixed(0)
 															: "0"}
 														%)
 													</span>
@@ -1504,9 +1504,9 @@ export function LiveAuditsTable() {
 															});
 															return denominator
 																? (
-																	(audit.total_weighted_score / denominator) *
-																	100
-																).toFixed(0)
+																		(audit.total_weighted_score / denominator) *
+																		100
+																	).toFixed(0)
 																: "0";
 														})()}
 														%)
@@ -1522,7 +1522,7 @@ export function LiveAuditsTable() {
 									</td>
 									<td className="py-4 pr-4">
 										{audit.submission_id ? (
-											<Button asChild variant="outline" size="sm" className="rounded-xl">
+											<Button asChild variant="outline" size="sm" className="rounded-lg">
 												<Link href={`/yee/submissions/${audit.submission_id}`}>
 													View Report
 												</Link>
@@ -1536,7 +1536,7 @@ export function LiveAuditsTable() {
 										)}
 									</td>
 									<td className="py-4 pr-4">
-										<Button asChild variant="outline" size="sm" className="rounded-xl">
+										<Button asChild variant="outline" size="sm" className="rounded-lg">
 											<Link
 												href={
 													audit.submission_id
@@ -1553,7 +1553,7 @@ export function LiveAuditsTable() {
 												type="button"
 												variant="outline"
 												size="sm"
-												className="rounded-xl"
+												className="rounded-lg"
 												onClick={() =>
 													exportRows(
 														rawData.filter(row => row.audit_id === audit.submission_id),
@@ -1621,7 +1621,7 @@ export function LiveAdminOverview() {
 					.map(metric => (
 						<Link key={metric.title} href={adminMetricHref(metric.title)} className="block">
 							<Card
-								className={`rounded-lg shadow-sm transition hover:shadow-md ${metricTone(metric.title).card}`}>
+								className={`rounded-md shadow-sm transition hover:shadow-md ${metricTone(metric.title).card}`}>
 								<CardHeader>
 									<CardDescription>{metric.title}</CardDescription>
 									<CardTitle className="text-3xl">{metric.value}</CardTitle>
@@ -1642,7 +1642,7 @@ export function LiveAdminOverview() {
 					))}
 			</section>
 			{overview.data.organization_summaries.length > 0 ? (
-				<Card className="rounded-lg ">
+				<Card className="rounded-md ">
 					<CardHeader>
 						<CardTitle>Organization Summary</CardTitle>
 						<CardDescription>Platform-wide summary grouped by organization.</CardDescription>
@@ -1775,7 +1775,7 @@ export function LiveUsersTable({ embedded = false }: { embedded?: boolean }) {
 	}
 
 	return (
-		<Card className="rounded-lg ">
+		<Card className="rounded-md ">
 			<CardHeader>
 				<CardTitle>Users</CardTitle>
 				<CardDescription>
@@ -1852,7 +1852,7 @@ export function LiveUsersTable({ embedded = false }: { embedded?: boolean }) {
 																[user.id]: event.target.value
 															}))
 														}
-														className="h-9 rounded-xl border border-border bg-white px-3 text-sm text-foreground">
+														className="h-9 rounded-lg border border-border bg-white px-3 text-sm text-foreground">
 														<option value="">Select workspace</option>
 														{accountOptions.map(([accountId, organization]) => (
 															<option key={accountId} value={accountId}>
@@ -1863,7 +1863,7 @@ export function LiveUsersTable({ embedded = false }: { embedded?: boolean }) {
 												) : null}
 												<Button
 													size="sm"
-													className="rounded-xl bg-primary text-white hover:bg-primary/90"
+													className="rounded-lg bg-primary text-white hover:bg-primary/90"
 													onClick={() => void handleApprove(user)}
 													disabled={
 														submittingUserId === user.id ||
