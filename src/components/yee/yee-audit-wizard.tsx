@@ -12,6 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { YeeScoreSummary } from "@/components/yee/yee-score-summary";
+import { AuditSaveStatus } from "@/components/yee/wizard/audit-save-status";
+import type { SaveStatusState } from "@/components/yee/wizard/audit-save-status";
 import {
 	fetchAuditState,
 	fetchManagerAuditEditState,
@@ -863,9 +865,9 @@ function OptionCards({
 			{options.map(option => (
 				<label
 					key={`${name}-${option.value}`}
-					className={`rounded-2xl border px-4 py-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] transition ${
+					className={`rounded-lg border px-4 py-3 text-sm transition ${
 						readOnly ? "cursor-default" : "cursor-pointer"
-					} ${value === option.value ? palette.selected : palette.idle}`}>
+					} ${value === option.value ? `border-2 ${palette.selected}` : `border ${palette.idle}`}`}>
 					<input
 						type="radio"
 						name={name}
@@ -955,7 +957,7 @@ function InstrumentQuestionCard({
 
 	if (choices.length === 0 && answers.length === 0) {
 		return (
-			<Card className={`rounded-[1.75rem] border shadow-[0_12px_35px_-24px_rgba(16,35,31,0.45)] ${palette.card}`}>
+			<Card className={`rounded-lg border shadow-[0_12px_35px_-24px_rgba(16,35,31,0.45)] ${palette.card}`}>
 				<CardContent className="py-6 text-sm leading-7 text-slate-600">
 					{normalizeText(item.question_text)}
 				</CardContent>
@@ -968,7 +970,7 @@ function InstrumentQuestionCard({
 			? getSingleCardInstruction(getDomainForBlock(item.block) ?? "access")
 			: normalizeVisibleQuestion(item.question_text || item.item_id);
 		return (
-			<Card className={`rounded-[1.75rem] border shadow-[0_18px_40px_-30px_rgba(16,35,31,0.55)] ${palette.card}`}>
+			<Card className={`rounded-lg border shadow-[0_18px_40px_-30px_rgba(16,35,31,0.55)] ${palette.card}`}>
 				<CardHeader className="pb-3">
 					<CardTitle className="text-base font-semibold">{title}</CardTitle>
 				</CardHeader>
@@ -1007,7 +1009,7 @@ function InstrumentQuestionCard({
 		: normalizeVisibleQuestion(item.question_text || item.item_id);
 
 	return (
-		<Card className={`rounded-[1.75rem] border shadow-[0_18px_40px_-30px_rgba(16,35,31,0.55)] ${palette.card}`}>
+		<Card className={`rounded-lg border shadow-[0_18px_40px_-30px_rgba(16,35,31,0.55)] ${palette.card}`}>
 			<CardHeader className="pb-3">
 				<CardTitle className="text-base font-semibold">{title}</CardTitle>
 			</CardHeader>
@@ -1065,7 +1067,7 @@ function InstrumentQuestionGroupCard({
 	}
 
 	return (
-		<Card className={`rounded-[1.75rem] border shadow-[0_18px_40px_-30px_rgba(16,35,31,0.55)] ${palette.card}`}>
+		<Card className={`rounded-lg border shadow-[0_18px_40px_-30px_rgba(16,35,31,0.55)] ${palette.card}`}>
 			<CardHeader className="pb-3">
 				<CardTitle className="text-base font-semibold">
 					{getMatrixCardInstruction(getDomainForBlock(presenceItem.block) ?? "access")}
@@ -1096,7 +1098,7 @@ function InstrumentQuestionGroupCard({
 								palette={palette}
 							/>
 							{conditionItem && showCondition ? (
-								<div className={`space-y-2 rounded-[1.25rem] border p-4 ${palette.condition}`}>
+								<div className={`space-y-2 rounded-lg border p-4 ${palette.condition}`}>
 									<p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-800">
 										Condition
 									</p>
@@ -1595,11 +1597,27 @@ export function YeeAuditWizard({
 	}
 
 	if (loading || !instrument) {
-		return <main className="mx-auto max-w-5xl p-6">Loading YEE audit flow\u2026</main>;
+		return (
+			<main className="mx-auto max-w-5xl p-6">
+				<div className="space-y-4 animate-pulse">
+					<div className="h-6 w-48 rounded-md bg-muted" />
+					<div className="h-4 w-full max-w-lg rounded-md bg-muted" />
+					<div className="h-4 w-full max-w-sm rounded-md bg-muted" />
+				</div>
+			</main>
+		);
 	}
 
 	if (error && !instrument) {
-		return <main className="mx-auto max-w-5xl p-6 text-red-700">{error}</main>;
+		return (
+			<main className="mx-auto max-w-5xl p-6">
+				<div
+					className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive"
+					role="alert">
+					{error}
+				</div>
+			</main>
+		);
 	}
 
 	if (mode === "submitted") {
@@ -1632,31 +1650,31 @@ export function YeeAuditWizard({
 		return (
 			<>
 				<main className="mx-auto max-w-5xl space-y-6 p-6">
-					<Card className="rounded-[2rem] border-slate-200/80 bg-white shadow-sm">
+					<Card>
 						<CardHeader>
-							<CardTitle className="text-3xl">Review and submit</CardTitle>
+							<CardTitle className="text-2xl">Review and submit</CardTitle>
 							<CardDescription>
 								Review the saved answers for {draft.placeName || "this place"} before final submission.
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-6">
-							<div className="grid gap-4 md:grid-cols-2">
-								<div className="rounded-2xl bg-slate-50 p-4 text-sm leading-7 text-slate-700">
-									<p className="font-medium text-slate-900">Audit metadata</p>
-									<p>Place: {draft.placeName || "Not recorded"}</p>
-									<p>Generated auditor ID: {draft.auditorId}</p>
-									<p>Date: {draft.auditDate || "Not answered"}</p>
-									<p>Start time: {draft.startTime || "Not answered"}</p>
-									<p>Finish time: {draft.finishTime || "Will be recorded on submit"}</p>
-									<p>Total minutes: {draft.totalMinutes || "Will be calculated on submit"}</p>
-									<p>
-										Visit frequency: {getOptionLabel(visitFrequencyOptions, draft.visitFrequency)}
-									</p>
-									<p>Season: {getOptionLabel(seasonOptions, draft.season)}</p>
-									<p>Weather: {getMultiOptionLabels(weatherOptions, draft.weather)}</p>
-								</div>
-								<div className="rounded-2xl bg-slate-50 p-4 text-sm text-slate-700">
-									<p className="font-medium text-slate-900">Youth-Weighted Importance of Sections</p>
+						<div className="grid gap-4 md:grid-cols-2">
+							<div className="rounded-lg border border-border bg-muted/40 p-4 text-sm leading-7 text-foreground">
+								<p className="font-medium text-foreground">Audit metadata</p>
+								<p>Place: {draft.placeName || "Not recorded"}</p>
+								<p>Generated auditor ID: {draft.auditorId}</p>
+								<p>Date: {draft.auditDate || "Not answered"}</p>
+								<p>Start time: {draft.startTime || "Not answered"}</p>
+								<p>Finish time: {draft.finishTime || "Will be recorded on submit"}</p>
+								<p>Total minutes: {draft.totalMinutes || "Will be calculated on submit"}</p>
+								<p>
+									Visit frequency: {getOptionLabel(visitFrequencyOptions, draft.visitFrequency)}
+								</p>
+								<p>Season: {getOptionLabel(seasonOptions, draft.season)}</p>
+								<p>Weather: {getMultiOptionLabels(weatherOptions, draft.weather)}</p>
+							</div>
+							<div className="rounded-lg border border-border bg-muted/40 p-4 text-sm text-foreground">
+									<p className="font-medium text-foreground">Youth-Weighted Importance of Sections</p>
 									<div className="mt-3 space-y-3">
 										{(Object.keys(yeeDomainLabels) as YeeDomainKey[]).map(key => {
 											const theme = getThemeByStep(getStepForDomainKey(key));
@@ -1686,59 +1704,48 @@ export function YeeAuditWizard({
 											);
 										})}
 									</div>
-									<div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-white p-3 leading-7">
-										<p className="font-medium text-slate-900">Weighting comments</p>
+								<div className="mt-4 rounded-lg border border-dashed border-border bg-background p-3 leading-7">
+									<p className="font-medium text-foreground">Weighting comments</p>
 										<p className="mt-2">
 											{draft.weightingComments || "No weighting comments added."}
 										</p>
 									</div>
 								</div>
 							</div>
-							<div className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-4">
-								<p className="text-sm font-medium text-slate-900">Audit overview</p>
+						<div className="rounded-lg border border-border bg-muted/40 p-4">
+							<p className="text-sm font-medium text-foreground">Audit overview</p>
 								<p className="mt-2 text-sm text-slate-600">
 									Choose any section below to jump back into that part of the audit and edit it before
 									submission.
 								</p>
 								<div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-									{reviewSections.map(section => (
-										<button
-											key={`jump-${section.domain}`}
-											type="button"
-											onClick={() => void goToStep(section.step)}
-											className="rounded-[1.25rem] border px-4 py-4 text-left transition hover:shadow-sm"
-											style={{
-												backgroundColor: section.theme?.lightHex ?? "#ffffff",
-												borderColor: section.theme?.strongFillHex ?? "#cbd5e1"
-											}}>
-											<p
-												className="font-semibold"
-												style={{ color: section.theme?.strongHex ?? "#0f172a" }}>
-												{section.label}
-											</p>
-											<p className="mt-2 text-sm text-slate-700">
-												{section.groups.length} answered question group
-												{section.groups.length === 1 ? "" : "s"}
-											</p>
-										</button>
-									))}
+								{reviewSections.map(section => (
+									<button
+										key={`jump-${section.domain}`}
+										type="button"
+										onClick={() => void goToStep(section.step)}
+										className={`rounded-lg border px-4 py-4 text-left transition hover:opacity-90 ${section.theme?.card ?? "border-border bg-muted/30"}`}>
+										<p className={`font-semibold text-sm ${section.theme?.textClass ?? "text-foreground"}`}>
+											{section.label}
+										</p>
+										<p className="mt-1.5 text-xs text-muted-foreground">
+											{section.groups.length} answered question group
+											{section.groups.length === 1 ? "" : "s"}
+										</p>
+									</button>
+								))}
 								</div>
 							</div>
-							<div className="space-y-4">
-								{reviewSections.map(section => (
-									<Card
-										key={section.domain}
-										className="rounded-[1.5rem] shadow-sm"
-										style={{
-											borderColor: section.theme?.strongFillHex ?? "#cbd5e1",
-											backgroundColor: section.theme?.lightHex ?? "#f8fafc"
-										}}>
-										<CardHeader className="pb-3">
-											<CardTitle
-												className="text-lg"
-												style={{ color: section.theme?.strongHex ?? "#0f172a" }}>
-												{section.label}
-											</CardTitle>
+						<div className="space-y-4">
+							{reviewSections.map(section => (
+								<Card
+									key={section.domain}
+									elevation="flat"
+									className={section.theme?.card ?? ""}>
+									<CardHeader className="pb-3">
+										<CardTitle className={`text-base ${section.theme?.textClass ?? "text-foreground"}`}>
+											{section.label}
+										</CardTitle>
 											<CardDescription>
 												{section.groups.length > 0
 													? `${section.groups.length} answered question group${section.groups.length === 1 ? "" : "s"} saved for review.`
@@ -1746,128 +1753,114 @@ export function YeeAuditWizard({
 											</CardDescription>
 										</CardHeader>
 										<CardContent className="space-y-4">
-											{section.groups.map(({ group, title, rows }) => (
+										{section.groups.map(({ group, title, rows }) => (
+											<div
+												key={group.baseQuestionId}
+												className="rounded-lg border border-border bg-card p-4">
+												{title ? (
+													<p className="text-sm font-semibold text-foreground">{title}</p>
+												) : null}
 												<div
-													key={group.baseQuestionId}
-													className="rounded-2xl border border-slate-200 bg-white p-4">
-													{title ? (
-														<p className="text-sm font-semibold text-slate-900">{title}</p>
-													) : null}
-													<div
-														className={`space-y-4 text-sm text-slate-700 ${title ? "mt-3" : ""}`}>
-														{rows.map((row, index) => (
-															<div
-																key={`${group.baseQuestionId}-${index}`}
-																className="space-y-2">
-																<p className="font-medium text-slate-800">
-																	{row.prompt}
-																</p>
-																<div className="pl-4">
-																	<span
-																		className="inline-flex rounded-full border px-3 py-1 text-sm font-semibold"
-																		style={{
-																			backgroundColor:
-																				section.theme?.strongFillHex ??
-																				"#e2e8f0",
-																			borderColor:
-																				section.theme?.strongHex ?? "#94a3b8",
-																			color: section.theme?.strongHex ?? "#0f172a"
-																		}}>
-																		{row.response}
-																	</span>
-																	{row.condition ? (
-																		<div className="mt-2 pl-4">
-																			<p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-																				Condition
-																			</p>
-																			<span
-																				className="mt-2 inline-flex rounded-full border px-3 py-1 text-sm font-semibold"
-																				style={{
-																					backgroundColor:
-																						section.theme?.lightHex ??
-																						"#f8fafc",
-																					borderColor:
-																						section.theme?.strongFillHex ??
-																						"#cbd5e1",
-																					color:
-																						section.theme?.strongHex ??
-																						"#0f172a"
-																				}}>
-																				{row.condition}
-																			</span>
-																		</div>
-																	) : null}
-																</div>
+													className={`space-y-4 text-sm text-muted-foreground ${title ? "mt-3" : ""}`}>
+													{rows.map((row, index) => (
+														<div
+															key={`${group.baseQuestionId}-${index}`}
+															className="space-y-2">
+															<p className="font-medium text-foreground">
+																{row.prompt}
+															</p>
+															<div className="pl-4">
+																<span className={`inline-flex rounded-full border px-3 py-0.5 text-xs font-semibold ${section.theme?.condition ?? "border-border bg-muted text-foreground"}`}>
+																	{row.response}
+																</span>
+																{row.condition ? (
+																	<div className="mt-2 pl-4">
+																		<p className="text-xs font-medium text-muted-foreground">
+																			Condition
+																		</p>
+																		<span className={`mt-1.5 inline-flex rounded-full border px-3 py-0.5 text-xs font-semibold ${section.theme?.condition ?? "border-border bg-muted text-foreground"}`}>
+																			{row.condition}
+																		</span>
+																	</div>
+																) : null}
 															</div>
-														))}
-													</div>
+														</div>
+													))}
 												</div>
-											))}
-											<div className="rounded-2xl border border-dashed border-slate-200 bg-white p-4 text-sm text-slate-600">
-												<p className="font-medium text-slate-900">{section.label} comments</p>
-												<p className="mt-2">
-													{draft.sectionComments[section.domain] ||
-														"No section comments added."}
-												</p>
 											</div>
+										))}
+										<div className="rounded-lg border border-dashed border-border bg-background p-4 text-sm text-muted-foreground">
+											<p className="font-medium text-foreground">{section.label} comments</p>
+											<p className="mt-2">
+												{draft.sectionComments[section.domain] ||
+													"No section comments added."}
+											</p>
+										</div>
 										</CardContent>
 									</Card>
 								))}
 							</div>
-							<div className="rounded-2xl border border-slate-200 p-4">
-								<p className="text-sm font-medium text-slate-900">Overall comments</p>
-								<p className="mt-2 text-sm text-slate-600">{draft.comments || "No comments added."}</p>
-							</div>
-							{draft.scorePreview ? (
-								<YeeScoreSummary
-									preview={draft.scorePreview}
-									title="Score preview"
-									description="This preview is based on the saved draft answers and shows both raw scores and Youth Weighted average views."
-								/>
-							) : (
-								<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
-									<CardContent className="py-6 text-sm text-slate-600">
-										{previewLoading
-											? "Generating score preview\u2026"
-											: "Score preview has not been generated yet."}
-									</CardContent>
-								</Card>
-							)}
-							<div className="flex flex-wrap gap-3">
-								<Button asChild variant="outline" className="rounded-2xl">
-									<Link
-										href={
-											variant === "manager-edit" && basePath
-												? buildManagerEditHref(`${basePath}/page/1`)
-												: `/yee/audit/${placeId}/page/1`
-										}>
-										Edit audit
-									</Link>
-								</Button>
-								<Button
-									type="button"
-									variant="outline"
-									className="rounded-2xl"
-									onClick={() => void refreshScorePreview()}
-									disabled={previewLoading}>
-									{previewLoading ? "Recalculating\u2026" : "Recalculate Score Preview"}
-								</Button>
-								<Button
-									type="button"
-									className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]"
-									onClick={() => void submitAudit()}
-									disabled={submitting}>
-									{submitting ? "Submitting\u2026" : "Submit Audit"}
-								</Button>
-							</div>
-							<p className="text-xs text-slate-500">
-								Use Recalculate Score Preview after you change any answers or section weights and want
-								the latest totals reflected before submission.
+						<div className="rounded-lg border border-border p-4">
+							<p className="text-sm font-medium text-foreground">Overall comments</p>
+							<p className="mt-2 text-sm text-muted-foreground">{draft.comments || "No comments added."}</p>
+						</div>
+						{draft.scorePreview ? (
+							<YeeScoreSummary
+								preview={draft.scorePreview}
+								title="Score preview"
+								description="This preview is based on the saved draft answers and shows both raw scores and Youth Weighted average views."
+							/>
+						) : (
+							<Card elevation="flat">
+								<CardContent className="py-6 text-sm text-muted-foreground">
+									{previewLoading
+										? "Generating score preview\u2026"
+										: "Score preview has not been generated yet."}
+								</CardContent>
+							</Card>
+						)}
+						<div className="flex flex-wrap gap-3">
+							<Button asChild variant="outline">
+								<Link
+									href={
+										variant === "manager-edit" && basePath
+											? buildManagerEditHref(`${basePath}/page/1`)
+											: `/yee/audit/${placeId}/page/1`
+									}>
+									Edit audit
+								</Link>
+							</Button>
+							<Button
+								type="button"
+								variant="outline"
+								isLoading={previewLoading}
+								onClick={() => void refreshScorePreview()}>
+								{previewLoading ? "Recalculating\u2026" : "Recalculate score preview"}
+							</Button>
+							<Button
+								type="button"
+								isLoading={submitting}
+								onClick={() => void submitAudit()}>
+								{submitting ? "Submitting\u2026" : "Submit audit"}
+							</Button>
+						</div>
+						<p className="text-xs text-muted-foreground">
+							Use "Recalculate score preview" after changing answers or section weights.
+						</p>
+						<div className="flex items-center gap-2">
+							<AuditSaveStatus status={wizardSaveStatus} />
+							{persisting ? (
+								<span className="text-xs text-muted-foreground">Saving latest answers\u2026</span>
+							) : null}
+						</div>
+						{error ? (
+							<p
+								role="alert"
+								aria-live="polite"
+								className="rounded-lg border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+								{error}
 							</p>
-							<p className="text-xs text-slate-500">
-								{persisting ? "Saving your latest answers..." : "All answers saved."}
-							</p>
-							{error ? <p className="text-sm text-red-700">{error}</p> : null}
+						) : null}
 						</CardContent>
 					</Card>
 				</main>
@@ -1883,48 +1876,63 @@ export function YeeAuditWizard({
 		);
 	}
 
+	const wizardSaveStatus: SaveStatusState =
+		autosaveStatus === "saving" ? "saving" :
+		autosaveStatus === "idle" && autosaveError ? "error" :
+		autosaveStatus === "idle" && !autosaveError ? "saved" :
+		"idle";
+
 	return (
 		<>
 			<main className="mx-auto max-w-5xl space-y-6 p-6">
 				<header className="space-y-3">
-					<div className="flex flex-wrap items-center gap-2">
-						<Badge className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700 hover:bg-emerald-100">
-							{draft.auditorId}
-						</Badge>
-						<Badge
-							variant="secondary"
-							className="rounded-full bg-slate-100 text-slate-700 hover:bg-slate-100">
-							Step {step} of 9
-						</Badge>
-						<Badge variant="secondary" className="rounded-full bg-sky-100 text-sky-700 hover:bg-sky-100">
-							{draft.placeName || "Selected place"}
-						</Badge>
+					<div className="flex flex-wrap items-center justify-between gap-2">
+						<div className="flex flex-wrap items-center gap-2">
+							<Badge variant="success" dot>
+								{draft.auditorId}
+							</Badge>
+							<Badge variant="secondary">
+								Step {step} of 9
+							</Badge>
+							<Badge variant="secondary">
+								{draft.placeName || "Selected place"}
+							</Badge>
+						</div>
+						<AuditSaveStatus status={wizardSaveStatus} />
 					</div>
-					<h1 className="text-3xl font-semibold tracking-tight text-slate-950">{stepDetails?.title}</h1>
+					<h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+						{stepDetails?.title}
+					</h1>
 					{stepDetails?.description ? (
-						<p className="max-w-3xl text-sm leading-7 text-slate-600">{stepDetails.description}</p>
+						<p className="max-w-3xl text-sm leading-relaxed text-muted-foreground">
+							{stepDetails.description}
+						</p>
 					) : null}
 				</header>
 
-				<div className="grid gap-2 sm:grid-cols-3 lg:grid-cols-5">
-					{yeeSteps.map(entry => (
-						<button
-							key={entry.step}
-							type="button"
-							onClick={() => void goToStep(entry.step)}
-							disabled={step === entry.step}
-							className={`rounded-2xl border px-3 py-3 text-left text-sm transition duration-200 ${
-								step === entry.step
-									? getStepPalette(entry.step).active
-									: getStepPalette(entry.step).idle
-							}`}>
-							<span className="block font-semibold">{getShortStepLabel(entry.step)}</span>
-						</button>
-					))}
-				</div>
+			<div
+				className="grid gap-1.5 sm:grid-cols-3 lg:grid-cols-5"
+				role="navigation"
+				aria-label="Audit step navigation">
+				{yeeSteps.map(entry => (
+					<button
+						key={entry.step}
+						type="button"
+						onClick={() => void goToStep(entry.step)}
+						disabled={step === entry.step}
+						aria-current={step === entry.step ? "step" : undefined}
+						className={`rounded-lg border px-3 py-2.5 text-left text-xs font-medium transition-colors ${
+							step === entry.step
+								? "border-[var(--yee-green-600)] bg-[var(--yee-green-100)] text-[var(--yee-green-900)]"
+								: "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
+						}`}>
+						<span className="block font-semibold">{getShortStepLabel(entry.step)}</span>
+					</button>
+				))}
+			</div>
 
-				{step === 1 ? (
-					<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
+			{step === 1 ? (
+				<Card>
 						<CardHeader>
 							<CardTitle>Visit details</CardTitle>
 							<CardDescription>
@@ -1997,7 +2005,7 @@ export function YeeAuditWizard({
 
 				{step === 2 ? (
 					<div className="space-y-4">
-						<Card className={`rounded-[1.5rem] border shadow-sm ${stepPalette.instruction}`}>
+						<Card className={`rounded-lg border shadow-sm ${stepPalette.instruction}`}>
 							<CardContent className="py-5 text-sm leading-7 text-white">
 								<p className="font-medium text-white">
 									Please start by telling us how important each of the following issues are to you -
@@ -2013,7 +2021,7 @@ export function YeeAuditWizard({
 						{Object.entries(yeeDomainLabels).map(([key, label]) => (
 							<Card
 								key={key}
-								className={`rounded-[1.5rem] shadow-sm ${
+								className={`rounded-lg shadow-sm ${
 									getSurfacePalette(
 										key === "access"
 											? 3
@@ -2065,7 +2073,7 @@ export function YeeAuditWizard({
 								</CardContent>
 							</Card>
 						))}
-						<Card className="rounded-[1.5rem] border-slate-200/80 bg-white shadow-sm">
+						<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
 							<CardHeader>
 								<CardTitle>Optional comments for importance weighting</CardTitle>
 								<CardDescription>
@@ -2087,7 +2095,7 @@ export function YeeAuditWizard({
 				{step && step >= 3 && step <= 8 ? (
 					<div className="space-y-4">
 						{domainKey ? (
-							<Card className={`rounded-[1.5rem] border shadow-sm ${stepPalette.instruction}`}>
+							<Card className={`rounded-lg border shadow-sm ${stepPalette.instruction}`}>
 								<CardContent className="py-5 text-sm leading-7 text-white">
 									<p className="text-lg font-semibold text-white">
 										{getSectionIntroCopy(domainKey).heading}
@@ -2106,7 +2114,7 @@ export function YeeAuditWizard({
 							/>
 						))}
 						{domainKey ? (
-							<Card className="rounded-[1.5rem] border-slate-200/80 bg-white shadow-sm">
+							<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
 								<CardHeader>
 									<CardTitle>{yeeDomainLabels[domainKey]} comments</CardTitle>
 									<CardDescription>
@@ -2135,7 +2143,7 @@ export function YeeAuditWizard({
 								</CardContent>
 							</Card>
 						) : null}
-						<Card className={`rounded-[1.5rem] border shadow-sm ${stepPalette.progress}`}>
+						<Card className={`rounded-lg border shadow-sm ${stepPalette.progress}`}>
 							<CardContent className="flex flex-wrap items-center justify-between gap-3 py-5 text-sm text-slate-600">
 								<span>
 									Section progress: {answeredDomainItems} of {requiredDomainItems} questions answered
@@ -2153,7 +2161,7 @@ export function YeeAuditWizard({
 				) : null}
 
 				{step === 9 ? (
-					<Card className="rounded-[1.5rem] border-slate-200/80 bg-white shadow-sm">
+					<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
 						<CardHeader>
 							<CardTitle>Final optional comments</CardTitle>
 							<CardDescription>
@@ -2213,14 +2221,14 @@ export function YeeAuditWizard({
 					{step && step < 9 ? (
 						<Button
 							type="button"
-							className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]"
+							className=""
 							onClick={() => void goToStep(getNextStep(step))}>
 							Next
 						</Button>
 					) : (
 						<Button
 							type="button"
-							className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]"
+							className=""
 							onClick={() => void openReview()}>
 							{variant === "manager-edit" ? "Review Audit Changes" : "Review Audit"}
 						</Button>
@@ -2284,7 +2292,7 @@ function SubmittedAuditConfirmation({
 
 	return (
 		<main className="mx-auto max-w-4xl space-y-6 p-6">
-			<Card className="rounded-[2rem] border-slate-200/80 bg-white shadow-sm">
+			<Card className="rounded-xl border-slate-200/80 bg-white shadow-sm">
 				<CardHeader>
 					<CardTitle className="text-3xl">Audit submitted</CardTitle>
 					<CardDescription>
@@ -2305,7 +2313,7 @@ function SubmittedAuditConfirmation({
 						<p className="mt-1">Total score: {totalScore}</p>
 					</div>
 					<div className="flex flex-wrap gap-3">
-						<Button asChild className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]">
+						<Button asChild className="">
 							<Link href="/my-dashboard">Back to dashboard</Link>
 						</Button>
 						{submissionId ? (
