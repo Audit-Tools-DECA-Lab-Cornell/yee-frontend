@@ -514,7 +514,7 @@ function SolutionSection() {
 								className="h-12 w-12 select-none opacity-25"
 							/>
 							<p className="text-sm italic leading-relaxed text-muted-foreground">
-								"Turning youth field observations into planning evidence."
+								&ldquo;Turning youth field observations into planning evidence.&rdquo;
 							</p>
 						</div>
 					</div>

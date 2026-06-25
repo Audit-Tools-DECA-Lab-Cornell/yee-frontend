@@ -27,7 +27,7 @@ export function SectionTextEditor({ content, update }: { content: StructuredInst
 						<div
 							key={`${section.block}-${index}`}
 							className="space-y-3 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
-							<p className="break-words text-sm font-semibold text-slate-900">
+							<p className="wrap-break-word text-sm font-semibold text-slate-900">
 								{cleanInstrumentText(section.title || section.block)}
 							</p>
 							<EditableField
@@ -46,7 +46,7 @@ export function SectionTextEditor({ content, update }: { content: StructuredInst
 								label="Instructions"
 								value={cleanInstrumentText(section.intro_text)}
 								multiline
-								className="min-h-[8rem]"
+								className="min-h-32"
 								onChange={value =>
 									update(draft => {
 										const next = [...(draft.sections ?? [])];
