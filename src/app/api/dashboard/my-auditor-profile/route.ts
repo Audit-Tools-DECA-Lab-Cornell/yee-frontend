@@ -1,9 +1,11 @@
-import { proxyDashboardRequest } from "@/app/api/dashboard/_utils";
+import type { NextRequest } from "next/server";
 
-export async function POST(request: Request) {
-	return proxyDashboardRequest({
-		targetPath: "/yee/dashboard/my-auditor-profile",
-		method: "POST",
-		authorization: request.headers.get("authorization")
-	});
+import { proxyRequest } from "@/app/api/_lib/backend-proxy";
+
+export async function POST(request: NextRequest) {
+  return proxyRequest({
+    request,
+    path: "/yee/dashboard/my-auditor-profile",
+    method: "POST",
+  });
 }

@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { DashboardSidebar } from "@/components/dashboard/dashboard-sidebar";
 import { useWorkspaceConfig } from "@/components/dashboard/site-copy-provider";
+import { getUserDisplayName, getUserInitials, getUserRoleLabel } from "@/lib/auth/user-display";
 import { fetchDashboardOverview, fetchUsers } from "@/lib/dashboard/live-api";
 import type { WorkspaceVariant } from "@/lib/dashboard/workspace-config";
 
@@ -20,39 +21,50 @@ export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 	const pathname = usePathname();
 	const config = useWorkspaceConfig(variant);
 	const { session } = useAuth();
+
 	const showPrimaryAction = variant !== "auditor";
 	const hideSearch =
 		(variant === "admin" &&
-			(pathname === "/admin/users" || pathname === "/admin/projects" || pathname === "/admin/places")) ||
+			(pathname === "/admin/users" ||
+				pathname === "/admin/projects" ||
+				pathname === "/admin/places")) ||
 		(variant === "manager" &&
-			(pathname === "/dashboard/places" || pathname === "/dashboard/auditors" || pathname === "/dashboard/audits"));
+			(pathname === "/dashboard/places" ||
+				pathname === "/dashboard/auditors" ||
+				pathname === "/dashboard/audits"));
+
 	const content =
 		Object.entries(config.pageCopy)
 			.sort((a, b) => b[0].length - a[0].length)
-			.find(([key]) => pathname === key || pathname.startsWith(`${key}/`))?.[1] ?? Object.values(config.pageCopy)[0];
-	const [liveHeaderBadges, setLiveHeaderBadges] = React.useState<string[]>(config.headerBadges);
+			.find(([key]) => pathname === key || pathname.startsWith(`${key}/`))?.[1] ??
+		Object.values(config.pageCopy)[0];
+
+	// Live header badges — only fetched for the admin variant.
+	const [liveHeaderBadges, setLiveHeaderBadges] = React.useState<string[]>([]);
 
 	React.useEffect(() => {
-		if (variant !== "admin" || !session) {
-			setLiveHeaderBadges(config.headerBadges);
-			return;
-		}
+		if (variant !== "admin" || !session) return;
 		let cancelled = false;
 
 		const run = async () => {
 			try {
-				const [overview, users] = await Promise.all([fetchDashboardOverview(session), fetchUsers(session)]);
+				const [overview, users] = await Promise.all([
+					fetchDashboardOverview(session),
+					fetchUsers(session),
+				]);
 				if (cancelled) return;
-				const completedAuditsMetric = overview.metrics.find(metric => metric.title.toLowerCase().includes("audit"));
-				const completedAudits = completedAuditsMetric?.value ? Number.parseInt(completedAuditsMetric.value, 10) : 0;
+				const completedAuditsMetric = overview.metrics.find((metric) =>
+					metric.title.toLowerCase().includes("audit")
+				);
+				const completedAudits = completedAuditsMetric?.value
+					? Number.parseInt(completedAuditsMetric.value, 10)
+					: 0;
 				setLiveHeaderBadges([
 					`${users.length} users total`,
-					`${Number.isNaN(completedAudits) ? 0 : completedAudits} completed audits`
+					`${Number.isNaN(completedAudits) ? 0 : completedAudits} completed audits`,
 				]);
 			} catch {
-				if (!cancelled) {
-					setLiveHeaderBadges(config.headerBadges);
-				}
+				// Leave badges empty if the fetch fails; non-critical UI.
 			}
 		};
 
@@ -60,7 +72,12 @@ export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 		return () => {
 			cancelled = true;
 		};
-	}, [config.headerBadges, session, variant]);
+	}, [session, variant]);
+
+	// Derive display name and initials from the live session user.
+	const userDisplayName = session?.user ? getUserDisplayName(session.user) : null;
+	const userInitials = session?.user ? getUserInitials(session.user) : "…";
+	const userRoleLabel = session?.user ? getUserRoleLabel(session.user.account_type) : "";
 
 	return (
 		<header className="sticky top-0 z-20 border-b border-slate-200/80 bg-[#f6f3ea]/90 backdrop-blur">
@@ -88,25 +105,37 @@ export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 
 						<div>
 							<div className="flex items-center gap-2">
-								<Badge variant="secondary" className="rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-600">
+								<Badge
+									variant="secondary"
+									className="rounded-full border border-slate-200 bg-white px-3 py-1 text-slate-600">
 									{config.badge}
 								</Badge>
 							</div>
 							<h2 className="mt-3 text-2xl font-semibold tracking-tight text-slate-950 sm:text-3xl">
 								{content.title}
 							</h2>
-							<p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">{content.description}</p>
+							<p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600">
+								{content.description}
+							</p>
 						</div>
 					</div>
 
 					<div className="flex items-center gap-2 sm:gap-3">
-						{variant === "manager" && session?.user.has_auditor_profile && session.user.auditor_dashboard_path ? (
-							<Button asChild variant="outline" className="hidden rounded-2xl border-slate-200 bg-white lg:inline-flex">
+						{variant === "manager" &&
+						session?.user.has_auditor_profile &&
+						session.user.auditor_dashboard_path ? (
+							<Button
+								asChild
+								variant="outline"
+								className="hidden rounded-2xl border-slate-200 bg-white lg:inline-flex">
 								<Link href={session.user.auditor_dashboard_path}>Auditor View</Link>
 							</Button>
 						) : null}
 						{variant === "auditor" && session?.user.account_type === "MANAGER" ? (
-							<Button asChild variant="outline" className="hidden rounded-2xl border-slate-200 bg-white lg:inline-flex">
+							<Button
+								asChild
+								variant="outline"
+								className="hidden rounded-2xl border-slate-200 bg-white lg:inline-flex">
 								<Link href={session.user.dashboard_path}>Manager View</Link>
 							</Button>
 						) : null}
@@ -129,12 +158,14 @@ export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 						<div className="hidden items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 sm:flex">
 							<Avatar size="lg">
 								<AvatarFallback className="bg-emerald-100 font-semibold text-emerald-700">
-									{config.user.initials}
+									{userInitials}
 								</AvatarFallback>
 							</Avatar>
 							<div className="min-w-0">
-								<p className="truncate text-sm font-medium text-slate-900">{config.user.name}</p>
-								<p className="text-xs text-slate-500">{config.user.roleLabel}</p>
+								<p className="truncate text-sm font-medium text-slate-900">
+									{userDisplayName ?? "\u00A0"}
+								</p>
+								<p className="text-xs text-slate-500">{userRoleLabel}</p>
 							</div>
 						</div>
 					</div>
@@ -153,18 +184,20 @@ export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 								placeholder={config.searchPlaceholder}
 								className="w-full bg-transparent text-sm text-slate-700 outline-none placeholder:text-slate-400"
 							/>
-					</label>
+						</label>
 					)}
 
-					<div className="flex flex-wrap items-center gap-2">
-						{liveHeaderBadges.map(item => (
-							<Badge
-								key={item}
-								className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700 hover:bg-emerald-100">
-								{item}
-							</Badge>
-						))}
-					</div>
+					{liveHeaderBadges.length > 0 ? (
+						<div className="flex flex-wrap items-center gap-2">
+							{liveHeaderBadges.map((item) => (
+								<Badge
+									key={item}
+									className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700 hover:bg-emerald-100">
+									{item}
+								</Badge>
+							))}
+						</div>
+					) : null}
 				</div>
 			</div>
 		</header>

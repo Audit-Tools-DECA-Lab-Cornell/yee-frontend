@@ -221,7 +221,7 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 		let cancelled = false;
 		const run = async () => {
 			try {
-				const record = await fetchSubmission(submissionId, session);
+				const record = await fetchSubmission(submissionId);
 				if (!cancelled) setSubmission(record);
 			} catch (err) {
 				if (!cancelled) setError(err instanceof Error ? err.message : "Failed to load submitted audit.");

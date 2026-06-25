@@ -1,17 +1,17 @@
-import { proxyDashboardRequest } from "@/app/api/dashboard/_utils";
+import type { NextRequest } from "next/server";
+
+import { proxyRequest } from "@/app/api/_lib/backend-proxy";
 
 export async function POST(
-	request: Request,
-	{ params }: { params: Promise<{ inviteId: string }> }
+  request: NextRequest,
+  { params }: { params: Promise<{ inviteId: string }> }
 ) {
-	const { inviteId } = await params;
-	const frontendOrigin = new URL(request.url).origin;
-	return proxyDashboardRequest({
-		targetPath: `/yee/dashboard/manager-invites/${encodeURIComponent(inviteId)}/resend`,
-		method: "POST",
-		authorization: request.headers.get("authorization"),
-		headers: {
-			"X-Frontend-Origin": frontendOrigin
-		}
-	});
+  const { inviteId } = await params;
+  const frontendOrigin = new URL(request.url).origin;
+  return proxyRequest({
+    request,
+    path: `/yee/dashboard/manager-invites/${encodeURIComponent(inviteId)}/resend`,
+    method: "POST",
+    additionalHeaders: { "X-Frontend-Origin": frontendOrigin },
+  });
 }

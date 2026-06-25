@@ -11,6 +11,7 @@ import { PlaceComparisonPanel } from "@/components/reporting/place-comparison-pa
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
 	deleteAssignment,
 	fetchPlaceDetail,
@@ -31,7 +32,7 @@ function buildStaticMapUrl(apiKey: string | undefined, query: string) {
 function LoadingState({ label }: { label: string }) {
 	return (
 		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
-			<CardContent className="p-6 text-sm text-slate-500">Loading {label}...</CardContent>
+			<CardContent className="p-6 text-sm text-slate-500">Loading {label}\u2026</CardContent>
 		</Card>
 	);
 }
@@ -377,15 +378,21 @@ export function LiveProjectDetail({ projectId }: { projectId: string }) {
 	);
 	const { data, loading, error, reload } = useProtectedLoader<ProjectDetailRecord>(loader);
 	const [removingAuditorId, setRemovingAuditorId] = React.useState<string | null>(null);
+	const [confirmOpen, setConfirmOpen] = React.useState(false);
+	const [pendingRemoveAuditor, setPendingRemoveAuditor] = React.useState<ProjectAuditorRecord | null>(null);
 
 	if (loading) return <LoadingState label="project profile" />;
 	if (error) return <ErrorState message={error} />;
 	if (!data) return <ErrorState message="Project data could not be loaded." />;
 	const projectIdValue = data.id;
 
-	async function handleRemoveAuditor(auditor: ProjectAuditorRecord) {
+	function handleRemoveAuditor(auditor: ProjectAuditorRecord) {
+		setPendingRemoveAuditor(auditor);
+		setConfirmOpen(true);
+	}
+
+	async function doRemoveAuditor(auditor: ProjectAuditorRecord) {
 		if (!session) return;
-		if (!window.confirm(`Remove ${auditor.name} from all assignments in this project?`)) return;
 		try {
 			setRemovingAuditorId(auditor.id);
 			await deleteAssignment(session, {
@@ -399,6 +406,7 @@ export function LiveProjectDetail({ projectId }: { projectId: string }) {
 	}
 
 	return (
+		<>
 		<div className="space-y-6">
 			<section className="overflow-hidden rounded-[2rem] border border-emerald-200/60 bg-linear-to-br from-[#10231f] via-[#17302c] to-[#21483b] text-white shadow-xl shadow-emerald-950/10">
 				<div className="grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:px-10 lg:py-10">
@@ -522,8 +530,20 @@ export function LiveProjectDetail({ projectId }: { projectId: string }) {
 				description="Choose one or more auditors and connect them to the places inside this project without leaving the project page."
 				onAssigned={reload}
 			/>
-			<LatestAuditTable audits={data.latest_audits} />
-		</div>
+		<LatestAuditTable audits={data.latest_audits} />
+	</div>
+	<ConfirmDialog
+		open={confirmOpen}
+		onOpenChange={setConfirmOpen}
+		title="Remove auditor"
+		description={`Remove ${pendingRemoveAuditor?.name ?? "this auditor"} from all assignments in this project?`}
+		variant="destructive"
+		confirmLabel="Remove"
+		onConfirm={async () => {
+			if (pendingRemoveAuditor) await doRemoveAuditor(pendingRemoveAuditor);
+		}}
+	/>
+	</>
 	);
 }
 
@@ -535,6 +555,8 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 	);
 	const { data, loading, error, reload } = useProtectedLoader<PlaceDetailRecord>(loader);
 	const [mapImageFailed, setMapImageFailed] = React.useState(false);
+	const [placeConfirmOpen, setPlaceConfirmOpen] = React.useState(false);
+	const [pendingRemovePlaceAuditor, setPendingRemovePlaceAuditor] = React.useState<PlaceAuditorRecord | null>(null);
 	const [removingAuditorId, setRemovingAuditorId] = React.useState<string | null>(null);
 	const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
@@ -557,9 +579,13 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 	const projectIdValue = data.project_id;
 	const placeIdValue = data.id;
 
-	async function handleRemoveAuditor(auditor: PlaceAuditorRecord) {
+	function handleRemoveAuditor(auditor: PlaceAuditorRecord) {
+		setPendingRemovePlaceAuditor(auditor);
+		setPlaceConfirmOpen(true);
+	}
+
+	async function doRemovePlaceAuditor(auditor: PlaceAuditorRecord) {
 		if (!session) return;
-		if (!window.confirm(`Unassign ${auditor.name} from this place?`)) return;
 		try {
 			setRemovingAuditorId(auditor.id);
 			await deleteAssignment(session, {
@@ -580,6 +606,7 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 	const staticMapUrl = buildStaticMapUrl(googleMapsApiKey, mapQuery);
 
 	return (
+		<>
 		<div className="space-y-6">
 			<section className="overflow-hidden rounded-[2rem] border border-sky-200/60 bg-linear-to-br from-[#0f172a] via-[#17324d] to-[#14532d] text-white shadow-xl shadow-sky-950/10">
 				<div className="grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:px-10 lg:py-10">
@@ -759,9 +786,21 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 						No submitted audits are linked to this place yet, so there is nothing to compare or export here.
 					</CardContent>
 				</Card>
-			) : (
-				<PlaceComparisonPanel group={data.comparisons} />
-			)}
-		</div>
+		) : (
+			<PlaceComparisonPanel group={data.comparisons} />
+		)}
+	</div>
+	<ConfirmDialog
+		open={placeConfirmOpen}
+		onOpenChange={setPlaceConfirmOpen}
+		title="Unassign auditor"
+		description={`Unassign ${pendingRemovePlaceAuditor?.name ?? "this auditor"} from this place?`}
+		variant="destructive"
+		confirmLabel="Unassign"
+		onConfirm={async () => {
+			if (pendingRemovePlaceAuditor) await doRemovePlaceAuditor(pendingRemovePlaceAuditor);
+		}}
+	/>
+	</>
 	);
 }

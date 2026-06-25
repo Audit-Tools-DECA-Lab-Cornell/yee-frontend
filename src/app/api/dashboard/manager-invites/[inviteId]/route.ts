@@ -1,13 +1,15 @@
-import { proxyDashboardRequest } from "@/app/api/dashboard/_utils";
+import type { NextRequest } from "next/server";
+
+import { proxyRequest } from "@/app/api/_lib/backend-proxy";
 
 export async function DELETE(
-	request: Request,
-	{ params }: { params: Promise<{ inviteId: string }> }
+  request: NextRequest,
+  { params }: { params: Promise<{ inviteId: string }> }
 ) {
-	const { inviteId } = await params;
-	return proxyDashboardRequest({
-		targetPath: `/yee/dashboard/manager-invites/${encodeURIComponent(inviteId)}`,
-		method: "DELETE",
-		authorization: request.headers.get("authorization")
-	});
+  const { inviteId } = await params;
+  return proxyRequest({
+    request,
+    path: `/yee/dashboard/manager-invites/${encodeURIComponent(inviteId)}`,
+    method: "DELETE",
+  });
 }

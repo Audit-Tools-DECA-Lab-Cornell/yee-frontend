@@ -42,12 +42,6 @@ export type WorkspaceConfig = {
 	navigation: WorkspaceNavItem[];
 	secondaryNavigation: WorkspaceNavItem[];
 	pageCopy: Record<string, { title: string; description: string }>;
-	headerBadges: string[];
-	user: {
-		name: string;
-		initials: string;
-		roleLabel: string;
-	};
 };
 
 export type SiteCopyPayload = {
@@ -146,12 +140,6 @@ export const defaultWorkspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> 
 				title: "Settings",
 				description: "Placeholder for system-wide configuration, exports, and admin tools."
 			}
-		},
-		headerBadges: ["142 users total", "312 audits submitted"],
-		user: {
-			name: "Platform Administrator",
-			initials: "PA",
-			roleLabel: "ADMIN"
 		}
 	},
 	manager: {
@@ -224,12 +212,6 @@ export const defaultWorkspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> 
 				title: "Settings",
 				description: "Placeholder for account, notification, and project-scoped settings."
 			}
-		},
-		headerBadges: [],
-		user: {
-			name: "Andisha Safdariyan",
-			initials: "AS",
-			roleLabel: "MANAGER"
 		}
 	},
 	auditor: {
@@ -273,12 +255,6 @@ export const defaultWorkspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> 
 				title: "Settings",
 				description: "Placeholder for personal profile and preferences."
 			}
-		},
-		headerBadges: [],
-		user: {
-			name: "Assigned Auditor",
-			initials: "AU",
-			roleLabel: "AUDITOR"
 		}
 	}
 };

@@ -1,27 +1,27 @@
-import { proxyDashboardRequest } from "@/app/api/dashboard/_utils";
+import type { NextRequest } from "next/server";
+
+import { proxyRequest } from "@/app/api/_lib/backend-proxy";
 
 export async function GET(
-	request: Request,
-	{ params }: { params: Promise<{ placeId: string }> }
+  request: NextRequest,
+  { params }: { params: Promise<{ placeId: string }> }
 ) {
-	const { placeId } = await params;
-
-	return proxyDashboardRequest({
-		targetPath: `/yee/dashboard/places/${placeId}`,
-		authorization: request.headers.get("authorization")
-	});
+  const { placeId } = await params;
+  return proxyRequest({
+    request,
+    path: `/yee/dashboard/places/${encodeURIComponent(placeId)}`,
+  });
 }
 
 export async function PATCH(
-	request: Request,
-	{ params }: { params: Promise<{ placeId: string }> }
+  request: NextRequest,
+  { params }: { params: Promise<{ placeId: string }> }
 ) {
-	const { placeId } = await params;
-
-	return proxyDashboardRequest({
-		targetPath: `/yee/dashboard/places/${placeId}`,
-		method: "PATCH",
-		body: await request.json(),
-		authorization: request.headers.get("authorization")
-	});
+  const { placeId } = await params;
+  return proxyRequest({
+    request,
+    path: `/yee/dashboard/places/${encodeURIComponent(placeId)}`,
+    method: "PATCH",
+    body: await request.json(),
+  });
 }

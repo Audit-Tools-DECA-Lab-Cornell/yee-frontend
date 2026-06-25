@@ -61,7 +61,7 @@ export default function ForgotPasswordPage() {
 					{message ? <p className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{message}</p> : null}
 					{error ? <p className="text-sm text-rose-600">{error}</p> : null}
 					<Button type="submit" className="w-full rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]" disabled={submitting}>
-						{submitting ? "Sending reset link..." : "Send reset link"}
+						{submitting ? "Sending reset link\u2026" : "Send reset link"}
 					</Button>
 				</form>
 

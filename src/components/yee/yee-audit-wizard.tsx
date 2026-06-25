@@ -45,6 +45,8 @@ import {
 	type InstrumentResponse
 } from "@/lib/yee-instrument";
 import { buildWeightedScorePreview, fetchScorePreview } from "@/lib/yee-scoring";
+import { useAutosaveQueue } from "@/features/yee-audit/state/autosave-queue";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 type ResponsesState = Record<string, string | Record<string, string>>;
 type QuestionGroup = {
@@ -1110,11 +1112,40 @@ export function YeeAuditWizard({
 	const [loading, setLoading] = React.useState(true);
 	const [submitting, setSubmitting] = React.useState(false);
 	const [previewLoading, setPreviewLoading] = React.useState(false);
-	const [persisting, setPersisting] = React.useState(false);
 	const [error, setError] = React.useState<string | null>(null);
 	const hydratedRef = React.useRef(false);
+
+	// Confirm dialog state — replaces all window.confirm calls.
+	type ConfirmState = {
+		open: boolean;
+		title: string;
+		description: string;
+		confirmLabel?: string;
+		variant: "default" | "destructive";
+		onConfirm: () => void | Promise<void>;
+	};
+	const [confirmState, setConfirmState] = React.useState<ConfirmState>({
+		open: false,
+		title: "",
+		description: "",
+		variant: "default",
+		onConfirm: () => undefined
+	});
+
+	const openConfirm = React.useCallback(
+		(opts: Omit<ConfirmState, "open">) => {
+			setConfirmState({ ...opts, open: true });
+		},
+		[]
+	);
 	const lastPersistedSnapshot = React.useRef<string | null>(null);
 	const managerSubmissionId = variant === "manager-edit" ? searchParams.get("submissionId") : null;
+
+	// Serialised snapshot type threaded through the autosave queue.
+	type DraftPayload = {
+		participant_info: Record<string, unknown>;
+		responses: ResponsesState;
+	};
 
 	const buildManagerEditHref = React.useCallback(
 		(path: string) => {
@@ -1150,20 +1181,20 @@ export function YeeAuditWizard({
 					if (!auditId) {
 						throw new Error("Manager audit ID is missing.");
 					}
-					if (managerSubmissionId) {
-						const submission = await fetchSubmission(managerSubmissionId, session);
-						if (cancelled) return;
-						nextDraft = draftFromStoredRecord(placeId, {
-							...submission,
-							place_id: submission.place_id,
-						});
-					} else {
-						const state = await fetchManagerAuditEditState(auditId, session);
+				if (managerSubmissionId) {
+					const submission = await fetchSubmission(managerSubmissionId);
+					if (cancelled) return;
+					nextDraft = draftFromStoredRecord(placeId, {
+						...submission,
+						place_id: submission.place_id,
+					});
+				} else {
+					const state = await fetchManagerAuditEditState(auditId);
 						if (cancelled) return;
 						nextDraft = draftFromStoredRecord(placeId, state);
 					}
 				} else {
-					const state = await fetchAuditState(placeId, session);
+					const state = await fetchAuditState(placeId);
 					if (cancelled) return;
 					if (mode !== "submitted" && state.status === "SUBMITTED" && state.submission_id) {
 						router.replace(`/yee/submissions/${state.submission_id}`);
@@ -1191,46 +1222,82 @@ export function YeeAuditWizard({
 		};
 	}, [auditId, managerSubmissionId, mode, placeId, router, session, variant]);
 
+	// Keep a ref to the latest draft so saveDraftFn reads it at call-time, not at closure time.
+	const draftRef = React.useRef(draft);
+	React.useEffect(() => {
+		draftRef.current = draft;
+	}, [draft]);
+
+	// Keep a ref to the latest session so it's always current inside the queue.
+	const sessionRef = React.useRef(session);
+	React.useEffect(() => {
+		sessionRef.current = session;
+	}, [session]);
+
+	// Build the save function that the autosave queue will call sequentially.
+	const saveDraftFn = React.useCallback(
+		async (payload: DraftPayload) => {
+			if (!sessionRef.current) return;
+			const currentDraft = draftRef.current;
+			if (variant === "manager-edit") {
+				if (!auditId) throw new Error("Manager audit ID is missing.");
+				await updateManagerAuditEditState(auditId, {
+					submission_id: currentDraft.lastResult?.id ?? null,
+					...payload,
+					resubmit: false
+				});
+			} else {
+				await saveAuditDraft(placeId, payload);
+			}
+			lastPersistedSnapshot.current = JSON.stringify(payload);
+		},
+		[auditId, placeId, variant]
+	);
+
+	const { saveStatus: autosaveStatus, lastSaveError: autosaveError, enqueue: enqueueSave } =
+		useAutosaveQueue<DraftPayload>(saveDraftFn);
+
+	// Derive a synchronous `persistCurrentDraft` for navigation guards that need
+	// to flush before redirecting. It enqueues into the same queue so ordering
+	// is still safe.
 	const persistCurrentDraft = React.useCallback(
 		async (currentDraft: YeeAuditDraft, currentResponses: ResponsesState) => {
 			if (!session || !hydratedRef.current || mode === "submitted") return;
-			const payload = {
+			const payload: DraftPayload = {
 				participant_info: buildParticipantInfo(currentDraft),
 				responses: currentResponses
 			};
 			const snapshot = JSON.stringify(payload);
 			if (snapshot === lastPersistedSnapshot.current) return;
-			setPersisting(true);
-			try {
-				if (variant === "manager-edit") {
-					if (!auditId) {
-						throw new Error("Manager audit ID is missing.");
-					}
-					await updateManagerAuditEditState(auditId, session, {
-						submission_id: currentDraft.lastResult?.id ?? null,
-						...payload,
-						resubmit: false
-					});
-				} else {
-					await saveAuditDraft(placeId, session, payload);
-				}
-				lastPersistedSnapshot.current = snapshot;
-			} finally {
-				setPersisting(false);
-			}
+			enqueueSave(payload);
 		},
-		[auditId, mode, placeId, session, variant]
+		[enqueueSave, mode, session]
 	);
 
+	// Debounced autosave: enqueue 350 ms after any draft/response change.
 	React.useEffect(() => {
 		if (!session || !hydratedRef.current || mode === "submitted") return;
 		const timer = window.setTimeout(() => {
-			void persistCurrentDraft(draft, responses).catch(err => {
-				setError(err instanceof Error ? err.message : "Failed to save draft.");
-			});
+			const payload: DraftPayload = {
+				participant_info: buildParticipantInfo(draft),
+				responses
+			};
+			const snapshot = JSON.stringify(payload);
+			if (snapshot !== lastPersistedSnapshot.current) {
+				enqueueSave(payload);
+			}
 		}, 350);
 		return () => window.clearTimeout(timer);
-	}, [draft, mode, persistCurrentDraft, responses, session]);
+	}, [draft, enqueueSave, mode, responses, session]);
+
+	// Surface autosave errors to the existing error state.
+	React.useEffect(() => {
+		if (autosaveError) {
+			setError(autosaveError);
+		}
+	}, [autosaveError]);
+
+	const persisting = autosaveStatus === "saving";
 
 	const stepDetails = step ? yeeSteps.find(item => item.step === step) : null;
 	const domainKey = step ? getDomainForStep(step) : null;
@@ -1278,13 +1345,21 @@ export function YeeAuditWizard({
 		if (!nextStep) return;
 		if (step && nextStep > step && !stepIsComplete) {
 			const message = getIncompleteStepMessage(step);
-			if (typeof window !== "undefined") {
-				const shouldContinue = window.confirm(`${message}\n\nDo you still want to move to the next page?`);
-				if (!shouldContinue) {
-					setError(message);
-					return;
+			openConfirm({
+				title: "Section not complete",
+				description: `${message} Do you still want to move to the next page?`,
+				variant: "default",
+				onConfirm: async () => {
+					setError(null);
+					await persistCurrentDraft({ ...draft, responses }, responses);
+					router.push(
+						variant === "manager-edit" && basePath
+							? buildManagerEditHref(`${basePath}/page/${nextStep}`)
+							: `/yee/audit/${placeId}/page/${nextStep}`
+					);
 				}
-			}
+			});
+			return;
 		}
 		try {
 			setError(null);
@@ -1306,15 +1381,17 @@ export function YeeAuditWizard({
 				setError("The YEE survey instrument is still loading. Please try again in a moment.");
 				return;
 			}
-			if (!areAllRequiredSectionsComplete(draft, responses, instrument)) {
-				const message = buildIncompleteSectionsMessage(draft, responses, instrument);
-				setError(message);
-				if (typeof window !== "undefined") {
-					const firstIncompleteStep = getIncompleteSectionSteps(draft, responses, instrument)[0]?.step ?? null;
-					const shouldJump = window.confirm(
-						`${message}\n\nWould you like to go to the first incomplete section now?`
-					);
-					if (shouldJump && firstIncompleteStep) {
+		if (!areAllRequiredSectionsComplete(draft, responses, instrument)) {
+			const message = buildIncompleteSectionsMessage(draft, responses, instrument);
+			setError(message);
+			const firstIncompleteStep =
+				getIncompleteSectionSteps(draft, responses, instrument)[0]?.step ?? null;
+			openConfirm({
+				title: "Audit incomplete",
+				description: `${message} Would you like to go to the first incomplete section now?`,
+				variant: "default",
+				onConfirm: () => {
+					if (firstIncompleteStep) {
 						router.push(
 							variant === "manager-edit" && basePath
 								? buildManagerEditHref(`${basePath}/page/${firstIncompleteStep}`)
@@ -1322,18 +1399,19 @@ export function YeeAuditWizard({
 						);
 					}
 				}
-				return;
-			}
-			await persistCurrentDraft({ ...draft, responses }, responses);
-			router.push(
-				variant === "manager-edit" && basePath
-					? buildManagerEditHref(`${basePath}/review`)
-					: `/yee/audit/${placeId}/review`
-			);
-		} catch (err) {
-			setError(err instanceof Error ? err.message : "Failed to save draft before opening review.");
+			});
+			return;
 		}
+		await persistCurrentDraft({ ...draft, responses }, responses);
+		router.push(
+			variant === "manager-edit" && basePath
+				? buildManagerEditHref(`${basePath}/review`)
+				: `/yee/audit/${placeId}/review`
+		);
+	} catch (err) {
+		setError(err instanceof Error ? err.message : "Failed to save draft before opening review.");
 	}
+}
 
 	const refreshScorePreview = React.useCallback(async () => {
 		try {
@@ -1356,21 +1434,22 @@ export function YeeAuditWizard({
 		void refreshScorePreview();
 	}, [draft.scorePreview, mode, refreshScorePreview]);
 
-	async function submitAudit() {
-		try {
-			if (!instrument) {
-				setError("The YEE survey instrument is still loading. Please try again in a moment.");
-				return;
-			}
-			if (!areAllRequiredSectionsComplete(draft, responses, instrument)) {
-				const message = buildIncompleteSectionsMessage(draft, responses, instrument);
-				setError(message);
-				if (typeof window !== "undefined") {
-					const firstIncompleteStep = getIncompleteSectionSteps(draft, responses, instrument)[0]?.step ?? null;
-					const shouldJump = window.confirm(
-						`${message}\n\nWould you like to go to the first incomplete section now?`
-					);
-					if (shouldJump && firstIncompleteStep) {
+	function submitAudit() {
+		if (!instrument) {
+			setError("The YEE survey instrument is still loading. Please try again in a moment.");
+			return;
+		}
+		if (!areAllRequiredSectionsComplete(draft, responses, instrument)) {
+			const message = buildIncompleteSectionsMessage(draft, responses, instrument);
+			setError(message);
+			const firstIncompleteStep =
+				getIncompleteSectionSteps(draft, responses, instrument)[0]?.step ?? null;
+			openConfirm({
+				title: "Audit incomplete",
+				description: `${message} Would you like to go to the first incomplete section now?`,
+				variant: "default",
+				onConfirm: () => {
+					if (firstIncompleteStep) {
 						router.push(
 							variant === "manager-edit" && basePath
 								? buildManagerEditHref(`${basePath}/page/${firstIncompleteStep}`)
@@ -1378,35 +1457,44 @@ export function YeeAuditWizard({
 						);
 					}
 				}
-				return;
+			});
+			return;
+		}
+		// Use destructive variant — submission is irreversible.
+		openConfirm({
+			title: "Submit audit",
+			description:
+				"Submit this audit now? After submission, you will not be able to edit the audit.",
+			variant: "destructive",
+			confirmLabel: "Submit",
+			onConfirm: async () => {
+				await doSubmitAudit();
 			}
-			if (
-				typeof window !== "undefined" &&
-				!window.confirm("Submit this audit now? After submission, you will not be able to edit the audit.")
-			) {
-				return;
-			}
-			setSubmitting(true);
-			setError(null);
+		});
+	}
+
+	async function doSubmitAudit() {
+		setSubmitting(true);
+		setError(null);
+		try {
 			const now = new Date();
 			const finishTime = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 			const totalMinutes =
 				draft.totalMinutes ||
 				Math.max(
 					1,
-					Math.round((now.getTime() - new Date(`${draft.auditDate}T${draft.startTime}`).getTime()) / 60000) || 0
+					Math.round(
+						(now.getTime() - new Date(`${draft.auditDate}T${draft.startTime}`).getTime()) / 60000
+					) || 0
 				);
-			const submissionDraft = {
-				...draft,
-				finishTime,
-				totalMinutes
-			};
+			const submissionDraft = { ...draft, finishTime, totalMinutes };
 			const participantInfo = buildParticipantInfo(submissionDraft);
+
 			if (variant === "manager-edit") {
 				if (!session || !auditId) {
 					throw new Error("Manager audit editing is not available right now.");
 				}
-				const data = await updateManagerAuditEditState(auditId, session, {
+				const data = await updateManagerAuditEditState(auditId, {
 					submission_id: draft.lastResult?.id ?? null,
 					participant_info: participantInfo,
 					responses,
@@ -1417,14 +1505,13 @@ export function YeeAuditWizard({
 					...submissionDraft,
 					submittedAt: data.submitted_at,
 					lastResult: data.submission_id
-						? {
-								id: data.submission_id,
-								totalScore: data.score.total_score
-						  }
+						? { id: data.submission_id, totalScore: data.score.total_score }
 						: submissionDraft.lastResult,
 					scorePreview: preview
 				});
-				router.push(data.submission_id ? `/yee/submissions/${data.submission_id}` : "/dashboard/audits");
+				router.push(
+					data.submission_id ? `/yee/submissions/${data.submission_id}` : "/dashboard/audits"
+				);
 				return;
 			}
 
@@ -1435,10 +1522,7 @@ export function YeeAuditWizard({
 			};
 			const response = await fetch("/api/yee/audits", {
 				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					...(session ? { Authorization: `Bearer ${session.accessToken}` } : {})
-				},
+				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(payload)
 			});
 			const bodyText = await response.text();
@@ -1453,12 +1537,17 @@ export function YeeAuditWizard({
 				throw new Error(detail);
 			}
 			const scorePayload =
-				typeof data.score === "object" && data.score ? (data.score as Record<string, unknown>) : null;
-			const submittedAt = typeof data.submitted_at === "string" ? data.submitted_at : now.toISOString();
-			const preview =
-				scorePayload
-					? buildWeightedScorePreview(scorePayload as Parameters<typeof buildWeightedScorePreview>[0], submissionDraft.weights)
-					: draft.scorePreview;
+				typeof data.score === "object" && data.score
+					? (data.score as Record<string, unknown>)
+					: null;
+			const submittedAt =
+				typeof data.submitted_at === "string" ? data.submitted_at : now.toISOString();
+			const preview = scorePayload
+				? buildWeightedScorePreview(
+						scorePayload as Parameters<typeof buildWeightedScorePreview>[0],
+						submissionDraft.weights
+					)
+				: draft.scorePreview;
 			const nextDraft = {
 				...submissionDraft,
 				submittedAt,
@@ -1466,13 +1555,16 @@ export function YeeAuditWizard({
 					typeof data.id === "string"
 						? {
 								id: data.id,
-								totalScore: typeof scorePayload?.total_score === "number" ? scorePayload.total_score : 0
-						  }
+								totalScore:
+									typeof scorePayload?.total_score === "number" ? scorePayload.total_score : 0
+							}
 						: draft.lastResult,
 				scorePreview: preview
 			};
 			setDraft(nextDraft);
-			router.push(`/yee/audit/${placeId}/submitted?submissionId=${encodeURIComponent(String(data.id))}`);
+			router.push(
+				`/yee/audit/${placeId}/submitted?submissionId=${encodeURIComponent(String(data.id))}`
+			);
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Failed to submit audit.");
 		} finally {
@@ -1481,7 +1573,7 @@ export function YeeAuditWizard({
 	}
 
 	if (loading || !instrument) {
-		return <main className="mx-auto max-w-5xl p-6">Loading YEE audit flow...</main>;
+		return <main className="mx-auto max-w-5xl p-6">Loading YEE audit flow\u2026</main>;
 	}
 
 	if (error && !instrument) {
@@ -1501,7 +1593,7 @@ export function YeeAuditWizard({
 	}
 
 	if (mode === "review") {
-		const reviewSections = (Object.keys(yeeDomainLabels) as Array<keyof typeof yeeDomainLabels>).map(domain => ({
+		const reviewSections = (Object.keys(yeeDomainLabels) as Array<keyof typeof yeeDomainLabels>).map((domain) => ({
 			domain,
 			label: yeeDomainLabels[domain],
 			step: getStepForDomainKey(domain),
@@ -1516,6 +1608,7 @@ export function YeeAuditWizard({
 		}));
 
 		return (
+			<>
 			<main className="mx-auto max-w-5xl space-y-6 p-6">
 				<Card className="rounded-[2rem] border-slate-200/80 bg-white shadow-sm">
 					<CardHeader>
@@ -1681,7 +1774,7 @@ export function YeeAuditWizard({
 						) : (
 							<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
 								<CardContent className="py-6 text-sm text-slate-600">
-									{previewLoading ? "Generating score preview..." : "Score preview has not been generated yet."}
+									{previewLoading ? "Generating score preview\u2026" : "Score preview has not been generated yet."}
 								</CardContent>
 							</Card>
 						)}
@@ -1698,24 +1791,34 @@ export function YeeAuditWizard({
 								</Link>
 							</Button>
 							<Button type="button" variant="outline" className="rounded-2xl" onClick={() => void refreshScorePreview()} disabled={previewLoading}>
-								{previewLoading ? "Recalculating..." : "Recalculate Score Preview"}
+								{previewLoading ? "Recalculating\u2026" : "Recalculate Score Preview"}
 							</Button>
 							<Button type="button" className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]" onClick={() => void submitAudit()} disabled={submitting}>
-								{submitting ? "Submitting..." : "Submit Audit"}
+								{submitting ? "Submitting\u2026" : "Submit Audit"}
 							</Button>
 						</div>
 						<p className="text-xs text-slate-500">
 							Use Recalculate Score Preview after you change any answers or section weights and want the latest totals reflected before submission.
 						</p>
 						<p className="text-xs text-slate-500">{persisting ? "Saving your latest answers..." : "All answers saved."}</p>
-						{error ? <p className="text-sm text-red-700">{error}</p> : null}
-					</CardContent>
-				</Card>
-			</main>
-		);
-	}
+					{error ? <p className="text-sm text-red-700">{error}</p> : null}
+				</CardContent>
+			</Card>
+		</main>
+		<ConfirmDialog
+			open={confirmState.open}
+			onOpenChange={(open) => setConfirmState((prev) => ({ ...prev, open }))}
+			title={confirmState.title}
+			description={confirmState.description}
+			variant={confirmState.variant}
+			onConfirm={confirmState.onConfirm}
+		/>
+		</>
+	);
+}
 
 	return (
+		<>
 		<main className="mx-auto max-w-5xl space-y-6 p-6">
 			<header className="space-y-3">
 				<div className="flex flex-wrap items-center gap-2">
@@ -1984,12 +2087,12 @@ export function YeeAuditWizard({
 									if (!session || !auditId) {
 										throw new Error("Manager audit editing is not available right now.");
 									}
-									await updateManagerAuditEditState(auditId, session, {
-										submission_id: draft.lastResult?.id ?? null,
-										participant_info: buildParticipantInfo(draft),
-										responses,
-										resubmit: false
-									});
+								await updateManagerAuditEditState(auditId, {
+									submission_id: draft.lastResult?.id ?? null,
+									participant_info: buildParticipantInfo(draft),
+									responses,
+									resubmit: false
+								});
 								} else {
 									await persistCurrentDraft(draft, responses);
 								}
@@ -2024,6 +2127,15 @@ export function YeeAuditWizard({
 			) : null}
 			{error ? <p className="text-sm text-red-700">{error}</p> : null}
 		</main>
+		<ConfirmDialog
+			open={confirmState.open}
+			onOpenChange={(open) => setConfirmState((prev) => ({ ...prev, open }))}
+			title={confirmState.title}
+			description={confirmState.description}
+			variant={confirmState.variant}
+			onConfirm={confirmState.onConfirm}
+		/>
+	</>
 	);
 }
 
@@ -2051,7 +2163,7 @@ function SubmittedAuditConfirmation({
 		let cancelled = false;
 		const run = async () => {
 			try {
-				const record = await fetchSubmission(submissionId, session);
+				const record = await fetchSubmission(submissionId);
 				if (!cancelled) setSubmission(record);
 			} catch (err) {
 				if (!cancelled) setLoadError(err instanceof Error ? err.message : "Failed to load submitted audit.");
@@ -2093,7 +2205,7 @@ function SubmittedAuditConfirmation({
 							</Button>
 						) : null}
 					</div>
-					{loading ? <p>Loading submitted audit details...</p> : null}
+					{loading ? <p>Loading submitted audit details\u2026</p> : null}
 					{loadError ? <p className="text-red-700">{loadError}</p> : null}
 				</CardContent>
 			</Card>

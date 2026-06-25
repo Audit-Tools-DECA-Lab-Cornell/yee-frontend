@@ -1,26 +1,28 @@
-import { proxyDashboardRequest } from "@/app/api/dashboard/_utils";
+import type { NextRequest } from "next/server";
+
+import { proxyRequest } from "@/app/api/_lib/backend-proxy";
 
 export async function PATCH(
-	request: Request,
-	{ params }: { params: Promise<{ instrumentId: string }> }
+  request: NextRequest,
+  { params }: { params: Promise<{ instrumentId: string }> }
 ) {
-	const { instrumentId } = await params;
-	return proxyDashboardRequest({
-		targetPath: `/yee/admin/instruments/${instrumentId}`,
-		method: "PATCH",
-		body: await request.json(),
-		authorization: request.headers.get("authorization")
-	});
+  const { instrumentId } = await params;
+  return proxyRequest({
+    request,
+    path: `/yee/admin/instruments/${encodeURIComponent(instrumentId)}`,
+    method: "PATCH",
+    body: await request.json(),
+  });
 }
 
 export async function DELETE(
-	request: Request,
-	{ params }: { params: Promise<{ instrumentId: string }> }
+  request: NextRequest,
+  { params }: { params: Promise<{ instrumentId: string }> }
 ) {
-	const { instrumentId } = await params;
-	return proxyDashboardRequest({
-		targetPath: `/yee/admin/instruments/${instrumentId}`,
-		method: "DELETE",
-		authorization: request.headers.get("authorization")
-	});
+  const { instrumentId } = await params;
+  return proxyRequest({
+    request,
+    path: `/yee/admin/instruments/${encodeURIComponent(instrumentId)}`,
+    method: "DELETE",
+  });
 }

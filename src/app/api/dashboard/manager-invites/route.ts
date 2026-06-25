@@ -1,21 +1,18 @@
-import { proxyDashboardRequest } from "@/app/api/dashboard/_utils";
+import type { NextRequest } from "next/server";
 
-export async function GET(request: Request) {
-	return proxyDashboardRequest({
-		targetPath: "/yee/dashboard/manager-invites",
-		authorization: request.headers.get("authorization")
-	});
+import { proxyRequest } from "@/app/api/_lib/backend-proxy";
+
+export async function GET(request: NextRequest) {
+  return proxyRequest({ request, path: "/yee/dashboard/manager-invites" });
 }
 
-export async function POST(request: Request) {
-	const frontendOrigin = new URL(request.url).origin;
-	return proxyDashboardRequest({
-		targetPath: "/yee/dashboard/manager-invites",
-		method: "POST",
-		body: await request.json(),
-		authorization: request.headers.get("authorization"),
-		headers: {
-			"X-Frontend-Origin": frontendOrigin
-		}
-	});
+export async function POST(request: NextRequest) {
+  const frontendOrigin = new URL(request.url).origin;
+  return proxyRequest({
+    request,
+    path: "/yee/dashboard/manager-invites",
+    method: "POST",
+    body: await request.json(),
+    additionalHeaders: { "X-Frontend-Origin": frontendOrigin },
+  });
 }

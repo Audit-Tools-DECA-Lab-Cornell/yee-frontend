@@ -23,7 +23,7 @@ export function AuditorPlaceList({ compact = false }: { compact?: boolean }) {
 		const run = async () => {
 			try {
 				const rows = await fetchMyPlaces(session);
-				const states = await Promise.all(rows.map(place => fetchAuditState(place.id, session)));
+				const states = await Promise.all(rows.map((place) => fetchAuditState(place.id)));
 				if (!cancelled) {
 					setPlaces(rows);
 					setAuditStates(Object.fromEntries(states.map(state => [state.place_id, state])));

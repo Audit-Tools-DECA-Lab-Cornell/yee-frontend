@@ -17,6 +17,7 @@ import {
 	updateManagerProfile,
 	type ManagerProfileRecord
 } from "@/lib/dashboard/live-api";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 function formatDate(value?: string | null) {
 	if (!value) return "Not recorded";
@@ -45,6 +46,8 @@ export default function SettingsPage() {
 	const [removingManagerId, setRemovingManagerId] = React.useState<string | null>(null);
 	const [error, setError] = React.useState<string | null>(null);
 	const [success, setSuccess] = React.useState<string | null>(null);
+	const [removeConfirmOpen, setRemoveConfirmOpen] = React.useState(false);
+	const [pendingRemoveMemberId, setPendingRemoveMemberId] = React.useState<string | null>(null);
 
 	const loadData = React.useCallback(async () => {
 		if (!session) return;
@@ -115,13 +118,13 @@ export default function SettingsPage() {
 		}
 	}
 
-	async function handleRemoveManager(managerId: string) {
+	function handleRemoveManager(managerId: string) {
+		setPendingRemoveMemberId(managerId);
+		setRemoveConfirmOpen(true);
+	}
+
+	async function doRemoveManager(managerId: string) {
 		if (!session) return;
-		const target = team.find(member => member.id === managerId);
-		const confirmed = window.confirm(
-			`Remove ${target?.full_name ?? "this manager"} from ${profile?.organization ?? "the organization"}?`
-		);
-		if (!confirmed) return;
 		setRemovingManagerId(managerId);
 		setError(null);
 		setSuccess(null);
@@ -139,12 +142,13 @@ export default function SettingsPage() {
 	if (loading) {
 		return (
 			<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
-				<CardContent className="p-6 text-sm text-slate-600">Loading manager settings...</CardContent>
+				<CardContent className="p-6 text-sm text-slate-600">Loading manager settings\u2026</CardContent>
 			</Card>
 		);
 	}
 
 	return (
+		<>
 		<div className="space-y-6">
 			<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
 				<CardHeader>
@@ -213,7 +217,7 @@ export default function SettingsPage() {
 
 						<div className="md:col-span-2 flex flex-wrap gap-3">
 							<Button type="submit" className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]" disabled={saving}>
-								{saving ? "Saving..." : "Save manager profile"}
+								{saving ? "Saving\u2026" : "Save manager profile"}
 							</Button>
 							<Button asChild variant="outline" className="rounded-2xl">
 								<Link href="/dashboard/managers/invite">Invite manager</Link>
@@ -250,7 +254,7 @@ export default function SettingsPage() {
 								className="rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]"
 								disabled={creatingAuditorProfile}
 								onClick={handleCreateAuditorProfile}>
-								{creatingAuditorProfile ? "Creating auditor profile..." : "Create my auditor profile"}
+								{creatingAuditorProfile ? "Creating auditor profile\u2026" : "Create my auditor profile"}
 							</Button>
 						)}
 						<Button asChild variant="outline" className="rounded-2xl">
@@ -308,5 +312,17 @@ export default function SettingsPage() {
 				</CardContent>
 			</Card>
 		</div>
+		<ConfirmDialog
+			open={removeConfirmOpen}
+			onOpenChange={setRemoveConfirmOpen}
+			title="Remove manager"
+			description={`Remove ${team.find((m) => m.id === pendingRemoveMemberId)?.full_name ?? "this manager"} from ${profile?.organization ?? "the organization"}?`}
+			variant="destructive"
+			confirmLabel="Remove"
+			onConfirm={async () => {
+				if (pendingRemoveMemberId) await doRemoveManager(pendingRemoveMemberId);
+			}}
+		/>
+		</>
 	);
 }

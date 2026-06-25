@@ -1,8 +1,7 @@
-import { proxyDashboardRequest } from "@/app/api/dashboard/_utils";
+import type { NextRequest } from "next/server";
 
-export async function GET(request: Request) {
-	return proxyDashboardRequest({
-		targetPath: "/yee/dashboard/managers",
-		authorization: request.headers.get("authorization")
-	});
+import { proxyRequest } from "@/app/api/_lib/backend-proxy";
+
+export async function GET(request: NextRequest) {
+  return proxyRequest({ request, path: "/yee/dashboard/managers" });
 }

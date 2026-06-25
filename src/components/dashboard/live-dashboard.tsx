@@ -14,7 +14,6 @@ import {
 	approveUser,
 	fetchAuditors,
 	fetchAudits,
-	fetchDashboardOverview,
 	fetchPlaceComparisons,
 	fetchPlaces,
 	fetchProjects,
@@ -26,6 +25,9 @@ import {
 	type RawDataRecord,
 	type UserRecord
 } from "@/lib/dashboard/live-api";
+import { toCsv } from "@/lib/csv/to-csv";
+import { useDashboardOverview } from "@/features/dashboard/api/use-dashboard-overview";
+import { useDashboardRawData } from "@/features/dashboard/api/use-dashboard-raw-data";
 import { getYouthWeightedScoreMaximum, totalRawScoreMaximum } from "@/lib/yee-score-limits";
 
 function getManagerQuickLinks(isPrimaryManager: boolean) {
@@ -153,7 +155,7 @@ function useDashboardData<T>(loader: (session: NonNullable<ReturnType<typeof use
 function LoadingCard({ label }: { label: string }) {
 	return (
 		<Card className="rounded-[1.75rem] border-slate-200/80 bg-white shadow-sm">
-			<CardContent className="p-6 text-sm text-slate-500">Loading {label}...</CardContent>
+			<CardContent className="p-6 text-sm text-slate-500">Loading {label}\u2026</CardContent>
 		</Card>
 	);
 }
@@ -179,19 +181,7 @@ function EmptyState({ title, description }: { title: string; description: string
 
 function downloadCsv(filename: string, rows: Record<string, string | number>[]) {
 	if (rows.length === 0) return;
-	const headers = Array.from(new Set(rows.flatMap(row => Object.keys(row))));
-	const csv = [
-		headers.join(","),
-		...rows.map(row =>
-			headers
-				.map(header => {
-					const value = row[header] ?? "";
-					const serialized = String(value).replace(/"/g, "\"\"");
-					return `"${serialized}"`;
-				})
-				.join(",")
-		)
-	].join("\n");
+	const csv = toCsv(rows);
 	const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
 	const url = URL.createObjectURL(blob);
 	const anchor = document.createElement("a");
@@ -290,8 +280,14 @@ function averageDomainWeights(rows: RawDataRecord[]) {
 
 export function LiveManagerOverview() {
 	const { session } = useAuth();
-	const { data, loading, error } = useDashboardData(fetchDashboardOverview);
-	const rawData = useTableData(fetchRawData);
+	const { data, isLoading: loading, error: queryError } = useDashboardOverview();
+	const { data: rawDataResult, isLoading: rawDataLoading, error: rawDataQueryError } = useDashboardRawData();
+	const error = queryError ? (queryError instanceof Error ? queryError.message : "Could not load dashboard data.") : null;
+	const rawData = {
+		data: rawDataResult ?? null,
+		loading: rawDataLoading,
+		error: rawDataQueryError ? (rawDataQueryError instanceof Error ? rawDataQueryError.message : "Could not load raw data.") : null
+	};
 
 	if (loading || rawData.loading) return <LoadingCard label="overview" />;
 	if (error) return <ErrorCard message={error} />;
@@ -1374,7 +1370,12 @@ export function LiveAuditsTable() {
 }
 
 export function LiveAdminOverview() {
-	const overview = useDashboardData(fetchDashboardOverview);
+	const { data: overviewData, isLoading: overviewLoading, error: overviewQueryError } = useDashboardOverview();
+	const overview = {
+		data: overviewData ?? null,
+		loading: overviewLoading,
+		error: overviewQueryError ? (overviewQueryError instanceof Error ? overviewQueryError.message : "Could not load admin data.") : null
+	};
 	const users = useTableData(fetchUsers);
 
 	if (overview.loading || users.loading) return <LoadingCard label="admin dashboard" />;

@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
+import { Suspense } from "react";
 
 import { useAuth } from "@/components/auth/auth-provider";
 import { AuthShell } from "@/components/auth/auth-shell";
@@ -13,23 +14,18 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getRouteForUser } from "@/lib/auth/session";
 
-export default function LoginPage() {
+function LoginPageInner() {
 	const router = useRouter();
+	const searchParams = useSearchParams();
 	const { login, session, loading } = useAuth();
-	const [email, setEmail] = React.useState("");
+
+	const prefilledEmail = searchParams.get("email") ?? "";
+	const verified = searchParams.get("verified") === "1";
+
+	const [email, setEmail] = React.useState(prefilledEmail);
 	const [password, setPassword] = React.useState("");
 	const [submitting, setSubmitting] = React.useState(false);
 	const [error, setError] = React.useState<string | null>(null);
-	const [verified, setVerified] = React.useState(false);
-
-	React.useEffect(() => {
-		const params = new URLSearchParams(window.location.search);
-		const prefilledEmail = params.get("email");
-		if (prefilledEmail) {
-			setEmail(prefilledEmail);
-		}
-		setVerified(params.get("verified") === "1");
-	}, []);
 
 	React.useEffect(() => {
 		if (!loading && session) {
@@ -64,7 +60,8 @@ export default function LoginPage() {
 					</Badge>
 					<h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950">Log in</h2>
 					<p className="mt-2 text-sm leading-6 text-slate-600">
-						Use your verified YEE account to continue into the correct onboarding step or dashboard.
+						Use your verified YEE account to continue into the correct onboarding step or
+						dashboard.
 					</p>
 				</div>
 
@@ -81,22 +78,33 @@ export default function LoginPage() {
 							type="email"
 							placeholder="name@university.edu"
 							value={email}
-							onChange={event => setEmail(event.target.value)}
+							onChange={(event) => setEmail(event.target.value)}
 							required
 						/>
 					</div>
 					<div className="space-y-2">
 						<Label htmlFor="password">Password</Label>
-						<PasswordField id="password" placeholder="••••••••" value={password} onChange={setPassword} required />
+						<PasswordField
+							id="password"
+							placeholder="••••••••"
+							value={password}
+							onChange={setPassword}
+							required
+						/>
 					</div>
 					<div className="flex justify-end">
-						<Link href="/forgot-password" className="text-sm font-medium text-emerald-700 hover:text-emerald-800">
+						<Link
+							href="/forgot-password"
+							className="text-sm font-medium text-emerald-700 hover:text-emerald-800">
 							Forgot password?
 						</Link>
 					</div>
 					{error ? <p className="text-sm text-rose-600">{error}</p> : null}
-					<Button type="submit" className="w-full rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]" disabled={submitting}>
-						{submitting ? "Logging in..." : "Log in"}
+					<Button
+						type="submit"
+						className="w-full rounded-2xl bg-[#10231f] text-white hover:bg-[#17302c]"
+						disabled={submitting}>
+						{submitting ? "Logging in\u2026" : "Log in"}
 					</Button>
 				</form>
 
@@ -108,5 +116,13 @@ export default function LoginPage() {
 				</p>
 			</div>
 		</AuthShell>
+	);
+}
+
+export default function LoginPage() {
+	return (
+		<Suspense fallback={null}>
+			<LoginPageInner />
+		</Suspense>
 	);
 }

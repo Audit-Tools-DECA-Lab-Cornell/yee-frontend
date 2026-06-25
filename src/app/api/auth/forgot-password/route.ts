@@ -1,13 +1,9 @@
-import { proxyJsonRequest } from "@/app/api/auth/_utils";
+import { proxyPublicRequest } from "@/app/api/_lib/backend-proxy";
 
 export async function POST(request: Request) {
-	const frontendOrigin = new URL(request.url).origin;
-	return proxyJsonRequest({
-		targetPath: "/yee/auth/forgot-password",
-		method: "POST",
-		body: await request.json(),
-		headers: {
-			"X-Frontend-Origin": frontendOrigin
-		}
-	});
+  return proxyPublicRequest({
+    path: "/yee/auth/forgot-password",
+    method: "POST",
+    body: await request.json(),
+  });
 }

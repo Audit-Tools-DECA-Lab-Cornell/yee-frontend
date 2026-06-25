@@ -1,14 +1,18 @@
-import { proxyDashboardRequest } from "@/app/api/dashboard/_utils";
+import type { NextRequest } from "next/server";
 
-export async function POST(request: Request) {
-	const frontendOrigin = new URL(request.url).origin;
-	return proxyDashboardRequest({
-		targetPath: "/yee/dashboard/auditor-invites",
-		method: "POST",
-		body: await request.json(),
-		authorization: request.headers.get("authorization"),
-		headers: {
-			"X-Frontend-Origin": frontendOrigin
-		}
-	});
+import { proxyRequest } from "@/app/api/_lib/backend-proxy";
+
+export async function GET(request: NextRequest) {
+  return proxyRequest({ request, path: "/yee/dashboard/auditor-invites" });
+}
+
+export async function POST(request: NextRequest) {
+  const frontendOrigin = new URL(request.url).origin;
+  return proxyRequest({
+    request,
+    path: "/yee/dashboard/auditor-invites",
+    method: "POST",
+    body: await request.json(),
+    additionalHeaders: { "X-Frontend-Origin": frontendOrigin },
+  });
 }

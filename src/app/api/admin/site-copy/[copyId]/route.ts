@@ -1,14 +1,16 @@
-import { proxyDashboardRequest } from "@/app/api/dashboard/_utils";
+import type { NextRequest } from "next/server";
+
+import { proxyRequest } from "@/app/api/_lib/backend-proxy";
 
 export async function PATCH(
-	request: Request,
-	{ params }: { params: Promise<{ copyId: string }> }
+  request: NextRequest,
+  { params }: { params: Promise<{ copyId: string }> }
 ) {
-	const { copyId } = await params;
-	return proxyDashboardRequest({
-		targetPath: `/yee/admin/site-copy/${copyId}`,
-		method: "PATCH",
-		body: await request.json(),
-		authorization: request.headers.get("authorization")
-	});
+  const { copyId } = await params;
+  return proxyRequest({
+    request,
+    path: `/yee/admin/site-copy/${encodeURIComponent(copyId)}`,
+    method: "PATCH",
+    body: await request.json(),
+  });
 }

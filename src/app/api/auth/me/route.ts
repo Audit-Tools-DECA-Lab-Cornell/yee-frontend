@@ -1,8 +1,7 @@
-import { proxyJsonRequest } from "@/app/api/auth/_utils";
+import type { NextRequest } from "next/server";
 
-export async function GET(request: Request) {
-	return proxyJsonRequest({
-		targetPath: "/yee/auth/me",
-		authorization: request.headers.get("authorization")
-	});
+import { proxyRequest } from "@/app/api/_lib/backend-proxy";
+
+export async function GET(request: NextRequest) {
+  return proxyRequest({ request, path: "/yee/auth/me" });
 }

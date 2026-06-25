@@ -49,9 +49,4 @@ export function getComparisonAverages<
 	};
 }
 
-export function toCsv(rows: Record<string, string | number>[]) {
-	if (rows.length === 0) return "";
-	const headers = Object.keys(rows[0]);
-	const escapeCell = (value: string | number) => `"${String(value).replaceAll('"', '""')}"`;
-	return [headers.join(","), ...rows.map(row => headers.map(header => escapeCell(row[header] ?? "")).join(","))].join("\n");
-}
+export { toCsv } from "@/lib/csv/to-csv";
