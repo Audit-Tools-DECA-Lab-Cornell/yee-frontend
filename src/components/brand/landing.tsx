@@ -242,7 +242,7 @@ function ReportMockupCard() {
 
 	return (
 		<div
-			className="rounded-lg border p-5"
+			className="rounded-md border p-5"
 			style={{
 				background: "var(--yee-surface-card)",
 				borderColor: "var(--border)",
@@ -259,7 +259,7 @@ function ReportMockupCard() {
 					<p className="text-xs text-muted-foreground">6 domains · 48 observations</p>
 				</div>
 				<div
-					className="flex size-12 shrink-0 flex-col items-center justify-center rounded-lg border"
+					className="flex size-12 shrink-0 flex-col items-center justify-center rounded-md border"
 					style={{ background: "var(--yee-green-50)", borderColor: "var(--yee-green-200)" }}>
 					<span className="text-lg font-bold leading-none" style={{ color: "var(--yee-green-900)" }}>
 						72
@@ -293,7 +293,7 @@ function ReportMockupCard() {
 			</div>
 
 			<div
-				className="mt-3 flex items-center justify-between rounded-lg border px-3 py-2"
+				className="mt-3 flex items-center justify-between rounded-md border px-3 py-2"
 				style={{ background: "var(--yee-green-50)", borderColor: "var(--yee-green-200)" }}>
 				<div>
 					<p className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
@@ -308,12 +308,12 @@ function ReportMockupCard() {
 
 			<div className="mt-2.5 flex items-center gap-2">
 				<div
-					className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border py-1.5 text-[11px] font-medium text-muted-foreground"
+					className="flex flex-1 items-center justify-center gap-1.5 rounded-md border py-1.5 text-[11px] font-medium text-muted-foreground"
 					style={{ borderColor: "var(--border)" }}>
 					<Download className="size-3" aria-hidden="true" /> Export CSV
 				</div>
 				<div
-					className="flex flex-1 items-center justify-center gap-1.5 rounded-lg border py-1.5 text-[11px] font-medium text-muted-foreground"
+					className="flex flex-1 items-center justify-center gap-1.5 rounded-md border py-1.5 text-[11px] font-medium text-muted-foreground"
 					style={{ borderColor: "var(--border)" }}>
 					<Printer className="size-3" aria-hidden="true" /> Print
 				</div>
@@ -446,10 +446,10 @@ function ProblemSection() {
 					{painPoints.map(point => (
 						<article
 							key={point.title}
-							className="rounded-lg border bg-white p-6"
+							className="rounded-md border bg-white p-6"
 							style={{ borderColor: "var(--border)", boxShadow: "var(--shadow-card)" }}>
 							<div
-								className="mb-4 flex size-10 items-center justify-center rounded-lg"
+								className="mb-4 flex size-10 items-center justify-center rounded-md"
 								style={{ background: CREAM_ALT }}
 								aria-hidden="true">
 								<point.icon className="size-5 text-muted-foreground" />
@@ -523,7 +523,7 @@ function SolutionSection() {
 						{features.map(feature => (
 							<div
 								key={feature.label}
-								className="flex items-start gap-3 rounded-lg border bg-white px-4 py-3.5"
+								className="flex items-start gap-3 rounded-md border bg-white px-4 py-3.5"
 								style={{ borderColor: "var(--border)", boxShadow: "var(--shadow-card)" }}>
 								<CheckCircle2
 									className="mt-0.5 size-4 shrink-0"
@@ -734,13 +734,13 @@ function DomainsSection() {
 					{domains.map(domain => (
 						<article
 							key={domain.name}
-							className="rounded-lg border p-5 transition-colors"
+							className="rounded-md border p-5 transition-colors"
 							style={{
 								borderColor: "oklch(1 0 0 / 0.1)",
 								background: "oklch(1 0 0 / 0.04)"
 							}}>
 							<div
-								className="mb-4 flex size-10 items-center justify-center rounded-lg"
+								className="mb-4 flex size-10 items-center justify-center rounded-md"
 								style={{ background: "var(--yee-green-900)" }}>
 								<domain.icon
 									className="size-5"
@@ -807,7 +807,7 @@ function ScoringSection() {
 							].map(item => (
 								<div
 									key={item.label}
-									className="flex items-start gap-3 rounded-lg border px-4 py-3.5"
+									className="flex items-start gap-3 rounded-md border px-4 py-3.5"
 									style={{ borderColor: "var(--border)", background: CREAM }}>
 									<div
 										className="mt-1 size-2 shrink-0 rounded-full"
@@ -848,7 +848,7 @@ function ScoreComparisonMockup() {
 
 	return (
 		<div
-			className="rounded-lg border p-6"
+			className="rounded-md border p-6"
 			style={{ borderColor: "var(--border)", boxShadow: "var(--shadow-elevated)", background: "white" }}>
 			<div className="mb-5 flex items-center gap-6">
 				<div className="flex items-center gap-2">
@@ -918,7 +918,7 @@ function ScoreComparisonMockup() {
 			</div>
 
 			<div
-				className="mt-5 grid grid-cols-2 gap-3 rounded-lg border p-3.5"
+				className="mt-5 grid grid-cols-2 gap-3 rounded-md border p-3.5"
 				style={{ background: "var(--yee-green-50)", borderColor: "var(--yee-green-200)" }}>
 				<div className="text-center">
 					<p className="text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
@@ -1010,10 +1010,10 @@ function ReportsSection() {
 					{reportFeatures.map(feature => (
 						<div
 							key={feature.label}
-							className="rounded-lg border bg-white p-5"
+							className="rounded-md border bg-white p-5"
 							style={{ borderColor: "var(--border)", boxShadow: "var(--shadow-card)" }}>
 							<div
-								className="mb-3 flex size-9 items-center justify-center rounded-lg border"
+								className="mb-3 flex size-9 items-center justify-center rounded-md border"
 								style={{
 									background: "var(--yee-green-50)",
 									borderColor: "var(--yee-green-200)"
