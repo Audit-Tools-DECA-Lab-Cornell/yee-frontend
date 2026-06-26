@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { setSessionCookie } from "@/lib/auth/cookies";
 import type { SessionUser } from "@/lib/auth/session-types";
 import { getApiBaseUrl } from "@/app/api/_lib/backend-config";
-import { errorResponse } from "@/app/api/_lib/api-response";
+import { errorResponse, parseBackendJson } from "@/app/api/_lib/api-response";
 
 type BackendAcceptResponse = {
 	access_token: string;
@@ -26,7 +26,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ tok
 		});
 
 		const text = await response.text();
-		const data: unknown = text ? JSON.parse(text) : {};
+		const data: unknown = parseBackendJson(text);
 
 		if (!response.ok) {
 			return NextResponse.json(data, { status: response.status });

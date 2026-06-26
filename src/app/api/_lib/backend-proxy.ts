@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 import { getSessionToken } from "@/lib/auth/cookies";
 import { getApiBaseUrl } from "./backend-config";
-import { errorResponse } from "./api-response";
+import { errorResponse, parseBackendJson } from "./api-response";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
@@ -53,8 +53,9 @@ export async function proxyRequest({
 		});
 
 		const text = await response.text();
-		// Parse JSON if the response body is non-empty; fall through to empty object otherwise.
-		const data: unknown = text ? JSON.parse(text) : {};
+		// Parse JSON when possible; a non-JSON body (e.g. an unhandled 500) is
+		// wrapped as { detail: <text> } so callers never hit a parse error.
+		const data: unknown = parseBackendJson(text);
 		return NextResponse.json(data, { status: response.status });
 	} catch (error) {
 		// Do NOT expose backendUrl in the error — it could reveal internal topology.
@@ -93,7 +94,7 @@ export async function proxyPublicRequest({
 		});
 
 		const text = await response.text();
-		const data: unknown = text ? JSON.parse(text) : {};
+		const data: unknown = parseBackendJson(text);
 		return NextResponse.json(data, { status: response.status });
 	} catch (error) {
 		return errorResponse(`Backend request failed: ${error instanceof Error ? error.message : String(error)}`, 502);
