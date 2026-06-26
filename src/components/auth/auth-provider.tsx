@@ -123,7 +123,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 			},
 
 			completeProfile: async payload => {
-				const data = await apiPost<SessionResponse>("/api/auth/complete-profile", payload);
+				// The backend's complete-profile contract expects `name` (see
+				// CompleteProfileRequest); map our `full_name` field across so the
+				// request body matches and onboarding does not 422 on a missing field.
+				const { full_name, ...rest } = payload;
+				const data = await apiPost<SessionResponse>("/api/auth/complete-profile", {
+					name: full_name,
+					...rest
+				});
 				const nextSession: FrontendSession = { user: data.user };
 				setSession(nextSession);
 				return nextSession;
