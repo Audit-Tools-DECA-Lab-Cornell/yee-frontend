@@ -133,9 +133,12 @@ export async function resetPassword(token: string, password: string): Promise<{ 
  * The session cookie is sent automatically — no accessToken argument needed.
  */
 export async function completeProfile(payload: CompleteProfilePayload): Promise<SessionUser> {
+	// The backend's complete-profile contract expects `name` (see CompleteProfileRequest);
+	// map our `full_name` field across so the request body matches.
+	const { full_name, ...rest } = payload;
 	const data = await apiRequest<SessionResponse>("/api/auth/complete-profile", {
 		method: "POST",
-		body: JSON.stringify(payload)
+		body: JSON.stringify({ name: full_name, ...rest })
 	});
 	return data.user;
 }
