@@ -628,7 +628,8 @@ export function LiveReports() {
 			averageWeightedScore,
 			totalAudits: filteredAudits.length,
 			scopeDescription,
-			generatedAt: new Date().toLocaleDateString("en-CA")
+			generatedAt: new Date().toLocaleDateString("en-CA"),
+			includeRawData
 		});
 		triggerBlobDownload(`yee-report-${new Date().toISOString().slice(0, 10)}.xlsx`, blob);
 	}

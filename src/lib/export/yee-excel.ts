@@ -29,6 +29,7 @@ export type YeeExcelInput = {
 	totalAudits: number;
 	scopeDescription: string;
 	generatedAt: string;
+	includeRawData: boolean;
 };
 
 type StyleProps = {
@@ -128,7 +129,7 @@ export function generateYeeExcelBlob(input: YeeExcelInput): Blob {
 		XLSX.utils.book_append_sheet(wb, buildAuditScoresSheet(input), "Audit Scores");
 	}
 
-	if (input.filteredRawRows.length > 0) {
+	if (input.includeRawData && input.filteredRawRows.length > 0) {
 		XLSX.utils.book_append_sheet(wb, buildRawResponsesSheet(input), "Raw Responses");
 	}
 
