@@ -55,11 +55,11 @@ You will need two connection strings:
 
 Repo:
 
-- `/Users/andishasafdariyan/auditTools/audit-tools-backend`
+- `../audit-tools-backend`
 
 The backend repo already includes:
 
-- [`render.yaml`](/Users/andishasafdariyan/auditTools/audit-tools-backend/render.yaml)
+- [`render.yaml`](../audit-tools-backend/render.yaml)
 
 It now includes:
 
@@ -100,7 +100,7 @@ After deploy, verify:
 
 Repo:
 
-- `/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend`
+- `yee-frontend`
 
 The frontend is already ready for a normal Vercel deployment.
 

@@ -32,7 +32,7 @@ The backend contract requires:
 
 Current frontend helper:
 
-- [`src/lib/yee-scoring.ts`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/lib/yee-scoring.ts)
+- [`src/lib/yee-scoring.ts`](yee-frontend/src/lib/yee-scoring.ts)
 
 ### 3. Final submission
 
@@ -83,7 +83,7 @@ The frontend computes display-oriented weighted score summaries using the saved 
 
 Current frontend helper:
 
-- [`src/lib/yee-scoring.ts`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/lib/yee-scoring.ts)
+- [`src/lib/yee-scoring.ts`](yee-frontend/src/lib/yee-scoring.ts)
 
 That helper:
 

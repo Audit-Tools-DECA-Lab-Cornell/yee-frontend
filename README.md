@@ -5,9 +5,9 @@ Next.js frontend for DECA Lab's Audit Tools platform. This repository contains t
 The frontend and backend live in separate repos:
 
 - Frontend: this repo
-- Backend: FastAPI service in `audit-tools-backend`
+- Backend: FastAPI service in `../audit-tools-backend`
 
-The frontend talks to the backend through local Next.js API proxy routes under [`src/app/api`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/app/api).
+The frontend talks to the backend through local Next.js API proxy routes under [`src/app/api`](yee-frontend/src/app/api).
 
 ## What This App Does
 
@@ -94,7 +94,7 @@ The current flow is:
    - `/complete-profile`
    - role dashboard
 
-The frontend stores the signed-in session in browser local storage through [`src/lib/auth/session.ts`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/lib/auth/session.ts).
+The frontend stores the signed-in session in browser local storage through [`src/lib/auth/session.ts`](yee-frontend/src/lib/auth/session.ts).
 
 ### YEE audit flow
 
@@ -200,7 +200,7 @@ Notes:
 ### 1. Install dependencies
 
 ```bash
-cd /Users/andishasafdariyan/auditTools/audit-tools-yee-frontend
+cd yee-frontend
 npm install
 ```
 
@@ -219,7 +219,7 @@ Frontend URL:
 In a second terminal:
 
 ```bash
-cd /Users/andishasafdariyan/auditTools/audit-tools-backend
+cd ../audit-tools-backend
 .venv/bin/uvicorn app.main:app --reload
 ```
 
@@ -334,7 +334,7 @@ The YEE survey UI is driven by a backend-derived instrument payload:
 
 - source file: backend `app/data/yee_instrument.qsf`
 - backend normalization: backend `app/yee_scoring.py`
-- frontend fetch helper: [`src/lib/yee-instrument.ts`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/lib/yee-instrument.ts)
+- frontend fetch helper: [`src/lib/yee-instrument.ts`](yee-frontend/src/lib/yee-instrument.ts)
 
 The backend currently enriches the instrument payload with:
 
@@ -351,7 +351,7 @@ This keeps the frontend survey rendering aligned to the actual instrument instea
 
 Project and place editing now use real patch flows:
 
-- frontend proxy helpers in [`src/lib/dashboard/live-api.ts`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/lib/dashboard/live-api.ts)
+- frontend proxy helpers in [`src/lib/dashboard/live-api.ts`](yee-frontend/src/lib/dashboard/live-api.ts)
 - Next API proxy routes under `src/app/api/dashboard/projects/[projectId]` and `src/app/api/dashboard/places/[placeId]`
 - backend persistence in the FastAPI dashboard router
 
@@ -402,15 +402,15 @@ src/
 
 Important files:
 
-- App shell: [`src/app/layout.tsx`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/app/layout.tsx)
-- Providers: [`src/app/providers.tsx`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/app/providers.tsx)
-- Auth provider: [`src/components/auth/auth-provider.tsx`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/components/auth/auth-provider.tsx)
-- Dashboard shell: [`src/components/dashboard/dashboard-shell.tsx`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/components/dashboard/dashboard-shell.tsx)
-- Manager/admin live dashboard content: [`src/components/dashboard/live-dashboard.tsx`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/components/dashboard/live-dashboard.tsx)
-- YEE wizard: [`src/components/yee/yee-audit-wizard.tsx`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/components/yee/yee-audit-wizard.tsx)
-- Submitted results page: [`src/components/yee/yee-submission-report.tsx`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/components/yee/yee-submission-report.tsx)
-- YEE draft/results client helpers: [`src/lib/yee-audit-api.ts`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/lib/yee-audit-api.ts)
-- YEE scoring helpers: [`src/lib/yee-scoring.ts`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/lib/yee-scoring.ts)
+- App shell: [`src/app/layout.tsx`](yee-frontend/src/app/layout.tsx)
+- Providers: [`src/app/providers.tsx`](yee-frontend/src/app/providers.tsx)
+- Auth provider: [`src/components/auth/auth-provider.tsx`](yee-frontend/src/components/auth/auth-provider.tsx)
+- Dashboard shell: [`src/components/dashboard/dashboard-shell.tsx`](yee-frontend/src/components/dashboard/dashboard-shell.tsx)
+- Manager/admin live dashboard content: [`src/components/dashboard/live-dashboard.tsx`](yee-frontend/src/components/dashboard/live-dashboard.tsx)
+- YEE wizard: [`src/components/yee/yee-audit-wizard.tsx`](yee-frontend/src/components/yee/yee-audit-wizard.tsx)
+- Submitted results page: [`src/components/yee/yee-submission-report.tsx`](yee-frontend/src/components/yee/yee-submission-report.tsx)
+- YEE draft/results client helpers: [`src/lib/yee-audit-api.ts`](yee-frontend/src/lib/yee-audit-api.ts)
+- YEE scoring helpers: [`src/lib/yee-scoring.ts`](yee-frontend/src/lib/yee-scoring.ts)
 
 ## Architecture Summary
 
@@ -425,10 +425,10 @@ This keeps backend URLs and tokens out of most UI components and gives one place
 
 For more detail, see:
 
-- [docs/architecture.md](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/docs/architecture.md)
-- [docs/roles-and-permissions.md](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/docs/roles-and-permissions.md)
-- [docs/scoring.md](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/docs/scoring.md)
-- [docs/deployment.md](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/docs/deployment.md)
+- [docs/architecture.md](yee-frontend/docs/architecture.md)
+- [docs/roles-and-permissions.md](yee-frontend/docs/roles-and-permissions.md)
+- [docs/scoring.md](yee-frontend/docs/scoring.md)
+- [docs/deployment.md](yee-frontend/docs/deployment.md)
 
 ## Known Limitations / Pending Work
 
@@ -449,10 +449,10 @@ npm run build
 If you are validating the full product locally, run both repos:
 
 ```bash
-cd /Users/andishasafdariyan/auditTools/audit-tools-backend
+cd ../audit-tools-backend
 .venv/bin/uvicorn app.main:app --reload
 
-cd /Users/andishasafdariyan/auditTools/audit-tools-yee-frontend
+cd yee-frontend
 npm run dev
 ```
 
@@ -467,7 +467,7 @@ If you share the app through ngrok or another tunnel:
 
 ## Related Docs
 
-- [docs/architecture.md](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/docs/architecture.md)
-- [docs/roles-and-permissions.md](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/docs/roles-and-permissions.md)
-- [docs/scoring.md](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/docs/scoring.md)
-- [docs/deployment.md](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/docs/deployment.md)
+- [docs/architecture.md](yee-frontend/docs/architecture.md)
+- [docs/roles-and-permissions.md](yee-frontend/docs/roles-and-permissions.md)
+- [docs/scoring.md](yee-frontend/docs/scoring.md)
+- [docs/deployment.md](yee-frontend/docs/deployment.md)

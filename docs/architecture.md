@@ -85,9 +85,9 @@ Session flow:
 
 Key files:
 
-- [`src/components/auth/auth-provider.tsx`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/components/auth/auth-provider.tsx)
-- [`src/lib/auth/api.ts`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/lib/auth/api.ts)
-- [`src/lib/auth/session.ts`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/lib/auth/session.ts)
+- [`src/components/auth/auth-provider.tsx`](yee-frontend/src/components/auth/auth-provider.tsx)
+- [`src/lib/auth/api.ts`](yee-frontend/src/lib/auth/api.ts)
+- [`src/lib/auth/session.ts`](yee-frontend/src/lib/auth/session.ts)
 
 ## Dashboard architecture
 
@@ -101,10 +101,10 @@ The layouts are shared at the shell level, but the visible navigation and data a
 
 Important files:
 
-- [`src/components/dashboard/dashboard-shell.tsx`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/components/dashboard/dashboard-shell.tsx)
-- [`src/components/dashboard/dashboard-sidebar.tsx`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/components/dashboard/dashboard-sidebar.tsx)
-- [`src/components/dashboard/live-dashboard.tsx`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/components/dashboard/live-dashboard.tsx)
-- [`src/components/dashboard/live-detail-pages.tsx`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/components/dashboard/live-detail-pages.tsx)
+- [`src/components/dashboard/dashboard-shell.tsx`](yee-frontend/src/components/dashboard/dashboard-shell.tsx)
+- [`src/components/dashboard/dashboard-sidebar.tsx`](yee-frontend/src/components/dashboard/dashboard-sidebar.tsx)
+- [`src/components/dashboard/live-dashboard.tsx`](yee-frontend/src/components/dashboard/live-dashboard.tsx)
+- [`src/components/dashboard/live-detail-pages.tsx`](yee-frontend/src/components/dashboard/live-detail-pages.tsx)
 
 ## YEE architecture
 
@@ -154,10 +154,10 @@ Behavior:
 
 Key files:
 
-- [`src/components/yee/yee-audit-wizard.tsx`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/components/yee/yee-audit-wizard.tsx)
-- [`src/components/yee/yee-submission-report.tsx`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/components/yee/yee-submission-report.tsx)
-- [`src/lib/yee-audit-api.ts`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/lib/yee-audit-api.ts)
-- [`src/lib/yee-scoring.ts`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/lib/yee-scoring.ts)
+- [`src/components/yee/yee-audit-wizard.tsx`](yee-frontend/src/components/yee/yee-audit-wizard.tsx)
+- [`src/components/yee/yee-submission-report.tsx`](yee-frontend/src/components/yee/yee-submission-report.tsx)
+- [`src/lib/yee-audit-api.ts`](yee-frontend/src/lib/yee-audit-api.ts)
+- [`src/lib/yee-scoring.ts`](yee-frontend/src/lib/yee-scoring.ts)
 
 ## Data-fetching style
 

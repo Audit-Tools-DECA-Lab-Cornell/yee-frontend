@@ -29,7 +29,7 @@ The frontend uses those values to decide where a user should go next after login
 
 Key file:
 
-- [`src/lib/auth/session.ts`](/Users/andishasafdariyan/auditTools/audit-tools-yee-frontend/src/lib/auth/session.ts)
+- [`src/lib/auth/session.ts`](yee-frontend/src/lib/auth/session.ts)
 
 ## Route behavior by user state
 
