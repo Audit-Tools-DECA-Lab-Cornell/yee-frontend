@@ -354,7 +354,14 @@ function TrendLineChart({
 					<svg ref={svgRef} viewBox={`0 0 ${w} ${h}`} className="h-[260px] w-full min-w-[400px]">
 						{[0, 25, 50, 75, 100].map(v => (
 							<g key={v}>
-								<line x1={pad} y1={py(v)} x2={w - pad} y2={py(v)} stroke="#d6dfe6" strokeDasharray="4 4" />
+								<line
+									x1={pad}
+									y1={py(v)}
+									x2={w - pad}
+									y2={py(v)}
+									stroke="#d6dfe6"
+									strokeDasharray="4 4"
+								/>
 								<text x={10} y={py(v) + 4} fill="#94a3b8" fontSize="10">
 									{v}%
 								</text>
@@ -362,7 +369,13 @@ function TrendLineChart({
 						))}
 						{records.length > 1 && (
 							<>
-								<polyline fill="none" stroke="#2563eb" strokeWidth={2.5} strokeLinejoin="round" points={rawPoly} />
+								<polyline
+									fill="none"
+									stroke="#2563eb"
+									strokeWidth={2.5}
+									strokeLinejoin="round"
+									points={rawPoly}
+								/>
 								<polyline
 									fill="none"
 									stroke="#059669"
@@ -511,8 +524,7 @@ export function LiveReports() {
 			rawRows.filter(r => {
 				if (selectedProjectIds.length > 0 && !selectedProjectIds.includes(r.project_id)) return false;
 				if (selectedPlaceIds.length > 0 && !selectedPlaceIds.includes(r.place_id)) return false;
-				if (selectedAuditorIds.length > 0 && !selectedAuditorIds.includes(r.auditor_generated_id))
-					return false;
+				if (selectedAuditorIds.length > 0 && !selectedAuditorIds.includes(r.auditor_generated_id)) return false;
 				if (!withinDateRange(r.submitted_at || r.date, dateRange)) return false;
 				return true;
 			}),
@@ -525,9 +537,7 @@ export function LiveReports() {
 
 	const averageRawScore =
 		filteredAudits.length > 0
-			? Number(
-					(filteredAudits.reduce((s, r) => s + r.total_raw_score, 0) / filteredAudits.length).toFixed(1)
-				)
+			? Number((filteredAudits.reduce((s, r) => s + r.total_raw_score, 0) / filteredAudits.length).toFixed(1))
 			: 0;
 
 	const averageWeightedScore =
@@ -557,10 +567,7 @@ export function LiveReports() {
 		() =>
 			filteredAudits
 				.filter(r => !timelinePlaceId || r.place_id === timelinePlaceId)
-				.sort(
-					(a, b) =>
-						(parseIsoDate(a.date)?.getTime() ?? 0) - (parseIsoDate(b.date)?.getTime() ?? 0)
-				),
+				.sort((a, b) => (parseIsoDate(a.date)?.getTime() ?? 0) - (parseIsoDate(b.date)?.getTime() ?? 0)),
 		[filteredAudits, timelinePlaceId]
 	);
 
@@ -584,13 +591,9 @@ export function LiveReports() {
 
 	const scopeDescription = React.useMemo(() => {
 		const parts: string[] = [];
-		parts.push(
-			selectedProjectIds.length > 0 ? `${selectedProjectIds.length} project(s)` : "All projects"
-		);
+		parts.push(selectedProjectIds.length > 0 ? `${selectedProjectIds.length} project(s)` : "All projects");
 		parts.push(selectedPlaceIds.length > 0 ? `${selectedPlaceIds.length} place(s)` : "All places");
-		parts.push(
-			selectedAuditorIds.length > 0 ? `${selectedAuditorIds.length} auditor(s)` : "All auditors"
-		);
+		parts.push(selectedAuditorIds.length > 0 ? `${selectedAuditorIds.length} auditor(s)` : "All auditors");
 		parts.push(rangeLabel(dateRange));
 		return parts.join(" · ");
 	}, [selectedProjectIds, selectedPlaceIds, selectedAuditorIds, dateRange]);
@@ -858,8 +861,12 @@ export function LiveReports() {
 								<thead>
 									<tr className="border-b border-border bg-muted/50">
 										<th className="px-4 py-3 text-xs font-semibold text-muted-foreground">Place</th>
-										<th className="px-4 py-3 text-xs font-semibold text-muted-foreground">Project</th>
-										<th className="px-4 py-3 text-xs font-semibold text-muted-foreground">Audits</th>
+										<th className="px-4 py-3 text-xs font-semibold text-muted-foreground">
+											Project
+										</th>
+										<th className="px-4 py-3 text-xs font-semibold text-muted-foreground">
+											Audits
+										</th>
 										<th className="px-4 py-3 text-xs font-semibold text-muted-foreground">
 											Avg Raw %
 										</th>
@@ -907,10 +914,7 @@ export function LiveReports() {
 											</td>
 											{domainOrder.map(d => (
 												<td key={d} className="px-3 py-3.5">
-													<DomainScorePill
-														domain={d}
-														value={s.rawPercentByDomain[d]}
-													/>
+													<DomainScorePill domain={d} value={s.rawPercentByDomain[d]} />
 												</td>
 											))}
 											<td className="px-4 py-3.5 text-muted-foreground">
@@ -1005,7 +1009,9 @@ export function LiveReports() {
 									{/* Domain legend */}
 									<div className="flex flex-wrap gap-x-4 gap-y-1">
 										{domainOrder.map(d => (
-											<span key={d} className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+											<span
+												key={d}
+												className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
 												<span
 													className="h-2 w-2 rounded-sm"
 													style={{ backgroundColor: yeeDomainThemes[d].strongFillHex }}
@@ -1072,7 +1078,9 @@ export function LiveReports() {
 														<p className="text-sm font-bold">
 															{r.total_weighted_score.toFixed(2)}
 														</p>
-														<p className="text-xs">{getAuditWeightedPercent(r).toFixed(0)}%</p>
+														<p className="text-xs">
+															{getAuditWeightedPercent(r).toFixed(0)}%
+														</p>
 													</div>
 												</div>
 												<Link
@@ -1108,9 +1116,13 @@ export function LiveReports() {
 							<table className="min-w-full text-left text-sm">
 								<thead>
 									<tr className="border-b border-border bg-muted/50">
-										<th className="px-4 py-3 text-xs font-semibold text-muted-foreground">Select</th>
+										<th className="px-4 py-3 text-xs font-semibold text-muted-foreground">
+											Select
+										</th>
 										<th className="px-4 py-3 text-xs font-semibold text-muted-foreground">Place</th>
-										<th className="px-4 py-3 text-xs font-semibold text-muted-foreground">Auditor</th>
+										<th className="px-4 py-3 text-xs font-semibold text-muted-foreground">
+											Auditor
+										</th>
 										<th className="px-4 py-3 text-xs font-semibold text-muted-foreground">Date</th>
 										<th className="px-4 py-3 text-xs font-semibold text-muted-foreground">
 											Raw Score
@@ -1246,7 +1258,11 @@ export function LiveReports() {
 														</span>
 													</p>
 													<p className="text-xs text-muted-foreground">
-														{percentage(r.raw_domain_scores[d], rawDomainScoreMaximums[d]).toFixed(0)}%
+														{percentage(
+															r.raw_domain_scores[d],
+															rawDomainScoreMaximums[d]
+														).toFixed(0)}
+														%
 													</p>
 												</div>
 											))}
@@ -1267,8 +1283,8 @@ export function LiveReports() {
 						Export & Download
 					</CardTitle>
 					<CardDescription>
-						Generate professional reports and raw data exports from the current filtered view. PDF and
-						Excel include all {filteredAudits.length} audit{filteredAudits.length !== 1 ? "s" : ""} and{" "}
+						Generate professional reports and raw data exports from the current filtered view. PDF and Excel
+						include all {filteredAudits.length} audit{filteredAudits.length !== 1 ? "s" : ""} and{" "}
 						{placeSummaries.length} place{placeSummaries.length !== 1 ? "s" : ""}.
 					</CardDescription>
 				</CardHeader>
@@ -1341,19 +1357,14 @@ function ReportsHero({
 		<div
 			className="relative overflow-hidden rounded-xl border border-[#1e3a33] bg-[#10231f] px-6 py-7 sm:px-8 sm:py-8"
 			style={{ boxShadow: "0 6px 0 rgba(0,0,0,0.22), 0 12px 28px rgba(0,0,0,0.18)" }}>
-			<div
-				className="absolute inset-x-0 bottom-0 h-[3px]"
-				style={{ backgroundColor: "#5c8f68" }}
-			/>
+			<div className="absolute inset-x-0 bottom-0 h-[3px]" style={{ backgroundColor: "#5c8f68" }} />
 			<p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#5c8f68]">
 				Analytics &amp; Reporting
 			</p>
-			<h1 className="mt-2 text-balance text-2xl font-bold text-white sm:text-3xl">
-				Reports Dashboard
-			</h1>
+			<h1 className="mt-2 text-balance text-2xl font-bold text-white sm:text-3xl">Reports Dashboard</h1>
 			<p className="mt-2 max-w-prose text-sm leading-relaxed text-[#7fb58b]/80">
-				Analyze performance across places and time. Filter by project, place, auditor, and date
-				range — then export a professional PDF, Excel workbook, or CSV.
+				Analyze performance across places and time. Filter by project, place, auditor, and date range — then
+				export a professional PDF, Excel workbook, or CSV.
 			</p>
 			{!loading && scopeDescription && (
 				<p className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-[#2e5040] bg-[#1a3028] px-3 py-1 text-xs text-[#7fb58b]">
@@ -1420,9 +1431,7 @@ function MetricCard({
 			className={`relative overflow-hidden rounded-xl border-l-[3px] border border-border bg-card shadow-sm ${styles.border}`}>
 			<div className={`absolute inset-x-0 top-0 h-[3px] ${styles.bar}`} />
 			<div className="p-5 pt-6">
-				<p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">
-					{label}
-				</p>
+				<p className="text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground">{label}</p>
 				<p className="mt-2 font-mono text-[1.6rem] font-semibold leading-none tabular-nums tracking-tight text-foreground">
 					{value}
 				</p>
@@ -1439,13 +1448,7 @@ function MetricCard({
 	);
 }
 
-function DomainScorePill({
-	domain,
-	value
-}: {
-	domain: (typeof domainOrder)[number];
-	value: number;
-}) {
+function DomainScorePill({ domain, value }: { domain: (typeof domainOrder)[number]; value: number }) {
 	return (
 		<span
 			className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
@@ -1494,8 +1497,7 @@ function ExportButton({
 				)}
 				{label}
 			</div>
-			<p
-				className={`text-xs leading-relaxed ${primary ? "text-[#7fb58b]/70" : "text-muted-foreground"}`}>
+			<p className={`text-xs leading-relaxed ${primary ? "text-[#7fb58b]/70" : "text-muted-foreground"}`}>
 				{description}
 			</p>
 		</button>

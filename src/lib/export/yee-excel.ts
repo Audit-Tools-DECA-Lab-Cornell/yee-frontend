@@ -258,18 +258,22 @@ function buildAuditScoresSheet(input: YeeExcelInput): XLSX.WorkSheet {
 			cell(pct(r.total_raw_score, totalRawScoreMaximum), { align: "center" }),
 			cell(Number(r.total_weighted_score.toFixed(3))),
 			cell(pct(r.total_weighted_score, wtdMax), { align: "center" }),
-			...domainOrder.map(d =>
-				cell(r.raw_domain_scores[d], { bg: domainRgb(d, "light") })
-			),
-			...domainOrder.map(d =>
-				cell(Number(r.weighted_domain_scores[d].toFixed(3)), { bg: domainRgb(d, "light") })
-			)
+			...domainOrder.map(d => cell(r.raw_domain_scores[d], { bg: domainRgb(d, "light") })),
+			...domainOrder.map(d => cell(Number(r.weighted_domain_scores[d].toFixed(3)), { bg: domainRgb(d, "light") }))
 		]);
 	}
 
 	const ws = XLSX.utils.aoa_to_sheet(rows as unknown as (string | number)[][]);
 	applyColWidths(ws, [
-		24, 28, 24, 20, 14, 14, 12, 22, 14,
+		24,
+		28,
+		24,
+		20,
+		14,
+		14,
+		12,
+		22,
+		14,
 		...domainOrder.map(() => 22),
 		...domainOrder.map(() => 24)
 	]);
@@ -277,9 +281,7 @@ function buildAuditScoresSheet(input: YeeExcelInput): XLSX.WorkSheet {
 }
 
 function buildRawResponsesSheet(input: YeeExcelInput): XLSX.WorkSheet {
-	const responseKeys = Array.from(
-		new Set(input.filteredRawRows.flatMap(r => Object.keys(r.responses ?? {})))
-	).sort();
+	const responseKeys = Array.from(new Set(input.filteredRawRows.flatMap(r => Object.keys(r.responses ?? {})))).sort();
 
 	const fixedHdrs: StyledCell[] = [
 		hdr("Audit ID"),
@@ -351,8 +353,34 @@ function buildRawResponsesSheet(input: YeeExcelInput): XLSX.WorkSheet {
 
 	const ws = XLSX.utils.aoa_to_sheet(rows as unknown as (string | number)[][]);
 	applyColWidths(ws, [
-		24, 32, 28, 24, 20, 14, 20, 14, 14, 14, 18, 14, 14, 40,
-		18, 22, 18, 28, 24, 22, 20, 24, 20, 28, 24, 24, 18, 26,
+		24,
+		32,
+		28,
+		24,
+		20,
+		14,
+		20,
+		14,
+		14,
+		14,
+		18,
+		14,
+		14,
+		40,
+		18,
+		22,
+		18,
+		28,
+		24,
+		22,
+		20,
+		24,
+		20,
+		28,
+		24,
+		24,
+		18,
+		26,
 		...responseKeys.map(() => 14)
 	]);
 	return ws;

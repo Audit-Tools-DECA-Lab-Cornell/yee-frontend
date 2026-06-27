@@ -52,7 +52,7 @@ function EmptyTable({ message }: { message: string }) {
 function DetailMetric({ label, value, description }: { label: string; value: string; description: string }) {
 	return (
 		<Card className="rounded-md border-border/80 bg-white shadow-sm">
-			<CardHeader className="pb-3">
+			<CardHeader className="-mb-3">
 				<CardDescription>{label}</CardDescription>
 				<CardTitle className="text-3xl font-semibold tracking-tight text-foreground">{value}</CardTitle>
 			</CardHeader>
@@ -74,11 +74,11 @@ function DetailActionCard({
 }) {
 	return (
 		<Card className="rounded-md border-border/80 bg-white shadow-sm">
-			<CardHeader className="pb-3">
+			<CardHeader className="-mb-3">
 				<CardDescription>{label}</CardDescription>
 				<CardTitle className="text-2xl font-semibold tracking-tight text-foreground">{actionLabel}</CardTitle>
 			</CardHeader>
-			<CardContent className="flex items-center justify-between gap-4 text-sm leading-6 text-muted-foreground">
+			<CardContent className="flex flex-col justify-between gap-4 text-sm leading-6 text-muted-foreground">
 				<p>{description}</p>
 				<Button asChild className="rounded-md bg-primary text-white hover:bg-primary/90">
 					<Link href={href}>

@@ -82,10 +82,7 @@ function pct(num: number, den: number): string {
 // ── Public API ─────────────────────────────────────────────────────────────────
 
 export async function generateYeePdfBlob(input: YeePdfInput): Promise<Blob> {
-	const [{ jsPDF }, { default: autoTable }] = await Promise.all([
-		import("jspdf"),
-		import("jspdf-autotable")
-	]);
+	const [{ jsPDF }, { default: autoTable }] = await Promise.all([import("jspdf"), import("jspdf-autotable")]);
 
 	type JsPDFWithTable = InstanceType<typeof jsPDF> & { lastAutoTable: { finalY: number } };
 
@@ -272,8 +269,9 @@ export async function generateYeePdfBlob(input: YeePdfInput): Promise<Blob> {
 			pct(r.total_raw_score, totalRawScoreMaximum),
 			`${r.total_weighted_score.toFixed(3)} / ${getYouthWeightedScoreMaximum(r.domain_weights).toFixed(3)}`,
 			...domainOrder.map(d => `${r.raw_domain_scores[d]} / ${rawDomainScoreMaximums[d]}`),
-			...domainOrder.map(d =>
-				`${r.weighted_domain_scores[d].toFixed(2)} / ${getDomainYouthWeightedMaximum(d, r.domain_weights).toFixed(2)}`
+			...domainOrder.map(
+				d =>
+					`${r.weighted_domain_scores[d].toFixed(2)} / ${getDomainYouthWeightedMaximum(d, r.domain_weights).toFixed(2)}`
 			)
 		]);
 
