@@ -1,5 +1,5 @@
 {
-	"name": "audit-tools-yee-frontend",
+	"name": "yee-frontend",
 	"version": "0.1.0",
 	"private": true,
 	"scripts": {
@@ -7,7 +7,8 @@
 		"build": "next build",
 		"start": "next start",
 		"lint": "eslint",
-		"format": "prettier --write ."
+		"format": "prettier --write .",
+		"test:e2e": "playwright test"
 	},
 	"dependencies": {
 		"@hookform/resolvers": "^5.2.2",
@@ -28,6 +29,7 @@
 	},
 	"devDependencies": {
 		"@eslint/eslintrc": "^3.3.4",
+		"@playwright/test": "^1.61.1",
 		"@tailwindcss/postcss": "^4",
 		"@types/node": "^20",
 		"@types/react": "^19",
