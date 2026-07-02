@@ -3,12 +3,6 @@ import { Badge } from "@/components/ui/badge";
 import type { PlaceComparisonGroupRecord } from "@/features/workspaces/api/live-api";
 import { domainLabels, domainOrder, getComparisonAverages } from "@/features/reporting/reporting";
 import { yeeDomainThemes } from "@/features/yee-audit/config/yee-domain-theme";
-import {
-	getDomainYouthWeightedMaximum,
-	getYouthWeightedScoreMaximum,
-	rawDomainScoreMaximums,
-	totalRawScoreMaximum
-} from "@/features/yee-audit/config/yee-score-limits";
 
 function clampPercentage(value: number) {
 	return Math.max(0, Math.min(100, value));
@@ -65,11 +59,11 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 									<td className="py-4 pr-4 font-medium text-slate-900">{record.auditor_id}</td>
 									<td className="py-4 pr-4 text-slate-600">{record.date}</td>
 									<td className="py-4 pr-4 text-slate-600">
-										{record.total_raw_score} / {totalRawScoreMaximum}
+										{record.total_raw_score} / {record.total_raw_maximum}
 									</td>
 									<td className="py-4 text-slate-600">
 										{record.total_weighted_score.toFixed(2)} /{" "}
-										{getYouthWeightedScoreMaximum(record.domain_weights).toFixed(2)}
+										{record.total_weighted_maximum.toFixed(2)}
 									</td>
 								</tr>
 							))}
@@ -105,10 +99,10 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 					</div>
 					<div className="grid gap-4 lg:grid-cols-2">
 						{records.map(record => {
-							const rawPercent = totalRawScoreMaximum
-								? (record.total_raw_score / totalRawScoreMaximum) * 100
+							const rawPercent = record.total_raw_maximum
+								? (record.total_raw_score / record.total_raw_maximum) * 100
 								: 0;
-							const youthMax = getYouthWeightedScoreMaximum(record.domain_weights);
+							const youthMax = record.total_weighted_maximum;
 							const youthPercent = youthMax ? (record.total_weighted_score / youthMax) * 100 : 0;
 							return (
 								<div key={record.audit_id} className="rounded-xl border border-slate-200 bg-white p-4">
@@ -135,11 +129,11 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 												</div>
 												<div className="space-y-1 text-xs text-slate-600">
 													<p className="font-medium text-slate-900">
-														{record.total_raw_score} / {totalRawScoreMaximum}
+														{record.total_raw_score} / {record.total_raw_maximum}
 													</p>
 													<p>
 														{rawPercent.toFixed(0)}% ({record.total_raw_score}/
-														{totalRawScoreMaximum})
+														{record.total_raw_maximum})
 													</p>
 												</div>
 											</div>
@@ -215,20 +209,18 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 									{records.map(record => (
 										<td key={`${record.audit_id}-${domain}`} className="py-4 pr-4 text-slate-600">
 											<div>
-												{record.raw_domain_scores[domain]} / {rawDomainScoreMaximums[domain]}{" "}
-												raw score
+												{record.raw_domain_scores[domain]} /{" "}
+												{record.raw_domain_maximums[domain]} raw score
 											</div>
 											<div className="text-xs text-slate-500">
 												{record.weighted_domain_scores[domain].toFixed(2)} /{" "}
-												{getDomainYouthWeightedMaximum(domain, record.domain_weights).toFixed(
-													2
-												)}{" "}
-												Youth Weighted average
+												{record.weighted_domain_maximums[domain].toFixed(2)} Youth Weighted
+												average
 											</div>
 										</td>
 									))}
 									<td className="py-4 pr-4 text-slate-600">
-										{averages?.avgRawByDomain[domain]} / {rawDomainScoreMaximums[domain]}
+										{averages?.avgRawByDomain[domain]} / {records[0].raw_domain_maximums[domain]}
 									</td>
 									<td className="py-4 text-slate-600">
 										{averages?.avgWeightedByDomain[domain].toFixed(2)} average

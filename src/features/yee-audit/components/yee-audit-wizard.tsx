@@ -36,6 +36,7 @@ import {
 	weatherOptions,
 	type YeeAuditDraft,
 	type YeeDomainKey,
+	type YeeScoreResult,
 	type YeeStepNumber
 } from "@/features/yee-audit/config/yee-audit-config";
 import { getThemeByStep } from "@/features/yee-audit/config/yee-domain-theme";
@@ -46,7 +47,7 @@ import {
 	type InstrumentItem,
 	type InstrumentResponse
 } from "@/features/yee-audit/api/yee-instrument";
-import { buildWeightedScorePreview, fetchScorePreview } from "@/features/yee-audit/scoring/yee-scoring";
+import { fetchScorePreview } from "@/features/yee-audit/scoring/yee-scoring";
 import { useAutosaveQueue } from "@/features/yee-audit/state/autosave-queue";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
@@ -715,7 +716,7 @@ function draftFromAuditState(placeId: string, state: YeeAuditState): YeeAuditDra
 					totalScore: state.score?.total_score ?? 0
 				}
 			: null,
-		scorePreview: state.score ? buildWeightedScorePreview(state.score, weights) : null
+		scorePreview: state.score
 	};
 }
 
@@ -728,12 +729,7 @@ function draftFromStoredRecord(
 		submitted_at: string | null;
 		participant_info: Record<string, unknown>;
 		responses: Record<string, string | Record<string, string>>;
-		score: {
-			total_score: number;
-			section_scores: Record<string, number>;
-			category_scores: Record<string, number>;
-			matched_scored_answers: number;
-		};
+		score: YeeScoreResult;
 		submission_id?: string | null;
 		id?: string;
 	}
@@ -742,7 +738,7 @@ function draftFromStoredRecord(
 	const weights = normalizeWeights(participantInfo.domain_weights);
 	const sectionComments = normalizeSectionComments(participantInfo.section_comments);
 	const baseDraft = createDefaultDraft(placeId);
-	const scorePreview = buildWeightedScorePreview(record.score, weights);
+	const scorePreview = record.score;
 	return {
 		...baseDraft,
 		placeId:
@@ -1404,8 +1400,7 @@ export function YeeAuditWizard({
 		try {
 			setPreviewLoading(true);
 			setError(null);
-			const backendScore = await fetchScorePreview(draft.placeId, buildParticipantInfo(draft), responses);
-			const preview = buildWeightedScorePreview(backendScore, draft.weights);
+			const preview = await fetchScorePreview(draft.placeId, buildParticipantInfo(draft), responses);
 			setDraft(prev => ({ ...prev, scorePreview: preview }));
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Failed to generate score preview.");
@@ -1484,14 +1479,13 @@ export function YeeAuditWizard({
 					responses,
 					resubmit: true
 				});
-				const preview = buildWeightedScorePreview(data.score, submissionDraft.weights);
 				setDraft({
 					...submissionDraft,
 					submittedAt: data.submitted_at,
 					lastResult: data.submission_id
 						? { id: data.submission_id, totalScore: data.score.total_score }
 						: submissionDraft.lastResult,
-					scorePreview: preview
+					scorePreview: data.score
 				});
 				router.push(data.submission_id ? `/yee/submissions/${data.submission_id}` : "/manager/audits");
 				return;
@@ -1518,15 +1512,8 @@ export function YeeAuditWizard({
 							: `Submit failed (${response.status}).`;
 				throw new Error(detail);
 			}
-			const scorePayload =
-				typeof data.score === "object" && data.score ? (data.score as Record<string, unknown>) : null;
+			const scorePayload = typeof data.score === "object" && data.score ? (data.score as YeeScoreResult) : null;
 			const submittedAt = typeof data.submitted_at === "string" ? data.submitted_at : now.toISOString();
-			const preview = scorePayload
-				? buildWeightedScorePreview(
-						scorePayload as Parameters<typeof buildWeightedScorePreview>[0],
-						submissionDraft.weights
-					)
-				: draft.scorePreview;
 			const nextDraft = {
 				...submissionDraft,
 				submittedAt,
@@ -1537,7 +1524,7 @@ export function YeeAuditWizard({
 								totalScore: typeof scorePayload?.total_score === "number" ? scorePayload.total_score : 0
 							}
 						: draft.lastResult,
-				scorePreview: preview
+				scorePreview: scorePayload ?? draft.scorePreview
 			};
 			setDraft(nextDraft);
 			router.push(`/yee/audit/${placeId}/submitted?submissionId=${encodeURIComponent(String(data.id))}`);
@@ -1770,7 +1757,7 @@ export function YeeAuditWizard({
 							</div>
 							{draft.scorePreview ? (
 								<YeeScoreSummary
-									preview={draft.scorePreview}
+									score={draft.scorePreview}
 									title="Score preview"
 									description="This preview is based on the saved draft answers and shows both raw scores and Youth Weighted average views."
 								/>

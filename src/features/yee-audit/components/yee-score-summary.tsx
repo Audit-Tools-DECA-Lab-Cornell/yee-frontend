@@ -1,13 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import type { YeeScorePreview, YeeDomainKey } from "@/features/yee-audit/config/yee-audit-config";
+import type { YeeScoreResult, YeeDomainKey } from "@/features/yee-audit/config/yee-audit-config";
 import { yeeDomainThemes } from "@/features/yee-audit/config/yee-domain-theme";
 import { getScoreRows } from "@/features/yee-audit/scoring/yee-scoring";
-import {
-	getDomainYouthWeightedMaximum,
-	getYouthWeightedScoreMaximum,
-	rawDomainScoreMaximums,
-	totalRawScoreMaximum
-} from "@/features/yee-audit/config/yee-score-limits";
 
 const rangeBands = [
 	{ label: "Lower range", range: "0–33%", dot: "bg-rose-400" },
@@ -31,12 +25,9 @@ function bandTextClass(percentage: number) {
 	return "text-emerald-700";
 }
 
-function findScoreExtremes(rows: ReturnType<typeof getScoreRows>, mode: "raw" | "weighted", preview: YeeScorePreview) {
+function findScoreExtremes(rows: ReturnType<typeof getScoreRows>, mode: "raw" | "weighted") {
 	const scoredRows = rows.map(row => {
-		const maximum =
-			mode === "raw"
-				? rawDomainScoreMaximums[row.domain]
-				: getDomainYouthWeightedMaximum(row.domain, preview.selectedWeights);
+		const maximum = mode === "raw" ? row.rawMaximum : row.weightedMaximum;
 		const value = mode === "raw" ? row.rawScore : row.weightedScore;
 		const percentage = maximum > 0 ? (value / maximum) * 100 : 0;
 		return { row, value, maximum, percentage };
@@ -115,20 +106,21 @@ function TotalScorePanel({
 }
 
 export function YeeScoreSummary({
-	preview,
+	score,
 	title,
 	description
 }: {
-	preview: YeeScorePreview;
+	score: YeeScoreResult;
 	title: string;
 	description: string;
 }) {
-	const rows = getScoreRows(preview);
-	const youthWeightedMax = getYouthWeightedScoreMaximum(preview.selectedWeights);
-	const totalRawPercentage = totalRawScoreMaximum ? (preview.totalRawScore / totalRawScoreMaximum) * 100 : 0;
-	const totalYouthPercentage = youthWeightedMax ? (preview.totalWeightedScore / youthWeightedMax) * 100 : 0;
-	const rawExtremes = findScoreExtremes(rows, "raw", preview);
-	const weightedExtremes = findScoreExtremes(rows, "weighted", preview);
+	const rows = getScoreRows(score);
+	const totalRawScoreMaximum = score.total_raw_maximum;
+	const youthWeightedMax = score.total_weighted_maximum;
+	const totalRawPercentage = totalRawScoreMaximum ? (score.total_raw_score / totalRawScoreMaximum) * 100 : 0;
+	const totalYouthPercentage = youthWeightedMax ? (score.total_weighted_score / youthWeightedMax) * 100 : 0;
+	const rawExtremes = findScoreExtremes(rows, "raw");
+	const weightedExtremes = findScoreExtremes(rows, "weighted");
 
 	return (
 		<Card className="rounded-md">
@@ -141,7 +133,7 @@ export function YeeScoreSummary({
 				<div className="grid gap-4 md:grid-cols-2 report-no-break report-print-stack">
 					<TotalScorePanel
 						label="Total Raw Score"
-						value={String(preview.totalRawScore)}
+						value={String(score.total_raw_score)}
 						maximum={String(totalRawScoreMaximum)}
 						percentage={totalRawPercentage}
 						footnote="Share of the available raw score achieved across the full audit."
@@ -149,7 +141,7 @@ export function YeeScoreSummary({
 					/>
 					<TotalScorePanel
 						label="Total Youth-Weighted Average"
-						value={String(preview.totalWeightedScore)}
+						value={String(score.total_weighted_score)}
 						maximum={String(youthWeightedMax)}
 						percentage={totalYouthPercentage}
 						footnote="Maximum reflects the normalized domain weights and each domain's maximum average value."
@@ -189,11 +181,8 @@ export function YeeScoreSummary({
 							</thead>
 							<tbody>
 								{rows.map(row => {
-									const rawMax = rawDomainScoreMaximums[row.domain];
-									const weightedMax = getDomainYouthWeightedMaximum(
-										row.domain,
-										preview.selectedWeights
-									);
+									const rawMax = row.rawMaximum;
+									const weightedMax = row.weightedMaximum;
 									const rawPercentage = rawMax ? (row.rawScore / rawMax) * 100 : 0;
 									const weightedPercentage = weightedMax
 										? (row.weightedScore / weightedMax) * 100
@@ -269,8 +258,8 @@ export function YeeScoreSummary({
 					</div>
 					<div className="mt-5 space-y-5">
 						{rows.map(row => {
-							const rawMax = rawDomainScoreMaximums[row.domain];
-							const weightedMax = getDomainYouthWeightedMaximum(row.domain, preview.selectedWeights);
+							const rawMax = row.rawMaximum;
+							const weightedMax = row.weightedMaximum;
 							const rawPercentage = rawMax ? (row.rawScore / rawMax) * 100 : 0;
 							const weightedPercentage = weightedMax ? (row.weightedScore / weightedMax) * 100 : 0;
 							return (

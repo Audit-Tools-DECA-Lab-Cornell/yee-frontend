@@ -8,30 +8,6 @@ import { useAuditorAuditData } from "@/features/auditor/hooks/use-auditor-audit-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { buildWeightedScorePreview } from "@/features/yee-audit/scoring/yee-scoring";
-import { getYouthWeightedScoreMaximum, totalRawScoreMaximum } from "@/features/yee-audit/config/yee-score-limits";
-
-function normalizeWeights(raw: unknown) {
-	if (!raw || typeof raw !== "object") {
-		return {
-			access: "",
-			activitySpaces: "",
-			amenities: "",
-			experienceOfSpace: "",
-			aestheticsAndCare: "",
-			useAndUsability: ""
-		};
-	}
-
-	return {
-		access: String((raw as Record<string, unknown>).access ?? ""),
-		activitySpaces: String((raw as Record<string, unknown>).activitySpaces ?? ""),
-		amenities: String((raw as Record<string, unknown>).amenities ?? ""),
-		experienceOfSpace: String((raw as Record<string, unknown>).experienceOfSpace ?? ""),
-		aestheticsAndCare: String((raw as Record<string, unknown>).aestheticsAndCare ?? ""),
-		useAndUsability: String((raw as Record<string, unknown>).useAndUsability ?? "")
-	};
-}
 
 export function AuditorAuditHistory({
 	title = "Assigned Places",
@@ -158,19 +134,12 @@ export function AuditorAuditHistory({
 							const auditState = auditStates[place.id];
 							const isSubmitted = auditState?.status === "SUBMITTED";
 							const hasDraft = auditState?.status === "DRAFT";
-							const preview = auditState?.score
-								? buildWeightedScorePreview(
-										auditState.score,
-										normalizeWeights(auditState.participant_info.domain_weights)
-									)
-								: null;
-							const youthMax = preview ? getYouthWeightedScoreMaximum(preview.selectedWeights) : 0;
-							const rawPercentage =
-								preview && totalRawScoreMaximum
-									? (preview.totalRawScore / totalRawScoreMaximum) * 100
-									: 0;
+							const score = auditState?.score ?? null;
+							const rawMax = score?.total_raw_maximum ?? 0;
+							const youthMax = score?.total_weighted_maximum ?? 0;
+							const rawPercentage = score && rawMax ? (score.total_raw_score / rawMax) * 100 : 0;
 							const youthPercentage =
-								preview && youthMax ? (preview.totalWeightedScore / youthMax) * 100 : 0;
+								score && youthMax ? (score.total_weighted_score / youthMax) * 100 : 0;
 							return (
 								<tr key={place.id} className="border-b border-slate-100 last:border-0">
 									<td className="py-4 pr-4 font-medium text-slate-900">{place.name}</td>
@@ -193,18 +162,17 @@ export function AuditorAuditHistory({
 											: "-"}
 									</td>
 									<td className="py-4 pr-4 text-slate-600">
-										{preview ? (
+										{score ? (
 											<div className="space-y-1 text-xs leading-5">
 												<p>
 													<span className="font-medium text-slate-900">Raw Score:</span>{" "}
-													{preview.totalRawScore} / {totalRawScoreMaximum} (
-													{rawPercentage.toFixed(0)}%)
+													{score.total_raw_score} / {rawMax} ({rawPercentage.toFixed(0)}%)
 												</p>
 												<p>
 													<span className="font-medium text-emerald-900">
 														Youth Weighted:
 													</span>{" "}
-													{preview.totalWeightedScore.toFixed(2)} / {youthMax.toFixed(2)} (
+													{score.total_weighted_score.toFixed(2)} / {youthMax.toFixed(2)} (
 													{youthPercentage.toFixed(0)}%)
 												</p>
 											</div>

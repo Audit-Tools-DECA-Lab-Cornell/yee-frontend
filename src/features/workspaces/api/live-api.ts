@@ -21,7 +21,9 @@ export type AuditRecord = {
 	submitted_at?: string | null;
 	score: number;
 	total_raw_score: number;
+	total_raw_maximum: number;
 	total_weighted_score: number;
+	total_weighted_maximum: number;
 	domain_weights: Record<string, number>;
 	status: string;
 };
@@ -249,10 +251,14 @@ export type PlaceComparisonAuditRecord = {
 	project_name: string;
 	date: string;
 	total_raw_score: number;
+	total_raw_maximum: number;
 	total_weighted_score: number;
+	total_weighted_maximum: number;
 	domain_weights: Record<string, number>;
 	raw_domain_scores: ComparisonDomainScores;
+	raw_domain_maximums: ComparisonDomainScores;
 	weighted_domain_scores: ComparisonDomainScores;
+	weighted_domain_maximums: ComparisonDomainScores;
 };
 
 export type PlaceComparisonGroupRecord = {
@@ -344,7 +350,9 @@ export type RawDataRecord = {
 	weighted_aesthetics_and_care: number;
 	weighted_use_and_usability: number;
 	total_raw_score: number;
+	total_raw_maximum: number;
 	total_weighted_score: number;
+	total_weighted_maximum: number;
 	domain_weights: Record<string, number>;
 	responses: Record<string, string>;
 };

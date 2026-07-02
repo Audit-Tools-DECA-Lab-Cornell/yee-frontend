@@ -7,30 +7,6 @@ import { AuditorAuditHistory } from "@/features/auditor/components/auditor-audit
 import { useAuditorAuditData } from "@/features/auditor/hooks/use-auditor-audit-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { buildWeightedScorePreview } from "@/features/yee-audit/scoring/yee-scoring";
-import { getYouthWeightedScoreMaximum, totalRawScoreMaximum } from "@/features/yee-audit/config/yee-score-limits";
-
-function normalizeWeights(raw: unknown) {
-	if (!raw || typeof raw !== "object") {
-		return {
-			access: "",
-			activitySpaces: "",
-			amenities: "",
-			experienceOfSpace: "",
-			aestheticsAndCare: "",
-			useAndUsability: ""
-		};
-	}
-
-	return {
-		access: String((raw as Record<string, unknown>).access ?? ""),
-		activitySpaces: String((raw as Record<string, unknown>).activitySpaces ?? ""),
-		amenities: String((raw as Record<string, unknown>).amenities ?? ""),
-		experienceOfSpace: String((raw as Record<string, unknown>).experienceOfSpace ?? ""),
-		aestheticsAndCare: String((raw as Record<string, unknown>).aestheticsAndCare ?? ""),
-		useAndUsability: String((raw as Record<string, unknown>).useAndUsability ?? "")
-	};
-}
 
 export function AuditorOverview() {
 	const { places, auditStates, submittedCount, draftCount, loading, error } = useAuditorAuditData();
@@ -153,11 +129,11 @@ function LatestSubmittedScores({
 		);
 	}
 
-	const weights = normalizeWeights(latestSubmitted.state.participant_info.domain_weights);
-	const preview = buildWeightedScorePreview(latestSubmitted.state.score, weights);
-	const youthMax = getYouthWeightedScoreMaximum(preview.selectedWeights);
-	const rawPercentage = totalRawScoreMaximum ? (preview.totalRawScore / totalRawScoreMaximum) * 100 : 0;
-	const youthPercentage = youthMax ? (preview.totalWeightedScore / youthMax) * 100 : 0;
+	const score = latestSubmitted.state.score;
+	const rawMax = score.total_raw_maximum;
+	const youthMax = score.total_weighted_maximum;
+	const rawPercentage = rawMax ? (score.total_raw_score / rawMax) * 100 : 0;
+	const youthPercentage = youthMax ? (score.total_weighted_score / youthMax) * 100 : 0;
 
 	return (
 		<Link
@@ -171,10 +147,10 @@ function LatestSubmittedScores({
 			<p className="mt-2 text-sm text-emerald-50/85">{latestSubmitted.place.name}</p>
 			<div className="mt-3 space-y-2 text-sm">
 				<p className="font-medium text-white">
-					Raw Score: {preview.totalRawScore} / {totalRawScoreMaximum} ({rawPercentage.toFixed(0)}%)
+					Raw Score: {score.total_raw_score} / {rawMax} ({rawPercentage.toFixed(0)}%)
 				</p>
 				<p className="font-medium text-emerald-50">
-					Youth Weighted: {preview.totalWeightedScore.toFixed(2)} / {youthMax.toFixed(2)} (
+					Youth Weighted: {score.total_weighted_score.toFixed(2)} / {youthMax.toFixed(2)} (
 					{youthPercentage.toFixed(0)}%)
 				</p>
 			</div>

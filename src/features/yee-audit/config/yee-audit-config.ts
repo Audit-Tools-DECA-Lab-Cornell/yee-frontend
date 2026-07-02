@@ -30,20 +30,49 @@ export type YeeAuditDraft = {
 		id: string;
 		totalScore: number;
 	} | null;
-	scorePreview: YeeScorePreview | null;
+	scorePreview: YeeScoreResult | null;
 };
 
-export type YeeScorePreview = {
-	rawDomainScores: Record<YeeDomainKey, number>;
-	weightedDomainScores: Record<YeeDomainKey, number>;
-	selectedWeights: Record<YeeDomainKey, number>;
-	normalizedWeights: Record<YeeDomainKey, number>;
-	unweightedDomainAverages: Record<YeeDomainKey, number>;
-	priorityGaps: Record<YeeDomainKey, number>;
-	totalRawScore: number;
-	totalWeightedScore: number;
-	matchedScoredAnswers: number;
-	categoryScores: Record<string, number>;
+export type YeeDomainScores = Record<YeeDomainKey, number>;
+
+/**
+ * Canonical, backend-owned YEE score payload.
+ *
+ * The web app renders these values as-is and performs NO scoring math of its
+ * own: raw and weighted domain scores, totals, normalized weights, per-domain
+ * maximums, and priority gaps are all computed by the backend and returned on
+ * the score / submission / audit-state endpoints. Field names mirror the backend
+ * serialization (snake_case keys, camelCase domain keys) so responses map
+ * straight onto this type.
+ *
+ * Rollout note: until the backend ships these fields, the weighted / maximum /
+ * gap fields are absent at runtime and dependent report values render empty.
+ * That is intentional for this frontend-first migration — the browser no longer
+ * recomputes them.
+ */
+export type YeeScoreResult = {
+	// Raw scoring detail.
+	total_raw_score: number;
+	total_raw_maximum: number;
+	raw_domain_scores: YeeDomainScores;
+	raw_domain_maximums: YeeDomainScores;
+
+	// Youth-weighted scoring detail.
+	total_weighted_score: number;
+	total_weighted_maximum: number;
+	weighted_domain_scores: YeeDomainScores;
+	weighted_domain_maximums: YeeDomainScores;
+
+	// Weights and priority gaps.
+	selected_weights: YeeDomainScores;
+	normalized_weights: YeeDomainScores;
+	priority_gaps: YeeDomainScores;
+
+	// Diagnostics / legacy raw fields retained for compatibility during rollout.
+	category_scores: Record<string, number>;
+	matched_scored_answers: number;
+	total_score: number;
+	section_scores: Record<string, number>;
 };
 
 export const yeeSteps: { step: YeeStepNumber; title: string; description: string }[] = [

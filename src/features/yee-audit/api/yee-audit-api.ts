@@ -1,6 +1,6 @@
 "use client";
 
-import type { BackendScoreResponse } from "@/features/yee-audit/scoring/yee-scoring";
+import type { YeeScoreResult } from "@/features/yee-audit/config/yee-audit-config";
 
 export type YeeAuditState = {
 	audit_id: string | null;
@@ -12,7 +12,7 @@ export type YeeAuditState = {
 	submitted_at: string | null;
 	participant_info: Record<string, unknown>;
 	responses: Record<string, string | Record<string, string>>;
-	score: BackendScoreResponse | null;
+	score: YeeScoreResult | null;
 };
 
 export type YeeSubmissionRecord = {
@@ -24,7 +24,7 @@ export type YeeSubmissionRecord = {
 	submitted_at: string;
 	participant_info: Record<string, unknown>;
 	responses: Record<string, string | Record<string, string>>;
-	score: BackendScoreResponse;
+	score: YeeScoreResult;
 };
 
 export type ManagerAuditEditState = {
@@ -37,7 +37,7 @@ export type ManagerAuditEditState = {
 	submitted_at: string | null;
 	participant_info: Record<string, unknown>;
 	responses: Record<string, string | Record<string, string>>;
-	score: BackendScoreResponse;
+	score: YeeScoreResult;
 };
 
 type SaveDraftPayload = {

@@ -18,7 +18,6 @@ import {
 import { fetchSubmission, type YeeSubmissionRecord } from "@/features/yee-audit/api/yee-audit-api";
 import { yeeDomainLabels, type YeeDomainKey } from "@/features/yee-audit/config/yee-audit-config";
 import { yeeDomainThemes } from "@/features/yee-audit/config/yee-domain-theme";
-import { buildWeightedScorePreview } from "@/features/yee-audit/scoring/yee-scoring";
 
 function normalizeText(value: string) {
 	return value
@@ -359,10 +358,6 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 		);
 	}
 
-	const preview = buildWeightedScorePreview(
-		submission.score,
-		normalizeWeights(submission.participant_info.domain_weights)
-	);
 	const normalizedWeights = normalizeWeights(submission.participant_info.domain_weights);
 	const sectionComments =
 		submission.participant_info.section_comments && typeof submission.participant_info.section_comments === "object"
@@ -538,7 +533,7 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 			</Card>
 
 			<YeeScoreSummary
-				preview={preview}
+				score={submission.score}
 				title="Score results"
 				description="Read-only raw scores and Youth-Weighted averages computed from the submitted responses."
 			/>

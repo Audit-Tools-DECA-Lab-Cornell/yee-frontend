@@ -28,7 +28,6 @@ import {
 import { toCsv } from "@/lib/csv/to-csv";
 import { useDashboardOverview } from "@/features/workspaces/api/use-dashboard-overview";
 import { useDashboardRawData } from "@/features/workspaces/api/use-dashboard-raw-data";
-import { getYouthWeightedScoreMaximum, totalRawScoreMaximum } from "@/features/yee-audit/config/yee-score-limits";
 
 function getManagerQuickLinks(isPrimaryManager: boolean) {
 	return [
@@ -320,8 +319,8 @@ export function LiveManagerOverview() {
 	const averageCapPercentage =
 		submittedRows.length > 0
 			? submittedRows.reduce((sum, row) => {
-					const denominator = getYouthWeightedScoreMaximum(row.domain_weights);
-					if (denominator <= 0) return sum;
+					const denominator = row.total_weighted_maximum;
+					if (!denominator || denominator <= 0) return sum;
 					return sum + (row.total_weighted_score / denominator) * 100;
 				}, 0) / submittedRows.length
 			: null;
@@ -376,7 +375,7 @@ export function LiveManagerOverview() {
 		},
 		{
 			label: "Max Score",
-			value: `${totalRawScoreMaximum} raw / dynamic Youth Weighted`,
+			value: `${submittedRows[0]?.total_raw_maximum ?? "—"} raw / dynamic Youth Weighted`,
 			helper: "Raw total is fixed, while Youth Weighted maxima now depend on normalized domain weights and domain average caps."
 		}
 	];
@@ -592,12 +591,12 @@ function AuditTableCard({ title, description, audits }: { title: string; descrip
 											<div className="space-y-1">
 												<p>
 													<span className="font-medium text-foreground">Raw:</span>{" "}
-													{audit.total_raw_score}/{totalRawScoreMaximum}
+													{audit.total_raw_score}/{audit.total_raw_maximum}
 												</p>
 												<p>
 													<span className="font-medium text-foreground">Youth Weighted:</span>{" "}
 													{audit.total_weighted_score.toFixed(2)}/
-													{getYouthWeightedScoreMaximum(audit.domain_weights).toFixed(2)}
+													{audit.total_weighted_maximum.toFixed(2)}
 												</p>
 											</div>
 										) : (
@@ -1464,12 +1463,12 @@ export function LiveAuditsTable() {
 											<div className="space-y-1">
 												<div>
 													<span className="font-medium text-foreground">Raw:</span>{" "}
-													{audit.total_raw_score} / {totalRawScoreMaximum}{" "}
+													{audit.total_raw_score} / {audit.total_raw_maximum}{" "}
 													<span className="text-muted-foreground">
 														(
-														{totalRawScoreMaximum
+														{audit.total_raw_maximum
 															? (
-																	(audit.total_raw_score / totalRawScoreMaximum) *
+																	(audit.total_raw_score / audit.total_raw_maximum) *
 																	100
 																).toFixed(0)
 															: "0"}
@@ -1479,29 +1478,11 @@ export function LiveAuditsTable() {
 												<div>
 													<span className="font-medium text-foreground">Youth Weighted:</span>{" "}
 													{audit.total_weighted_score.toFixed(2)} /{" "}
-													{getYouthWeightedScoreMaximum({
-														access: audit.domain_weights.access ?? 0,
-														activitySpaces: audit.domain_weights.activitySpaces ?? 0,
-														amenities: audit.domain_weights.amenities ?? 0,
-														experienceOfSpace: audit.domain_weights.experienceOfSpace ?? 0,
-														aestheticsAndCare: audit.domain_weights.aestheticsAndCare ?? 0,
-														useAndUsability: audit.domain_weights.useAndUsability ?? 0
-													}).toFixed(2)}{" "}
+													{audit.total_weighted_maximum.toFixed(2)}{" "}
 													<span className="text-muted-foreground">
 														(
 														{(() => {
-															const denominator = getYouthWeightedScoreMaximum({
-																access: audit.domain_weights.access ?? 0,
-																activitySpaces:
-																	audit.domain_weights.activitySpaces ?? 0,
-																amenities: audit.domain_weights.amenities ?? 0,
-																experienceOfSpace:
-																	audit.domain_weights.experienceOfSpace ?? 0,
-																aestheticsAndCare:
-																	audit.domain_weights.aestheticsAndCare ?? 0,
-																useAndUsability:
-																	audit.domain_weights.useAndUsability ?? 0
-															});
+															const denominator = audit.total_weighted_maximum;
 															return denominator
 																? (
 																		(audit.total_weighted_score / denominator) *
