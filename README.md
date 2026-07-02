@@ -170,7 +170,7 @@ Current behavior:
 
 ## Tech Stack
 
-- Next.js 15 App Router
+- Next.js 16 App Router with Cache Components enabled
 - React 19
 - TypeScript
 - Tailwind CSS v4
@@ -471,7 +471,7 @@ For more detail, see:
   boundaries in later behavior-preserving cleanup passes.
 - Some pages are still placeholder-style UI shells around live backend data and will need more product polish.
 - The YEE flow now has backend-backed draft state and locked submitted results, but it is still a place-scoped draft model rather than a more advanced revisioned audit-session system.
-- Final visual design, accessibility review, and full browser automation coverage are still future work.
+- Final visual design and accessibility review are still future work, but the repo now includes a curated web screenshot capture flow at `pnpm screenshots:web` plus public auth visual baselines via `pnpm test:visual`.
 
 ## Verification Commands
 
@@ -480,6 +480,9 @@ Useful checks:
 ```bash
 pnpm dev
 pnpm build
+pnpm test:unit
+pnpm test:visual
+pnpm screenshots:web
 ```
 
 If you are validating the full product locally, run both repos:

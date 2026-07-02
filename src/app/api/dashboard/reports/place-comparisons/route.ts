@@ -1,7 +1,13 @@
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 import { proxyRequest } from "@/server/backend/proxy";
+import { normalizePlaceComparisonGroupsPayload } from "@/server/backend/yee-reporting-normalization";
 
 export async function GET(request: NextRequest) {
-	return proxyRequest({ request, path: "/yee/dashboard/reports/place-comparisons" });
+	const response = await proxyRequest({ request, path: "/yee/dashboard/reports/place-comparisons" });
+	if (!response.ok) {
+		return response;
+	}
+
+	return NextResponse.json(normalizePlaceComparisonGroupsPayload(await response.json()));
 }

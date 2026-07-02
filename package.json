@@ -11,7 +11,12 @@
 		"start": "next start",
 		"lint": "eslint",
 		"format": "prettier --write .",
-		"test:e2e": "playwright test"
+		"test:e2e": "playwright test",
+		"test:unit": "PLAYWRIGHT_DISABLE_WEBSERVER=1 playwright test tests/unit --project=unit --workers=1",
+		"test:visual": "playwright test --project=visual-chromium --workers=1",
+		"test:visual:list": "playwright test --project=visual-chromium --list",
+		"test:visual:ui": "playwright test --project=visual-chromium --ui",
+		"screenshots:web": "node scripts/capture-local-screenshots.mjs"
 	},
 	"dependencies": {
 		"@hookform/resolvers": "^5.2.2",
