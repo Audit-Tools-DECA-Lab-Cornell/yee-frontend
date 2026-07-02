@@ -1,17 +1,19 @@
 import { defineConfig, globalIgnores } from "eslint/config";
-import { FlatCompat } from "@eslint/eslintrc";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const compat = new FlatCompat({
-	baseDirectory: __dirname
-});
+import coreWebVitals from "eslint-config-next/core-web-vitals";
+import typescript from "eslint-config-next/typescript";
 
 const eslintConfig = defineConfig([
-	...compat.extends("next/core-web-vitals", "next/typescript"),
+	// eslint-config-next v16 ships native flat configs — no FlatCompat needed.
+	...coreWebVitals,
+	...typescript,
+	{
+		rules: {
+			// New in react-hooks v7 (eslint-config-next 16). The codebase's
+			// session/hydration providers intentionally set state in effects;
+			// keep as a warning until they are refactored.
+			"react-hooks/set-state-in-effect": "warn"
+		}
+	},
 	// Override default ignores of eslint-config-next.
 	globalIgnores([
 		// Default ignores of eslint-config-next:

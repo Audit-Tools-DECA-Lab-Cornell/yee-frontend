@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { AdminPlacesTable } from "@/components/dashboard/live-dashboard";
+import { AdminPlacesTable } from "@/features/admin/components/live-dashboard";
 
 export const metadata: Metadata = { title: "Places" };
 

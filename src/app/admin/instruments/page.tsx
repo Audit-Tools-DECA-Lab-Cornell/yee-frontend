@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { InstrumentsAdminClient } from "@/components/dashboard/instruments/instruments-admin-client";
+import { InstrumentsAdminClient } from "@/features/admin/instruments/instruments-admin-client";
 
 export const metadata: Metadata = { title: "Instruments" };
 

@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 
 import { setSessionCookie } from "@/lib/auth/cookies";
-import type { SessionUser } from "@/lib/auth/session-types";
-import { getApiBaseUrl } from "@/app/api/_lib/backend-config";
-import { errorResponse, parseBackendJson } from "@/app/api/_lib/api-response";
+import type { SessionUser } from "@/types/auth";
+import { getApiBaseUrl } from "@/server/backend/config";
+import { errorResponse, parseBackendJson } from "@/server/backend/response";
 
 type BackendLoginResponse = {
 	access_token: string;

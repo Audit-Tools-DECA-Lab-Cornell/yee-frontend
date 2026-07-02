@@ -11,17 +11,17 @@ import { loginAsAuditor } from "../helpers/auth";
 test.describe("@auditor cannot access manager reports/exports", () => {
 	test("auditor is kept out of the manager reports dashboard", async ({ page }) => {
 		await loginAsAuditor(page);
-		await page.goto("/dashboard/reports");
+		await page.goto("/manager/reports");
 
-		await expect(page).not.toHaveURL(/\/dashboard\/reports/, { timeout: 30_000 });
+		await expect(page).not.toHaveURL(/\/manager\/reports/, { timeout: 30_000 });
 		await expect(page.getByText("Export options")).toHaveCount(0);
 	});
 
 	test("auditor is kept out of the manager raw-data export", async ({ page }) => {
 		await loginAsAuditor(page);
-		await page.goto("/dashboard/raw-data");
+		await page.goto("/manager/raw-data");
 
-		await expect(page).not.toHaveURL(/\/dashboard\/raw-data/, { timeout: 30_000 });
+		await expect(page).not.toHaveURL(/\/manager\/raw-data/, { timeout: 30_000 });
 		await expect(page.getByText("Manager Raw Data")).toHaveCount(0);
 	});
 });

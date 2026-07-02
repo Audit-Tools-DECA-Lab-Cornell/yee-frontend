@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { LiveAdminOverview } from "@/components/dashboard/live-dashboard";
+import { LiveAdminOverview } from "@/features/admin/components/live-dashboard";
 
 export const metadata: Metadata = { title: "Admin Overview" };
 

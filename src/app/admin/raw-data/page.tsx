@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { LiveRawDataTable } from "@/components/reporting/live-raw-data-table";
+import { LiveRawDataTable } from "@/features/reporting/components/live-raw-data-table";
 
 export const metadata: Metadata = { title: "Raw Data" };
 

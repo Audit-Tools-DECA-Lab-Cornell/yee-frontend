@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
-import { AuthGuard } from "@/components/auth/auth-guard";
-import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { AuthGuard } from "@/features/auth/components/auth-guard";
+import { DashboardShell } from "@/components/layouts/dashboard/dashboard-shell";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
 	return (

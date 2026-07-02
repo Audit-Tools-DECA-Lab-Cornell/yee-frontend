@@ -4,10 +4,10 @@ import { loginAsAuditor } from "../helpers/auth";
 
 // Runs under the `auditor-chromium` project (filename matches /auditor/).
 test.describe("@auditor dashboard shell + logout", () => {
-	test("auditor lands on /my-dashboard with the Auditor Overview shell and nav", async ({ page }) => {
+	test("auditor lands on /auditor with the Auditor Overview shell and nav", async ({ page }) => {
 		await loginAsAuditor(page);
 
-		await expect(page).toHaveURL(/\/my-dashboard(\/|$|\?)/);
+		await expect(page).toHaveURL(/\/auditor(\/|$|\?)/);
 		await expect(page.getByRole("heading", { name: "Auditor Overview" }).first()).toBeVisible({
 			timeout: 30_000
 		});
@@ -16,7 +16,7 @@ test.describe("@auditor dashboard shell + logout", () => {
 		await expect(page.getByRole("link", { name: "My Audits", exact: true }).first()).toBeVisible();
 	});
 
-	test("auditor can log out and then loses access to /my-dashboard", async ({ page }) => {
+	test("auditor can log out and then loses access to /auditor", async ({ page }) => {
 		await loginAsAuditor(page);
 
 		await Promise.all([
@@ -25,7 +25,7 @@ test.describe("@auditor dashboard shell + logout", () => {
 		]);
 		await expect(page).toHaveURL(/\/login(\/|$|\?)/);
 
-		await page.goto("/my-dashboard");
+		await page.goto("/auditor");
 		await expect(page).toHaveURL(/\/login(\/|$|\?)/);
 	});
 });

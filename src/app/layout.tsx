@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
+import { AppProviders } from "@/components/providers/app-providers";
+
 import "./globals.css";
-import { Providers } from "./providers";
 
 const inter = Inter({
 	subsets: ["latin"],
@@ -10,7 +11,10 @@ const inter = Inter({
 	variable: "--font-sans"
 });
 
+const siteUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000";
+
 export const metadata: Metadata = {
+	metadataBase: new URL(siteUrl),
 	title: {
 		template: "%s | YEE Audit Tools",
 		default: "YEE Audit Tools"
@@ -48,7 +52,7 @@ export default function RootLayout({
 	return (
 		<html lang="en" className={inter.variable} suppressHydrationWarning>
 			<body className="antialiased">
-				<Providers>{children}</Providers>
+				<AppProviders>{children}</AppProviders>
 			</body>
 		</html>
 	);

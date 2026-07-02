@@ -7,7 +7,7 @@ import { loginAsManager } from "../helpers/auth";
 test.describe("@manager auditor invite flow", () => {
 	test("invite form renders and is accessible from the auditors page", async ({ page }) => {
 		await loginAsManager(page);
-		await page.goto("/dashboard/auditors/invite");
+		await page.goto("/manager/auditors/invite");
 
 		await expect(page.getByRole("heading", { name: "Invite an auditor" }).first()).toBeVisible({
 			timeout: 30_000
@@ -18,7 +18,7 @@ test.describe("@manager auditor invite flow", () => {
 
 	test("submitting the invite form creates an invite and shows the invite URL", async ({ page }) => {
 		await loginAsManager(page);
-		await page.goto("/dashboard/auditors/invite");
+		await page.goto("/manager/auditors/invite");
 
 		await page.locator("#invite-email").fill("stage8-test-invite@yee-e2e.invalid");
 		await page.getByRole("button", { name: /create invite/i }).click();

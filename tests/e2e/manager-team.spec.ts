@@ -7,7 +7,7 @@ import { loginAsManager } from "../helpers/auth";
 test.describe("@manager auditors list + assignment panel", () => {
 	test("auditors page shows seeded auditors and Invite New Auditor button", async ({ page }) => {
 		await loginAsManager(page);
-		await page.goto("/dashboard/auditors");
+		await page.goto("/manager/auditors");
 
 		await expect(page.getByRole("heading", { name: "Auditors", exact: true }).first()).toBeVisible({
 			timeout: 30_000
@@ -22,12 +22,12 @@ test.describe("@manager auditors list + assignment panel", () => {
 
 	test("assignment panel renders on the auditors page", async ({ page }) => {
 		await loginAsManager(page);
-		await page.goto("/dashboard/auditors");
+		await page.goto("/manager/auditors");
 
 		// AssignmentPanel heading is rendered below the auditors table.
-		await expect(
-			page.getByText(/assign auditors to places and projects/i).first()
-		).toBeVisible({ timeout: 30_000 });
+		await expect(page.getByText(/assign auditors to places and projects/i).first()).toBeVisible({
+			timeout: 30_000
+		});
 
 		// The project selector inside the panel must be present.
 		await expect(page.locator("#assignment-project")).toBeVisible();

@@ -7,7 +7,7 @@ import { loginAsManager } from "../helpers/auth";
 test.describe("@manager reports + raw-data export", () => {
 	test("reports dashboard renders with export options", async ({ page }) => {
 		await loginAsManager(page);
-		await page.goto("/dashboard/reports");
+		await page.goto("/manager/reports");
 
 		await expect(page.getByText("Reports dashboard").first()).toBeVisible({ timeout: 30_000 });
 		// Export options card is a manager-distinctive reporting affordance.
@@ -27,7 +27,7 @@ test.describe("@manager reports + raw-data export", () => {
 
 	test("manager raw-data page renders scoped title and export buttons", async ({ page }) => {
 		await loginAsManager(page);
-		await page.goto("/dashboard/raw-data");
+		await page.goto("/manager/raw-data");
 
 		// Manager scope title (the page passes title="Manager Raw Data").
 		await expect(page.getByText("Manager Raw Data").first()).toBeVisible({ timeout: 30_000 });
@@ -38,7 +38,7 @@ test.describe("@manager reports + raw-data export", () => {
 
 	test("clicking Export All triggers a CSV download", async ({ page }) => {
 		await loginAsManager(page);
-		await page.goto("/dashboard/raw-data");
+		await page.goto("/manager/raw-data");
 
 		await expect(page.getByRole("button", { name: "Export All" }).first()).toBeVisible({
 			timeout: 30_000

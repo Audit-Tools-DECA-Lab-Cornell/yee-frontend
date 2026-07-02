@@ -7,7 +7,7 @@ import { loginAsManager } from "../helpers/auth";
 test.describe("@manager places list + add form", () => {
 	test("places list page shows seeded places", async ({ page }) => {
 		await loginAsManager(page);
-		await page.goto("/dashboard/places");
+		await page.goto("/manager/places");
 
 		await expect(page.getByRole("heading", { name: "Places", exact: true }).first()).toBeVisible({
 			timeout: 30_000
@@ -21,9 +21,9 @@ test.describe("@manager places list + add form", () => {
 		await expect(page.getByRole("link", { name: /add place/i }).first()).toBeVisible();
 	});
 
-	test("add place form loads at /dashboard/places/new", async ({ page }) => {
+	test("add place form loads at /manager/places/new", async ({ page }) => {
 		await loginAsManager(page);
-		await page.goto("/dashboard/places/new");
+		await page.goto("/manager/places/new");
 
 		await expect(page.getByRole("heading", { name: "Add Place" }).first()).toBeVisible({
 			timeout: 30_000

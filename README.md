@@ -5,7 +5,7 @@ Next.js frontend for DECA Lab's Audit Tools platform. This repository contains t
 The frontend and backend live in separate repos:
 
 - Frontend: this repo
-- Backend: FastAPI service in `../audit-tools-backend`
+- Backend: FastAPI service in `../../audit-tools-backend`
 
 The frontend talks to the backend through local Next.js API proxy routes under [`src/app/api`](yee-frontend/src/app/api).
 
@@ -41,30 +41,29 @@ Admins can access system-wide views:
 
 Managers can access organization-scoped workspace pages:
 
-- `/dashboard`
-- `/dashboard/projects`
-- `/dashboard/projects/new`
-- `/dashboard/projects/[projectId]`
-- `/dashboard/projects/[projectId]/edit`
-- `/dashboard/places`
-- `/dashboard/places/new`
-- `/dashboard/places/[placeId]`
-- `/dashboard/places/[placeId]/edit`
-- `/dashboard/auditors`
-- `/dashboard/auditors/invite`
-- `/dashboard/audits`
-- `/dashboard/reports`
-- `/dashboard/raw-data`
-- `/dashboard/settings`
+- `/manager`
+- `/manager/projects`
+- `/manager/projects/new`
+- `/manager/projects/[projectId]`
+- `/manager/projects/[projectId]/edit`
+- `/manager/places`
+- `/manager/places/new`
+- `/manager/places/[placeId]`
+- `/manager/places/[placeId]/edit`
+- `/manager/auditors`
+- `/manager/auditors/invite`
+- `/manager/audits`
+- `/manager/reports`
+- `/manager/raw-data`
+- `/manager/settings`
 
 ### Auditor
 
 Auditors can access only their own assigned work:
 
-- `/my-dashboard`
-- `/my-dashboard/places`
-- `/my-dashboard/audits`
-- `/my-dashboard/settings`
+- `/auditor`
+- `/auditor/places`
+- `/auditor/settings`
 - `/yee/introduction`
 - `/yee/audit/[placeId]/page/[step]`
 - `/yee/audit/[placeId]/review`
@@ -94,7 +93,9 @@ The current flow is:
    - `/complete-profile`
    - role dashboard
 
-The frontend stores the signed-in session in browser local storage through [`src/lib/auth/session.ts`](yee-frontend/src/lib/auth/session.ts).
+The frontend stores the signed-in token in an HttpOnly cookie managed by the
+Next.js auth route handlers. Shared session routing logic lives in
+[`src/features/auth/session.ts`](yee-frontend/src/features/auth/session.ts).
 
 ### YEE audit flow
 
@@ -163,8 +164,7 @@ Current behavior:
 - the old duplicate top-header `Start Audit` action was removed
 - the previous header status badges were removed so they do not conflict with the field snapshot
 - the assigned-place audit-status widget was moved into the overview page under `Assigned Places`
-- the visible auditor navigation now uses `/my-dashboard/places` as the primary `My Audits` destination
-- `/my-dashboard/audits` is kept as a compatibility redirect to `/my-dashboard/places`
+- the visible auditor navigation uses `/auditor/places` as the `My Audits` destination
 - the auditor field snapshot and assigned-place table now share the same fetched audit-state source
 - auditor filtering now supports `Project` and `Place` filters in both the overview widget and the `My Audits` page
 
@@ -242,13 +242,20 @@ These are useful for local or tunnel-based testing:
 
 ## Route Map
 
+The public URL map is stable. Internally, `src/app` uses route groups such as
+`(auth)`, `(onboarding)`, `(admin)`, `(manager)`, `(auditor)`, and `(fieldwork)`
+so the code structure reflects ownership without changing URLs.
+
 ### Public and onboarding routes
 
 - `/`
 - `/login`
 - `/signup`
+- `/forgot-password`
+- `/reset-password`
 - `/verify-email`
 - `/invite/[token]`
+- `/manager-invite/[token]`
 - `/waiting-approval`
 - `/complete-profile`
 
@@ -264,28 +271,27 @@ These are useful for local or tunnel-based testing:
 
 ### Manager routes
 
-- `/dashboard`
-- `/dashboard/projects`
-- `/dashboard/projects/new`
-- `/dashboard/projects/[projectId]`
-- `/dashboard/projects/[projectId]/edit`
-- `/dashboard/places`
-- `/dashboard/places/new`
-- `/dashboard/places/[placeId]`
-- `/dashboard/places/[placeId]/edit`
-- `/dashboard/auditors`
-- `/dashboard/auditors/invite`
-- `/dashboard/audits`
-- `/dashboard/reports`
-- `/dashboard/raw-data`
-- `/dashboard/settings`
+- `/manager`
+- `/manager/projects`
+- `/manager/projects/new`
+- `/manager/projects/[projectId]`
+- `/manager/projects/[projectId]/edit`
+- `/manager/places`
+- `/manager/places/new`
+- `/manager/places/[placeId]`
+- `/manager/places/[placeId]/edit`
+- `/manager/auditors`
+- `/manager/auditors/invite`
+- `/manager/audits`
+- `/manager/reports`
+- `/manager/raw-data`
+- `/manager/settings`
 
 ### Auditor routes
 
-- `/my-dashboard`
-- `/my-dashboard/places`
-- `/my-dashboard/audits`
-- `/my-dashboard/settings`
+- `/auditor`
+- `/auditor/places`
+- `/auditor/settings`
 - `/yee/introduction`
 - `/yee/audit/[placeId]`
 - `/yee/audit/[placeId]/page/[step]`
@@ -295,8 +301,7 @@ These are useful for local or tunnel-based testing:
 
 Notes:
 
-- the visible `My Audits` page currently lives at `/my-dashboard/places`
-- `/my-dashboard/audits` remains in the app only as a redirect for older links
+- the visible `My Audits` page lives at `/auditor/places`
 
 ### Frontend proxy API routes
 
@@ -304,12 +309,18 @@ Auth:
 
 - `/api/auth/login`
 - `/api/auth/signup`
+- `/api/auth/session`
 - `/api/auth/me`
+- `/api/auth/logout`
+- `/api/auth/forgot-password`
+- `/api/auth/reset-password`
 - `/api/auth/verify-email`
 - `/api/auth/resend-verification`
 - `/api/auth/complete-profile`
 - `/api/auth/invite/[token]`
 - `/api/auth/invite/[token]/accept`
+- `/api/auth/manager-invites/[token]`
+- `/api/auth/manager-invites/[token]/accept`
 
 Dashboard:
 
@@ -334,7 +345,7 @@ The YEE survey UI is driven by a backend-derived instrument payload:
 
 - source file: backend `app/data/yee_instrument.qsf`
 - backend normalization: backend `app/yee_scoring.py`
-- frontend fetch helper: [`src/lib/yee-instrument.ts`](yee-frontend/src/lib/yee-instrument.ts)
+- frontend fetch helper: [`src/features/yee-audit/api/yee-instrument.ts`](yee-frontend/src/features/yee-audit/api/yee-instrument.ts)
 
 The backend currently enriches the instrument payload with:
 
@@ -351,7 +362,7 @@ This keeps the frontend survey rendering aligned to the actual instrument instea
 
 Project and place editing now use real patch flows:
 
-- frontend proxy helpers in [`src/lib/dashboard/live-api.ts`](yee-frontend/src/lib/dashboard/live-api.ts)
+- frontend proxy helpers in [`src/features/workspaces/api/live-api.ts`](yee-frontend/src/features/workspaces/api/live-api.ts)
 - Next API proxy routes under `src/app/api/dashboard/projects/[projectId]` and `src/app/api/dashboard/places/[placeId]`
 - backend persistence in the FastAPI dashboard router
 
@@ -378,47 +389,71 @@ High-level structure:
 ```text
 src/
   app/
+    (public)/
+    (auth)/
+    (onboarding)/
+    (fieldwork)/
+    admin/
+    manager/
+    auditor/
     api/
       auth/
       dashboard/
       yee/
-    admin/
-    dashboard/
-    my-dashboard/
-    yee/
+    layout.tsx
+    not-found.tsx
   components/
     app/
-    auth/
-    dashboard/
-    reporting/
+    brand/
+    layouts/
+      dashboard/
+    providers/
     ui/
-    yee/
+  features/
+    admin/
+    auditor/
+    auth/
+    manager/
+    reporting/
+    workspaces/
+    yee-audit/
   lib/
     api/
+    csv/
     auth/
-    dashboard/
-    yee-*.ts
+      cookies.ts
+    format.ts
+    utils.ts
+  server/
+    backend/
+      config.ts
+      proxy.ts
+      response.ts
+  types/
+    auth.ts
 ```
 
 Important files:
 
 - App shell: [`src/app/layout.tsx`](yee-frontend/src/app/layout.tsx)
-- Providers: [`src/app/providers.tsx`](yee-frontend/src/app/providers.tsx)
-- Auth provider: [`src/components/auth/auth-provider.tsx`](yee-frontend/src/components/auth/auth-provider.tsx)
-- Dashboard shell: [`src/components/dashboard/dashboard-shell.tsx`](yee-frontend/src/components/dashboard/dashboard-shell.tsx)
-- Manager/admin live dashboard content: [`src/components/dashboard/live-dashboard.tsx`](yee-frontend/src/components/dashboard/live-dashboard.tsx)
-- YEE wizard: [`src/components/yee/yee-audit-wizard.tsx`](yee-frontend/src/components/yee/yee-audit-wizard.tsx)
-- Submitted results page: [`src/components/yee/yee-submission-report.tsx`](yee-frontend/src/components/yee/yee-submission-report.tsx)
-- YEE draft/results client helpers: [`src/lib/yee-audit-api.ts`](yee-frontend/src/lib/yee-audit-api.ts)
-- YEE scoring helpers: [`src/lib/yee-scoring.ts`](yee-frontend/src/lib/yee-scoring.ts)
+- Providers: [`src/components/providers/app-providers.tsx`](yee-frontend/src/components/providers/app-providers.tsx)
+- Auth provider: [`src/features/auth/components/auth-provider.tsx`](yee-frontend/src/features/auth/components/auth-provider.tsx)
+- Dashboard shell: [`src/components/layouts/dashboard/dashboard-shell.tsx`](yee-frontend/src/components/layouts/dashboard/dashboard-shell.tsx)
+- Workspace data helpers: [`src/features/workspaces/api/live-api.ts`](yee-frontend/src/features/workspaces/api/live-api.ts)
+- Reporting UI: [`src/features/reporting/components/live-reports.tsx`](yee-frontend/src/features/reporting/components/live-reports.tsx)
+- YEE wizard: [`src/features/yee-audit/components/yee-audit-wizard.tsx`](yee-frontend/src/features/yee-audit/components/yee-audit-wizard.tsx)
+- Submitted results page: [`src/features/yee-audit/components/yee-submission-report.tsx`](yee-frontend/src/features/yee-audit/components/yee-submission-report.tsx)
+- YEE draft/results client helpers: [`src/features/yee-audit/api/yee-audit-api.ts`](yee-frontend/src/features/yee-audit/api/yee-audit-api.ts)
+- Backend proxy helpers: [`src/server/backend/proxy.ts`](yee-frontend/src/server/backend/proxy.ts)
+- Shared auth/session types: [`src/types/auth.ts`](yee-frontend/src/types/auth.ts)
 
 ## Architecture Summary
 
 The frontend uses a simple layered pattern:
 
 1. page routes render UI containers
-2. components handle layout and feature UI
-3. lib helpers call frontend proxy routes
+2. features own role and workflow UI/client helpers
+3. shared components provide UI, brand, providers, and layout shells
 4. frontend proxy routes forward to the FastAPI backend
 
 This keeps backend URLs and tokens out of most UI components and gives one place to handle `502 Could not reach backend` behavior.
@@ -432,7 +467,8 @@ For more detail, see:
 
 ## Known Limitations / Pending Work
 
-- The frontend still uses browser local session storage rather than cookie-based auth.
+- Some feature modules are still large and should be split along existing export
+  boundaries in later behavior-preserving cleanup passes.
 - Some pages are still placeholder-style UI shells around live backend data and will need more product polish.
 - The YEE flow now has backend-backed draft state and locked submitted results, but it is still a place-scoped draft model rather than a more advanced revisioned audit-session system.
 - Final visual design, accessibility review, and full browser automation coverage are still future work.
@@ -442,8 +478,8 @@ For more detail, see:
 Useful checks:
 
 ```bash
-npm run dev
-npm run build
+pnpm dev
+pnpm build
 ```
 
 If you are validating the full product locally, run both repos:

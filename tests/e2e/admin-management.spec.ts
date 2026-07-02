@@ -22,14 +22,12 @@ test.describe("@admin instrument + users + raw-data export", () => {
 
 		// Anchor on the loaded-table CardDescription, NOT a getByText("Users")
 		// substring (which matches the "Loading users..." LoadingCard flash).
-		await expect(
-			page.getByText(/All managers, auditors, and admins across the system/i).first()
-		).toBeVisible({ timeout: 30_000 });
+		await expect(page.getByText(/All managers, auditors, and admins across the system/i).first()).toBeVisible({
+			timeout: 30_000
+		});
 	});
 
-	test("admin raw-data page renders scoped title and Export All triggers a download", async ({
-		page
-	}) => {
+	test("admin raw-data page renders scoped title and Export All triggers a download", async ({ page }) => {
 		await loginAsAdmin(page);
 		await page.goto("/admin/raw-data");
 

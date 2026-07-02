@@ -1,4 +1,4 @@
-import { proxyPublicRequest } from "@/app/api/_lib/backend-proxy";
+import { proxyPublicRequest } from "@/server/backend/proxy";
 
 /** Score calculation is unauthenticated — the backend validates the payload structure, not identity. */
 export async function POST(request: Request) {

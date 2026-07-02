@@ -4,8 +4,8 @@ import { type E2ERole, e2eUsers } from "../fixtures/users";
 
 const ROLE_LANDING: Record<E2ERole, (pathname: string) => boolean> = {
 	admin: pathname => pathname === "/admin" || pathname.startsWith("/admin/"),
-	manager: pathname => pathname === "/dashboard" || pathname.startsWith("/dashboard/"),
-	auditor: pathname => pathname === "/my-dashboard" || pathname.startsWith("/my-dashboard/")
+	manager: pathname => pathname === "/manager" || pathname.startsWith("/manager/"),
+	auditor: pathname => pathname === "/auditor" || pathname.startsWith("/auditor/")
 };
 
 /**

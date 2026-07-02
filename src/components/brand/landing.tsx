@@ -1,4 +1,5 @@
 "use client";
+import { useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -1117,8 +1118,20 @@ function FinalCtaSection() {
    Footer - warm cream, uses horizontal subtitle logo
 ───────────────────────────────────────────────────────────────────────────── */
 
+/** No-op subscription — the current year never changes within a session. */
+function subscribeNever() {
+	return () => {};
+}
+
 function LandingFooter() {
-	const currentYear = new Date().getFullYear();
+	// Current time is not allowed during static prerender with cacheComponents
+	// enabled, so the server snapshot is a constant and the client reads the
+	// real year (suppressHydrationWarning below covers the mismatch).
+	const currentYear = useSyncExternalStore(
+		subscribeNever,
+		() => new Date().getFullYear(),
+		() => 2026
+	);
 
 	return (
 		<footer className="border-t py-10" style={{ background: CREAM_ALT, borderColor: "oklch(0 0 0 / 0.08)" }}>
@@ -1153,7 +1166,7 @@ function LandingFooter() {
 				</div>
 
 				<div className="mt-8 border-t pt-6" style={{ borderColor: "oklch(0 0 0 / 0.08)" }}>
-					<p className="text-center text-xs text-muted-foreground">
+					<p className="text-center text-xs text-muted-foreground" suppressHydrationWarning>
 						© {currentYear} YEE Audit Tools - Youth Enabling Environments. All rights reserved.
 					</p>
 				</div>

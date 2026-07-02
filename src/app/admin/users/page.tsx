@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { LiveUsersTable } from "@/components/dashboard/live-dashboard";
+import { LiveUsersTable } from "@/features/admin/components/live-dashboard";
 
 export const metadata: Metadata = { title: "Users" };
 

@@ -29,7 +29,7 @@ The frontend uses those values to decide where a user should go next after login
 
 Key file:
 
-- [`src/lib/auth/session.ts`](yee-frontend/src/lib/auth/session.ts)
+- [`src/features/auth/session.ts`](yee-frontend/src/features/auth/session.ts)
 
 ## Route behavior by user state
 
@@ -56,8 +56,8 @@ Frontend route target:
 Frontend route target depends on role:
 
 - admin -> `/admin`
-- manager -> `/dashboard`
-- auditor -> `/my-dashboard`
+- manager -> `/manager`
+- auditor -> `/auditor`
 
 ## Admin
 
@@ -94,19 +94,19 @@ Managers are scoped to their organization/account.
 
 ### Frontend routes
 
-- `/dashboard`
-- `/dashboard/projects`
-- `/dashboard/projects/new`
-- `/dashboard/projects/[projectId]`
-- `/dashboard/places`
-- `/dashboard/places/new`
-- `/dashboard/places/[placeId]`
-- `/dashboard/auditors`
-- `/dashboard/auditors/invite`
-- `/dashboard/audits`
-- `/dashboard/reports`
-- `/dashboard/raw-data`
-- `/dashboard/settings`
+- `/manager`
+- `/manager/projects`
+- `/manager/projects/new`
+- `/manager/projects/[projectId]`
+- `/manager/places`
+- `/manager/places/new`
+- `/manager/places/[placeId]`
+- `/manager/auditors`
+- `/manager/auditors/invite`
+- `/manager/audits`
+- `/manager/reports`
+- `/manager/raw-data`
+- `/manager/settings`
 
 ### Current manager capabilities
 
@@ -125,10 +125,9 @@ Auditors are restricted to their own assigned places and their own YEE submissio
 
 ### Frontend routes
 
-- `/my-dashboard`
-- `/my-dashboard/places`
-- `/my-dashboard/audits`
-- `/my-dashboard/settings`
+- `/auditor`
+- `/auditor/places`
+- `/auditor/settings`
 - `/yee/introduction`
 - `/yee/audit/[placeId]/page/[step]`
 - `/yee/audit/[placeId]/review`
