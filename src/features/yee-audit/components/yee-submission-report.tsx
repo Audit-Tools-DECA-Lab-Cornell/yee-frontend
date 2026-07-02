@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import * as React from "react";
+import { ArrowLeft, Download, LayoutDashboard, Lock, Printer } from "lucide-react";
 
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { YeeScoreSummary } from "@/features/yee-audit/components/yee-score-summary";
 import {
 	fetchInstrument,
@@ -169,6 +171,12 @@ async function downloadSingleSubmissionCsv(submission: YeeSubmissionRecord) {
 	URL.revokeObjectURL(url);
 }
 
+function formatSubmittedAt(value: string) {
+	const date = new Date(value);
+	if (Number.isNaN(date.getTime())) return value;
+	return date.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+}
+
 function normalizeWeights(raw: unknown) {
 	if (!raw || typeof raw !== "object") {
 		return {
@@ -194,27 +202,77 @@ function normalizeWeights(raw: unknown) {
 function formatWeightLabel(value: string) {
 	switch (value) {
 		case "3":
-			return "Very important to me (3)";
+			return "Very important";
 		case "2":
-			return "Somewhat important to me (2)";
+			return "Somewhat important";
 		case "1":
-			return "Not really important to me (1)";
+			return "Not really important";
 		default:
 			return "Not recorded";
 	}
 }
 
-function getWeightBubbleClasses(value: string) {
-	switch (value) {
-		case "3":
-			return "border-emerald-500 bg-emerald-100 text-emerald-950";
-		case "2":
-			return "border-lime-400 bg-lime-50 text-lime-900";
-		case "1":
-			return "border-slate-300 bg-white text-foreground";
-		default:
-			return "border-border bg-white text-foreground";
-	}
+/** Three-segment strength indicator for a participant's section weight (1–3). */
+function WeightScale({ value }: { value: string }) {
+	const level = Number(value) || 0;
+	return (
+		<span className="flex items-center gap-1" aria-hidden>
+			{[1, 2, 3].map(segment => (
+				<span
+					key={segment}
+					className={`h-1.5 w-5 rounded-full ${
+						segment <= level ? "bg-[var(--yee-green-600)]" : "bg-slate-200"
+					}`}
+				/>
+			))}
+		</span>
+	);
+}
+
+function MetaField({ label, value, mono = false }: { label: string; value: string; mono?: boolean }) {
+	const recorded = value && value !== "Not recorded";
+	return (
+		<div className="min-w-0">
+			<dt className="text-[12px] font-bold uppercase tracking-[0.14em] text-foreground">{label}</dt>
+			<dd
+				className={`mt-1 text-sm ${
+					recorded ? "font-medium text-muted-foreground" : "text-muted-foreground/80"
+				} ${mono ? "font-mono text-xs leading-5 break-all" : ""}`}>
+				{recorded ? value : "Not recorded"}
+			</dd>
+		</div>
+	);
+}
+
+function CommentRow({
+	label,
+	value,
+	emptyText,
+	dotColor
+}: {
+	label: string;
+	value: string;
+	emptyText: string;
+	dotColor?: string;
+}) {
+	return (
+		<div className="grid gap-1 py-3.5 first:pt-0 last:pb-0 sm:grid-cols-[13rem_1fr] sm:gap-6 report-no-break">
+			<dt className="flex items-center gap-2.5 text-sm font-medium text-foreground">
+				{dotColor ? (
+					<span
+						aria-hidden
+						className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
+						style={{ backgroundColor: dotColor }}
+					/>
+				) : null}
+				{label}
+			</dt>
+			<dd
+				className={`text-sm leading-6 ${value ? "text-foreground/90" : "text-muted-foreground/70"} sm:pl-0 ${dotColor ? "pl-5" : ""}`}>
+				{value || emptyText}
+			</dd>
+		</div>
+	);
 }
 
 export function YeeSubmissionReport({ submissionId }: { submissionId: string }) {
@@ -258,11 +316,47 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 	}, [submission]);
 
 	if (loading) {
-		return <main className="mx-auto max-w-5xl p-6">Loading submitted audit...</main>;
+		return (
+			<main
+				className="mx-auto max-w-5xl space-y-6 p-4 sm:p-6"
+				aria-busy="true"
+				aria-label="Loading submitted audit">
+				<div className="space-y-3">
+					<Skeleton className="h-4 w-40 rounded-full" />
+					<Skeleton className="h-8 w-72 rounded-sm" />
+					<Skeleton className="h-4 w-96 max-w-full rounded-full" />
+				</div>
+				<Skeleton className="h-36 w-full rounded-md" />
+				<Skeleton className="h-64 w-full rounded-md" />
+				<Skeleton className="h-96 w-full rounded-md" />
+			</main>
+		);
 	}
 
 	if (error || !submission) {
-		return <main className="mx-auto max-w-5xl p-6 text-red-700">{error || "Submitted audit not found."}</main>;
+		return (
+			<main className="mx-auto flex max-w-5xl justify-center p-6">
+				<Card className="mt-12 w-full max-w-md rounded-md text-center">
+					<CardContent className="flex flex-col items-center gap-4 py-10">
+						<span className="flex h-11 w-11 items-center justify-center rounded-full bg-destructive/10 text-destructive">
+							<Lock className="h-5 w-5" aria-hidden />
+						</span>
+						<div className="space-y-1">
+							<p className="text-base font-semibold text-foreground">Unable to load this report</p>
+							<p className="text-sm leading-6 text-muted-foreground">
+								{error || "Submitted audit not found."}
+							</p>
+						</div>
+						<Button asChild variant="outline" className="mt-2 rounded-sm">
+							<Link href="/auditor">
+								<ArrowLeft className="h-4 w-4" aria-hidden />
+								Back to dashboard
+							</Link>
+						</Button>
+					</CardContent>
+				</Card>
+			</main>
+		);
 	}
 
 	const preview = buildWeightedScorePreview(
@@ -291,8 +385,11 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 				? "/admin/audits"
 				: "/auditor/places";
 
+	const placeName = submission.place_name || submission.place_id;
+	const auditorLabel = submission.auditor_generated_id || submission.auditor_id;
+
 	return (
-		<main className="mx-auto max-w-5xl space-y-6 p-6">
+		<main className="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
 			<style jsx global>{`
 				@media print {
 					* {
@@ -325,117 +422,187 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 					}
 				}
 			`}</style>
-			<Card className="rounded-lg border-border">
-				<CardHeader>
-					<CardTitle className="text-3xl">Submitted audit results</CardTitle>
-					<CardDescription>This is a locked, read-only report for the submitted YEE audit.</CardDescription>
+			{/* Report header */}
+			<header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+				<div className="min-w-0 space-y-2">
+					<Link
+						href={auditsHref}
+						className="report-actions inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
+						<ArrowLeft className="h-3.5 w-3.5" aria-hidden />
+						Back to my audits
+					</Link>
+					<div className="flex flex-wrap items-center gap-3">
+						<h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+							{placeName}
+						</h1>
+						<span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+							<Lock className="h-3 w-3" aria-hidden />
+							Read-only report
+						</span>
+					</div>
+					<p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
+						Submitted YEE audit by <span className="font-medium text-foreground">{auditorLabel}</span> on{" "}
+						{formatSubmittedAt(submission.submitted_at)}. Scores and comments are locked as recorded.
+					</p>
+				</div>
+				<div className="report-actions flex shrink-0 flex-wrap items-center gap-2">
+					<Button type="button" variant="outline" className="rounded-sm" onClick={() => window.print()}>
+						<Printer className="h-4 w-4" aria-hidden />
+						Print
+					</Button>
+					<Button
+						type="button"
+						variant="outline"
+						className="rounded-sm"
+						onClick={() => void downloadSingleSubmissionCsv(submission)}>
+						<Download className="h-4 w-4" aria-hidden />
+						Export CSV
+					</Button>
+				</div>
+			</header>
+
+			{/* Submission overview */}
+			<Card className="rounded-md">
+				<CardHeader className="border-b [.border-b]:pb-5">
+					<CardTitle className="text-lg tracking-tight">Submission overview</CardTitle>
+					<CardDescription>Identification and visit context captured with this audit.</CardDescription>
 				</CardHeader>
-				<CardContent className="space-y-6">
-					<div className="grid gap-4 md:grid-cols-2 report-print-stack">
-						<div className="rounded-md bg-muted/40 p-4 text-sm leading-7 text-foreground">
-							<p className="font-medium text-foreground">Submission details</p>
-							<p>Place: {submission.place_name || submission.place_id}</p>
-							<p>Auditor ID: {submission.auditor_generated_id || submission.auditor_id}</p>
-							<p>Submitted at: {new Date(submission.submitted_at).toLocaleString()}</p>
-							<p>Submission ID: {submission.id}</p>
-						</div>
-						<div className="rounded-md bg-muted/40 p-4 text-sm leading-7 text-foreground">
-							<p className="font-medium text-foreground">Context</p>
-							<p>Date: {String(submission.participant_info.audit_date || "Not recorded")}</p>
-							<p>
-								Visit frequency: {String(submission.participant_info.visit_frequency || "Not recorded")}
-							</p>
-							<p>Season: {String(submission.participant_info.season || "Not recorded")}</p>
-							<p>Weather: {String(submission.participant_info.weather || "Not recorded")}</p>
-						</div>
-					</div>
-
-					<div className="rounded-md border border-emerald-300 bg-emerald-100/80 p-4">
-						<p className="text-sm font-medium text-emerald-950">Section weighting used in this audit</p>
-						<p className="mt-2 text-sm leading-6 text-emerald-900/80">
-							Youth Weighted values are calculated by normalizing the participant&apos;s section weights,
-							computing the average score within each section, and then applying the normalized weight to
-							that section average.
-						</p>
-						<div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3 report-print-stack">
-							{(Object.keys(yeeDomainLabels) as YeeDomainKey[]).map(domain => {
-								const theme = yeeDomainThemes[domain];
-								return (
-									<div
-										key={domain}
-										className={`rounded-md border px-4 py-3 ${getWeightBubbleClasses(normalizedWeights[domain])}`}
-										style={{
-											borderColor: theme.strongHex,
-											backgroundColor: theme.lightHex,
-											color: "#1f2937",
-											boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35)"
-										}}>
-										<p className="text-sm font-semibold leading-5" style={{ color: "#111827" }}>
-											{yeeDomainLabels[domain]}
-										</p>
-										<p className="mt-1 text-xs font-medium leading-5" style={{ color: "#374151" }}>
-											{formatWeightLabel(normalizedWeights[domain])}
-										</p>
-									</div>
-								);
-							})}
-						</div>
-					</div>
-
-					<YeeScoreSummary
-						preview={preview}
-						title="Score results"
-						description="Read-only raw scores and Youth Weighted averages computed from the submitted responses."
-					/>
-
-					<div className="grid gap-4 md:grid-cols-2 report-page-break report-no-break report-print-stack">
-						<div className="rounded-md border border-border p-4">
-							<p className="text-sm font-medium text-foreground">Weighting comments</p>
-							<p className="mt-2 text-sm text-muted-foreground">
-								{weightingComments || "No weighting comments submitted."}
-							</p>
-						</div>
-						<div className="rounded-md border border-border p-4">
-							<p className="text-sm font-medium text-foreground">Overall comments</p>
-							<p className="mt-2 text-sm text-muted-foreground">
-								{String(submission.participant_info.comments || "No comments submitted.")}
-							</p>
-						</div>
-					</div>
-
-					<div className="grid gap-4 md:grid-cols-2 report-print-stack">
-						{(Object.keys(yeeDomainLabels) as YeeDomainKey[]).map(domain => (
-							<div key={domain} className="rounded-md border border-border p-4">
-								<p className="text-sm font-medium text-foreground">
-									{yeeDomainLabels[domain]} comments
-								</p>
-								<p className="mt-2 text-sm text-muted-foreground">
-									{sectionComments[domain] || "No section comments submitted."}
-								</p>
-							</div>
-						))}
-					</div>
-
-					<div className="report-actions flex flex-wrap gap-3">
-						<Button type="button" variant="outline" className="rounded-md" onClick={() => window.print()}>
-							Print report
-						</Button>
-						<Button
-							type="button"
-							variant="outline"
-							className="rounded-md"
-							onClick={() => void downloadSingleSubmissionCsv(submission)}>
-							Export data
-						</Button>
-						<Button asChild className="rounded-md bg-[#10231f] text-white hover:bg-[#17302c]">
-							<Link href={auditsHref}>Back to My Audits</Link>
-						</Button>
-						<Button asChild variant="outline" className="rounded-md">
-							<Link href={dashboardHref}>Back to Dashboard</Link>
-						</Button>
-					</div>
+				<CardContent className="">
+					<dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-4 report-print-stack">
+						<MetaField label="Place" value={placeName} />
+						<MetaField label="Auditor ID" value={auditorLabel} />
+						<MetaField label="Submitted" value={formatSubmittedAt(submission.submitted_at)} />
+						<MetaField label="Audit date" value={String(submission.participant_info.audit_date || "")} />
+						<MetaField
+							label="Visit frequency"
+							value={String(submission.participant_info.visit_frequency || "")}
+						/>
+						<MetaField label="Season" value={String(submission.participant_info.season || "")} />
+						<MetaField label="Weather" value={String(submission.participant_info.weather || "")} />
+						<MetaField label="Submission ID" value={submission.id} mono />
+					</dl>
 				</CardContent>
 			</Card>
+
+			{/* Section weighting */}
+			<Card className="rounded-md">
+				<CardHeader className="border-b [.border-b]:pb-5">
+					<CardTitle className="text-lg tracking-tight">Section weighting</CardTitle>
+					<CardDescription>
+						Youth-Weighted values normalize the participant&apos;s section weights, average the scores
+						within each section, and apply the normalized weight to that section average.
+					</CardDescription>
+				</CardHeader>
+				<CardContent className="">
+					<div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3 report-print-stack">
+						{(Object.keys(yeeDomainLabels) as YeeDomainKey[]).map(domain => {
+							const theme = yeeDomainThemes[domain];
+							const weight = normalizedWeights[domain];
+							return (
+								<div
+									key={domain}
+									className="flex items-start justify-between gap-3 rounded-sm border border-border bg-card px-4 py-3.5 report-no-break">
+									<div className="min-w-0">
+										<p className="flex items-center gap-2.5 text-sm font-medium text-foreground">
+											<span
+												aria-hidden
+												className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
+												style={{ backgroundColor: theme.strongHex }}
+											/>
+											{yeeDomainLabels[domain]}
+										</p>
+										<p
+											className={`mt-1.5 pl-5 text-xs leading-5 ${
+												weight ? "text-muted-foreground" : "text-muted-foreground/70"
+											}`}>
+											{formatWeightLabel(weight)}
+											{weight ? ` · ${weight}/3` : ""}
+										</p>
+									</div>
+									<div className="pt-1">
+										<WeightScale value={weight} />
+									</div>
+								</div>
+							);
+						})}
+					</div>
+					{weightingComments ? (
+						<div className="mt-4 rounded-sm border border-border bg-muted/30 px-4 py-3.5 report-no-break">
+							<p className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+								Weighting comments
+							</p>
+							<p className="mt-1.5 text-sm leading-6 text-foreground/90">{weightingComments}</p>
+						</div>
+					) : null}
+				</CardContent>
+			</Card>
+
+			<YeeScoreSummary
+				preview={preview}
+				title="Score results"
+				description="Read-only raw scores and Youth-Weighted averages computed from the submitted responses."
+			/>
+
+			{/* Auditor comments */}
+			<Card className="rounded-md report-page-break">
+				<CardHeader className="border-b [.border-b]:pb-5">
+					<CardTitle className="text-lg tracking-tight">Auditor comments</CardTitle>
+					<CardDescription>Narrative observations recorded alongside the scored responses.</CardDescription>
+				</CardHeader>
+				<CardContent className="">
+					<dl className="divide-y divide-border/60">
+						<CommentRow
+							label="Overall"
+							value={String(submission.participant_info.comments || "")}
+							emptyText="No overall comments submitted."
+						/>
+						{!weightingComments ? (
+							<CommentRow label="Weighting" value="" emptyText="No weighting comments submitted." />
+						) : null}
+						{(Object.keys(yeeDomainLabels) as YeeDomainKey[]).map(domain => (
+							<CommentRow
+								key={domain}
+								label={yeeDomainLabels[domain]}
+								value={sectionComments[domain] || ""}
+								emptyText="No section comments submitted."
+								dotColor={yeeDomainThemes[domain].strongHex}
+							/>
+						))}
+					</dl>
+				</CardContent>
+			</Card>
+
+			{/* Footer actions */}
+			<div className="report-actions flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5">
+				<div className="flex flex-wrap gap-2">
+					<Button type="button" variant="outline" className="rounded-sm" onClick={() => window.print()}>
+						<Printer className="h-4 w-4" aria-hidden />
+						Print report
+					</Button>
+					<Button
+						type="button"
+						variant="outline"
+						className="rounded-sm"
+						onClick={() => void downloadSingleSubmissionCsv(submission)}>
+						<Download className="h-4 w-4" aria-hidden />
+						Export CSV
+					</Button>
+				</div>
+				<div className="flex flex-wrap gap-2">
+					<Button asChild variant="outline" className="rounded-sm">
+						<Link href={dashboardHref}>
+							<LayoutDashboard className="h-4 w-4" aria-hidden />
+							Dashboard
+						</Link>
+					</Button>
+					<Button asChild className="rounded-sm">
+						<Link href={auditsHref}>
+							<ArrowLeft className="h-4 w-4" aria-hidden />
+							Back to my audits
+						</Link>
+					</Button>
+				</div>
+			</div>
 		</main>
 	);
 }
