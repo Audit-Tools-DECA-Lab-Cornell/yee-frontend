@@ -11,7 +11,7 @@ for (const area of STRUCTURED_AREAS) {
 		force: true
 	});
 }
-
+//
 const command = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 const buildArgs = ["build"];
 const args = ["exec", "playwright", "test", "--project=screenshots-chromium", "--workers=1"];

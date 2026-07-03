@@ -9,13 +9,15 @@ pnpm screenshots:web
 
 `pnpm test:visual` keeps the existing pixel-baseline coverage for public auth
 pages. `pnpm screenshots:web` is the YEE counterpart to the Playspace web
-screenshot script, but tailored to YEE's route map and seeded demo roles.
+screenshot script, but tailored to YEE's route map, seeded demo roles, and
+interaction states.
 
 It:
 
 - builds the app, then boots or reuses a local Next.js production server on `127.0.0.1:3100`
 - signs in as admin, manager, and auditor through the real backend auth contract
 - captures a curated catalog of public, admin, manager, auditor, and YEE pages
+- captures non-destructive UI states such as mobile navigation, filters, and confirmation dialogs
 - writes a `public/screenshots/manifest.json` index alongside the PNGs
 
 ## Output shape
@@ -34,6 +36,7 @@ public/screenshots/
   auth/login/01-overview.png
   manager/projects/01-overview.png
   manager/raw-data/01-overview/01.png
+  manager/settings/02-remove-manager-confirm-open.png
   admin/instruments/01-overview.png
   auditor/dashboard/01-overview.png
   yee/introduction/01-overview.png

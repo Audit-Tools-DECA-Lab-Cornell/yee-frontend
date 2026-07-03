@@ -36,6 +36,7 @@ const VISUAL_STYLE = `
 export interface PrepareVisualPageOptions {
 	readonly role: E2ERole;
 	readonly route: string;
+	readonly viewport?: typeof VISUAL_VIEWPORT;
 }
 
 export interface ViewportScrollCaptureResult {
@@ -79,7 +80,7 @@ export async function prepareVisualPage(
 	request: APIRequestContext,
 	options: PrepareVisualPageOptions
 ): Promise<void> {
-	await page.setViewportSize(VISUAL_VIEWPORT);
+	await page.setViewportSize(options.viewport ?? VISUAL_VIEWPORT);
 	await seedBrowserSession(page.context(), request, options.role);
 	await page.goto(new URL(options.route, getE2EBaseUrl()).toString(), {
 		waitUntil: "domcontentloaded"
@@ -94,18 +95,37 @@ export async function captureViewportScrollFrames(
 	await stabilizeVisualState(page);
 
 	const root = path.resolve(process.cwd(), SCREENSHOTS_ROOT);
-	await page.evaluate(() => window.scrollTo(0, 0));
-	await page.waitForTimeout(SCROLL_SETTLE_MS);
+	const overlayOpen = await page.evaluate(
+		() =>
+			document.querySelector(
+				'[role="dialog"],[role="alertdialog"],[role="menu"],[role="listbox"],[data-slot="popover-content"],[data-radix-popper-content-wrapper]'
+			) !== null
+	);
+
+	if (!overlayOpen) {
+		await page.evaluate(() => window.scrollTo(0, 0));
+		await page.waitForTimeout(SCROLL_SETTLE_MS);
+	}
 
 	const layout = await page.evaluate(() => {
 		const doc = document.documentElement;
+		const bodyStyle = getComputedStyle(document.body);
+		const docStyle = getComputedStyle(doc);
+		const scrollLocked =
+			document.body.hasAttribute("data-scroll-locked") ||
+			bodyStyle.overflowY === "hidden" ||
+			bodyStyle.overflow === "hidden" ||
+			docStyle.overflowY === "hidden" ||
+			docStyle.overflow === "hidden";
 		return {
 			scrollHeight: doc.scrollHeight,
-			clientHeight: doc.clientHeight
+			clientHeight: doc.clientHeight,
+			scrollLocked
 		};
 	});
 
-	const needsScroll = layout.scrollHeight - layout.clientHeight > SCROLL_EPSILON_PX;
+	const needsScroll =
+		!overlayOpen && !layout.scrollLocked && layout.scrollHeight - layout.clientHeight > SCROLL_EPSILON_PX;
 	if (!needsScroll) {
 		const relativePath = `${baseRelativePath}.png`;
 		const outputPath = path.join(root, relativePath);

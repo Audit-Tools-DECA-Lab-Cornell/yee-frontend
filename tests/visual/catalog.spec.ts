@@ -17,6 +17,7 @@ const SCREENSHOTS_ROOT = path.join("public", "screenshots");
 interface ManifestEntry {
 	readonly area: string;
 	readonly route: string;
+	readonly state: string;
 	readonly file: string;
 	readonly label: string;
 	readonly scrolled: boolean;
@@ -25,8 +26,8 @@ interface ManifestEntry {
 const manifest: ManifestEntry[] = [];
 let protectedScreenshotsAvailable: Promise<boolean> | null = null;
 
-function getOverviewBasePath(target: CaptureTarget): string {
-	return path.posix.join(...target.segments, "01-overview");
+function getStateBasePath(target: CaptureTarget, index: number, name: string): string {
+	return path.posix.join(...target.segments, `${String(index + 1).padStart(2, "0")}-${name}`);
 }
 
 async function waitForCaptureReady(
@@ -60,36 +61,53 @@ async function canCaptureProtectedScreenshots(request: Parameters<typeof loginVi
 }
 
 for (const target of captureCatalog) {
-	test(target.label, async ({ page, request }) => {
-		test.skip(!isLocalScreenshotCaptureEnabled(), "Run via `pnpm screenshots:web` to write local PNGs.");
+	test.describe(target.segments.join("/"), () => {
+		target.states.forEach((state, index) => {
+			test(state.label, async ({ page, request }) => {
+				test.skip(!isLocalScreenshotCaptureEnabled(), "Run via `pnpm screenshots:web` to write local PNGs.");
 
-		if (target.role === "public") {
-			await preparePublicVisualPage(page, target.route);
-		} else {
-			const protectedScreenshotsReachable = await canCaptureProtectedScreenshots(request);
-			test.skip(
-				!protectedScreenshotsReachable,
-				"Protected screenshots require the local YEE backend at E2E_API_BASE_URL."
-			);
+				if (target.role === "public") {
+					await preparePublicVisualPage(page, target.route);
+				} else {
+					const protectedScreenshotsReachable = await canCaptureProtectedScreenshots(request);
+					test.skip(
+						!protectedScreenshotsReachable,
+						"Protected screenshots require the local YEE backend at E2E_API_BASE_URL."
+					);
 
-			await prepareVisualPage(page, request, {
-				role: target.role,
-				route: target.route
+					await prepareVisualPage(page, request, {
+						role: target.role,
+						route: target.route
+					});
+				}
+
+				await waitForCaptureReady(page, target);
+				if (state.setup) {
+					try {
+						await state.setup({ page });
+					} catch (error) {
+						if (state.optional && error instanceof Error && error.name === "StateUnavailableError") {
+							test.skip(true, `state unavailable: ${error.message}`);
+							return;
+						}
+						throw error;
+					}
+				}
+
+				const result = await captureViewportScrollFrames(page, getStateBasePath(target, index, state.name));
+
+				for (const file of result.files) {
+					manifest.push({
+						area: target.segments[0] ?? "unknown",
+						route: target.route,
+						state: state.name,
+						file,
+						label: state.label,
+						scrolled: result.scrolled
+					});
+				}
 			});
-		}
-
-		await waitForCaptureReady(page, target);
-		const result = await captureViewportScrollFrames(page, getOverviewBasePath(target));
-
-		for (const file of result.files) {
-			manifest.push({
-				area: target.segments[0] ?? "unknown",
-				route: target.route,
-				file,
-				label: target.label,
-				scrolled: result.scrolled
-			});
-		}
+		});
 	});
 }
 
