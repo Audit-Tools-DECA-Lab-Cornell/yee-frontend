@@ -57,7 +57,7 @@ function LoginPageInner() {
 
 				{verified ? (
 					<div
-						className="rounded-md border border-[var(--yee-green-200)] bg-[var(--yee-green-50)] px-4 py-3 text-sm text-[var(--yee-green-900)]"
+						className="rounded-md border border-(--yee-green-200) bg-(--yee-green-50) px-4 py-3 text-sm text-(--yee-green-900)"
 						role="status">
 						Email verified. Sign in to continue to your account setup.
 					</div>

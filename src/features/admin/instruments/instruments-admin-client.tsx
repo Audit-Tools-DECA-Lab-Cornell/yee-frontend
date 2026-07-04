@@ -5,8 +5,11 @@ import * as React from "react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/features/auth/components/auth-provider";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
 	createInstrumentVersion,
 	deleteInstrumentVersion,
@@ -16,9 +19,16 @@ import {
 
 import { INSTRUMENT_KEY, INSTRUMENTS_LIST_QUERY_KEY } from "./constants";
 import { InstrumentEditor } from "./instrument-editor";
+import { MetricRow } from "./shared-components";
 import type { InstrumentVersionRecord } from "./types";
 import { VersionHistory } from "./version-history";
-import { fetchCanonicalInstrument, isThrowawayVersion, summarizeInstrument, toDraftLabel } from "./utils";
+import {
+	fetchCanonicalInstrument,
+	formatCreatedAt,
+	isThrowawayVersion,
+	summarizeInstrument,
+	toDraftLabel
+} from "./utils";
 
 type EditingState = {
 	initialJson: string;
@@ -118,8 +128,12 @@ export function InstrumentsAdminClient() {
 	}
 
 	function handleOpenCurrent() {
-		if (!canonicalInstrument) return;
-		openEditor(canonicalInstrument, toDraftLabel(summarizeInstrument(canonicalInstrument).version));
+		const source = activeVersion?.content ?? canonicalInstrument;
+		if (!source) return;
+		const label = activeVersion
+			? toDraftLabel(activeVersion.instrument_version)
+			: toDraftLabel(summarizeInstrument(canonicalInstrument).version);
+		openEditor(source, label);
 	}
 
 	function handleCreateNewDraft() {
@@ -144,55 +158,82 @@ export function InstrumentsAdminClient() {
 
 	return (
 		<div className="space-y-6">
-			<Card className="rounded-lg border-[#3b3027] bg-[#352b25] text-white shadow-sm">
-				<CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-					<div className="space-y-2">
-						<p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#d6c9bc]">
-							Administrator Workspace
-						</p>
-						<CardTitle className="text-4xl text-white">Instrument Management</CardTitle>
-						<CardDescription className="max-w-3xl text-base text-[#e9dfd4]">
-							Review version history, open the current instrument as a draft, update wording, and publish
-							the version the website should use.
-						</CardDescription>
-					</div>
-					<div className="flex w-full flex-col gap-3 lg:w-auto">
-						<Button
-							type="button"
-							variant="outline"
-							className="rounded-lg border-white/25 bg-white/90 text-[#352b25] hover:bg-white"
-							onClick={handleOpenCurrent}
-							disabled={!canonicalInstrument}>
-							Open Current Version
-						</Button>
-						<Button
-							type="button"
-							className="rounded-lg bg-[#3e8f63] text-white hover:bg-[#347b55]"
-							onClick={handleCreateNewDraft}
-							disabled={!activeVersion && !canonicalInstrument}>
-							Create New Draft
-						</Button>
-					</div>
-				</CardHeader>
-			</Card>
-
 			{loadError ? (
-				<Card className="rounded-lg border-rose-200 bg-rose-50 shadow-sm">
+				<Card className="border-destructive/30 bg-destructive/10">
 					<CardHeader>
-						<CardTitle>Instrument tool needs attention</CardTitle>
-						<CardDescription className="text-rose-700">
+						<CardTitle className="text-destructive">Instrument tool needs attention</CardTitle>
+						<CardDescription className="text-destructive">
 							{loadError instanceof Error ? loadError.message : "Could not load instrument data."}
 						</CardDescription>
 					</CardHeader>
 				</Card>
-			) : null}
+			) : versionsQuery.isPending || canonicalQuery.isPending ? (
+				<Card>
+					<CardContent className="space-y-4">
+						<div className="space-y-2">
+							<Skeleton className="h-4 w-28" />
+							<Skeleton className="h-6 w-44" />
+						</div>
+						<div className="grid gap-3 md:grid-cols-4">
+							{[0, 1, 2, 3].map(index => (
+								<Skeleton key={index} className="h-20 rounded-md" />
+							))}
+						</div>
+					</CardContent>
+				</Card>
+			) : activeVersion ? (
+				<Card>
+					<CardContent className="space-y-4">
+						<div className="space-y-1">
+							<p className="text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+								Currently live
+							</p>
+							<div className="flex flex-wrap items-center gap-2">
+								<p className="text-xl font-semibold text-foreground">
+									{activeVersion.instrument_version}
+								</p>
+								<Badge variant="success">Active</Badge>
+							</div>
+							<p className="text-sm text-muted-foreground">
+								Published {formatCreatedAt(activeVersion.created_at)} - this is the version the public
+								site uses right now.
+							</p>
+						</div>
+						<MetricRow summary={activeSummary} />
+					</CardContent>
+				</Card>
+			) : (
+				<div className="rounded-md border border-dashed border-border">
+					<EmptyState
+						title="No published version yet"
+						description="Create and publish a draft to make an instrument version live for the website."
+					/>
+				</div>
+			)}
+
+			<div className="space-y-2">
+				<div className="flex flex-wrap gap-2">
+					<Button type="button" variant="outline" onClick={handleOpenCurrent} disabled={!canonicalInstrument}>
+						Open current version
+					</Button>
+					<Button
+						type="button"
+						onClick={handleCreateNewDraft}
+						disabled={!activeVersion && !canonicalInstrument}>
+						Create new draft
+					</Button>
+				</div>
+				<p className="text-sm text-muted-foreground">
+					Creating a new draft copies the live version so you can edit safely — nothing changes on the site
+					until you publish it.
+				</p>
+			</div>
 
 			<VersionHistory
 				versions={versions}
 				loading={versionsQuery.isPending}
 				saving={activateMutation.isPending}
 				deletingId={deletingId}
-				activeVersionLabel={activeSummary.version}
 				onEditVersion={handleEditVersion}
 				onActivate={id => activateMutation.mutate(id)}
 				onDelete={id => deleteMutation.mutate(id)}
@@ -209,11 +250,12 @@ export function InstrumentsAdminClient() {
 						onCancel={() => setEditing(null)}
 					/>
 				) : (
-					<Card className="rounded-lg border-dashed border-slate-300 bg-slate-50/70 shadow-sm">
-						<CardContent className="py-8 text-center text-sm text-slate-600">
-							Open the current version or one of the saved versions above to start editing a draft.
-						</CardContent>
-					</Card>
+					<div className="rounded-md border border-dashed border-border">
+						<EmptyState
+							title="No draft open"
+							description="Open the current version or one of the saved versions above to start editing a draft."
+						/>
+					</div>
 				)}
 			</div>
 		</div>

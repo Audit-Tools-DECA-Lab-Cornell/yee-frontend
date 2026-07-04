@@ -3,7 +3,7 @@ import type {
 	InstrumentSummary,
 	InstrumentVersionRecord,
 	QuestionGroup,
-	SpreadsheetRow,
+	SpreadsheetGroup,
 	StructuredInstrumentContent
 } from "./types";
 
@@ -54,7 +54,7 @@ export function getEditablePromptEntries(item: EditableItem) {
 		.map(([choiceId, choice]) => ({
 			entryKey: `choice-${choiceId}`,
 			choiceId,
-			label: `${item.item_id} · Prompt ${choiceId}`,
+			label: `Choice ${choiceId}`,
 			value: cleanInstrumentText(choice.Display || choiceId),
 			isChoice: true as const
 		}))
@@ -68,7 +68,7 @@ export function getEditablePromptEntries(item: EditableItem) {
 		{
 			entryKey: "question-text",
 			choiceId: null,
-			label: item.item_id,
+			label: "Question text",
 			value: questionText,
 			isChoice: false as const
 		}
@@ -143,30 +143,34 @@ export function getQuestionGroups(content: StructuredInstrumentContent | null): 
 	}));
 }
 
-export function buildSpreadsheetRows(content: StructuredInstrumentContent | null): SpreadsheetRow[] {
-	return getQuestionGroups(content).flatMap(group => {
+/** "Feb 26, 2026" — humanize an ISO timestamp for version metadata. */
+export function formatCreatedAt(iso: string): string {
+	const date = new Date(iso);
+	if (Number.isNaN(date.getTime())) return iso;
+	return new Intl.DateTimeFormat("en-US", { year: "numeric", month: "short", day: "numeric" }).format(date);
+}
+
+/** Human answer-type label for a scoring item, without leaking the derivation. */
+export function describeAnswerType(item: EditableItem): "Matrix" | "Single select" {
+	return item.answers && Object.keys(item.answers).length > 0 ? "Matrix" : "Single select";
+}
+
+/** Grouped spreadsheet rows: each section with its items nested, replacing the flat dash-laden rows. */
+export function buildSpreadsheetGroups(content: StructuredInstrumentContent | null): SpreadsheetGroup[] {
+	return getQuestionGroups(content).map(group => {
 		const sectionTitle = cleanInstrumentText(group.section?.title || group.items[0]?.block_title || group.blockKey);
-		const sectionDescription = cleanInstrumentText(group.section?.intro_text);
-		const sectionPrompt = cleanInstrumentText(group.section?.comment_prompt);
-		return [
-			{
-				id: `section-${group.blockKey}`,
-				number: `Section ${sectionTitle}`,
-				section: sectionTitle,
-				prompt: [
-					sectionDescription ? `Description: ${sectionDescription}` : "",
-					sectionPrompt ? `Notes Prompt: ${sectionPrompt}` : ""
-				]
-					.filter(Boolean)
-					.join("\n\n")
-			},
-			...group.items.map(item => ({
+		const description = cleanInstrumentText(group.section?.intro_text) || undefined;
+		const notesPrompt = cleanInstrumentText(group.section?.comment_prompt) || undefined;
+		return {
+			blockKey: group.blockKey,
+			sectionTitle,
+			description,
+			notesPrompt,
+			items: group.items.map(item => ({
 				id: item.item_id,
-				number: item.item_id,
-				section: "-",
 				prompt: getDisplayQuestionText(item)
 			}))
-		];
+		};
 	});
 }
 

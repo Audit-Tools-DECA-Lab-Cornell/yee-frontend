@@ -99,9 +99,10 @@ export type QuestionGroup = {
 	items: EditableItem[];
 };
 
-export type SpreadsheetRow = {
-	id: string;
-	number: string;
-	section: string;
-	prompt: string;
+export type SpreadsheetGroup = {
+	blockKey: string;
+	sectionTitle: string;
+	description?: string;
+	notesPrompt?: string;
+	items: { id: string; prompt: string }[];
 };

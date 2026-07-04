@@ -24,6 +24,8 @@ The frontend session user shape includes:
 - `profile_completed`
 - `next_step`
 - `dashboard_path`
+- `has_auditor_profile`
+- `auditor_dashboard_path`
 
 The frontend uses those values to decide where a user should go next after login or session restore.
 
@@ -116,6 +118,30 @@ Managers are scoped to their organization/account.
 - review submitted audits
 - export raw data
 - view comparison reports
+- open any individual submitted report in their org's projects at
+  `/yee/submissions/[submissionId]` (backend `GET /yee/audits/{submission_id}`
+  grants project-scoped read access; no auditor profile required)
+
+## Dual-role manager (self auditor profile)
+
+Managers can also act as auditors inside their own organization.
+
+- A manager creates their auditor profile once from `/manager/settings`
+  (backend `POST /yee/dashboard/my-auditor-profile`, idempotent). The profile
+  is a standard auditor profile row on the same user and account.
+- The session then carries `has_auditor_profile: true` and
+  `auditor_dashboard_path: "/auditor"`; the dashboard header shows an
+  "Auditor view" / "Manager view" switch.
+- Middleware (`src/proxy.ts`) lets a MANAGER with `has_auditor_profile` open
+  AUDITOR routes.
+- Field work still requires assignments: the manager must assign their own
+  auditor profile to places from Manager View (`/manager/auditors`). The
+  auditor-view empty state links there when the signed-in user is a manager.
+- Viewing reports does NOT require an auditor profile — the profile is only
+  for submitting audits yourself.
+- Mobile: the Expo app accepts AUDITOR accounts and MANAGER accounts that
+  already own a self auditor profile. A manager without one is signed out
+  with an explanatory message and must create the profile on the web first.
 
 ## Auditor
 

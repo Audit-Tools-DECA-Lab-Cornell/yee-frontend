@@ -5,18 +5,18 @@ import * as React from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { cn } from "@/lib/utils";
 
 import { InstrumentContentViewer } from "./instrument-content-viewer";
 import type { DetailTabKey, InstrumentVersionRecord } from "./types";
-import { getTypedContent } from "./utils";
+import { formatCreatedAt, getTypedContent } from "./utils";
 
 export function VersionHistory({
 	versions,
 	loading,
 	saving,
 	deletingId,
-	activeVersionLabel,
 	onEditVersion,
 	onActivate,
 	onDelete
@@ -25,7 +25,6 @@ export function VersionHistory({
 	loading: boolean;
 	saving: boolean;
 	deletingId: string | null;
-	activeVersionLabel: string;
 	onEditVersion: (version: InstrumentVersionRecord) => void;
 	onActivate: (id: string) => void;
 	onDelete: (id: string) => void;
@@ -33,95 +32,90 @@ export function VersionHistory({
 	const [selectedVersionId, setSelectedVersionId] = React.useState<string | null>(null);
 	const [expandedVersionId, setExpandedVersionId] = React.useState<string | null>(null);
 	const [detailTabByVersion, setDetailTabByVersion] = React.useState<Record<string, DetailTabKey>>({});
+	const [confirm, setConfirm] = React.useState<{
+		type: "delete" | "activate";
+		version: InstrumentVersionRecord;
+	} | null>(null);
 
 	return (
-		<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
+		<Card>
 			<CardHeader>
-				<CardTitle>Version History</CardTitle>
+				<CardTitle>Version history</CardTitle>
 				<CardDescription>
-					Active version: {activeVersionLabel}. Open a version to inspect it, edit it into a draft, publish
-					it, or delete an inactive draft.
+					Every saved version. Open one to inspect it, edit it into a new draft, publish it, or delete an
+					inactive draft.
 				</CardDescription>
 			</CardHeader>
 			<CardContent className="space-y-4">
 				{loading ? (
-					<p className="text-sm text-slate-500">Loading instrument versions...</p>
+					<p className="text-sm text-muted-foreground">Loading instrument versions…</p>
 				) : versions.length === 0 ? (
-					<div className="rounded-lg border border-dashed border-slate-300 bg-slate-50/70 p-4 text-sm text-slate-600">
-						No saved versions are available yet.
+					<div className="rounded-md border border-dashed border-border bg-muted/40 p-4 text-sm text-muted-foreground">
+						No saved versions yet.
 					</div>
 				) : (
 					versions.map(version => {
 						const tab = detailTabByVersion[version.id] ?? "preamble";
 						const expanded = expandedVersionId === version.id;
+						const isSelected = selectedVersionId === version.id;
 						return (
-							<div
-								key={version.id}
-								className="overflow-hidden rounded-lg border border-slate-200 bg-white">
-								<div
-									className={cn(
-										"flex flex-col gap-4 p-5",
-										selectedVersionId === version.id ? "bg-emerald-50/70" : "bg-white"
-									)}>
+							<div key={version.id} className="overflow-hidden rounded-md border border-border bg-card">
+								<div className={cn("flex flex-col gap-4 p-5", isSelected ? "bg-accent" : "bg-card")}>
 									<div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-										<div className="space-y-2">
+										<div className="space-y-1">
 											<div className="flex flex-wrap items-center gap-2">
-												<p className="break-words text-2xl font-semibold text-slate-900">
+												<p className="wrap-break-word text-lg font-semibold text-foreground">
 													{version.instrument_version}
 												</p>
-												<Badge
-													className={cn(
-														"rounded-full",
-														version.is_active
-															? "bg-emerald-100 text-emerald-700 hover:bg-emerald-100"
-															: "bg-slate-100 text-slate-600 hover:bg-slate-100"
-													)}>
+												<Badge variant={version.is_active ? "success" : "secondary"}>
 													{version.is_active ? "Active" : "Inactive"}
 												</Badge>
 											</div>
-											<p className="text-sm text-slate-500">
-												Created {new Date(version.created_at).toLocaleString()}
+											<p className="text-sm text-muted-foreground">
+												Created {formatCreatedAt(version.created_at)}
 											</p>
 										</div>
 										<div className="flex flex-wrap gap-2">
 											<Button
 												type="button"
 												variant="outline"
-												className="rounded-lg"
+												size="sm"
+												aria-expanded={expanded}
 												onClick={() => {
 													setSelectedVersionId(version.id);
 													setExpandedVersionId(current =>
 														current === version.id ? null : version.id
 													);
 												}}>
-												{expanded ? "Hide Details" : "View Details"}
+												{expanded ? "Hide details" : "View details"}
 											</Button>
 											<Button
 												type="button"
-												className="rounded-lg bg-[#1f5f45] text-white hover:bg-[#194e3a]"
+												size="sm"
 												onClick={() => {
 													setSelectedVersionId(version.id);
 													onEditVersion(version);
 												}}>
-												Edit this version
+												Edit
 											</Button>
 											{!version.is_active ? (
 												<Button
 													type="button"
-													className="rounded-lg bg-[#10231f] text-white hover:bg-[#17302c]"
-													onClick={() => onActivate(version.id)}
+													variant="success"
+													size="sm"
+													onClick={() => setConfirm({ type: "activate", version })}
 													disabled={saving}>
-													Make Active
+													Make active
 												</Button>
 											) : null}
 											{!version.is_active ? (
 												<Button
 													type="button"
-													variant="outline"
-													className="rounded-lg border-rose-200 text-rose-700 hover:bg-rose-50"
-													onClick={() => onDelete(version.id)}
+													variant="danger"
+													size="sm"
+													onClick={() => setConfirm({ type: "delete", version })}
 													disabled={deletingId === version.id}>
-													{deletingId === version.id ? "Deleting..." : "Delete"}
+													{deletingId === version.id ? "Deleting…" : "Delete"}
 												</Button>
 											) : null}
 										</div>
@@ -144,6 +138,27 @@ export function VersionHistory({
 					})
 				)}
 			</CardContent>
+
+			{confirm ? (
+				<ConfirmDialog
+					open
+					onOpenChange={open => {
+						if (!open) setConfirm(null);
+					}}
+					title={confirm.type === "delete" ? "Delete this version?" : "Make this version live?"}
+					description={
+						confirm.type === "delete"
+							? `Version ${confirm.version.instrument_version} will be permanently removed. This can't be undone.`
+							: `Version ${confirm.version.instrument_version} will replace the current live instrument — new audits on the public site will use it immediately.`
+					}
+					confirmLabel={confirm.type === "delete" ? "Delete version" : "Make live"}
+					variant={confirm.type === "delete" ? "destructive" : "default"}
+					onConfirm={() => {
+						if (confirm.type === "delete") onDelete(confirm.version.id);
+						else onActivate(confirm.version.id);
+					}}
+				/>
+			) : null}
 		</Card>
 	);
 }

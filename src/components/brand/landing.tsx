@@ -28,23 +28,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 /* ─────────────────────────────────────────────────────────────────────────────
-   Palette helpers - landing uses warm cream surfaces, distinct from app interior
-───────────────────────────────────────────────────────────────────────────── */
-
-/** Warm cream page background - warmer than the app's cool-tinted white. */
-const CREAM = "oklch(0.975 0.012 80)";
-/** Slightly deeper cream for alternate sections. */
-const CREAM_ALT = "oklch(0.96 0.014 80)";
-
-/* ─────────────────────────────────────────────────────────────────────────────
-   Navigation - warm cream bar, charcoal type, brand-colored logo
+   Navigation - charcoal type, brand-colored logo
 ───────────────────────────────────────────────────────────────────────────── */
 
 function LandingNav() {
 	return (
 		<header
 			className="sticky top-0 z-50 border-b"
-			style={{ background: CREAM, borderColor: "oklch(0 0 0 / 0.08)" }}>
+			style={{ background: "var(--yee-surface-app)", borderColor: "oklch(0 0 0 / 0.08)" }}>
 			<nav
 				className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3.5 sm:px-6 lg:px-8"
 				aria-label="Main navigation">
@@ -110,7 +101,7 @@ function HeroSection() {
 	return (
 		<section
 			className="relative overflow-hidden"
-			style={{ background: CREAM }}
+			style={{ background: "var(--yee-surface-app)" }}
 			aria-label="YEE platform introduction">
 			{/* Subtle warm gradient wash behind mark */}
 			<div
@@ -422,7 +413,7 @@ function ProblemSection() {
 	return (
 		<section
 			className="py-16 sm:py-20 lg:py-24"
-			style={{ background: CREAM_ALT }}
+			style={{ background: "var(--yee-surface-app)" }}
 			aria-labelledby="problem-heading">
 			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 				<div className="mx-auto max-w-2xl text-center">
@@ -451,7 +442,7 @@ function ProblemSection() {
 							style={{ borderColor: "var(--border)", boxShadow: "var(--shadow-card)" }}>
 							<div
 								className="mb-4 flex size-10 items-center justify-center rounded-md"
-								style={{ background: CREAM_ALT }}
+								style={{ background: "var(--yee-surface-app)" }}
 								aria-hidden="true">
 								<point.icon className="size-5 text-muted-foreground" />
 							</div>
@@ -584,7 +575,7 @@ function HowItWorksSection() {
 		<section
 			id="how"
 			className="py-16 sm:py-20 lg:py-24"
-			style={{ background: CREAM }}
+			style={{ background: "var(--yee-surface-app)" }}
 			aria-labelledby="how-heading">
 			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 				<div className="mx-auto max-w-2xl text-center">
@@ -809,7 +800,7 @@ function ScoringSection() {
 								<div
 									key={item.label}
 									className="flex items-start gap-3 rounded-md border px-4 py-3.5"
-									style={{ borderColor: "var(--border)", background: CREAM }}>
+									style={{ borderColor: "var(--border)", background: "var(--yee-surface-app)" }}>
 									<div
 										className="mt-1 size-2 shrink-0 rounded-full"
 										style={{ background: "var(--yee-green-600)" }}
@@ -986,7 +977,7 @@ function ReportsSection() {
 		<section
 			id="reports"
 			className="py-16 sm:py-20 lg:py-24"
-			style={{ background: CREAM_ALT }}
+			style={{ background: "var(--yee-surface-app)" }}
 			aria-labelledby="reports-heading">
 			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 				<div className="mx-auto max-w-2xl text-center">
@@ -1134,7 +1125,9 @@ function LandingFooter() {
 	);
 
 	return (
-		<footer className="border-t py-10" style={{ background: CREAM_ALT, borderColor: "oklch(0 0 0 / 0.08)" }}>
+		<footer
+			className="border-t py-10"
+			style={{ background: "var(--yee-surface-app)", borderColor: "oklch(0 0 0 / 0.08)" }}>
 			<div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 				<div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
 					<div className="flex flex-col items-center gap-2 sm:items-start">

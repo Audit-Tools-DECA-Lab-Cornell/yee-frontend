@@ -996,7 +996,7 @@ export function LiveReports() {
 													<Link
 														href={`/yee/submissions/${record.audit_id}`}
 														className="text-sm font-medium text-slate-900 underline decoration-slate-300 underline-offset-4 hover:text-foreground">
-														Open full report
+														Open report
 													</Link>
 												</CardContent>
 											</Card>

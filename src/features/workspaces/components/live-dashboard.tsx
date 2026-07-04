@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
 import { ArrowRight, ArrowUpRight, FilePlus2, MailPlus, MapPinned, ShieldPlus, UserPlus } from "lucide-react";
 
@@ -335,13 +336,13 @@ export function LiveManagerOverview() {
 		{
 			label: "Total Places",
 			value: activePlaces,
-			helper: "Places currently in this manager's project scope.",
+			helper: "Places under all your projects.",
 			href: "/manager/places"
 		},
 		{
 			label: "Active Audits",
 			value: auditsLogged,
-			helper: "Draft and submitted audit records tied to this manager's places.",
+			helper: "Draft and submitted audit records tied to your places.",
 			href: "/manager/audits"
 		},
 		{
@@ -380,6 +381,7 @@ export function LiveManagerOverview() {
 		}
 	];
 	const domainWeightBreakdown = averageDomainWeights(submittedRows);
+	console.log(domainWeightBreakdown);
 
 	return (
 		<div className="space-y-6">
@@ -457,17 +459,24 @@ export function LiveManagerOverview() {
 					item set.
 				</p>
 				<div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-					{domainWeightBreakdown.map(item => (
-						<div key={item.domain} className="rounded-md border border-border bg-muted/40 px-4 py-3">
-							<p className="text-sm font-medium text-foreground">{item.label}</p>
-							<p className="mt-1 text-xs text-muted-foreground">
-								Average weighting across submitted audits
-							</p>
-							<p className="mt-2 text-sm font-semibold text-emerald-800">
-								{item.average.toFixed(1)} / 3 ({item.percent.toFixed(0)}%)
-							</p>
-						</div>
-					))}
+					{domainWeightBreakdown.map(
+						item => (
+							console.log(item.average === null || item.average === undefined),
+							(
+								<div
+									key={item.domain}
+									className="rounded-md border border-border bg-muted/40 px-4 py-3">
+									<p className="text-sm font-medium text-foreground">{item.label}</p>
+									<p className="mt-1 text-xs text-muted-foreground">
+										Average weighting across submitted audits
+									</p>
+									<p className="mt-2 text-sm font-semibold text-emerald-800">
+										{item.average?.toFixed(1)} / 3 ({item.percent?.toFixed(0)}%)
+									</p>
+								</div>
+							)
+						)
+					)}
 				</div>
 			</section>
 
@@ -595,8 +604,8 @@ function AuditTableCard({ title, description, audits }: { title: string; descrip
 												</p>
 												<p>
 													<span className="font-medium text-foreground">Youth Weighted:</span>{" "}
-													{audit.total_weighted_score.toFixed(2)}/
-													{audit.total_weighted_maximum.toFixed(2)}
+													{audit.total_weighted_score?.toFixed(2)}/
+													{audit.total_weighted_maximum?.toFixed(2)}
 												</p>
 											</div>
 										) : (
@@ -1176,15 +1185,38 @@ export function LiveAuditorsTable() {
 
 export function LiveAuditsTable() {
 	const { session } = useAuth();
+	// Deep links from place/project detail pages pass ?projectId=&placeId= so
+	// the table opens pre-filtered to that context.
+	const searchParams = useSearchParams();
+	const router = useRouter();
+	const pathname = usePathname();
+	const paramProjectId = searchParams.get("projectId");
+	const paramPlaceId = searchParams.get("placeId");
 	const [audits, setAudits] = React.useState<AuditRecord[]>([]);
 	const [rawData, setRawData] = React.useState<RawDataRecord[]>([]);
 	const [comparisons, setComparisons] = React.useState<PlaceComparisonGroupRecord[]>([]);
 	const [loading, setLoading] = React.useState(true);
 	const [error, setError] = React.useState<string | null>(null);
-	const [selectedProjectIds, setSelectedProjectIds] = React.useState<string[]>([]);
-	const [selectedPlaceIds, setSelectedPlaceIds] = React.useState<string[]>([]);
+	const [selectedProjectIds, setSelectedProjectIds] = React.useState<string[]>(
+		paramProjectId ? [paramProjectId] : []
+	);
+	const [selectedPlaceIds, setSelectedPlaceIds] = React.useState<string[]>(paramPlaceId ? [paramPlaceId] : []);
 	const [selectedAuditIds, setSelectedAuditIds] = React.useState<string[]>([]);
+	const [syncedParams, setSyncedParams] = React.useState<string>(`${paramProjectId ?? ""}|${paramPlaceId ?? ""}`);
 	const [compareError, setCompareError] = React.useState<string | null>(null);
+
+	// Keep the filters in sync with the URL so a soft navigation that changes the
+	// deep-link params (e.g. the sidebar link back to the bare /manager/audits
+	// route) resets the filters instead of leaving the table filtered while the
+	// URL claims otherwise. Adjusting state during render is React's recommended
+	// alternative to a sync effect.
+	const currentParams = `${paramProjectId ?? ""}|${paramPlaceId ?? ""}`;
+	if (currentParams !== syncedParams) {
+		setSyncedParams(currentParams);
+		setSelectedProjectIds(paramProjectId ? [paramProjectId] : []);
+		setSelectedPlaceIds(paramPlaceId ? [paramPlaceId] : []);
+		setSelectedAuditIds([]);
+	}
 
 	React.useEffect(() => {
 		if (!session) return;
@@ -1340,6 +1372,11 @@ export function LiveAuditsTable() {
 								setSelectedProjectIds([]);
 								setSelectedPlaceIds([]);
 								setSelectedAuditIds([]);
+								// Drop the deep-link params too, so a refresh or a
+								// shared URL does not re-apply the cleared filters.
+								if (paramProjectId || paramPlaceId) {
+									router.replace(pathname);
+								}
 							}}
 						/>
 						<Button
@@ -1470,15 +1507,15 @@ export function LiveAuditsTable() {
 															? (
 																	(audit.total_raw_score / audit.total_raw_maximum) *
 																	100
-																).toFixed(0)
+																)?.toFixed(0)
 															: "0"}
 														%)
 													</span>
 												</div>
 												<div>
 													<span className="font-medium text-foreground">Youth Weighted:</span>{" "}
-													{audit.total_weighted_score.toFixed(2)} /{" "}
-													{audit.total_weighted_maximum.toFixed(2)}{" "}
+													{audit.total_weighted_score?.toFixed(2)} /{" "}
+													{audit.total_weighted_maximum?.toFixed(2)}{" "}
 													<span className="text-muted-foreground">
 														(
 														{(() => {
@@ -1487,7 +1524,7 @@ export function LiveAuditsTable() {
 																? (
 																		(audit.total_weighted_score / denominator) *
 																		100
-																	).toFixed(0)
+																	)?.toFixed(0)
 																: "0";
 														})()}
 														%)

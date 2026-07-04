@@ -57,15 +57,33 @@ export function AuditorPlaceList({ compact = false }: { compact?: boolean }) {
 	}
 
 	if (places.length === 0) {
+		const isManagerAuditor = session?.user.account_type === "MANAGER";
 		return (
 			<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
 				<CardHeader>
 					<CardTitle>My Audits</CardTitle>
 					<CardDescription>No places have been assigned yet.</CardDescription>
 				</CardHeader>
-				<CardContent className="text-sm text-slate-600">
-					Your manager needs to assign at least one place before you can start a YEE audit.
-				</CardContent>
+				{isManagerAuditor ? (
+					<CardContent className="space-y-4 text-sm text-slate-600">
+						<p>
+							You are in Auditor View with your own auditor profile. To audit a place yourself, assign
+							your auditor profile to it from Manager View first — then it appears here, ready to start.
+						</p>
+						<div className="flex flex-wrap gap-2">
+							<Button asChild className="rounded-lg bg-[#10231f] text-white hover:bg-[#17302c]">
+								<Link href="/manager/auditors">Assign myself places</Link>
+							</Button>
+							<Button asChild variant="outline" className="rounded-lg">
+								<Link href="/manager">Back to Manager View</Link>
+							</Button>
+						</div>
+					</CardContent>
+				) : (
+					<CardContent className="text-sm text-slate-600">
+						Your manager needs to assign at least one place before you can start a YEE audit.
+					</CardContent>
+				)}
 			</Card>
 		);
 	}

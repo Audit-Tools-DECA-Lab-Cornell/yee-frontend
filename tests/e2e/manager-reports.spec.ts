@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 
+import { SUBMISSION_HUB } from "../fixtures/ids";
 import { loginAsManager } from "../helpers/auth";
 
 // Runs under `manager-chromium` (filename matches /manager/).
@@ -14,16 +15,35 @@ test.describe("@manager reports + raw-data export", () => {
 		await expect(page.getByText("Export options").first()).toBeVisible({ timeout: 15_000 });
 	});
 
-	// DEFERRED (intentionally not a test): "manager opens a submitted report".
-	// The reports place-comparison builder (services/dashboard.py fetch_reporting_rows)
-	// inner-joins YeeAuditSubmission, which is EMPTY after `app.seed` (L9/L17 — seeded
-	// SUBMITTED audits carry scores on the Audit shell, not as submission rows). So no
-	// "Open latest report" link renders for seeded data and the page cannot be reached.
-	// Separately, the manager → GET /yee/audits/{submission_id} route (audits.py:319-323)
-	// gates to the owning auditor or admin, so a manager hits 404/403 even with a real
-	// submission — a genuine PRODUCT bug, tracked as a Stage-12 follow-up. To cover this
-	// end-to-end, first seed a real submission via the live POST /yee/audits flow AND fix
-	// the manager report route; only then assert the locked-report body renders.
+	// Formerly DEFERRED: the seed now writes YeeAuditSubmission rows for every
+	// SUBMITTED audit, and GET /yee/audits/{submission_id} grants managers
+	// project-scoped read access — so a manager can open individual reports.
+	test("manager opens a submitted report from the reports dashboard", async ({ page }) => {
+		await loginAsManager(page);
+		await page.goto("/manager/reports");
+
+		// Compare Places renders one "Open latest report" link per place row.
+		const reportLink = page.getByRole("link", { name: /open latest report/i }).first();
+		await expect(reportLink).toBeVisible({ timeout: 30_000 });
+		await reportLink.click();
+
+		await page.waitForURL(/\/yee\/submissions\//, { timeout: 30_000 });
+		await expect(page.getByText("Read-only report").first()).toBeVisible({ timeout: 30_000 });
+		await expect(page.getByText("Submission overview").first()).toBeVisible({ timeout: 15_000 });
+	});
+
+	test("manager reads a seeded submission report directly with a manager back-link", async ({ page }) => {
+		await loginAsManager(page);
+		await page.goto(`/yee/submissions/${SUBMISSION_HUB}`);
+
+		await expect(page.getByText("Read-only report").first()).toBeVisible({ timeout: 30_000 });
+		await expect(page.getByText("Submission overview").first()).toBeVisible({ timeout: 15_000 });
+		// The viewer adapts navigation per role: managers go back to /manager/audits.
+		await expect(page.getByRole("link", { name: /back to my audits/i }).first()).toHaveAttribute(
+			"href",
+			"/manager/audits"
+		);
+	});
 
 	test("manager raw-data page renders scoped title and export buttons", async ({ page }) => {
 		await loginAsManager(page);

@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-import { AUDIT_HUB } from "../fixtures/ids";
+import { AUDIT_HUB, PLACE_HUB, PROJECT_BASELINE } from "../fixtures/ids";
 import { loginAsManager } from "../helpers/auth";
 
 // Runs under `manager-chromium` (filename matches /manager/).
@@ -16,6 +16,28 @@ test.describe("@manager audits list + edit flow", () => {
 		await expect(page.getByText(/Filter by project or place, compare selected audits/i).first()).toBeVisible({
 			timeout: 30_000
 		});
+	});
+
+	test("audits table honors project/place deep-link filters and opens a report", async ({ page }) => {
+		await loginAsManager(page);
+		// Place detail's "Open Audits" action passes these params; the table must
+		// open pre-filtered instead of ignoring them.
+		await page.goto(`/manager/audits?projectId=${PROJECT_BASELINE}&placeId=${PLACE_HUB}`);
+
+		await expect(page.getByText(/Filter by project or place, compare selected audits/i).first()).toBeVisible({
+			timeout: 30_000
+		});
+		// Deep-link filters count as active filters.
+		await expect(page.getByRole("button", { name: /clear filters/i }).first()).toBeVisible({
+			timeout: 15_000
+		});
+		// The filtered place (Westside Youth Hub) has seeded submissions, so a
+		// View Report action must be present and lead to the read-only report.
+		const viewReport = page.getByRole("link", { name: /view report/i }).first();
+		await expect(viewReport).toBeVisible({ timeout: 15_000 });
+		await viewReport.click();
+		await page.waitForURL(/\/yee\/submissions\//, { timeout: 30_000 });
+		await expect(page.getByText("Read-only report").first()).toBeVisible({ timeout: 30_000 });
 	});
 
 	test("manager audit edit entry resolves to the wizard for a seeded audit", async ({ page }) => {

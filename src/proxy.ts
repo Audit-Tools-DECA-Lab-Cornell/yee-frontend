@@ -15,7 +15,7 @@ const PROTECTED_ROUTES: Record<string, UserRole[]> = {
 	"/auditor": ["AUDITOR", "MANAGER"],
 	"/yee/audit": ["AUDITOR", "MANAGER"],
 	"/yee/introduction": ["AUDITOR", "MANAGER"],
-	"/yee/submissions": ["AUDITOR", "MANAGER"]
+	"/yee/submissions": ["AUDITOR", "MANAGER", "ADMIN"]
 };
 
 function matchedRoute(pathname: string): UserRole[] | null {

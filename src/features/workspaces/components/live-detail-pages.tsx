@@ -771,7 +771,7 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 									variant="outline"
 									className="rounded-md border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
 									<Link href="/manager/reports">
-										View comparison reports
+										Open reports dashboard
 										<FileBarChart2 className="size-4" />
 									</Link>
 								</Button>
@@ -953,6 +953,63 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 					description="Select auditors and attach them to this place immediately. The table above will refresh after the assignment is saved."
 					onAssigned={reload}
 				/>
+
+				<Card className="rounded-md border-border/80 bg-white shadow-sm">
+					<CardHeader>
+						<CardTitle>Submitted reports</CardTitle>
+						<CardDescription>
+							Open the full read-only report for each YEE audit submitted at this place.
+						</CardDescription>
+					</CardHeader>
+					<CardContent>
+						{data.comparisons.audits.length === 0 ? (
+							<p className="text-sm leading-6 text-muted-foreground">
+								No reports have been submitted for this place yet. As soon as an assigned auditor
+								submits a YEE audit, its report appears here.
+							</p>
+						) : (
+							<div className="overflow-x-auto">
+								<table className="min-w-full text-left text-sm">
+									<thead className="text-slate-500">
+										<tr className="border-b border-slate-200">
+											<th className="py-3 pr-4 font-medium">Auditor ID</th>
+											<th className="py-3 pr-4 font-medium">Submitted</th>
+											<th className="py-3 pr-4 font-medium">Total Raw Score</th>
+											<th className="py-3 pr-4 font-medium">Total Youth Weighted Average</th>
+											<th className="py-3 font-medium">Report</th>
+										</tr>
+									</thead>
+									<tbody>
+										{data.comparisons.audits.map(record => (
+											<tr
+												key={record.audit_id}
+												className="border-b border-slate-100 last:border-0">
+												<td className="py-4 pr-4 font-medium text-slate-900">
+													{record.auditor_id}
+												</td>
+												<td className="py-4 pr-4 text-slate-600">{record.date}</td>
+												<td className="py-4 pr-4 text-slate-600">
+													{record.total_raw_score} / {record.total_raw_maximum}
+												</td>
+												<td className="py-4 pr-4 text-slate-600">
+													{record.total_weighted_score.toFixed(2)} /{" "}
+													{record.total_weighted_maximum.toFixed(2)}
+												</td>
+												<td className="py-4">
+													<Link
+														href={`/yee/submissions/${record.audit_id}`}
+														className="text-sm font-medium text-emerald-700 underline-offset-4 hover:underline">
+														Open report
+													</Link>
+												</td>
+											</tr>
+										))}
+									</tbody>
+								</table>
+							</div>
+						)}
+					</CardContent>
+				</Card>
 
 				{data.comparisons.audits.length === 0 ? (
 					<Card className="rounded-md border-border/80 bg-white shadow-sm">

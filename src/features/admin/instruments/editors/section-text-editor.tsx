@@ -3,7 +3,7 @@
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-import { EditableField, type UpdateDraft } from "../shared-components";
+import { EditableField, IdTag, type UpdateDraft } from "../shared-components";
 import type { StructuredInstrumentContent } from "../types";
 import { cleanInstrumentText, getEditablePromptEntries, getQuestionGroups } from "../utils";
 
@@ -19,19 +19,19 @@ export function SectionTextEditor({ content, update }: { content: StructuredInst
 	return (
 		<div className="space-y-6">
 			<div className="space-y-4">
-				<p className="text-sm font-medium text-slate-900">Section text</p>
+				<p className="text-sm font-medium text-foreground">Section text</p>
 				{sections.length === 0 ? (
-					<p className="text-sm text-slate-500">This instrument has no section metadata.</p>
+					<p className="text-sm text-muted-foreground">This version has no sections.</p>
 				) : (
 					sections.map((section, index) => (
 						<div
 							key={`${section.block}-${index}`}
-							className="space-y-3 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
-							<p className="wrap-break-word text-sm font-semibold text-slate-900">
+							className="space-y-3 rounded-lg border border-border bg-muted/60 p-4">
+							<p className="break-words text-sm font-semibold text-foreground">
 								{cleanInstrumentText(section.title || section.block)}
 							</p>
 							<EditableField
-								label="Section Title"
+								label="Section title"
 								value={cleanInstrumentText(section.title)}
 								onChange={value =>
 									update(draft => {
@@ -57,7 +57,7 @@ export function SectionTextEditor({ content, update }: { content: StructuredInst
 								}
 							/>
 							<EditableField
-								label="Optional Comment Prompt"
+								label="Optional comment prompt"
 								value={cleanInstrumentText(section.comment_prompt)}
 								multiline
 								className="min-h-[5rem]"
@@ -76,12 +76,10 @@ export function SectionTextEditor({ content, update }: { content: StructuredInst
 			</div>
 
 			<div className="space-y-4">
-				<p className="text-sm font-medium text-slate-900">Question text</p>
+				<p className="text-sm font-medium text-foreground">Question wording</p>
 				{groups.map(group => (
-					<div
-						key={group.blockKey}
-						className="space-y-3 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
-						<p className="break-words text-sm font-semibold text-slate-900">
+					<div key={group.blockKey} className="space-y-3 rounded-lg border border-border bg-muted/60 p-4">
+						<p className="break-words text-sm font-semibold text-foreground">
 							{cleanInstrumentText(group.section?.title || group.items[0]?.block_title || group.blockKey)}
 						</p>
 						{group.items.map(item => {
@@ -90,10 +88,8 @@ export function SectionTextEditor({ content, update }: { content: StructuredInst
 							return (
 								<div
 									key={item.item_id}
-									className="space-y-2 rounded-lg border border-slate-200 bg-white p-3">
-									<p className="text-xs font-medium uppercase tracking-wide text-slate-500">
-										{item.item_id}
-									</p>
+									className="space-y-2 rounded-lg border border-border bg-card p-3">
+									<IdTag>{item.item_id}</IdTag>
 									{editableEntries.map(entry => (
 										<div key={entry.entryKey} className="space-y-2">
 											<Label>{entry.label}</Label>

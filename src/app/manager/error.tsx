@@ -5,16 +5,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 export default function DashboardError({ error, reset }: { error: Error; reset: () => void }) {
 	return (
-		<div className="flex min-h-dvh items-center justify-center p-6">
-			<Card className="w-full max-w-md rounded-lg border-rose-200 bg-rose-50 shadow-sm">
+		<div className="flex min-h-full items-center justify-center">
+			<Card className="w-full max-w-md rounded-md gap-2 border-rose-200 shadow-sm">
 				<CardHeader>
-					<CardTitle className="text-rose-800">Dashboard error</CardTitle>
+					<CardTitle className="text-rose-800">Manager dashboard error</CardTitle>
 					<CardDescription className="text-rose-700">
-						Something went wrong while loading this page.
+						Something went wrong while loading your manager dashboard.
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="space-y-4">
-					<p className="text-sm text-rose-700">{error.message}</p>
+					<code className="text-sm text-rose-700 bg-rose-100 p-2 rounded-sm block">{error.message}</code>
 					<Button
 						type="button"
 						onClick={reset}

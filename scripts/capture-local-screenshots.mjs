@@ -18,7 +18,7 @@ const args = ["exec", "playwright", "test", "--project=screenshots-chromium", "-
 const env = {
 	...process.env,
 	CAPTURE_LOCAL_SCREENSHOTS: "1",
-	E2E_BASE_URL: process.env.E2E_BASE_URL ?? "http://127.0.0.1:3100",
+	E2E_BASE_URL: process.env.E2E_BASE_URL ?? "http://127.0.0.1:3000",
 	E2E_USE_NEXT_START: "1"
 };
 

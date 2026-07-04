@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 
+import { PLACE_HUB } from "../fixtures/ids";
 import { loginAsManager } from "../helpers/auth";
 
 // Runs under `manager-chromium` (filename matches /manager/).
@@ -19,6 +20,19 @@ test.describe("@manager places list + add form", () => {
 
 		// Primary action is present.
 		await expect(page.getByRole("link", { name: /add place/i }).first()).toBeVisible();
+	});
+
+	test("place detail lists submitted reports with working links", async ({ page }) => {
+		await loginAsManager(page);
+		// Westside Youth Hub has three seeded submissions.
+		await page.goto(`/manager/places/${PLACE_HUB}`);
+
+		await expect(page.getByText("Submitted reports").first()).toBeVisible({ timeout: 30_000 });
+		const reportLink = page.getByRole("link", { name: /^open report$/i }).first();
+		await expect(reportLink).toBeVisible({ timeout: 15_000 });
+		await reportLink.click();
+		await page.waitForURL(/\/yee\/submissions\//, { timeout: 30_000 });
+		await expect(page.getByText("Read-only report").first()).toBeVisible({ timeout: 30_000 });
 	});
 
 	test("add place form loads at /manager/places/new", async ({ page }) => {

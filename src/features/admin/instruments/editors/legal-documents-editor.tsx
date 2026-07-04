@@ -1,8 +1,6 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
-
-import { EditableField, type UpdateDraft } from "../shared-components";
+import { EditableField, IdTag, type UpdateDraft } from "../shared-components";
 import type { StructuredInstrumentContent } from "../types";
 import { cleanInstrumentText } from "../utils";
 
@@ -17,24 +15,22 @@ export function LegalDocumentsEditor({
 	const documents = content.legal_documents ?? [];
 
 	if (documents.length === 0) {
-		return <p className="text-sm text-slate-500">This instrument has no legal documents.</p>;
+		return <p className="text-sm text-muted-foreground">This version has no legal documents.</p>;
 	}
 
 	return (
 		<div className="space-y-4">
-			{documents.map((document, index) => (
-				<div key={document.id} className="space-y-3 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
+			{documents.map((doc, index) => (
+				<div key={doc.id} className="space-y-3 rounded-lg border border-border bg-muted/60 p-4">
 					<div className="flex flex-wrap items-center justify-between gap-2">
-						<p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
-							{cleanInstrumentText(document.document_type?.replaceAll("_", " ") || "Document")}
+						<p className="text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+							{cleanInstrumentText(doc.document_type?.replaceAll("_", " ") || "Document")}
 						</p>
-						<Badge className="rounded-md bg-slate-100 text-slate-700 hover:bg-slate-100">
-							{document.id}
-						</Badge>
+						<IdTag>{doc.id}</IdTag>
 					</div>
 					<EditableField
 						label="Title"
-						value={cleanInstrumentText(document.title)}
+						value={cleanInstrumentText(doc.title)}
 						onChange={value =>
 							update(draft => {
 								const next = [...(draft.legal_documents ?? [])];
@@ -45,8 +41,8 @@ export function LegalDocumentsEditor({
 						}
 					/>
 					<EditableField
-						label="Last Updated"
-						value={document.last_updated ?? ""}
+						label="Last updated"
+						value={doc.last_updated ?? ""}
 						onChange={value =>
 							update(draft => {
 								const next = [...(draft.legal_documents ?? [])];
@@ -58,7 +54,7 @@ export function LegalDocumentsEditor({
 					/>
 					<EditableField
 						label="Content"
-						value={cleanInstrumentText(document.content)}
+						value={cleanInstrumentText(doc.content)}
 						multiline
 						className="min-h-[12rem]"
 						onChange={value =>

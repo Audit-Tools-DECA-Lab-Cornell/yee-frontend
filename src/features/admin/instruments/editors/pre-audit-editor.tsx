@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 
-import { EditableField, type UpdateDraft } from "../shared-components";
+import { EditableField, IdTag, type UpdateDraft } from "../shared-components";
 import type { StructuredInstrumentContent } from "../types";
 import { cleanInstrumentText } from "../utils";
 
@@ -11,25 +11,17 @@ export function PreAuditEditor({ content, update }: { content: StructuredInstrum
 	const questions = content.pre_audit_questions ?? [];
 
 	if (questions.length === 0) {
-		return <p className="text-sm text-slate-500">This instrument has no pre-audit questions.</p>;
+		return <p className="text-sm text-muted-foreground">This version has no pre-audit questions.</p>;
 	}
 
 	return (
 		<div className="space-y-4">
 			{questions.map((question, index) => (
-				<div key={question.id} className="space-y-3 rounded-lg border border-slate-200 bg-slate-50/60 p-4">
+				<div key={question.id} className="space-y-3 rounded-lg border border-border bg-muted/60 p-4">
 					<div className="flex flex-wrap items-center gap-2">
-						<Badge className="rounded-md bg-slate-100 text-slate-700 hover:bg-slate-100">
-							{question.id}
-						</Badge>
-						{question.auto_generated ? (
-							<Badge className="rounded-md bg-slate-900 text-white hover:bg-slate-900">
-								Auto generated
-							</Badge>
-						) : null}
-						<Badge className="rounded-md bg-slate-100 text-slate-700 hover:bg-slate-100">
-							{question.multi_select ? "Multi select" : "Single select"}
-						</Badge>
+						<IdTag>{question.id}</IdTag>
+						{question.auto_generated ? <Badge variant="secondary">Auto-generated</Badge> : null}
+						<Badge variant="secondary">{question.multi_select ? "Multi select" : "Single select"}</Badge>
 					</div>
 					<EditableField
 						label="Title"
@@ -70,12 +62,12 @@ export function PreAuditEditor({ content, update }: { content: StructuredInstrum
 						}
 					/>
 					{(question.options ?? []).length > 0 ? (
-						<div className="space-y-3 rounded-lg border border-slate-200 bg-white p-3">
-							<p className="text-xs font-medium uppercase tracking-wide text-slate-500">Option labels</p>
+						<div className="space-y-3 rounded-lg border border-border bg-card p-3">
+							<p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Options</p>
 							{(question.options ?? []).map((option, optionIndex) => (
 								<EditableField
 									key={`${question.id}-${option.value}`}
-									label={`Option · ${option.value}`}
+									label={`Option ${optionIndex + 1}`}
 									value={cleanInstrumentText(option.label)}
 									onChange={value =>
 										update(draft => {
