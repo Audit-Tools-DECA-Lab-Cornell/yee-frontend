@@ -1,26 +1,15 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ErrorState } from "@/components/ui/error-state";
 
-export default function YeeError({ error, reset }: { error: Error; reset: () => void }) {
+export default function YeeError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
 	return (
-		<main className="mx-auto max-w-4xl p-6">
-			<Card className="rounded-lg border-rose-200 bg-rose-50 shadow-sm">
-				<CardHeader>
-					<CardTitle className="text-rose-800">YEE audit error</CardTitle>
-					<CardDescription className="text-rose-700">Something went wrong in the audit flow.</CardDescription>
-				</CardHeader>
-				<CardContent className="space-y-4">
-					<p className="text-sm text-rose-700">{error.message}</p>
-					<Button
-						type="button"
-						onClick={reset}
-						className="rounded-lg bg-rose-700 text-white hover:bg-rose-800">
-						Try again
-					</Button>
-				</CardContent>
-			</Card>
-		</main>
+		<ErrorState
+			title="We couldn't load this report"
+			description="You may not have access to this submission, or it may still be processing. Try again, or head back to where you came from."
+			error={error}
+			onRetry={reset}
+			secondaryAction={{ label: "Go back", onClick: () => window.history.back() }}
+		/>
 	);
 }

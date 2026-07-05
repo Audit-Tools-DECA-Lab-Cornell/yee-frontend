@@ -34,12 +34,16 @@ export async function fetchScorePreview(
  * score table. No math beyond selecting backend-provided values by domain.
  */
 export function getScoreRows(score: YeeScoreResult) {
+	// The per-domain score maps can be absent at runtime during the backend
+	// scoring rollout. Guard every access — indexing an undefined map by the
+	// first domain key ("access") is what previously crashed the report viewer
+	// and the wizard review step with "reading 'access'".
 	return (Object.keys(yeeDomainLabels) as YeeDomainKey[]).map(domain => ({
 		domain,
 		label: yeeDomainLabels[domain],
-		rawScore: score.raw_domain_scores[domain],
-		rawMaximum: score.raw_domain_maximums[domain],
-		weightedScore: score.weighted_domain_scores[domain],
-		weightedMaximum: score.weighted_domain_maximums[domain]
+		rawScore: score.raw_domain_scores?.[domain] ?? 0,
+		rawMaximum: score.raw_domain_maximums?.[domain] ?? 0,
+		weightedScore: score.weighted_domain_scores?.[domain] ?? 0,
+		weightedMaximum: score.weighted_domain_maximums?.[domain] ?? 0
 	}));
 }

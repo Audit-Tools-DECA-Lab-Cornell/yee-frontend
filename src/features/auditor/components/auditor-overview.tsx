@@ -7,6 +7,7 @@ import { AuditorAuditHistory } from "@/features/auditor/components/auditor-audit
 import { useAuditorAuditData } from "@/features/auditor/hooks/use-auditor-audit-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ScoreCell } from "@/components/ui/score-cell";
 
 export function AuditorOverview() {
 	const { places, auditStates, submittedCount, draftCount, loading, error } = useAuditorAuditData();
@@ -130,10 +131,6 @@ function LatestSubmittedScores({
 	}
 
 	const score = latestSubmitted.state.score;
-	const rawMax = score.total_raw_maximum;
-	const youthMax = score.total_weighted_maximum;
-	const rawPercentage = rawMax ? (score.total_raw_score / rawMax) * 100 : 0;
-	const youthPercentage = youthMax ? (score.total_weighted_score / youthMax) * 100 : 0;
 
 	return (
 		<Link
@@ -145,15 +142,14 @@ function LatestSubmittedScores({
 			className="min-w-0 rounded-md border border-amber-200/20 bg-linear-to-br from-white/18 to-white/8 p-4 backdrop-blur-sm transition hover:border-amber-200/35 hover:bg-white/16">
 			<p className="text-sm text-emerald-50/70">Latest submitted scores</p>
 			<p className="mt-2 text-sm text-emerald-50/85">{latestSubmitted.place.name}</p>
-			<div className="mt-3 space-y-2 text-sm">
-				<p className="font-medium text-white">
-					Raw Score: {score.total_raw_score} / {rawMax} ({rawPercentage.toFixed(0)}%)
-				</p>
-				<p className="font-medium text-emerald-50">
-					Youth Weighted: {score.total_weighted_score.toFixed(2)} / {youthMax.toFixed(2)} (
-					{youthPercentage.toFixed(0)}%)
-				</p>
-			</div>
+			<ScoreCell
+				className="mt-3 font-medium text-white"
+				tone="inverse"
+				raw={score.total_raw_score}
+				rawMax={score.total_raw_maximum}
+				weighted={score.total_weighted_score}
+				weightedMax={score.total_weighted_maximum}
+			/>
 			<p className="mt-3 text-xs font-medium text-emerald-100">Open</p>
 		</Link>
 	);

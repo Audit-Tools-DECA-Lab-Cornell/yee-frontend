@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
-import { ArrowRight, ArrowUpRight, FilePlus2, MailPlus, MapPinned, ShieldPlus, UserPlus } from "lucide-react";
+import { ArrowRight, ArrowUpRight, FilePlus2, Layers, MailPlus, MapPinned, ShieldPlus, UserPlus } from "lucide-react";
+import type { ColumnDef } from "@tanstack/react-table";
 
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { ClearFiltersButton, SearchableMultiSelectFilter } from "@/features/workspaces/components/table-filters";
@@ -11,6 +12,9 @@ import { PlaceComparisonPanel } from "@/features/reporting/components/place-comp
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DataTable, DataTableRowActions } from "@/components/ui/data-table";
+import { StatusBadge, StatusBadgeFor } from "@/components/ui/status-badge";
+import { getPlaceStatus } from "@/lib/status";
 import {
 	approveUser,
 	fetchAuditors,
@@ -23,6 +27,8 @@ import {
 	type AuditRecord,
 	type DashboardMetric,
 	type PlaceComparisonGroupRecord,
+	type PlaceRecord,
+	type ProjectRecord,
 	type RawDataRecord,
 	type UserRecord
 } from "@/features/workspaces/api/live-api";
@@ -360,28 +366,27 @@ export function LiveManagerOverview() {
 	];
 	const scoreSummaryItems = [
 		{
-			label: "Raw Score",
+			label: "Average raw score",
 			value: formatScoreValue(averageRawScore),
-			helper: "Average raw score across submitted audits in this manager view."
+			helper: "The average raw score across your submitted audits."
 		},
 		{
-			label: "Youth Weighted Average",
+			label: "Average youth-weighted score",
 			value: formatScoreValue(averageWeightedScore),
-			helper: "Average Youth Weighted average across submitted audits in this manager view."
+			helper: "The average youth-weighted score across your submitted audits."
 		},
 		{
-			label: "Cap Score Percentage",
+			label: "Youth-weighted %",
 			value: formatPercent(averageCapPercentage),
-			helper: "Average Youth Weighted percentage against the scoring-sheet denominator for each submitted audit."
+			helper: "How close your youth-weighted scores are to the maximum possible, averaged across audits."
 		},
 		{
-			label: "Max Score",
-			value: `${submittedRows[0]?.total_raw_maximum ?? "—"} raw / dynamic Youth Weighted`,
-			helper: "Raw total is fixed, while Youth Weighted maxima now depend on normalized domain weights and domain average caps."
+			label: "Maximum raw score",
+			value: `${submittedRows[0]?.total_raw_maximum ?? "—"}`,
+			helper: "The most a raw score can reach. Youth-weighted maximums vary with each audit's weighting."
 		}
 	];
 	const domainWeightBreakdown = averageDomainWeights(submittedRows);
-	console.log(domainWeightBreakdown);
 
 	return (
 		<div className="space-y-6">
@@ -395,8 +400,8 @@ export function LiveManagerOverview() {
 							Your dashboard is ready for projects, places, and YEE fieldwork.
 						</h1>
 						<p className="mt-4 max-w-2xl text-sm leading-7 text-emerald-50/80 sm:text-base">
-							Use this overview to move into projects, places, auditors, reports, and audit records
-							without dead summary cards.
+							Jump straight into your projects, places, auditors, reports, and audit records — all from
+							one place.
 						</p>
 						<div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
 							{managerSnapshotItems.map(item => (
@@ -499,7 +504,7 @@ export function LiveManagerOverview() {
 									<Badge
 										variant="secondary"
 										className={`rounded-full ${metricTone(metric.title).badge}`}>
-										Manager scope
+										Your organization
 									</Badge>
 									<span className="text-xs font-medium text-muted-foreground">Open</span>
 								</div>
@@ -633,82 +638,259 @@ function useTableData<T>(loader: (session: NonNullable<ReturnType<typeof useAuth
 	return useDashboardData(loader);
 }
 
+function auditorChips(ids: string[]) {
+	if (ids.length === 0) {
+		return <span className="text-muted-foreground">No auditors assigned</span>;
+	}
+	return (
+		<div className="flex flex-wrap gap-1.5">
+			{ids.map(id => (
+				<Badge key={id} variant="secondary" className="font-normal">
+					{id}
+				</Badge>
+			))}
+		</div>
+	);
+}
+
+/** Column definitions shared by the manager and admin Projects tables. */
+function buildProjectColumns(variant: "manager" | "admin"): ColumnDef<ProjectRecord>[] {
+	const columns: ColumnDef<ProjectRecord>[] = [];
+	if (variant === "admin") {
+		columns.push({
+			id: "organization",
+			accessorFn: row => row.organization ?? "—",
+			header: "Organization",
+			cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+		});
+	}
+	columns.push(
+		{
+			accessorKey: "name",
+			header: "Project name",
+			cell: ({ row }) =>
+				variant === "manager" ? (
+					<Link
+						href={`/manager/projects/${row.original.id}`}
+						className="font-medium text-foreground hover:underline">
+						{row.original.name}
+					</Link>
+				) : (
+					// TODO(admin-detail-routes): link to /admin/projects/[id] once that route exists.
+					<span className="font-medium text-foreground">{row.original.name}</span>
+				)
+		},
+		{
+			accessorKey: "summary",
+			header: "Summary",
+			enableSorting: false,
+			cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+		},
+		{
+			accessorKey: "places",
+			header: "Places",
+			cell: ({ getValue }) => <span className="text-muted-foreground tabular-nums">{String(getValue())}</span>
+		},
+		{
+			accessorKey: "audits",
+			header: "Audits",
+			cell: ({ getValue }) => <span className="text-muted-foreground tabular-nums">{String(getValue())}</span>
+		},
+		{
+			accessorKey: "status",
+			header: "Status",
+			cell: ({ getValue }) => <StatusBadge label={String(getValue())} tone="secondary" />
+		}
+	);
+	if (variant === "manager") {
+		columns.push({
+			id: "actions",
+			header: () => <span className="sr-only">Actions</span>,
+			enableSorting: false,
+			cell: ({ row }) => (
+				<DataTableRowActions primary={{ label: "Open", href: `/manager/projects/${row.original.id}` }} />
+			)
+		});
+	}
+	return columns;
+}
+
+function ProjectMobileCard({ project, variant }: { project: ProjectRecord; variant: "manager" | "admin" }) {
+	return (
+		<div className="space-y-2 rounded-md border border-border bg-card p-4">
+			<div className="flex items-start justify-between gap-3">
+				<p className="font-medium text-foreground">{project.name}</p>
+				<StatusBadge label={project.status} tone="secondary" />
+			</div>
+			{project.organization ? <p className="text-sm text-muted-foreground">{project.organization}</p> : null}
+			{project.summary ? <p className="text-sm text-muted-foreground">{project.summary}</p> : null}
+			<div className="flex gap-4 text-sm text-muted-foreground">
+				<span>{project.places} places</span>
+				<span>{project.audits} audits</span>
+			</div>
+			{variant === "manager" ? (
+				<Button asChild variant="quiet" size="sm" className="px-0">
+					<Link href={`/manager/projects/${project.id}`}>
+						Open <ArrowUpRight className="size-4" />
+					</Link>
+				</Button>
+			) : null}
+		</div>
+	);
+}
+
+/** Column definitions shared by the manager and admin Places tables. */
+function buildPlaceColumns(variant: "manager" | "admin"): ColumnDef<PlaceRecord>[] {
+	const columns: ColumnDef<PlaceRecord>[] = [];
+	if (variant === "admin") {
+		columns.push(
+			{
+				id: "organization",
+				accessorFn: row => row.organization ?? "—",
+				header: "Organization",
+				cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+			},
+			{
+				accessorKey: "project",
+				header: "Project",
+				cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+			}
+		);
+	}
+	columns.push({
+		accessorKey: "name",
+		header: "Place name",
+		// TODO(admin-detail-routes): link to /admin/places/[id] once that route exists.
+		cell: ({ row }) => <span className="font-medium text-foreground">{row.original.name}</span>
+	});
+	columns.push({
+		accessorKey: "address",
+		header: "Address",
+		enableSorting: false,
+		cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+	});
+	columns.push({
+		id: "postal_code",
+		accessorFn: row => row.postal_code ?? "—",
+		header: "Postal code",
+		cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+	});
+	if (variant === "manager") {
+		columns.push(
+			{
+				accessorKey: "project",
+				header: "Project",
+				cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+			},
+			{
+				id: "assigned_auditors",
+				accessorFn: row => row.assigned_auditors,
+				header: "Assigned auditors",
+				enableSorting: false,
+				cell: ({ row }) => auditorChips(row.original.assigned_auditors)
+			}
+		);
+	}
+	columns.push({
+		accessorKey: "audits",
+		header: variant === "manager" ? "Total audits" : "Audits",
+		cell: ({ getValue }) => <span className="text-muted-foreground tabular-nums">{String(getValue())}</span>
+	});
+	if (variant === "admin") {
+		columns.push({
+			accessorKey: "last_audit",
+			header: "Last audit",
+			cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+		});
+	}
+	columns.push({
+		id: "status",
+		accessorFn: row => getPlaceStatus({ auditCount: row.audits, rawStatus: row.status }).label,
+		header: variant === "manager" ? "Audit state" : "Status",
+		cell: ({ row }) => (
+			<StatusBadgeFor
+				status={getPlaceStatus({ auditCount: row.original.audits, rawStatus: row.original.status })}
+			/>
+		)
+	});
+	if (variant === "manager") {
+		columns.push({
+			id: "actions",
+			header: () => <span className="sr-only">Actions</span>,
+			enableSorting: false,
+			cell: ({ row }) => (
+				<DataTableRowActions
+					primary={{ label: "Open", href: `/manager/places/${row.original.id}` }}
+					actions={[
+						{ label: "Edit place", href: `/manager/places/${row.original.id}/edit` },
+						{
+							label: "Assign auditors",
+							href: `/manager/auditors?projectId=${row.original.project_id}&placeId=${row.original.id}`
+						},
+						{
+							label: "View audits",
+							href: `/manager/audits?projectId=${row.original.project_id}&placeId=${row.original.id}`
+						}
+					]}
+				/>
+			)
+		});
+	}
+	return columns;
+}
+
+function PlaceMobileCard({ place, variant }: { place: PlaceRecord; variant: "manager" | "admin" }) {
+	const status = getPlaceStatus({ auditCount: place.audits, rawStatus: place.status });
+	return (
+		<div className="space-y-2 rounded-md border border-border bg-card p-4">
+			<div className="flex items-start justify-between gap-3">
+				<div>
+					<p className="font-medium text-foreground">{place.name}</p>
+					<p className="text-sm text-muted-foreground">{place.project}</p>
+				</div>
+				<StatusBadgeFor status={status} />
+			</div>
+			<p className="text-sm text-muted-foreground">{place.address}</p>
+			<p className="text-sm text-muted-foreground">{place.audits} audits</p>
+			{variant === "manager" ? (
+				<Button asChild variant="quiet" size="sm" className="px-0">
+					<Link href={`/manager/places/${place.id}`}>
+						Open <ArrowUpRight className="size-4" />
+					</Link>
+				</Button>
+			) : null}
+		</div>
+	);
+}
+
 export function LiveProjectsTable() {
 	const { data, loading, error } = useTableData(fetchProjects);
+	const columns = React.useMemo(() => buildProjectColumns("manager"), []);
 	if (loading) return <LoadingCard label="projects" />;
 	if (error) return <ErrorCard message={error} />;
 	if (!data?.length)
-		return (
-			<EmptyState
-				title="No projects yet"
-				description="Create a project to see it appear here from the backend."
-			/>
-		);
-	const showOrganization = data.some(project => project.organization);
+		return <EmptyState title="No projects yet" description="Create your first project and it will appear here." />;
 
 	return (
-		<Card className="rounded-md ">
+		<Card className="rounded-md">
 			<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 				<div>
 					<CardTitle className="text-2xl">Projects</CardTitle>
 					<CardDescription className="mt-2 max-w-2xl leading-6">
-						Project records for this manager, including summary, place count, and audit activity.
+						Every project you own, with its place count, audit activity, and status.
 					</CardDescription>
 				</div>
 				<Button asChild className="rounded-md bg-primary text-white hover:bg-primary/90">
 					<Link href="/manager/projects/new">Create Project</Link>
 				</Button>
 			</CardHeader>
-			<CardContent className="overflow-x-auto">
-				<table className="min-w-full text-left text-sm">
-					<thead className="text-muted-foreground">
-						<tr className="border-b border-border">
-							<th className="py-3 pr-4 font-medium">Project Name</th>
-							{showOrganization ? <th className="py-3 pr-4 font-medium">Organization</th> : null}
-							<th className="py-3 pr-4 font-medium">Project Summary</th>
-							<th className="py-3 pr-4 font-medium">Places</th>
-							<th className="py-3 pr-4 font-medium">Audits</th>
-							<th className="py-3 pr-4 font-medium">Status</th>
-							<th className="py-3 font-medium">Action</th>
-						</tr>
-					</thead>
-					<tbody>
-						{data.map(project => (
-							<tr
-								key={project.id}
-								className="border-b border-border last:border-0 transition hover:bg-muted/40">
-								<td className="py-4 pr-4 font-medium text-foreground">
-									<Link
-										href={`/manager/projects/${project.id}`}
-										className="hover:text-foreground hover:underline">
-										{project.name}
-									</Link>
-								</td>
-								{showOrganization ? (
-									<td className="py-4 pr-4 text-muted-foreground">{project.organization ?? "-"}</td>
-								) : null}
-								<td className="py-4 pr-4 text-muted-foreground">{project.summary}</td>
-								<td className="py-4 pr-4 text-muted-foreground">{project.places}</td>
-								<td className="py-4 pr-4 text-muted-foreground">{project.audits}</td>
-								<td className="py-4 pr-4">
-									<Badge
-										variant="secondary"
-										className="rounded-full bg-amber-50 text-amber-700 hover:bg-amber-50">
-										{project.status}
-									</Badge>
-								</td>
-								<td className="py-4">
-									<Link
-										href={`/manager/projects/${project.id}`}
-										className="inline-flex items-center gap-1 text-sm text-foreground hover:text-foreground">
-										Open
-										<ArrowUpRight className="size-4" />
-									</Link>
-								</td>
-							</tr>
-						))}
-					</tbody>
-				</table>
+			<CardContent>
+				<DataTable
+					columns={columns}
+					data={data}
+					getRowId={row => row.id}
+					mobileCard={project => <ProjectMobileCard project={project} variant="manager" />}
+				/>
 			</CardContent>
 		</Card>
 	);
@@ -717,128 +899,68 @@ export function LiveProjectsTable() {
 export function LivePlacesTable() {
 	const { data, loading, error } = useTableData(fetchPlaces);
 	const [selectedProjects, setSelectedProjects] = React.useState<string[]>([]);
+	const [groupByProject, setGroupByProject] = React.useState(false);
+	const columns = React.useMemo(() => buildPlaceColumns("manager"), []);
+
 	if (loading) return <LoadingCard label="places" />;
 	if (error) return <ErrorCard message={error} />;
 	if (!data?.length)
 		return (
 			<EmptyState
 				title="No places yet"
-				description="Add a place under a project and it will show here from the backend."
+				description="Add a place under one of your projects and it will show up here."
 			/>
 		);
+
 	const projectOptions = uniqueFilterOptions(data.map(place => place.project));
-	const filteredPlaces = data.filter(place => {
-		if (!includesSelected(selectedProjects, place.project)) return false;
-		return true;
-	});
+	const filteredPlaces = data.filter(place => includesSelected(selectedProjects, place.project));
 	const filtersActive = selectedProjects.length > 0;
 
+	const toolbar = (
+		<div className="flex flex-wrap items-center gap-3">
+			<SearchableMultiSelectFilter
+				label="Project"
+				options={projectOptions}
+				selectedValues={selectedProjects}
+				onChange={setSelectedProjects}
+			/>
+			<ClearFiltersButton disabled={!filtersActive} onClick={() => setSelectedProjects([])} />
+			<Button
+				type="button"
+				variant={groupByProject ? "secondary" : "outline"}
+				size="sm"
+				className="ml-auto rounded-md"
+				onClick={() => setGroupByProject(value => !value)}>
+				<Layers className="size-4" />
+				{groupByProject ? "Ungroup" : "Group by project"}
+			</Button>
+		</div>
+	);
+
 	return (
-		<Card className="rounded-md ">
+		<Card className="rounded-md">
 			<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 				<div>
 					<CardTitle className="text-2xl">Places</CardTitle>
 					<CardDescription className="mt-2 max-w-2xl leading-6">
-						Review place name, address, postal code, assigned auditors, and the next action for each place.
+						Every field location you manage — address, assigned auditors, and what to do next.
 					</CardDescription>
 				</div>
 				<Button asChild variant="outline" className="rounded-md">
 					<Link href="/manager/places/new">Add Place</Link>
 				</Button>
 			</CardHeader>
-			<CardContent className="space-y-4 overflow-x-auto">
-				<div className="flex flex-wrap gap-3">
-					<SearchableMultiSelectFilter
-						label="Project"
-						options={projectOptions}
-						selectedValues={selectedProjects}
-						onChange={setSelectedProjects}
-					/>
-					<ClearFiltersButton disabled={!filtersActive} onClick={() => setSelectedProjects([])} />
-				</div>
-				<table className="min-w-full text-left text-sm">
-					<thead className="text-muted-foreground">
-						<tr className="border-b border-border">
-							<th className="py-3 pr-4 font-medium">Place Name</th>
-							<th className="py-3 pr-4 font-medium">Address</th>
-							<th className="py-3 pr-4 font-medium">Postal Code</th>
-							<th className="py-3 pr-4 font-medium">Project Name</th>
-							<th className="py-3 pr-4 font-medium">Assigned Auditors</th>
-							<th className="py-3 pr-4 font-medium">Total Audits</th>
-							<th className="py-3 pr-4 font-medium">Audit State</th>
-							<th className="py-3 font-medium">Action</th>
-						</tr>
-					</thead>
-					<tbody>
-						{filteredPlaces.length === 0 ? (
-							<tr>
-								<td colSpan={8} className="py-8 text-center text-sm text-muted-foreground">
-									No places match the selected filters.
-								</td>
-							</tr>
-						) : null}
-						{filteredPlaces.map(place => (
-							<tr key={place.id} className="border-b border-border last:border-0">
-								<td className="py-4 pr-4 font-medium text-foreground">{place.name}</td>
-								<td className="py-4 pr-4 text-muted-foreground">{place.address}</td>
-								<td className="py-4 pr-4 text-muted-foreground">{place.postal_code ?? "-"}</td>
-								<td className="py-4 pr-4 text-muted-foreground">{place.project}</td>
-								<td className="py-4 pr-4">
-									<div className="flex flex-wrap gap-2">
-										{place.assigned_auditors.length === 0 ? (
-											<span className="text-muted-foreground">No auditors assigned</span>
-										) : (
-											place.assigned_auditors.map(auditorId => (
-												<Badge
-													key={auditorId}
-													variant="secondary"
-													className="rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
-													{auditorId}
-												</Badge>
-											))
-										)}
-									</div>
-								</td>
-								<td className="py-4 pr-4 text-muted-foreground">{place.audits}</td>
-								<td className="py-4 pr-4">
-									<Badge
-										variant="secondary"
-										className="rounded-full bg-muted text-foreground hover:bg-muted">
-										{place.audits === 0 ? "Pending first audit" : place.status}
-									</Badge>
-								</td>
-								<td className="py-4">
-									<div className="flex flex-wrap gap-3">
-										<Link
-											href={`/manager/places/${place.id}`}
-											className="inline-flex items-center gap-1 text-sm text-foreground hover:text-foreground">
-											Open
-											<ArrowUpRight className="size-4" />
-										</Link>
-										<Link
-											href={`/manager/places/${place.id}/edit`}
-											className="inline-flex items-center gap-1 text-sm text-sky-700 hover:text-sky-900">
-											Edit
-											<ArrowUpRight className="size-4" />
-										</Link>
-										<Link
-											href={`/manager/auditors?projectId=${place.project_id}&placeId=${place.id}`}
-											className="inline-flex items-center gap-1 text-sm text-emerald-700 hover:text-emerald-900">
-											Assign Auditors
-											<ArrowUpRight className="size-4" />
-										</Link>
-										<Link
-											href={`/manager/audits?projectId=${place.project_id}&placeId=${place.id}`}
-											className="inline-flex items-center gap-1 text-sm text-foreground hover:text-foreground">
-											View Audits
-											<ArrowUpRight className="size-4" />
-										</Link>
-									</div>
-								</td>
-							</tr>
-						))}
-					</tbody>
-				</table>
+			<CardContent>
+				<DataTable
+					columns={columns}
+					data={filteredPlaces}
+					getRowId={row => row.id}
+					groupBy={groupByProject ? "project" : undefined}
+					groupLabel="Project"
+					toolbar={toolbar}
+					noResults="No places match the selected filters."
+					mobileCard={place => <PlaceMobileCard place={place} variant="manager" />}
+				/>
 			</CardContent>
 		</Card>
 	);
@@ -848,16 +970,12 @@ export function AdminProjectsTable() {
 	const { data, loading, error } = useTableData(fetchProjects);
 	const [selectedOrganizations, setSelectedOrganizations] = React.useState<string[]>([]);
 	const [selectedProjects, setSelectedProjects] = React.useState<string[]>([]);
+	const columns = React.useMemo(() => buildProjectColumns("admin"), []);
 
 	if (loading) return <LoadingCard label="projects" />;
 	if (error) return <ErrorCard message={error} />;
 	if (!data?.length)
-		return (
-			<EmptyState
-				title="No projects yet"
-				description="Create a project to see it appear here from the backend."
-			/>
-		);
+		return <EmptyState title="No projects yet" description="Projects created by managers will appear here." />;
 
 	const organizationOptions = uniqueFilterOptions(data.map(project => project.organization ?? null));
 	const projectOptions = uniqueFilterOptions(
@@ -872,91 +990,47 @@ export function AdminProjectsTable() {
 	});
 	const filtersActive = selectedOrganizations.length > 0 || selectedProjects.length > 0;
 
+	const toolbar = (
+		<div className="flex flex-wrap gap-3">
+			<SearchableMultiSelectFilter
+				label="Organization"
+				options={organizationOptions}
+				selectedValues={selectedOrganizations}
+				onChange={setSelectedOrganizations}
+			/>
+			<SearchableMultiSelectFilter
+				label="Project"
+				options={projectOptions}
+				selectedValues={selectedProjects}
+				onChange={setSelectedProjects}
+			/>
+			<ClearFiltersButton
+				disabled={!filtersActive}
+				onClick={() => {
+					setSelectedOrganizations([]);
+					setSelectedProjects([]);
+				}}
+			/>
+		</div>
+	);
+
 	return (
-		<Card className="rounded-md ">
+		<Card className="rounded-md">
 			<CardHeader>
 				<CardTitle className="text-2xl">Projects</CardTitle>
 				<CardDescription className="mt-2 max-w-2xl leading-6">
-					System-wide project records with organization-first filtering and summary columns for stakeholder
-					review.
+					Projects across every organization. Filter by organization and project to narrow the list.
 				</CardDescription>
 			</CardHeader>
-			<CardContent className="space-y-4 overflow-x-auto">
-				<div className="flex flex-wrap gap-3">
-					<SearchableMultiSelectFilter
-						label="Organization"
-						options={organizationOptions}
-						selectedValues={selectedOrganizations}
-						onChange={setSelectedOrganizations}
-					/>
-					<SearchableMultiSelectFilter
-						label="Project"
-						options={projectOptions}
-						selectedValues={selectedProjects}
-						onChange={setSelectedProjects}
-					/>
-					<ClearFiltersButton
-						disabled={!filtersActive}
-						onClick={() => {
-							setSelectedOrganizations([]);
-							setSelectedProjects([]);
-						}}
-					/>
-				</div>
-				<table className="min-w-full text-left text-sm">
-					<thead className="text-muted-foreground">
-						<tr className="border-b border-border">
-							<th className="py-3 pr-4 font-medium">Organization</th>
-							<th className="py-3 pr-4 font-medium">Project Name</th>
-							<th className="py-3 pr-4 font-medium">Project Summary</th>
-							<th className="py-3 pr-4 font-medium">Places</th>
-							<th className="py-3 pr-4 font-medium">Audits</th>
-							<th className="py-3 pr-4 font-medium">Status</th>
-							<th className="py-3 font-medium">Action</th>
-						</tr>
-					</thead>
-					<tbody>
-						{filteredProjects.length === 0 ? (
-							<tr>
-								<td colSpan={7} className="py-8 text-center text-sm text-muted-foreground">
-									No projects match the selected filters.
-								</td>
-							</tr>
-						) : null}
-						{filteredProjects.map(project => (
-							<tr
-								key={project.id}
-								className="border-b border-border last:border-0 transition hover:bg-muted/40">
-								<td className="py-4 pr-4 text-muted-foreground">{project.organization ?? "-"}</td>
-								<td className="py-4 pr-4 font-medium text-foreground">
-									<Link
-										href={`/manager/projects/${project.id}`}
-										className="hover:text-foreground hover:underline">
-										{project.name}
-									</Link>
-								</td>
-								<td className="py-4 pr-4 text-muted-foreground">{project.summary}</td>
-								<td className="py-4 pr-4 text-muted-foreground">{project.places}</td>
-								<td className="py-4 pr-4 text-muted-foreground">{project.audits}</td>
-								<td className="py-4 pr-4">
-									<Badge
-										variant="secondary"
-										className="rounded-full bg-amber-50 text-amber-700 hover:bg-amber-50">
-										{project.status}
-									</Badge>
-								</td>
-								<td className="py-4">
-									<Link
-										href={`/manager/projects/${project.id}`}
-										className="inline-flex items-center gap-1 text-sm text-foreground hover:text-foreground">
-										Open
-										<ArrowUpRight className="size-4" />
-									</Link>
-								</td>
-							</tr>
-						))}
-					</tbody>
-				</table>
+			<CardContent>
+				<DataTable
+					columns={columns}
+					data={filteredProjects}
+					getRowId={row => row.id}
+					toolbar={toolbar}
+					noResults="No projects match the selected filters."
+					mobileCard={project => <ProjectMobileCard project={project} variant="admin" />}
+				/>
 			</CardContent>
 		</Card>
 	);
@@ -966,16 +1040,12 @@ export function AdminPlacesTable() {
 	const { data, loading, error } = useTableData(fetchPlaces);
 	const [selectedOrganizations, setSelectedOrganizations] = React.useState<string[]>([]);
 	const [selectedProjects, setSelectedProjects] = React.useState<string[]>([]);
+	const columns = React.useMemo(() => buildPlaceColumns("admin"), []);
 
 	if (loading) return <LoadingCard label="places" />;
 	if (error) return <ErrorCard message={error} />;
 	if (!data?.length)
-		return (
-			<EmptyState
-				title="No places yet"
-				description="Add a place under a project and it will show here from the backend."
-			/>
-		);
+		return <EmptyState title="No places yet" description="Places created by managers will appear here." />;
 
 	const organizationOptions = uniqueFilterOptions(data.map(place => place.organization ?? null));
 	const projectOptions = uniqueFilterOptions(
@@ -990,95 +1060,47 @@ export function AdminPlacesTable() {
 	});
 	const filtersActive = selectedOrganizations.length > 0 || selectedProjects.length > 0;
 
+	const toolbar = (
+		<div className="flex flex-wrap gap-3">
+			<SearchableMultiSelectFilter
+				label="Organization"
+				options={organizationOptions}
+				selectedValues={selectedOrganizations}
+				onChange={setSelectedOrganizations}
+			/>
+			<SearchableMultiSelectFilter
+				label="Project"
+				options={projectOptions}
+				selectedValues={selectedProjects}
+				onChange={setSelectedProjects}
+			/>
+			<ClearFiltersButton
+				disabled={!filtersActive}
+				onClick={() => {
+					setSelectedOrganizations([]);
+					setSelectedProjects([]);
+				}}
+			/>
+		</div>
+	);
+
 	return (
-		<Card className="rounded-md ">
+		<Card className="rounded-md">
 			<CardHeader>
 				<CardTitle className="text-2xl">Places</CardTitle>
 				<CardDescription className="mt-2 max-w-2xl leading-6">
-					System-wide place rows with organization and project filters that narrow the visible records
-					directly.
+					Places across every organization. Filter by organization and project to narrow the list.
 				</CardDescription>
 			</CardHeader>
-			<CardContent className="space-y-4 overflow-x-auto">
-				<div className="flex flex-wrap gap-3">
-					<SearchableMultiSelectFilter
-						label="Organization"
-						options={organizationOptions}
-						selectedValues={selectedOrganizations}
-						onChange={setSelectedOrganizations}
-					/>
-					<SearchableMultiSelectFilter
-						label="Project"
-						options={projectOptions}
-						selectedValues={selectedProjects}
-						onChange={setSelectedProjects}
-					/>
-					<ClearFiltersButton
-						disabled={!filtersActive}
-						onClick={() => {
-							setSelectedOrganizations([]);
-							setSelectedProjects([]);
-						}}
-					/>
-				</div>
-				<table className="min-w-full text-left text-sm">
-					<thead className="text-muted-foreground">
-						<tr className="border-b border-border">
-							<th className="py-3 pr-4 font-medium">Organization</th>
-							<th className="py-3 pr-4 font-medium">Project</th>
-							<th className="py-3 pr-4 font-medium">Place Name</th>
-							<th className="py-3 pr-4 font-medium">Address</th>
-							<th className="py-3 pr-4 font-medium">Postal Code</th>
-							<th className="py-3 pr-4 font-medium">Audits</th>
-							<th className="py-3 pr-4 font-medium">Last Audit</th>
-							<th className="py-3 pr-4 font-medium">Status</th>
-							<th className="py-3 font-medium">Action</th>
-						</tr>
-					</thead>
-					<tbody>
-						{filteredPlaces.length === 0 ? (
-							<tr>
-								<td colSpan={9} className="py-8 text-center text-sm text-muted-foreground">
-									No places match the selected filters.
-								</td>
-							</tr>
-						) : null}
-						{filteredPlaces.map(place => (
-							<tr
-								key={place.id}
-								className="border-b border-border last:border-0 transition hover:bg-muted/40">
-								<td className="py-4 pr-4 text-muted-foreground">{place.organization ?? "-"}</td>
-								<td className="py-4 pr-4 text-muted-foreground">{place.project}</td>
-								<td className="py-4 pr-4 font-medium text-foreground">
-									<Link
-										href={`/manager/places/${place.id}`}
-										className="hover:text-foreground hover:underline">
-										{place.name}
-									</Link>
-								</td>
-								<td className="py-4 pr-4 text-muted-foreground">{place.address}</td>
-								<td className="py-4 pr-4 text-muted-foreground">{place.postal_code ?? "-"}</td>
-								<td className="py-4 pr-4 text-muted-foreground">{place.audits}</td>
-								<td className="py-4 pr-4 text-muted-foreground">{place.last_audit}</td>
-								<td className="py-4 pr-4">
-									<Badge
-										variant="secondary"
-										className="rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
-										{place.status}
-									</Badge>
-								</td>
-								<td className="py-4">
-									<Link
-										href={`/manager/places/${place.id}`}
-										className="inline-flex items-center gap-1 text-sm text-foreground hover:text-foreground">
-										Open
-										<ArrowUpRight className="size-4" />
-									</Link>
-								</td>
-							</tr>
-						))}
-					</tbody>
-				</table>
+			<CardContent>
+				<DataTable
+					columns={columns}
+					data={filteredPlaces}
+					getRowId={row => row.id}
+					toolbar={toolbar}
+					noResults="No places match the selected filters."
+					mobileCard={place => <PlaceMobileCard place={place} variant="admin" />}
+				/>
 			</CardContent>
 		</Card>
 	);

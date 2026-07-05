@@ -496,8 +496,8 @@ export function LiveProjectDetail({ projectId }: { projectId: string }) {
 						<CardHeader>
 							<CardTitle>Project setup details</CardTitle>
 							<CardDescription>
-								Managers can set up as many Projects as they need and keep Project and Place naming
-								consistent before inviting Auditors.
+								Add as many projects as you need. Consistent project and place names keep everything
+								easy to find later.
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="grid gap-4 sm:grid-cols-2 text-sm leading-6 text-foreground">
@@ -540,8 +540,8 @@ export function LiveProjectDetail({ projectId }: { projectId: string }) {
 						<CardHeader>
 							<CardTitle>Auditor setup details</CardTitle>
 							<CardDescription>
-								Managers can invite Auditors to all Places or select Places, then return here to review
-								coverage without leaving the Project flow.
+								Invite auditors to every place in this project, or just to specific ones. Come back here
+								anytime to review coverage.
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-4 text-sm leading-6 text-foreground">
@@ -809,8 +809,8 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 						<CardHeader>
 							<CardTitle>Place setup details</CardTitle>
 							<CardDescription>
-								Managers can define consistent Place naming, location details, timing, and Place Type
-								before assigning Auditor access.
+								Set the place name, location, timing, and type here before you assign auditor access.
+								This keeps every place consistent.
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="grid gap-4 sm:grid-cols-2 text-sm leading-6 text-foreground">
@@ -854,8 +854,8 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 						<CardHeader>
 							<CardTitle>Auditor setup details</CardTitle>
 							<CardDescription>
-								Auditors can be assigned at the Project level or narrowed to select Places, and these
-								notes help managers keep that access setup consistent.
+								Assign auditors to the whole project or to specific places. These notes help you keep
+								access consistent.
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="space-y-4 text-sm leading-6 text-foreground">

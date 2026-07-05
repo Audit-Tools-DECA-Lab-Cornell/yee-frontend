@@ -76,8 +76,8 @@ export const defaultWorkspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> 
 	admin: {
 		variant: "admin",
 		badge: "Admin view",
-		title: "System administration for the full audit platform.",
-		description: "Monitor all users, projects, places, and audits across organizations from one control surface.",
+		title: "Oversee every organization on the platform.",
+		description: "See all users, projects, places, and audits across every organization in one place.",
 		searchPlaceholder: "Search users, projects, organizations, or audits...",
 		primaryAction: {
 			label: "Add User",
@@ -106,7 +106,7 @@ export const defaultWorkspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> 
 		pageCopy: {
 			"/admin": {
 				title: "Admin Overview",
-				description: "Master dashboard for users, organizations, projects, places, and audits."
+				description: "Users, organizations, projects, places, and audits across the whole platform."
 			},
 			"/admin/users": {
 				title: "Users",
@@ -135,11 +135,11 @@ export const defaultWorkspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> 
 			},
 			"/admin/raw-data": {
 				title: "Raw Data",
-				description: "Export system-wide audit records and future comparative datasets."
+				description: "Export audit records from every organization as CSV."
 			},
 			"/admin/settings": {
 				title: "Settings",
-				description: "Placeholder for system-wide configuration, exports, and admin tools."
+				description: "Platform-wide configuration and admin tools."
 			}
 		}
 	},
@@ -158,7 +158,7 @@ export const defaultWorkspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> 
 		sidebarCard: {
 			eyebrow: "Quick start",
 			title: "Launch manager actions",
-			description: "Create a Project, add a Place, or invite an auditor.",
+			description: "Create a project, add a place, or invite an auditor.",
 			actionLabel: "Create Project",
 			actionHref: "/manager/projects/new",
 			actionIcon: FilePlus2
@@ -208,11 +208,11 @@ export const defaultWorkspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> 
 			},
 			"/manager/raw-data": {
 				title: "Raw Data",
-				description: "Export manager-scoped audits, answers, and future score summaries."
+				description: "Export your audits, answers, and score summaries as CSV."
 			},
 			"/manager/settings": {
 				title: "Settings",
-				description: "Placeholder for account, notification, and project-scoped settings."
+				description: "Manage your account, notifications, and project preferences."
 			}
 		}
 	},
@@ -220,8 +220,7 @@ export const defaultWorkspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> 
 		variant: "auditor",
 		badge: "Auditor view",
 		title: "Focus on assigned places and complete fieldwork.",
-		description:
-			"Auditors see only their own places, active audits, and personal history rather than management tools.",
+		description: "Everything assigned to you — your places, active audits, and submission history.",
 		searchPlaceholder: "Search your places or saved audits...",
 		primaryAction: {
 			label: "Start Audit",
@@ -252,7 +251,7 @@ export const defaultWorkspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> 
 			},
 			"/auditor/settings": {
 				title: "Settings",
-				description: "Placeholder for personal profile and preferences."
+				description: "Update your profile and preferences."
 			}
 		}
 	}
