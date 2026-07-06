@@ -6,6 +6,7 @@ import * as React from "react";
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DashboardHero } from "@/components/ui/dashboard-hero";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -175,13 +176,19 @@ export default function SettingsPage() {
 	return (
 		<>
 			<div className="space-y-6">
+				<DashboardHero
+					size="compact"
+					badge="Account"
+					title="Settings"
+					subtitle="Manage your manager profile, auditor access, and your management team."
+				/>
 				{/* Manager profile card */}
 				<Card>
 					<CardHeader>
 						<CardTitle>Manager profile</CardTitle>
 						<CardDescription className="max-w-2xl">
-							Every manager belongs to one organization. Primary managers can update the organization name
-							and invite additional managers. Secondary managers can update their own profile only.
+							Your organization and profile. As a primary manager you can also rename the organization and
+							invite other managers; as a secondary manager you can update your own profile.
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-6">
@@ -323,8 +330,8 @@ export default function SettingsPage() {
 					<CardHeader>
 						<CardTitle>Manager and auditor access</CardTitle>
 						<CardDescription className="max-w-2xl">
-							Managers can also act as auditors inside the same organization. Create your auditor profile
-							once, then switch between Manager View and Auditor View.
+							Want to run audits yourself? Create your auditor profile once, then switch between Manager
+							View and Auditor View anytime.
 						</CardDescription>
 					</CardHeader>
 					<CardContent className="space-y-4">

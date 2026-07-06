@@ -148,7 +148,7 @@ export function InstrumentEditor({
 					id={`${tabsId}-panel`}
 					role="tabpanel"
 					aria-labelledby={`${tabsId}-tab-${activeTab}`}
-					className="rounded-lg border border-border bg-card p-4">
+					className="rounded-md border border-border bg-card p-4">
 					{parsed ? (
 						<>
 							{activeTab === "preamble" ? <PreambleEditor content={parsed} update={update} /> : null}
@@ -163,14 +163,14 @@ export function InstrumentEditor({
 							) : null}
 						</>
 					) : (
-						<div className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+						<div className="rounded-md border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
 							The advanced JSON editor currently contains invalid JSON, so the tab editors are paused. Fix
 							the JSON below to continue editing.
 						</div>
 					)}
 				</div>
 
-				<div className="space-y-2 rounded-lg border border-border bg-muted px-4 py-3">
+				<div className="space-y-2 rounded-md border border-border bg-muted px-4 py-3">
 					<div className="flex items-center gap-3">
 						<input
 							id="activate-on-create"
@@ -200,7 +200,7 @@ export function InstrumentEditor({
 					</Button>
 					{showAdvancedEditor ? (
 						<div className="space-y-2">
-							<div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-muted px-4 py-3 text-sm text-foreground">
+							<div className="flex flex-wrap items-center gap-2 rounded-md border border-border bg-muted px-4 py-3 text-sm text-foreground">
 								<Badge variant="warning">Advanced</Badge>
 								<span>
 									The raw JSON editor changes the survey definition itself, not ordinary dashboard

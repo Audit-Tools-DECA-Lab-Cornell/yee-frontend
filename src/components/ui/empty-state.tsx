@@ -29,7 +29,7 @@ function EmptyState({ icon: Icon, title, description, action, className }: Empty
 		<div className={cn("flex flex-col items-center justify-center gap-4 py-16 px-6 text-center", className)}>
 			{Icon ? (
 				<div
-					className="flex size-12 items-center justify-center rounded-md bg-muted text-muted-foreground"
+					className="flex size-12 items-center justify-center rounded-md bg-accent text-primary"
 					aria-hidden="true">
 					<Icon className="size-6" />
 				</div>

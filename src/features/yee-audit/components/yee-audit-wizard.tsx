@@ -50,6 +50,7 @@ import {
 import { fetchScorePreview } from "@/features/yee-audit/scoring/yee-scoring";
 import { useAutosaveQueue } from "@/features/yee-audit/state/autosave-queue";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { FormSkeleton } from "@/components/ui/skeletons";
 
 type ResponsesState = Record<string, string | Record<string, string>>;
 type QuestionGroup = {
@@ -430,7 +431,11 @@ function getSurfacePalette(stepValue: YeeStepNumber) {
 				condition: "border-emerald-300 bg-emerald-100/80"
 			};
 		case 3:
-		case 4: {
+		case 4:
+		case 5:
+		case 6:
+		case 7:
+		case 8: {
 			const theme = getThemeByStep(stepValue);
 			if (theme) {
 				return {
@@ -453,50 +458,6 @@ function getSurfacePalette(stepValue: YeeStepNumber) {
 				condition: "border-border bg-muted"
 			};
 		}
-		case 5:
-			return {
-				card: "border-amber-200/80 bg-[#fff8ee]",
-				inner: "border-amber-100 bg-white/92",
-				selected:
-					"border-amber-600 bg-amber-200 text-amber-950 ring-1 ring-amber-300 shadow-[0_10px_22px_-18px_rgba(180,83,9,0.3)]",
-				idle: "border-amber-200 bg-amber-50/90 text-amber-950 hover:border-amber-300 hover:bg-amber-100/90",
-				instruction: "border-[#ffd27a] bg-[#e5ae47] text-white",
-				progress: "border-amber-200/80 bg-amber-50/80",
-				condition: "border-amber-300 bg-amber-100/80"
-			};
-		case 6:
-			return {
-				card: "border-teal-200/80 bg-[#eef9f7]",
-				inner: "border-teal-100 bg-white/92",
-				selected:
-					"border-teal-600 bg-teal-200 text-teal-950 ring-1 ring-teal-300 shadow-[0_10px_22px_-18px_rgba(17,94,89,0.32)]",
-				idle: "border-teal-200 bg-teal-50/90 text-teal-950 hover:border-teal-300 hover:bg-teal-100/90",
-				instruction: "border-[#7edfd8] bg-[#58bbb2] text-white",
-				progress: "border-teal-200/80 bg-teal-50/80",
-				condition: "border-teal-300 bg-teal-100/85"
-			};
-		case 7:
-			return {
-				card: "border-rose-200/80 bg-[#fff2f7]",
-				inner: "border-rose-100 bg-white/92",
-				selected:
-					"border-rose-600 bg-rose-200 text-rose-950 ring-1 ring-rose-300 shadow-[0_10px_22px_-18px_rgba(159,18,57,0.3)]",
-				idle: "border-rose-200 bg-rose-50/90 text-rose-950 hover:border-rose-300 hover:bg-rose-100/90",
-				instruction: "border-[#f1a7c8] bg-[#de7cab] text-white",
-				progress: "border-rose-200/80 bg-rose-50/80",
-				condition: "border-rose-300 bg-rose-100/85"
-			};
-		case 8:
-			return {
-				card: "border-violet-200/80 bg-[#f7f2ff]",
-				inner: "border-violet-100 bg-white/92",
-				selected:
-					"border-violet-600 bg-violet-200 text-violet-950 ring-1 ring-violet-300 shadow-[0_10px_22px_-18px_rgba(91,33,182,0.32)]",
-				idle: "border-violet-200 bg-violet-50/90 text-violet-950 hover:border-violet-300 hover:bg-violet-100/90",
-				instruction: "border-[#ccb2ff] bg-[#9d7fe8] text-white",
-				progress: "border-violet-200/80 bg-violet-50/80",
-				condition: "border-violet-300 bg-violet-100/85"
-			};
 	}
 }
 
@@ -849,7 +810,7 @@ function MultiSelectCards({
 				return (
 					<label
 						key={`${name}-${option.value}`}
-						className={`cursor-pointer rounded-lg border px-4 py-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] transition ${
+						className={`cursor-pointer rounded-md border px-4 py-3 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.7)] transition ${
 							checked ? palette.selected : palette.idle
 						}`}>
 						<input
@@ -1629,7 +1590,7 @@ export function YeeAuditWizard({
 											return (
 												<div
 													key={key}
-													className="flex flex-col gap-2 rounded-lg border px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+													className="flex flex-col gap-2 rounded-md border px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
 													style={{
 														backgroundColor: theme?.lightHex ?? "#f8fafc",
 														borderColor: theme?.strongFillHex ?? "#cbd5e1"
@@ -2122,7 +2083,6 @@ export function YeeAuditWizard({
 						<Button
 							type="button"
 							variant="outline"
-							className="rounded-lg"
 							onClick={() => void goToStep(getPreviousStep(step!))}
 							disabled={!step || !getPreviousStep(step)}>
 							Back
@@ -2130,7 +2090,6 @@ export function YeeAuditWizard({
 						<Button
 							type="button"
 							variant="ghost"
-							className="rounded-lg"
 							onClick={async () => {
 								try {
 									if (variant === "manager-edit") {
@@ -2229,7 +2188,7 @@ function SubmittedAuditConfirmation({
 
 	return (
 		<main className="mx-auto max-w-4xl space-y-6 p-6">
-			<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
+			<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
 				<CardHeader>
 					<CardTitle className="text-3xl">Audit submitted</CardTitle>
 					<CardDescription>
@@ -2243,23 +2202,23 @@ function SubmittedAuditConfirmation({
 						Submitted at:{" "}
 						{submittedAt ? new Date(submittedAt).toLocaleString() : "Submission timestamp unavailable"}
 					</p>
-					<div className="rounded-lg bg-emerald-50 p-4 text-emerald-800">
+					<div className="rounded-md bg-emerald-50 p-4 text-emerald-800">
 						<p className="font-medium">
 							Submission ID: {submission?.id || fallbackDraft.lastResult?.id || "Unavailable"}
 						</p>
 						<p className="mt-1">Total score: {totalScore}</p>
 					</div>
 					<div className="flex flex-wrap gap-3">
-						<Button asChild className="">
+						<Button asChild>
 							<Link href="/auditor">Back to dashboard</Link>
 						</Button>
 						{submissionId ? (
-							<Button asChild variant="outline" className="rounded-lg">
+							<Button asChild variant="outline">
 								<Link href={`/yee/submissions/${submissionId}`}>Open read-only results</Link>
 							</Button>
 						) : null}
 					</div>
-					{loading ? <p>Loading submitted audit details...</p> : null}
+					{loading ? <FormSkeleton rows={4} /> : null}
 					{loadError ? <p className="text-red-700">{loadError}</p> : null}
 				</CardContent>
 			</Card>

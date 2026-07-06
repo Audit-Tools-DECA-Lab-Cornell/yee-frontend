@@ -435,7 +435,7 @@ export function PlaceProfileForm({
 					value={values.projectId}
 					onChange={event => update("projectId", event.target.value)}
 					disabled={loadingProjects || projects.length === 0}
-					className="flex h-10 w-full rounded-sm border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
+					className="flex h-9 w-full rounded-control border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background">
 					{projects.length === 0 ? <option value="">No Projects available</option> : null}
 					{projects.map(project => (
 						<option key={project.id} value={project.id}>
@@ -481,7 +481,7 @@ export function PlaceProfileForm({
 						required
 					/>
 					{googleMapsApiKey && suggestionsOpen && suggestions.length > 0 ? (
-						<div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-20 overflow-hidden rounded-lg border border-border bg-white shadow-lg">
+						<div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-20 overflow-hidden rounded-md border border-border bg-white shadow-lg">
 							<ul className="max-h-72 overflow-y-auto py-2">
 								{suggestions.map(suggestion => (
 									<li key={suggestion.placeId}>
@@ -712,7 +712,7 @@ export function PlaceProfileForm({
 				{googleMapsHref ? (
 					<div className="rounded-md border border-border bg-muted/40 p-5">
 						{openStreetMapEmbedUrl ? (
-							<div className="overflow-hidden rounded-lg border border-border bg-white">
+							<div className="overflow-hidden rounded-md border border-border bg-white">
 								<iframe
 									src={openStreetMapEmbedUrl}
 									title="Location map preview"
@@ -722,7 +722,7 @@ export function PlaceProfileForm({
 								/>
 							</div>
 						) : previewMapUrl && !mapImageFailed ? (
-							<div className="overflow-hidden rounded-lg border border-border bg-white">
+							<div className="overflow-hidden rounded-md border border-border bg-white">
 								<Image
 									src={previewMapUrl ?? ""}
 									alt="Location preview"
@@ -739,7 +739,7 @@ export function PlaceProfileForm({
 								/>
 							</div>
 						) : (
-							<p className="rounded-lg border border-dashed border-slate-300 bg-white p-4 text-sm text-muted-foreground">
+							<p className="rounded-md border border-dashed border-slate-300 bg-white p-4 text-sm text-muted-foreground">
 								Map snapshot unavailable right now, but the Google Maps link below is still ready for
 								this Place.
 							</p>
@@ -749,7 +749,7 @@ export function PlaceProfileForm({
 							directly in Google Maps if you need a closer check.
 						</p>
 						<div className="mt-4 flex flex-wrap gap-3">
-							<Button asChild className="rounded-md bg-primary text-white hover:bg-primary/90">
+							<Button asChild className="bg-primary text-white hover:bg-primary/90">
 								<a href={googleMapsHref} target="_blank" rel="noreferrer">
 									Open in Google Maps
 								</a>
@@ -774,11 +774,11 @@ export function PlaceProfileForm({
 			<div className="mt-2 flex flex-wrap gap-3 sm:col-span-2">
 				<Button
 					type="submit"
-					className="rounded-md bg-primary text-white hover:bg-primary/90"
+					className="bg-primary text-white hover:bg-primary/90"
 					disabled={saving || loadingProjects || projects.length === 0}>
 					{saving ? "Saving..." : submitLabel}
 				</Button>
-				<Button asChild variant="outline" className="rounded-md">
+				<Button asChild variant="outline">
 					<Link href={cancelHref}>{cancelLabel}</Link>
 				</Button>
 			</div>

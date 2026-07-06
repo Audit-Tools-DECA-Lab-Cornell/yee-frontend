@@ -180,7 +180,7 @@ export function ProjectProfileForm({
 						<Button
 							type="button"
 							variant="outline"
-							className="w-full justify-between rounded-md px-4 py-5 text-left font-normal">
+							className="w-full justify-between rounded-control px-4 py-5 text-left font-normal">
 							<span className="truncate">
 								{summarizeSelections(values.placeTypes, values.otherPlaceType, "Select Place Types")}
 							</span>
@@ -189,7 +189,7 @@ export function ProjectProfileForm({
 							</span>
 						</Button>
 					</DropdownMenuTrigger>
-					<DropdownMenuContent align="start" className="w-[26rem] rounded-md p-2">
+					<DropdownMenuContent align="start" className="w-104 rounded-control p-2">
 						<DropdownMenuLabel>Type of Places to be Audited (check all that apply)</DropdownMenuLabel>
 						<DropdownMenuSeparator />
 						{PLACE_TYPE_OPTIONS.map(option => (
@@ -259,7 +259,7 @@ export function ProjectProfileForm({
 						<Button
 							type="button"
 							variant="outline"
-							className="w-full justify-between rounded-md px-4 py-5 text-left font-normal">
+							className="w-full justify-between rounded-control px-4 py-5 text-left font-normal">
 							<span className="truncate">
 								{summarizeSelections(
 									values.auditorPopulationTypes,
@@ -272,7 +272,7 @@ export function ProjectProfileForm({
 							</span>
 						</Button>
 					</DropdownMenuTrigger>
-					<DropdownMenuContent align="start" className="w-[28rem] rounded-md p-2">
+					<DropdownMenuContent align="start" className="w-104 rounded-control p-2">
 						<DropdownMenuLabel>Auditor Population Type (check all that apply)</DropdownMenuLabel>
 						<DropdownMenuSeparator />
 						{AUDITOR_POPULATION_OPTIONS.map(option => (
@@ -335,13 +335,10 @@ export function ProjectProfileForm({
 
 			{error ? <p className="sm:col-span-2 text-sm text-rose-600">{error}</p> : null}
 			<div className="mt-2 flex flex-wrap gap-3 sm:col-span-2">
-				<Button
-					type="submit"
-					className="rounded-md bg-primary text-white hover:bg-primary/90"
-					disabled={saving}>
+				<Button type="submit" className="bg-primary text-white hover:bg-primary/90" disabled={saving}>
 					{saving ? "Saving..." : submitLabel}
 				</Button>
-				<Button asChild variant="outline" className="rounded-md">
+				<Button asChild variant="outline">
 					<Link href={cancelHref}>{cancelLabel}</Link>
 				</Button>
 			</div>

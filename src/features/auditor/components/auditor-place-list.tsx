@@ -4,13 +4,23 @@ import Link from "next/link";
 import * as React from "react";
 
 import { useAuth } from "@/features/auth/components/auth-provider";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { TableSkeleton } from "@/components/ui/skeletons";
+import { DashboardHero } from "@/components/ui/dashboard-hero";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchMyPlaces, type AssignedPlaceRecord } from "@/features/workspaces/api/live-api";
 import { fetchAuditState, type YeeAuditState } from "@/features/yee-audit/api/yee-audit-api";
 
-export function AuditorPlaceList({ compact = false }: { compact?: boolean }) {
+export function AuditorPlaceList({
+	compact = false,
+	title = "My Audits",
+	subtitle = "Choose a place by name and continue the correct audit action for that place."
+}: {
+	compact?: boolean;
+	title?: string;
+	subtitle?: string;
+}) {
 	const { session } = useAuth();
 	const [places, setPlaces] = React.useState<AssignedPlaceRecord[]>([]);
 	const [auditStates, setAuditStates] = React.useState<Record<string, YeeAuditState>>({});
@@ -41,16 +51,12 @@ export function AuditorPlaceList({ compact = false }: { compact?: boolean }) {
 	}, [session]);
 
 	if (loading) {
-		return (
-			<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
-				<CardContent className="p-6 text-sm text-slate-500">Loading assigned places...</CardContent>
-			</Card>
-		);
+		return <TableSkeleton aria-label="Loading assigned places…" />;
 	}
 
 	if (error) {
 		return (
-			<Card className="rounded-lg border-rose-200 bg-rose-50 shadow-sm">
+			<Card className="rounded-md border-rose-200 bg-rose-50 shadow-sm">
 				<CardContent className="p-6 text-sm text-rose-700">{error}</CardContent>
 			</Card>
 		);
@@ -59,9 +65,9 @@ export function AuditorPlaceList({ compact = false }: { compact?: boolean }) {
 	if (places.length === 0) {
 		const isManagerAuditor = session?.user.account_type === "MANAGER";
 		return (
-			<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
+			<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
 				<CardHeader>
-					<CardTitle>My Audits</CardTitle>
+					<CardTitle>{title}</CardTitle>
 					<CardDescription>No places have been assigned yet.</CardDescription>
 				</CardHeader>
 				{isManagerAuditor ? (
@@ -71,10 +77,10 @@ export function AuditorPlaceList({ compact = false }: { compact?: boolean }) {
 							your auditor profile to it from Manager View first — then it appears here, ready to start.
 						</p>
 						<div className="flex flex-wrap gap-2">
-							<Button asChild className="rounded-lg bg-[#10231f] text-white hover:bg-[#17302c]">
+							<Button asChild>
 								<Link href="/manager/auditors">Assign myself places</Link>
 							</Button>
-							<Button asChild variant="outline" className="rounded-lg">
+							<Button asChild variant="outline">
 								<Link href="/manager">Back to Manager View</Link>
 							</Button>
 						</div>
@@ -97,37 +103,30 @@ export function AuditorPlaceList({ compact = false }: { compact?: boolean }) {
 		return (
 			<div
 				key={place.id}
-				className="flex flex-col gap-3 rounded-lg border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between">
+				className="flex flex-col gap-3 rounded-md border border-slate-200 p-4 sm:flex-row sm:items-center sm:justify-between">
 				<div>
 					<p className="font-medium text-slate-900">{place.name}</p>
 					<p className="mt-1 text-sm text-slate-600">{place.project}</p>
 					<div className="mt-2 flex flex-wrap gap-2">
-						{isSubmitted ? (
-							<Badge className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700 hover:bg-emerald-100">
-								Submitted / Locked
-							</Badge>
-						) : hasDraft ? (
-							<Badge className="rounded-full bg-amber-100 px-3 py-1 text-amber-700 hover:bg-amber-100">
-								Draft in progress
-							</Badge>
-						) : (
-							<Badge className="rounded-full bg-sky-100 px-3 py-1 text-sky-700 hover:bg-sky-100">
-								Ready to start
-							</Badge>
-						)}
+						<StatusBadge
+							label={
+								isSubmitted ? "Submitted / Locked" : hasDraft ? "Draft in progress" : "Ready to start"
+							}
+							tone={isSubmitted ? "success" : hasDraft ? "warning" : "secondary"}
+						/>
 					</div>
 				</div>
 				<div className="flex flex-wrap gap-2">
 					{isSubmitted ? (
-						<Button asChild variant="outline" className="rounded-lg">
+						<Button asChild variant="outline">
 							<Link href={`/yee/submissions/${auditState.submission_id}`}>View Submission</Link>
 						</Button>
 					) : hasDraft ? (
-						<Button asChild className="rounded-lg bg-[#10231f] text-white hover:bg-[#17302c]">
+						<Button asChild>
 							<Link href={`/yee/audit/${place.id}/page/1`}>Continue In Progress</Link>
 						</Button>
 					) : (
-						<Button asChild className="rounded-lg bg-[#10231f] text-white hover:bg-[#17302c]">
+						<Button asChild>
 							<Link href={`/yee/audit/${place.id}/page/1`}>Start Audit</Link>
 						</Button>
 					)}
@@ -141,16 +140,11 @@ export function AuditorPlaceList({ compact = false }: { compact?: boolean }) {
 	}
 
 	return (
-		<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
-			<CardHeader>
-				<div>
-					<CardTitle>My Audits</CardTitle>
-					<CardDescription>
-						Choose a place by name and continue the correct audit action for that place.
-					</CardDescription>
-				</div>
-			</CardHeader>
-			<CardContent className="space-y-3">{content}</CardContent>
-		</Card>
+		<div className="space-y-6">
+			<DashboardHero size="compact" title={title} subtitle={subtitle} />
+			<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
+				<CardContent className="space-y-3">{content}</CardContent>
+			</Card>
+		</div>
 	);
 }

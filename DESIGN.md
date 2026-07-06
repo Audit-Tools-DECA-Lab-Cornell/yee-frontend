@@ -91,12 +91,20 @@ These are the tokens used throughout all components via Tailwind utility classes
 
 | Token | Value | Usage |
 |---|---|---|
-| `--radius-sm` | `0.375rem` (6px) | Inputs, badges, tags |
-| `--radius-md` | `0.625rem` (10px) | Buttons, small cards |
-| `--radius-lg` | `0.875rem` (14px) | Cards, panels |
+| `--radius-sm` | `0.375rem` (6px) | Menu items, dropdown rows, small chips |
+| `--radius-control` | `0.5rem` (8px) | **Buttons, inputs, textareas, filters, segmented controls** |
+| `--radius-md` | `0.625rem` (10px) | Cards, tiles, table container, dropdown/popover panels, sidebar |
+| `--radius-lg` | `0.875rem` (14px) | Modals, sheets, large/outer cards |
 | `--radius-xl` | `1.25rem` (20px) | Major surfaces (auth panel) |
 
-**Hard cap:** Cards max at `rounded-lg` (14px). Full `rounded-full` only for pill badges and status dots.
+**Roundedness hierarchy (keep these in sync — this is the whole point):**
+menu items/chips `rounded-sm` (6) ≤ controls `rounded-control` (8) ≤ cards / table / popovers / sidebar
+`rounded-md` (10) ≤ modals / large cards `rounded-lg` (14). Pills & status dots use `rounded-full`.
+A control nested in a card should be one step less round than its container — never dramatically sharper.
+Never put `rounded-lg`/`rounded-xl` on a plain button. (Exception: the tall multi-select field triggers
+sit at `rounded-md` so text inputs at `rounded-control` read as one notch tighter.)
+
+**Control density:** default button `h-8`, `px-3`.
 
 ---
 
@@ -129,9 +137,41 @@ Three elevations:
 
 ---
 
+## Data Visualization
+
+All charts are hand-drawn SVG/CSS (no chart library). Colors come from tokens in
+`globals.css` — **never hardcode hex in a chart.**
+
+**Domain palette** — **single source of truth** in `globals.css`:
+`--domain-{access,activity,amenities,experience,aesthetics,use}-{text,strong,fill,light}`.
+The six YEE domains share one OKLCH lightness/chroma envelope anchored to the brand green, so they
+read as a coordinated family; only hue varies. `text` = labels/headings (dark, AA on white),
+`strong` = borders/lines/dots, `fill` = bars/areas, `light` = tint backgrounds.
+**Adjust a domain here and it flows everywhere** — charts, the reports page, the individual report,
+AND the audit wizard — because `yeeDomainThemes` (`features/yee-audit/config/yee-domain-theme.ts`) is
+the only mapping and it references nothing but these tokens: `*Hex` fields as raw `var(--domain-*)`
+(inline styles / SVG) and `*Class` fields as `domain-*` Tailwind utilities
+(`border-domain-access-strong`, `bg-domain-access-light`, `text-domain-access-text`, …). Never hardcode
+a domain color (no `emerald-*`/`blue-*`/etc.) — go through the theme.
+
+**Series palette** (`--chart-1 … --chart-5`): categorical colors for comparing N places/audits
+(radar, trend lines). Brand green leads; the rest are harmonized to the same muted envelope.
+
+**Score bands** (`--score-{high,mid,low}` + `-bg`): brand-tuned — deep green (high), muted gold (mid),
+restrained clay (low, not alarm-red). Use the single `scoreBand()` helper (`lib/score-band.ts`);
+never re-derive rose/amber/emerald inline.
+
+**Chart neutrals** (`--chart-grid`, `--chart-axis`): hairline grid rules and axis text.
+
+**Chart style:** editorial — oversized `tabular-nums` numerals, hairline grids, generous whitespace,
+one accent per chart. Reusable primitives live in `components/ui/charts/`.
+
+---
+
 ## Component Conventions
 
 **Buttons:**
+- Radius `rounded-control` (4px), tight density (default `h-8`, `px-3`) — crisp, not bulky
 - `default`/`primary` — brand green, white text
 - `outline` — white bg, border, dark text
 - `quiet` — ghost-like, no border at rest

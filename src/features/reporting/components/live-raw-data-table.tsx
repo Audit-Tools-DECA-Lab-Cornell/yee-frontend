@@ -2,15 +2,23 @@
 
 import * as React from "react";
 import { Database } from "lucide-react";
+import type { ColumnDef } from "@tanstack/react-table";
 
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { ClearFiltersButton, SearchableMultiSelectFilter } from "@/features/workspaces/components/table-filters";
 import { ExportCsvButton } from "@/features/reporting/components/export-csv-button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { DataTable } from "@/components/ui/data-table";
+import { DashboardHero } from "@/components/ui/dashboard-hero";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchRawData, type RawDataRecord } from "@/features/workspaces/api/live-api";
 import { formatNumber } from "@/lib/format";
+
+/** Two-decimal youth-weighted average, or an em dash while scores roll out. */
+function formatWeightedAverage(value?: number | null): string {
+	return value == null ? "—" : value.toFixed(2);
+}
 
 function toExportRows(rows: RawDataRecord[]) {
 	return rows.map(row => {
@@ -162,175 +170,186 @@ export function LiveRawDataTable({
 	const filtersActive =
 		selectedOrganizations.length > 0 || selectedProjectIds.length > 0 || selectedPlaceIds.length > 0;
 
-	return (
-		<Card>
-			<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-				<div>
-					<CardTitle>{title}</CardTitle>
-					<CardDescription>{description}</CardDescription>
+	function toggleRow(auditId: string) {
+		setSelectedAuditIds(current =>
+			current.includes(auditId) ? current.filter(id => id !== auditId) : [...current, auditId]
+		);
+	}
+
+	// Fresh each render so the selection checkboxes stay in sync; the raw-data
+	// export is admin-only and small, so re-deriving the table is inexpensive.
+	const rawDataColumns: ColumnDef<RawDataRecord>[] = [
+		{
+			id: "select",
+			enableSorting: false,
+			header: () => <span className="sr-only">Select</span>,
+			cell: ({ row }) => (
+				<input
+					type="checkbox"
+					aria-label={`Select audit for ${row.original.place_name}`}
+					checked={selectedAuditIds.includes(row.original.audit_id)}
+					onChange={() => toggleRow(row.original.audit_id)}
+				/>
+			)
+		},
+		{
+			accessorKey: "organization",
+			header: "Organization",
+			cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+		},
+		{
+			accessorKey: "auditor_generated_id",
+			header: "Auditor ID",
+			cell: ({ getValue }) => (
+				<span className="font-mono text-xs text-muted-foreground">{String(getValue())}</span>
+			)
+		},
+		{
+			accessorKey: "place_name",
+			header: "Place",
+			cell: ({ getValue }) => <span className="font-medium text-foreground">{String(getValue())}</span>
+		},
+		{
+			accessorKey: "project_name",
+			header: "Project",
+			cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+		},
+		{
+			accessorKey: "total_raw_score",
+			header: "Raw score",
+			cell: ({ row }) => (
+				<span className="tabular-nums text-foreground">{formatNumber(row.original.total_raw_score)}</span>
+			)
+		},
+		{
+			accessorKey: "total_weighted_score",
+			header: "Youth weighted avg",
+			cell: ({ row }) => (
+				<span className="tabular-nums text-foreground">
+					{formatWeightedAverage(row.original.total_weighted_score)}
+				</span>
+			)
+		}
+	];
+
+	const rawDataMobileCard = (row: RawDataRecord) => (
+		<div className="space-y-2 rounded-md border border-border bg-card p-4">
+			<div className="flex items-start gap-3">
+				<input
+					type="checkbox"
+					aria-label={`Select audit for ${row.place_name}`}
+					className="mt-1"
+					checked={selectedAuditIds.includes(row.audit_id)}
+					onChange={() => toggleRow(row.audit_id)}
+				/>
+				<div className="min-w-0 flex-1">
+					<p className="font-medium text-foreground">{row.place_name}</p>
+					<p className="text-sm text-muted-foreground">
+						{row.project_name} · {row.organization}
+					</p>
+					<p className="font-mono text-xs text-muted-foreground">{row.auditor_generated_id}</p>
 				</div>
-				<div className="flex flex-wrap gap-2">
-					<ExportCsvButton filename={filename} rows={toExportRows(rows)} label="Export All" />
-					<ExportCsvButton
-						filename={`filtered-${filename}`}
-						rows={toExportRows(filteredRows)}
-						label="Export Filtered"
-					/>
-					<ExportCsvButton
-						filename={`selected-${filename}`}
-						rows={toExportRows(selectedRows)}
-						label="Export Selected"
-					/>
-				</div>
-			</CardHeader>
-			<CardContent className="space-y-4">
-				{/* Filter toolbar */}
-				<div className="flex flex-wrap gap-2">
-					<SearchableMultiSelectFilter
-						label="Organization"
-						options={organizationOptions}
-						selectedValues={selectedOrganizations}
-						onChange={values => {
-							setSelectedOrganizations(values);
-							const scopedRows = rows.filter(
-								row => values.length === 0 || values.includes(row.organization)
-							);
-							const allowedProjectIds = new Set(scopedRows.map(row => row.project_id));
-							const allowedPlaceIds = new Set(scopedRows.map(row => row.place_id));
-							setSelectedProjectIds(current =>
-								current.filter(projectId => allowedProjectIds.has(projectId))
-							);
-							setSelectedPlaceIds(current => current.filter(placeId => allowedPlaceIds.has(placeId)));
-							setSelectedAuditIds([]);
-						}}
-					/>
-					<SearchableMultiSelectFilter
-						label="Project"
-						options={projectOptions}
-						selectedValues={selectedProjectIds}
-						onChange={values => {
-							setSelectedProjectIds(values);
-							if (values.length === 0) {
-								setSelectedPlaceIds([]);
-								setSelectedAuditIds([]);
-								return;
-							}
-							const allowedPlaceIds = new Set(
-								rows.filter(row => values.includes(row.project_id)).map(row => row.place_id)
-							);
-							setSelectedPlaceIds(current => current.filter(placeId => allowedPlaceIds.has(placeId)));
-							setSelectedAuditIds([]);
-						}}
-					/>
-					<SearchableMultiSelectFilter
-						label="Place"
-						options={placeOptions}
-						selectedValues={selectedPlaceIds}
-						onChange={values => {
-							setSelectedPlaceIds(values);
-							setSelectedAuditIds([]);
-						}}
-					/>
-					<ClearFiltersButton
-						disabled={!filtersActive}
-						onClick={() => {
-							setSelectedOrganizations([]);
-							setSelectedProjectIds([]);
+			</div>
+			<div className="flex justify-between text-sm tabular-nums text-foreground">
+				<span>Raw: {formatNumber(row.total_raw_score)}</span>
+				<span>Youth weighted: {formatWeightedAverage(row.total_weighted_score)}</span>
+			</div>
+		</div>
+	);
+
+	const toolbar = (
+		<div className="flex flex-col flex-wrap items-start gap-3">
+			<div className="flex flex-wrap justify-start items-start w-full gap-3">
+				<SearchableMultiSelectFilter
+					label="Organization"
+					options={organizationOptions}
+					selectedValues={selectedOrganizations}
+					onChange={values => {
+						setSelectedOrganizations(values);
+						const scopedRows = rows.filter(row => values.length === 0 || values.includes(row.organization));
+						const allowedProjectIds = new Set(scopedRows.map(row => row.project_id));
+						const allowedPlaceIds = new Set(scopedRows.map(row => row.place_id));
+						setSelectedProjectIds(current => current.filter(projectId => allowedProjectIds.has(projectId)));
+						setSelectedPlaceIds(current => current.filter(placeId => allowedPlaceIds.has(placeId)));
+						setSelectedAuditIds([]);
+					}}
+				/>
+				<SearchableMultiSelectFilter
+					label="Project"
+					options={projectOptions}
+					selectedValues={selectedProjectIds}
+					onChange={values => {
+						setSelectedProjectIds(values);
+						if (values.length === 0) {
 							setSelectedPlaceIds([]);
 							setSelectedAuditIds([]);
-						}}
-					/>
-				</div>
+							return;
+						}
+						const allowedPlaceIds = new Set(
+							rows.filter(row => values.includes(row.project_id)).map(row => row.place_id)
+						);
+						setSelectedPlaceIds(current => current.filter(placeId => allowedPlaceIds.has(placeId)));
+						setSelectedAuditIds([]);
+					}}
+				/>
+				<SearchableMultiSelectFilter
+					label="Place"
+					options={placeOptions}
+					selectedValues={selectedPlaceIds}
+					onChange={values => {
+						setSelectedPlaceIds(values);
+						setSelectedAuditIds([]);
+					}}
+				/>
+				<ClearFiltersButton
+					disabled={!filtersActive}
+					onClick={() => {
+						setSelectedOrganizations([]);
+						setSelectedProjectIds([]);
+						setSelectedPlaceIds([]);
+						setSelectedAuditIds([]);
+					}}
+				/>
+			</div>
+			<div className="flex flex-wrap justify-start items-start w-full gap-3">
+				<ExportCsvButton filename={filename} rows={toExportRows(rows)} label="Export All" />
+				<ExportCsvButton
+					filename={`filtered-${filename}`}
+					rows={toExportRows(filteredRows)}
+					label="Export Filtered"
+				/>
+				<ExportCsvButton
+					filename={`selected-${filename}`}
+					rows={toExportRows(selectedRows)}
+					label="Export Selected"
+				/>
+			</div>
+		</div>
+	);
 
-				{rows.length === 0 ? (
-					<EmptyState
-						icon={Database}
-						title="No audit data yet"
-						description={`No submitted YEE audits are available for ${scope} export. Data will appear here once audits are completed and submitted.`}
-					/>
-				) : (
-					<div className="overflow-x-auto rounded-md border border-border">
-						<table
-							className="min-w-full text-left text-sm"
-							aria-label={`${title} - ${filteredRows.length} rows`}>
-							<caption className="sr-only">
-								{title}: {filteredRows.length} of {rows.length} audit records shown
-							</caption>
-							<thead>
-								<tr className="border-b border-border bg-muted/40">
-									<th
-										scope="col"
-										className="py-3 pl-4 pr-3 text-xs font-medium text-muted-foreground">
-										Select
-									</th>
-									<th scope="col" className="py-3 pr-4 text-xs font-medium text-muted-foreground">
-										Organization
-									</th>
-									<th scope="col" className="py-3 pr-4 text-xs font-medium text-muted-foreground">
-										Auditor ID
-									</th>
-									<th scope="col" className="py-3 pr-4 text-xs font-medium text-muted-foreground">
-										Place
-									</th>
-									<th scope="col" className="py-3 pr-4 text-xs font-medium text-muted-foreground">
-										Project
-									</th>
-									<th
-										scope="col"
-										className="py-3 pr-4 text-right text-xs font-medium text-muted-foreground">
-										Raw Score
-									</th>
-									<th
-										scope="col"
-										className="py-3 pr-4 text-right text-xs font-medium text-muted-foreground">
-										Youth Weighted Avg
-									</th>
-								</tr>
-							</thead>
-							<tbody className="divide-y divide-border">
-								{filteredRows.length === 0 ? (
-									<tr>
-										<td colSpan={7} className="py-12 text-center text-sm text-muted-foreground">
-											No raw data rows match the selected filters.
-										</td>
-									</tr>
-								) : (
-									filteredRows.map(row => (
-										<tr key={row.audit_id} className="hover:bg-muted/30 transition-colors">
-											<td className="py-3 pl-4 pr-3">
-												<input
-													type="checkbox"
-													aria-label={`Select audit for ${row.place_name}`}
-													checked={selectedAuditIds.includes(row.audit_id)}
-													onChange={() =>
-														setSelectedAuditIds(current =>
-															current.includes(row.audit_id)
-																? current.filter(id => id !== row.audit_id)
-																: [...current, row.audit_id]
-														)
-													}
-												/>
-											</td>
-											<td className="py-3 pr-4 text-muted-foreground">{row.organization}</td>
-											<td className="py-3 pr-4 font-mono text-xs text-muted-foreground">
-												{row.auditor_generated_id}
-											</td>
-											<td className="py-3 pr-4 font-medium text-foreground">{row.place_name}</td>
-											<td className="py-3 pr-4 text-muted-foreground">{row.project_name}</td>
-											<td className="py-3 pr-4 text-right tabular-nums text-foreground">
-												{formatNumber(row.total_raw_score)}
-											</td>
-											<td className="py-3 pr-4 text-right tabular-nums text-foreground">
-												{row.total_weighted_score.toFixed(2)}
-											</td>
-										</tr>
-									))
-								)}
-							</tbody>
-						</table>
-					</div>
-				)}
-			</CardContent>
-		</Card>
+	return (
+		<div className="space-y-6">
+			<DashboardHero size="compact" title={title} subtitle={description} />
+			<Card>
+				<CardContent>
+					{rows.length === 0 ? (
+						<EmptyState
+							icon={Database}
+							title="No audit data yet"
+							description={`No submitted YEE audits are available for ${scope} export. Data will appear here once audits are completed and submitted.`}
+						/>
+					) : (
+						<DataTable
+							columns={rawDataColumns}
+							data={filteredRows}
+							getRowId={row => row.audit_id}
+							noResults="No raw data rows match the selected filters."
+							mobileCard={rawDataMobileCard}
+							toolbar={toolbar}
+						/>
+					)}
+				</CardContent>
+			</Card>
+		</div>
 	);
 }

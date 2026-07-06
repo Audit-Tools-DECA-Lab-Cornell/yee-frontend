@@ -74,9 +74,10 @@ function getSelectedAnswerLabel(item: InstrumentItem, answerId: string | null | 
 
 function buildQuestionColumns(submission: YeeSubmissionRecord, instrument: InstrumentResponse) {
 	const columns: Record<string, string> = {};
+	const participantInfo: Record<string, unknown> = submission.participant_info ?? {};
 	const sectionComments =
-		submission.participant_info.section_comments && typeof submission.participant_info.section_comments === "object"
-			? (submission.participant_info.section_comments as Partial<Record<YeeDomainKey, string>>)
+		participantInfo.section_comments && typeof participantInfo.section_comments === "object"
+			? (participantInfo.section_comments as Partial<Record<YeeDomainKey, string>>)
 			: {};
 	for (const [domainKey, label] of Object.entries(yeeDomainLabels) as [YeeDomainKey, string][]) {
 		const items = filterItemsForDomain(instrument.scoring_items, label);
@@ -147,7 +148,7 @@ async function downloadSingleSubmissionCsv(submission: YeeSubmissionRecord) {
 		"Submitted At": submission.submitted_at,
 		"Raw Score": submission.score.total_score
 	};
-	for (const [key, value] of Object.entries(submission.participant_info)) {
+	for (const [key, value] of Object.entries(submission.participant_info ?? {})) {
 		if (key === "domain_weights" || key === "section_comments") continue;
 		row[`Participant ${normalizeText(key.replace(/_/g, " "))}`] =
 			typeof value === "object" ? JSON.stringify(value) : String(value ?? "");
@@ -316,10 +317,7 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 
 	if (loading) {
 		return (
-			<main
-				className="mx-auto max-w-5xl space-y-6 p-4 sm:p-6"
-				aria-busy="true"
-				aria-label="Loading submitted audit">
+			<div className="space-y-6" aria-busy="true" aria-label="Loading submitted audit">
 				<div className="space-y-3">
 					<Skeleton className="h-4 w-40 rounded-full" />
 					<Skeleton className="h-8 w-72 rounded-sm" />
@@ -328,13 +326,13 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 				<Skeleton className="h-36 w-full rounded-md" />
 				<Skeleton className="h-64 w-full rounded-md" />
 				<Skeleton className="h-96 w-full rounded-md" />
-			</main>
+			</div>
 		);
 	}
 
 	if (error || !submission) {
 		return (
-			<main className="mx-auto flex max-w-5xl justify-center p-6">
+			<div className="flex justify-center">
 				<Card className="mt-12 w-full max-w-md rounded-md text-center">
 					<CardContent className="flex flex-col items-center gap-4 py-10">
 						<span className="flex h-11 w-11 items-center justify-center rounded-full bg-destructive/10 text-destructive">
@@ -354,19 +352,20 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 						</Button>
 					</CardContent>
 				</Card>
-			</main>
+			</div>
 		);
 	}
 
-	const normalizedWeights = normalizeWeights(submission.participant_info.domain_weights);
+	// A partial/incomplete submission payload (e.g. during backend rollout) can omit
+	// participant_info entirely; default it so the report renders instead of throwing.
+	const participantInfo: Record<string, unknown> = submission.participant_info ?? {};
+	const normalizedWeights = normalizeWeights(participantInfo.domain_weights);
 	const sectionComments =
-		submission.participant_info.section_comments && typeof submission.participant_info.section_comments === "object"
-			? (submission.participant_info.section_comments as Partial<Record<YeeDomainKey, string>>)
+		participantInfo.section_comments && typeof participantInfo.section_comments === "object"
+			? (participantInfo.section_comments as Partial<Record<YeeDomainKey, string>>)
 			: {};
 	const weightingComments =
-		typeof submission.participant_info.weighting_comments === "string"
-			? submission.participant_info.weighting_comments
-			: "";
+		typeof participantInfo.weighting_comments === "string" ? participantInfo.weighting_comments : "";
 	const dashboardHref =
 		session?.user.account_type === "MANAGER"
 			? "/manager"
@@ -384,7 +383,7 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 	const auditorLabel = submission.auditor_generated_id || submission.auditor_id;
 
 	return (
-		<main className="mx-auto max-w-5xl space-y-6 p-4 sm:p-6">
+		<div className="space-y-6">
 			<style jsx global>{`
 				@media print {
 					* {
@@ -467,13 +466,10 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 						<MetaField label="Place" value={placeName} />
 						<MetaField label="Auditor ID" value={auditorLabel} />
 						<MetaField label="Submitted" value={formatSubmittedAt(submission.submitted_at)} />
-						<MetaField label="Audit date" value={String(submission.participant_info.audit_date || "")} />
-						<MetaField
-							label="Visit frequency"
-							value={String(submission.participant_info.visit_frequency || "")}
-						/>
-						<MetaField label="Season" value={String(submission.participant_info.season || "")} />
-						<MetaField label="Weather" value={String(submission.participant_info.weather || "")} />
+						<MetaField label="Audit date" value={String(participantInfo.audit_date || "")} />
+						<MetaField label="Visit frequency" value={String(participantInfo.visit_frequency || "")} />
+						<MetaField label="Season" value={String(participantInfo.season || "")} />
+						<MetaField label="Weather" value={String(participantInfo.weather || "")} />
 						<MetaField label="Submission ID" value={submission.id} mono />
 					</dl>
 				</CardContent>
@@ -548,7 +544,7 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 					<dl className="divide-y divide-border/60">
 						<CommentRow
 							label="Overall"
-							value={String(submission.participant_info.comments || "")}
+							value={String(participantInfo.comments || "")}
 							emptyText="No overall comments submitted."
 						/>
 						{!weightingComments ? (
@@ -598,6 +594,6 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 					</Button>
 				</div>
 			</div>
-		</main>
+		</div>
 	);
 }

@@ -7,6 +7,7 @@ import { CheckCircle2, MailPlus } from "lucide-react";
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DashboardHero } from "@/components/ui/dashboard-hero";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -135,6 +136,12 @@ export default function InviteManagerPage() {
 
 	return (
 		<div className="space-y-6">
+			<DashboardHero
+				size="compact"
+				badge="Managers"
+				title="Manager invites"
+				subtitle="Invite an additional manager into your organization and track pending, accepted, and expired invitations."
+			/>
 			<Card>
 				<CardHeader>
 					<CardTitle>Invite a manager</CardTitle>

@@ -26,7 +26,7 @@ export function SectionTextEditor({ content, update }: { content: StructuredInst
 					sections.map((section, index) => (
 						<div
 							key={`${section.block}-${index}`}
-							className="space-y-3 rounded-lg border border-border bg-muted/60 p-4">
+							className="space-y-3 rounded-md border border-border bg-muted/60 p-4">
 							<p className="break-words text-sm font-semibold text-foreground">
 								{cleanInstrumentText(section.title || section.block)}
 							</p>
@@ -78,7 +78,7 @@ export function SectionTextEditor({ content, update }: { content: StructuredInst
 			<div className="space-y-4">
 				<p className="text-sm font-medium text-foreground">Question wording</p>
 				{groups.map(group => (
-					<div key={group.blockKey} className="space-y-3 rounded-lg border border-border bg-muted/60 p-4">
+					<div key={group.blockKey} className="space-y-3 rounded-md border border-border bg-muted/60 p-4">
 						<p className="break-words text-sm font-semibold text-foreground">
 							{cleanInstrumentText(group.section?.title || group.items[0]?.block_title || group.blockKey)}
 						</p>
@@ -88,7 +88,7 @@ export function SectionTextEditor({ content, update }: { content: StructuredInst
 							return (
 								<div
 									key={item.item_id}
-									className="space-y-2 rounded-lg border border-border bg-card p-3">
+									className="space-y-2 rounded-md border border-border bg-card p-3">
 									<IdTag>{item.item_id}</IdTag>
 									{editableEntries.map(entry => (
 										<div key={entry.entryKey} className="space-y-2">

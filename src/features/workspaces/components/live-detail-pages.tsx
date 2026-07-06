@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import * as React from "react";
 import { ArrowRight, ClipboardList, FileBarChart2, MapPin, Users2 } from "lucide-react";
+import type { ColumnDef } from "@tanstack/react-table";
 
 import { AssignmentPanel } from "@/features/manager/components/assignment-panel";
 import { useAuth } from "@/features/auth/components/auth-provider";
@@ -11,6 +12,12 @@ import { PlaceComparisonPanel } from "@/features/reporting/components/place-comp
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DataTable } from "@/components/ui/data-table";
+import { DashboardHero } from "@/components/ui/dashboard-hero";
+import { EmptyState } from "@/components/ui/empty-state";
+import { StatusBadge } from "@/components/ui/status-badge";
+import type { StatusTone } from "@/lib/status";
+import { TableSkeleton } from "@/components/ui/skeletons";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
 	deleteAssignment,
@@ -18,11 +25,19 @@ import {
 	fetchProjectDetail,
 	type AuditRecord,
 	type PlaceAuditorRecord,
+	type PlaceComparisonAuditRecord,
 	type PlaceDetailRecord,
 	type ProjectAuditorRecord,
 	type ProjectDetailRecord,
 	type ProjectPlaceRecord
 } from "@/features/workspaces/api/live-api";
+/**
+ * Muted, field-specific placeholder for an empty setup-detail value — instead of
+ * a wall of identical "Not specified yet." lines that read like real data.
+ */
+function emptyHint(text: string) {
+	return <span className="text-muted-foreground/70 italic">{text}</span>;
+}
 
 function buildStaticMapUrl(apiKey: string | undefined, query: string) {
 	if (!apiKey || !query) return null;
@@ -30,11 +45,7 @@ function buildStaticMapUrl(apiKey: string | undefined, query: string) {
 }
 
 function LoadingState({ label }: { label: string }) {
-	return (
-		<Card className="rounded-md border-border/80 bg-white shadow-sm">
-			<CardContent className="p-6 text-sm text-muted-foreground">Loading {label}...</CardContent>
-		</Card>
-	);
+	return <TableSkeleton aria-label={`Loading ${label}…`} />;
 }
 
 function ErrorState({ message }: { message: string }) {
@@ -45,8 +56,12 @@ function ErrorState({ message }: { message: string }) {
 	);
 }
 
-function EmptyTable({ message }: { message: string }) {
-	return <p className="text-sm leading-6 text-muted-foreground">{message}</p>;
+/** Map a free-text status string to a shared StatusBadge tone. */
+function statusTone(status: string): StatusTone {
+	const value = status.toLowerCase();
+	if (/(active|submitted|complete|up to date|assigned|ready|locked)/.test(value)) return "success";
+	if (/(draft|progress|pending|await|invite)/.test(value)) return "warning";
+	return "secondary";
 }
 
 function DetailMetric({ label, value, description }: { label: string; value: string; description: string }) {
@@ -80,7 +95,7 @@ function DetailActionCard({
 			</CardHeader>
 			<CardContent className="flex flex-col items-center justify-between gap-4 text-sm leading-6 text-muted-foreground">
 				<p>{description}</p>
-				<Button asChild className="rounded-md w-full bg-primary text-white hover:bg-primary/90">
+				<Button asChild className="w-full bg-primary text-white hover:bg-primary/90">
 					<Link href={href}>
 						{actionLabel}
 						<ArrowRight className="size-4" />
@@ -137,6 +152,49 @@ function useProtectedLoader<T>(
 	};
 }
 
+const latestAuditColumns: ColumnDef<AuditRecord>[] = [
+	{
+		accessorKey: "place",
+		header: "Place",
+		cell: ({ getValue }) => <span className="font-medium text-foreground">{String(getValue())}</span>
+	},
+	{
+		accessorKey: "auditor",
+		header: "Auditor ID",
+		cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+	},
+	{
+		accessorKey: "date",
+		header: "Date",
+		cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+	},
+	{
+		accessorKey: "score",
+		header: "Score",
+		cell: ({ getValue }) => <span className="text-muted-foreground tabular-nums">{String(getValue() || "—")}</span>
+	},
+	{
+		accessorKey: "status",
+		header: "Status",
+		cell: ({ getValue }) => <StatusBadge label={String(getValue())} tone={statusTone(String(getValue()))} />
+	}
+];
+
+function AuditMobileCard({ audit }: { audit: AuditRecord }) {
+	return (
+		<div className="space-y-2 rounded-md border border-border bg-card p-4">
+			<div className="flex items-start justify-between gap-3">
+				<p className="font-medium text-foreground">{audit.place}</p>
+				<StatusBadge label={audit.status} tone={statusTone(audit.status)} />
+			</div>
+			<p className="text-sm text-muted-foreground">
+				{audit.auditor} · {audit.date}
+			</p>
+			<p className="text-sm tabular-nums text-muted-foreground">Score: {audit.score || "—"}</p>
+		</div>
+	);
+}
+
 function LatestAuditTable({ audits }: { audits: AuditRecord[] }) {
 	return (
 		<Card className="rounded-md border-border/80 bg-white shadow-sm">
@@ -144,41 +202,80 @@ function LatestAuditTable({ audits }: { audits: AuditRecord[] }) {
 				<CardTitle>Latest Audits</CardTitle>
 				<CardDescription>Recent Audit activity already linked to this scope.</CardDescription>
 			</CardHeader>
-			<CardContent className="overflow-x-auto">
-				{audits.length === 0 ? (
-					<EmptyTable message="No Audits have been recorded here yet." />
-				) : (
-					<table className="min-w-full text-left text-sm">
-						<thead className="text-muted-foreground">
-							<tr className="border-b border-border">
-								<th className="py-3 pr-4 font-medium">Place</th>
-								<th className="py-3 pr-4 font-medium">Auditor ID</th>
-								<th className="py-3 pr-4 font-medium">Date</th>
-								<th className="py-3 pr-4 font-medium">Score</th>
-								<th className="py-3 font-medium">Status</th>
-							</tr>
-						</thead>
-						<tbody>
-							{audits.map(audit => (
-								<tr key={audit.id} className="border-b border-border last:border-0">
-									<td className="py-4 pr-4 font-medium text-foreground">{audit.place}</td>
-									<td className="py-4 pr-4 text-muted-foreground">{audit.auditor}</td>
-									<td className="py-4 pr-4 text-muted-foreground">{audit.date}</td>
-									<td className="py-4 pr-4 text-muted-foreground">{audit.score || "-"}</td>
-									<td className="py-4">
-										<Badge
-											variant="secondary"
-											className="rounded-full bg-sky-50 text-sky-700 hover:bg-sky-50">
-											{audit.status}
-										</Badge>
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
-				)}
+			<CardContent>
+				<DataTable
+					columns={latestAuditColumns}
+					data={audits}
+					getRowId={row => row.id}
+					hideColumnMenu
+					emptyState={
+						<EmptyState title="No audits yet" description="No Audits have been recorded here yet." />
+					}
+					mobileCard={audit => <AuditMobileCard audit={audit} />}
+				/>
 			</CardContent>
 		</Card>
+	);
+}
+
+const projectPlaceColumns: ColumnDef<ProjectPlaceRecord>[] = [
+	{
+		accessorKey: "name",
+		header: "Place",
+		cell: ({ row }) => (
+			<Link href={`/manager/places/${row.original.id}`} className="font-medium text-foreground hover:underline">
+				{row.original.name}
+			</Link>
+		)
+	},
+	{
+		accessorKey: "address",
+		header: "Address",
+		cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+	},
+	{
+		accessorKey: "audits",
+		header: "Audits",
+		cell: ({ getValue }) => <span className="text-muted-foreground tabular-nums">{String(getValue())}</span>
+	},
+	{
+		accessorKey: "last_audit",
+		header: "Submitted Audits",
+		cell: ({ getValue }) => <span className="text-muted-foreground tabular-nums">{String(getValue())}</span>
+	},
+	{
+		accessorKey: "status",
+		header: "Status",
+		cell: ({ getValue }) => <StatusBadge label={String(getValue())} tone={statusTone(String(getValue()))} />
+	},
+	{
+		id: "action",
+		header: "",
+		enableSorting: false,
+		cell: ({ row }) => (
+			<Link
+				href={`/manager/places/${row.original.id}`}
+				className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+				Open <ArrowRight className="size-4" />
+			</Link>
+		)
+	}
+];
+
+function PlaceRowMobileCard({ place }: { place: ProjectPlaceRecord }) {
+	return (
+		<Link
+			href={`/manager/places/${place.id}`}
+			className="block space-y-2 rounded-md border border-border bg-card p-4">
+			<div className="flex items-start justify-between gap-3">
+				<p className="font-medium text-foreground">{place.name}</p>
+				<StatusBadge label={place.status} tone={statusTone(place.status)} />
+			</div>
+			<p className="text-sm text-muted-foreground">{place.address}</p>
+			<p className="text-sm tabular-nums text-muted-foreground">
+				{place.audits} audits · {place.last_audit} submitted
+			</p>
+		</Link>
 	);
 }
 
@@ -191,56 +288,20 @@ function ProjectPlacesTable({ rows }: { rows: ProjectPlaceRecord[] }) {
 					These Places are currently attached to the Project and available for YEE work.
 				</CardDescription>
 			</CardHeader>
-			<CardContent className="overflow-x-auto">
-				{rows.length === 0 ? (
-					<EmptyTable message="No Places have been added to this Project yet." />
-				) : (
-					<table className="min-w-full text-left text-sm">
-						<thead className="text-muted-foreground">
-							<tr className="border-b border-border">
-								<th className="py-3 pr-4 font-medium">Place</th>
-								<th className="py-3 pr-4 font-medium">Address</th>
-								<th className="py-3 pr-4 font-medium">Audits</th>
-								<th className="py-3 pr-4 font-medium">Submitted Audits</th>
-								<th className="py-3 pr-4 font-medium">Status</th>
-								<th className="py-3 font-medium">Action</th>
-							</tr>
-						</thead>
-						<tbody>
-							{rows.map(place => (
-								<tr
-									key={place.id}
-									className="border-b border-border last:border-0 transition hover:bg-muted/40">
-									<td className="py-4 pr-4 font-medium text-foreground">
-										<Link
-											href={`/manager/places/${place.id}`}
-											className="hover:text-foreground hover:underline">
-											{place.name}
-										</Link>
-									</td>
-									<td className="py-4 pr-4 text-muted-foreground">{place.address}</td>
-									<td className="py-4 pr-4 text-muted-foreground">{place.audits}</td>
-									<td className="py-4 pr-4 text-muted-foreground">{place.last_audit}</td>
-									<td className="py-4 pr-4">
-										<Badge
-											variant="secondary"
-											className="rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
-											{place.status}
-										</Badge>
-									</td>
-									<td className="py-4">
-										<Link
-											href={`/manager/places/${place.id}`}
-											className="inline-flex items-center gap-1 text-sm text-foreground hover:text-foreground">
-											Open
-											<ArrowRight className="size-4" />
-										</Link>
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
-				)}
+			<CardContent>
+				<DataTable
+					columns={projectPlaceColumns}
+					data={rows}
+					getRowId={row => row.id}
+					hideColumnMenu
+					emptyState={
+						<EmptyState
+							title="No places yet"
+							description="No Places have been added to this Project yet."
+						/>
+					}
+					mobileCard={place => <PlaceRowMobileCard place={place} />}
+				/>
 			</CardContent>
 		</Card>
 	);
@@ -255,60 +316,96 @@ function ProjectAuditorsTable({
 	onRemove?: (auditor: ProjectAuditorRecord) => void;
 	removingAuditorId?: string | null;
 }) {
+	const columns = React.useMemo<ColumnDef<ProjectAuditorRecord>[]>(() => {
+		const base: ColumnDef<ProjectAuditorRecord>[] = [
+			{
+				accessorKey: "name",
+				header: "Auditor",
+				cell: ({ getValue }) => <span className="font-medium text-foreground">{String(getValue())}</span>
+			},
+			{
+				accessorKey: "auditor_id",
+				header: "Generated ID",
+				cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+			},
+			{
+				accessorKey: "assigned_places",
+				header: "Assigned Places",
+				cell: ({ getValue }) => <span className="text-muted-foreground tabular-nums">{String(getValue())}</span>
+			},
+			{
+				accessorKey: "completed_audits",
+				header: "Completed Audits",
+				cell: ({ getValue }) => <span className="text-muted-foreground tabular-nums">{String(getValue())}</span>
+			},
+			{
+				accessorKey: "status",
+				header: "Status",
+				cell: ({ getValue }) => <StatusBadge label={String(getValue())} tone={statusTone(String(getValue()))} />
+			}
+		];
+		if (onRemove) {
+			base.push({
+				id: "action",
+				header: "",
+				enableSorting: false,
+				cell: ({ row }) => (
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						disabled={removingAuditorId === row.original.id}
+						onClick={() => onRemove(row.original)}>
+						{removingAuditorId === row.original.id ? "Removing…" : "Remove from project"}
+					</Button>
+				)
+			});
+		}
+		return base;
+	}, [onRemove, removingAuditorId]);
+
 	return (
 		<Card className="rounded-md border-border/80 bg-white shadow-sm">
 			<CardHeader>
 				<CardTitle>Assigned Auditors</CardTitle>
 				<CardDescription>Auditors linked to at least one Place inside this Project.</CardDescription>
 			</CardHeader>
-			<CardContent className="overflow-x-auto">
-				{rows.length === 0 ? (
-					<EmptyTable message="No Auditors have been assigned to Places in this Project yet." />
-				) : (
-					<table className="min-w-full text-left text-sm">
-						<thead className="text-muted-foreground">
-							<tr className="border-b border-border">
-								<th className="py-3 pr-4 font-medium">Auditor</th>
-								<th className="py-3 pr-4 font-medium">Generated ID</th>
-								<th className="py-3 pr-4 font-medium">Assigned Places</th>
-								<th className="py-3 pr-4 font-medium">Completed Audits</th>
-								<th className="py-3 pr-4 font-medium">Status</th>
-								<th className="py-3 font-medium">Action</th>
-							</tr>
-						</thead>
-						<tbody>
-							{rows.map(auditor => (
-								<tr key={auditor.id} className="border-b border-border last:border-0">
-									<td className="py-4 pr-4 font-medium text-foreground">{auditor.name}</td>
-									<td className="py-4 pr-4 text-muted-foreground">{auditor.auditor_id}</td>
-									<td className="py-4 pr-4 text-muted-foreground">{auditor.assigned_places}</td>
-									<td className="py-4 pr-4 text-muted-foreground">{auditor.completed_audits}</td>
-									<td className="py-4">
-										<Badge
-											variant="secondary"
-											className="rounded-full bg-slate-100 text-foreground hover:bg-slate-100">
-											{auditor.status}
-										</Badge>
-									</td>
-									<td className="py-4">
-										{onRemove ? (
-											<Button
-												type="button"
-												variant="outline"
-												className="rounded-md"
-												disabled={removingAuditorId === auditor.id}
-												onClick={() => onRemove(auditor)}>
-												{removingAuditorId === auditor.id
-													? "Removing..."
-													: "Remove from project"}
-											</Button>
-										) : null}
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
-				)}
+			<CardContent>
+				<DataTable
+					columns={columns}
+					data={rows}
+					getRowId={row => row.id}
+					hideColumnMenu
+					emptyState={
+						<EmptyState
+							title="No auditors yet"
+							description="No Auditors have been assigned to Places in this Project yet."
+						/>
+					}
+					mobileCard={auditor => (
+						<div className="space-y-2 rounded-md border border-border bg-card p-4">
+							<div className="flex items-start justify-between gap-3">
+								<p className="font-medium text-foreground">{auditor.name}</p>
+								<StatusBadge label={auditor.status} tone={statusTone(auditor.status)} />
+							</div>
+							<p className="text-sm text-muted-foreground">{auditor.auditor_id}</p>
+							<p className="text-sm tabular-nums text-muted-foreground">
+								{auditor.assigned_places} places · {auditor.completed_audits} completed
+							</p>
+							{onRemove ? (
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									className="w-full"
+									disabled={removingAuditorId === auditor.id}
+									onClick={() => onRemove(auditor)}>
+									{removingAuditorId === auditor.id ? "Removing…" : "Remove from project"}
+								</Button>
+							) : null}
+						</div>
+					)}
+				/>
 			</CardContent>
 		</Card>
 	);
@@ -323,60 +420,159 @@ function PlaceAuditorsTable({
 	onRemove?: (auditor: PlaceAuditorRecord) => void;
 	removingAuditorId?: string | null;
 }) {
+	const columns = React.useMemo<ColumnDef<PlaceAuditorRecord>[]>(() => {
+		const base: ColumnDef<PlaceAuditorRecord>[] = [
+			{
+				accessorKey: "name",
+				header: "Auditor",
+				cell: ({ getValue }) => <span className="font-medium text-foreground">{String(getValue())}</span>
+			},
+			{
+				accessorKey: "auditor_id",
+				header: "Generated ID",
+				cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+			},
+			{
+				accessorKey: "status",
+				header: "Status",
+				cell: ({ getValue }) => <StatusBadge label={String(getValue())} tone={statusTone(String(getValue()))} />
+			},
+			{
+				accessorKey: "audit_count",
+				header: "Submitted audits",
+				cell: ({ getValue }) => <span className="text-muted-foreground tabular-nums">{String(getValue())}</span>
+			},
+			{
+				accessorKey: "last_audit",
+				header: "Last audit",
+				cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+			}
+		];
+		if (onRemove) {
+			base.push({
+				id: "action",
+				header: "",
+				enableSorting: false,
+				cell: ({ row }) => (
+					<Button
+						type="button"
+						variant="outline"
+						size="sm"
+						disabled={removingAuditorId === row.original.id}
+						onClick={() => onRemove(row.original)}>
+						{removingAuditorId === row.original.id ? "Removing…" : "Unassign"}
+					</Button>
+				)
+			});
+		}
+		return base;
+	}, [onRemove, removingAuditorId]);
+
 	return (
 		<Card className="rounded-md border-border/80 bg-white shadow-sm">
 			<CardHeader>
 				<CardTitle>Assigned auditors</CardTitle>
 				<CardDescription>Place assignments and submission status for each auditor.</CardDescription>
 			</CardHeader>
-			<CardContent className="overflow-x-auto">
-				{rows.length === 0 ? (
-					<EmptyTable message="No auditors have been assigned to this place yet." />
-				) : (
-					<table className="min-w-full text-left text-sm">
-						<thead className="text-muted-foreground">
-							<tr className="border-b border-border">
-								<th className="py-3 pr-4 font-medium">Auditor</th>
-								<th className="py-3 pr-4 font-medium">Generated ID</th>
-								<th className="py-3 pr-4 font-medium">Status</th>
-								<th className="py-3 pr-4 font-medium">Submitted audits</th>
-								<th className="py-3 pr-4 font-medium">Last audit</th>
-								<th className="py-3 font-medium">Action</th>
-							</tr>
-						</thead>
-						<tbody>
-							{rows.map(auditor => (
-								<tr key={auditor.id} className="border-b border-border last:border-0">
-									<td className="py-4 pr-4 font-medium text-foreground">{auditor.name}</td>
-									<td className="py-4 pr-4 text-muted-foreground">{auditor.auditor_id}</td>
-									<td className="py-4 pr-4">
-										<Badge
-											variant="secondary"
-											className="rounded-full bg-slate-100 text-foreground hover:bg-slate-100">
-											{auditor.status}
-										</Badge>
-									</td>
-									<td className="py-4 pr-4 text-muted-foreground">{auditor.audit_count}</td>
-									<td className="py-4 pr-4 text-muted-foreground">{auditor.last_audit}</td>
-									<td className="py-4">
-										{onRemove ? (
-											<Button
-												type="button"
-												variant="outline"
-												className="rounded-md"
-												disabled={removingAuditorId === auditor.id}
-												onClick={() => onRemove(auditor)}>
-												{removingAuditorId === auditor.id ? "Removing..." : "Unassign"}
-											</Button>
-										) : null}
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
-				)}
+			<CardContent>
+				<DataTable
+					columns={columns}
+					data={rows}
+					getRowId={row => row.id}
+					hideColumnMenu
+					emptyState={
+						<EmptyState
+							title="No auditors yet"
+							description="No auditors have been assigned to this place yet."
+						/>
+					}
+					mobileCard={auditor => (
+						<div className="space-y-2 rounded-md border border-border bg-card p-4">
+							<div className="flex items-start justify-between gap-3">
+								<p className="font-medium text-foreground">{auditor.name}</p>
+								<StatusBadge label={auditor.status} tone={statusTone(auditor.status)} />
+							</div>
+							<p className="text-sm text-muted-foreground">{auditor.auditor_id}</p>
+							<p className="text-sm tabular-nums text-muted-foreground">
+								{auditor.audit_count} submitted · last {auditor.last_audit}
+							</p>
+							{onRemove ? (
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									className="w-full"
+									disabled={removingAuditorId === auditor.id}
+									onClick={() => onRemove(auditor)}>
+									{removingAuditorId === auditor.id ? "Removing…" : "Unassign"}
+								</Button>
+							) : null}
+						</div>
+					)}
+				/>
 			</CardContent>
 		</Card>
+	);
+}
+
+const submittedReportColumns: ColumnDef<PlaceComparisonAuditRecord>[] = [
+	{
+		accessorKey: "auditor_id",
+		header: "Auditor ID",
+		cell: ({ getValue }) => <span className="font-medium text-foreground">{String(getValue())}</span>
+	},
+	{
+		accessorKey: "date",
+		header: "Submitted",
+		cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+	},
+	{
+		id: "raw",
+		header: "Total Raw Score",
+		cell: ({ row }) => (
+			<span className="text-muted-foreground tabular-nums">
+				{row.original.total_raw_score} / {row.original.total_raw_maximum}
+			</span>
+		)
+	},
+	{
+		id: "weighted",
+		header: "Total Youth Weighted Average",
+		cell: ({ row }) => (
+			<span className="text-muted-foreground tabular-nums">
+				{row.original.total_weighted_score.toFixed(2)} / {row.original.total_weighted_maximum.toFixed(2)}
+			</span>
+		)
+	},
+	{
+		id: "report",
+		header: "",
+		enableSorting: false,
+		cell: ({ row }) => (
+			<Link
+				href={`/yee/submissions/${row.original.audit_id}`}
+				className="text-sm font-medium text-primary underline-offset-4 hover:underline">
+				Open report
+			</Link>
+		)
+	}
+];
+
+function SubmittedReportMobileCard({ record }: { record: PlaceComparisonAuditRecord }) {
+	return (
+		<Link
+			href={`/yee/submissions/${record.audit_id}`}
+			className="block space-y-1.5 rounded-md border border-border bg-card p-4">
+			<div className="flex items-center justify-between gap-3">
+				<p className="font-medium text-foreground">{record.auditor_id}</p>
+				<span className="text-xs text-muted-foreground">{record.date}</span>
+			</div>
+			<p className="text-sm tabular-nums text-muted-foreground">
+				Raw {record.total_raw_score} / {record.total_raw_maximum} · Youth{" "}
+				{record.total_weighted_score.toFixed(2)} / {record.total_weighted_maximum.toFixed(2)}
+			</p>
+			<p className="text-sm font-medium text-primary">Open report →</p>
+		</Link>
 	);
 }
 
@@ -418,55 +614,46 @@ export function LiveProjectDetail({ projectId }: { projectId: string }) {
 	return (
 		<>
 			<div className="space-y-6">
-				<section className="overflow-hidden rounded-lg border border-emerald-200/60 bg-linear-to-br from-[#10231f] via-[#17302c] to-[#21483b] text-white shadow-xl shadow-emerald-950/10">
-					<div className="grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:px-10 lg:py-10">
-						<div>
+				<DashboardHero
+					badge="Project profile"
+					title={data.name}
+					subtitle={data.description}
+					meta={
+						<>
 							<Badge className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-white hover:bg-white/10">
-								Project profile
+								{data.organization}
 							</Badge>
-							<h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">{data.name}</h1>
-							<p className="mt-4 max-w-3xl text-sm leading-7 text-emerald-50/85 sm:text-base">
-								{data.description}
-							</p>
-							<div className="mt-5 flex flex-wrap gap-2 text-sm text-emerald-50/85">
-								<Badge className="rounded-full bg-white/10 px-3 py-1 text-white hover:bg-white/10">
-									{data.organization}
-								</Badge>
-								<Badge className="rounded-full bg-white/10 px-3 py-1 text-white hover:bg-white/10">
-									{data.status}
-								</Badge>
-							</div>
+							<Badge className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-white hover:bg-white/10">
+								{data.status}
+							</Badge>
+						</>
+					}
+					actions={
+						<div className="flex flex-col items-start w-full gap-3">
+							<Button asChild className="bg-white text-foreground w-full hover:bg-emerald-50">
+								<Link href={`/manager/places/new?projectId=${data.id}`}>Add Places</Link>
+							</Button>
+							<Button
+								asChild
+								variant="outline"
+								className="border-white/15 bg-white/6 text-white w-full hover:bg-white/10 hover:text-white">
+								<Link href={`/manager/auditors?projectId=${data.id}`}>Manage Auditor Assignments</Link>
+							</Button>
+							<Button
+								asChild
+								variant="outline"
+								className="border-white/15 bg-white/6 text-white w-full hover:bg-white/10 hover:text-white">
+								<Link href={`/manager/projects/${data.id}/edit`}>Edit Project</Link>
+							</Button>
+							<Button
+								asChild
+								variant="outline"
+								className="border-white/15 bg-white/6 text-white w-full hover:bg-white/10 hover:text-white">
+								<Link href="/manager/reports">Open Reports</Link>
+							</Button>
 						</div>
-						<div className="rounded-md border border-white/10 bg-white/8 p-5 backdrop-blur-sm">
-							<p className="text-sm font-medium text-emerald-50/80">Project actions</p>
-							<div className="mt-5 grid gap-3">
-								<Button asChild className="rounded-md bg-white text-foreground hover:bg-emerald-50">
-									<Link href={`/manager/places/new?projectId=${data.id}`}>Add Places</Link>
-								</Button>
-								<Button
-									asChild
-									variant="outline"
-									className="rounded-md border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
-									<Link href={`/manager/auditors?projectId=${data.id}`}>
-										Manage Auditor Assignments
-									</Link>
-								</Button>
-								<Button
-									asChild
-									variant="outline"
-									className="rounded-md border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
-									<Link href={`/manager/projects/${data.id}/edit`}>Edit Project</Link>
-								</Button>
-								<Button
-									asChild
-									variant="outline"
-									className="rounded-md border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
-									<Link href="/manager/reports">Open Reports</Link>
-								</Button>
-							</div>
-						</div>
-					</div>
-				</section>
+					}
+				/>
 
 				<section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
 					<DetailMetric
@@ -512,26 +699,28 @@ export function LiveProjectDetail({ projectId }: { projectId: string }) {
 									Types of Places to be Audited
 								</p>
 								<p className="mt-2">
-									{data.place_types.length > 0 ? data.place_types.join(", ") : "Not specified yet."}
+									{data.place_types.length > 0
+										? data.place_types.join(", ")
+										: emptyHint("No place types chosen yet")}
 								</p>
 							</div>
 							<div className="rounded-md bg-muted/40 p-4">
 								<p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 									Estimated number of Places
 								</p>
-								<p className="mt-2">{data.estimated_places ?? "Not specified yet."}</p>
+								<p className="mt-2">{data.estimated_places ?? emptyHint("No estimate added yet")}</p>
 							</div>
 							<div className="rounded-md bg-muted/40 p-4">
 								<p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 									Anticipated Start Date
 								</p>
-								<p className="mt-2">{data.start_date ?? "Not specified yet."}</p>
+								<p className="mt-2">{data.start_date ?? emptyHint("No start date set")}</p>
 							</div>
 							<div className="rounded-md bg-muted/40 p-4">
 								<p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 									Anticipated End Date
 								</p>
-								<p className="mt-2">{data.end_date ?? "Not specified yet."}</p>
+								<p className="mt-2">{data.end_date ?? emptyHint("No end date set")}</p>
 							</div>
 						</CardContent>
 					</Card>
@@ -552,7 +741,7 @@ export function LiveProjectDetail({ projectId }: { projectId: string }) {
 								<p className="mt-2">
 									{data.auditor_population_types.length > 0
 										? data.auditor_population_types.join(", ")
-										: "Not specified yet."}
+										: emptyHint("No population type chosen yet")}
 								</p>
 							</div>
 							<div className="rounded-md bg-muted/40 p-4">
@@ -560,14 +749,14 @@ export function LiveProjectDetail({ projectId }: { projectId: string }) {
 									Inclusion / exclusion criteria
 								</p>
 								<p className="mt-2">
-									{data.auditor_inclusion_exclusion_criteria || "Not specified yet."}
+									{data.auditor_inclusion_exclusion_criteria || emptyHint("No criteria added yet")}
 								</p>
 							</div>
 							<div className="rounded-md bg-muted/40 p-4">
 								<p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 									Other notes about Auditors
 								</p>
-								<p className="mt-2">{data.auditor_notes || "Not specified yet."}</p>
+								<p className="mt-2">{data.auditor_notes || emptyHint("No notes added yet")}</p>
 							</div>
 						</CardContent>
 					</Card>
@@ -701,84 +890,82 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 		? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapQuery)}`
 		: null;
 	const staticMapUrl = buildStaticMapUrl(googleMapsApiKey, mapQuery);
-	console.log(staticMapUrl);
 
 	return (
 		<>
 			<div className="space-y-6">
-				<section className="overflow-hidden rounded-lg border border-sky-200/60 bg-linear-to-br from-[#0f172a] via-[#17324d] to-[#14532d] text-white shadow-xl shadow-sky-950/10">
-					<div className="grid gap-8 px-6 py-8 sm:px-8 lg:grid-cols-[minmax(0,1fr)_280px] lg:px-10 lg:py-10">
-						<div>
-							<Badge className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-white hover:bg-white/10">
-								Place profile
-							</Badge>
-							<h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">{data.name}</h1>
-							<p className="mt-4 flex items-start gap-2 text-sm leading-7 text-sky-50/85 sm:text-base">
+				<DashboardHero
+					badge="Place profile"
+					title={data.name}
+					subtitle={
+						<span className="flex flex-col gap-1">
+							<span className="flex items-start gap-2">
 								<MapPin className="mt-1 size-4 shrink-0" />
 								<span>
 									{data.address}
 									{data.postal_code ? ` (${data.postal_code})` : ""}
 								</span>
-							</p>
-							<p className="mt-3 max-w-3xl text-sm leading-7 text-sky-50/85 sm:text-base">
+							</span>
+							<span className="text-emerald-50/70">
 								{[data.city, data.province, data.country].filter(Boolean).join(", ") ||
 									"Detailed location not added yet."}
-							</p>
-							<div className="mt-5 flex flex-wrap gap-2 text-sm text-sky-50/85">
-								<Badge className="rounded-full bg-white/10 px-3 py-1 text-white hover:bg-white/10">
-									{data.project_name}
+							</span>
+						</span>
+					}
+					meta={
+						<>
+							<Badge className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-white hover:bg-white/10">
+								{data.project_name}
+							</Badge>
+							<Badge className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-white hover:bg-white/10">
+								{data.status}
+							</Badge>
+							{data.place_type ? (
+								<Badge className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-white hover:bg-white/10">
+									{data.place_type}
 								</Badge>
-								<Badge className="rounded-full bg-white/10 px-3 py-1 text-white hover:bg-white/10">
-									{data.status}
-								</Badge>
-								{data.place_type ? (
-									<Badge className="rounded-full bg-white/10 px-3 py-1 text-white hover:bg-white/10">
-										{data.place_type}
-									</Badge>
-								) : null}
-							</div>
+							) : null}
+						</>
+					}
+					actions={
+						<div className="flex flex-col items-start w-full gap-3">
+							<Button asChild className="bg-white text-foreground w-full hover:bg-emerald-50">
+								<Link href={`/manager/projects/${data.project_id}`}>Open project</Link>
+							</Button>
+							<Button
+								asChild
+								variant="outline"
+								className="border-white/15 bg-white/6 text-white w-full hover:bg-white/10 hover:text-white">
+								<Link href={`/manager/places/${data.id}/edit`}>Edit place</Link>
+							</Button>
+							<Button
+								asChild
+								variant="outline"
+								className="border-white/15 bg-white/6 text-white w-full hover:bg-white/10 hover:text-white">
+								<Link href={`/manager/auditors?projectId=${data.project_id}&placeId=${data.id}`}>
+									Manage Auditor Assignments
+								</Link>
+							</Button>
+							<Button
+								asChild
+								variant="outline"
+								className="border-white/15 bg-white/6 text-white w-full hover:bg-white/10 hover:text-white">
+								<Link href={`/manager/audits?projectId=${data.project_id}&placeId=${data.id}`}>
+									View Audits
+								</Link>
+							</Button>
+							<Button
+								asChild
+								variant="outline"
+								className="border-white/15 bg-white/6 text-white w-full hover:bg-white/10 hover:text-white">
+								<Link href="/manager/reports">
+									Open reports dashboard
+									<FileBarChart2 className="size-4" />
+								</Link>
+							</Button>
 						</div>
-						<div className="rounded-md border border-white/10 bg-white/8 p-5 backdrop-blur-sm">
-							<p className="text-sm font-medium text-sky-50/80">Place actions</p>
-							<div className="mt-5 grid gap-3">
-								<Button asChild className="rounded-md bg-white text-foreground hover:bg-sky-50">
-									<Link href={`/manager/projects/${data.project_id}`}>Open project</Link>
-								</Button>
-								<Button
-									asChild
-									variant="outline"
-									className="rounded-md border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
-									<Link href={`/manager/places/${data.id}/edit`}>Edit place</Link>
-								</Button>
-								<Button
-									asChild
-									variant="outline"
-									className="rounded-md border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
-									<Link href={`/manager/auditors?projectId=${data.project_id}&placeId=${data.id}`}>
-										Manage Auditor Assignments
-									</Link>
-								</Button>
-								<Button
-									asChild
-									variant="outline"
-									className="rounded-md border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
-									<Link href={`/manager/audits?projectId=${data.project_id}&placeId=${data.id}`}>
-										View Audits
-									</Link>
-								</Button>
-								<Button
-									asChild
-									variant="outline"
-									className="rounded-md border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
-									<Link href="/manager/reports">
-										Open reports dashboard
-										<FileBarChart2 className="size-4" />
-									</Link>
-								</Button>
-							</div>
-						</div>
-					</div>
-				</section>
+					}
+				/>
 
 				<section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
 					<DetailMetric
@@ -818,25 +1005,25 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 								<p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 									Place Type
 								</p>
-								<p className="mt-2">{data.place_type || "Not specified yet."}</p>
+								<p className="mt-2">{data.place_type || emptyHint("No place type chosen yet")}</p>
 							</div>
 							<div className="rounded-md bg-muted/40 p-4">
 								<p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 									Estimated number of Auditors
 								</p>
-								<p className="mt-2">{data.estimated_auditors ?? "Not specified yet."}</p>
+								<p className="mt-2">{data.estimated_auditors ?? emptyHint("No estimate added yet")}</p>
 							</div>
 							<div className="rounded-md bg-muted/40 p-4">
 								<p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 									Anticipated Start Date
 								</p>
-								<p className="mt-2">{data.start_date ?? "Not specified yet."}</p>
+								<p className="mt-2">{data.start_date ?? emptyHint("No start date set")}</p>
 							</div>
 							<div className="rounded-md bg-muted/40 p-4">
 								<p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 									Anticipated End Date
 								</p>
-								<p className="mt-2">{data.end_date ?? "Not specified yet."}</p>
+								<p className="mt-2">{data.end_date ?? emptyHint("No end date set")}</p>
 							</div>
 							<div className="rounded-md bg-muted/40 p-4 sm:col-span-2">
 								<p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
@@ -844,7 +1031,7 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 								</p>
 								<p className="mt-2">
 									{[data.city, data.province, data.country].filter(Boolean).join(", ") ||
-										"Detailed location not specified yet."}
+										emptyHint("No location added yet")}
 								</p>
 							</div>
 						</CardContent>
@@ -866,7 +1053,7 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 								<p className="mt-2">
 									{data.auditor_population_types.length > 0
 										? data.auditor_population_types.join(", ")
-										: "Not specified yet."}
+										: emptyHint("No population type chosen yet")}
 								</p>
 							</div>
 							<div className="rounded-md bg-muted/40 p-4">
@@ -874,14 +1061,14 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 									Inclusion / exclusion criteria
 								</p>
 								<p className="mt-2">
-									{data.auditor_inclusion_exclusion_criteria || "Not specified yet."}
+									{data.auditor_inclusion_exclusion_criteria || emptyHint("No criteria added yet")}
 								</p>
 							</div>
 							<div className="rounded-md bg-muted/40 p-4">
 								<p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
 									Other notes about Auditors
 								</p>
-								<p className="mt-2">{data.auditor_notes || "Not specified yet."}</p>
+								<p className="mt-2">{data.auditor_notes || emptyHint("No notes added yet")}</p>
 							</div>
 						</CardContent>
 					</Card>
@@ -899,7 +1086,7 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 						<CardContent>
 							<div className="rounded-md border border-border bg-muted/40 p-5">
 								{staticMapUrl && !mapImageFailed ? (
-									<div className="overflow-hidden rounded-lg border border-border bg-white">
+									<div className="overflow-hidden rounded-md border border-border bg-white">
 										<Image
 											src={staticMapUrl}
 											alt="Google Maps location preview"
@@ -910,7 +1097,7 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 										/>
 									</div>
 								) : (
-									<p className="rounded-lg border border-dashed border-slate-300 bg-white p-4 text-sm text-muted-foreground">
+									<p className="rounded-md border border-dashed border-slate-300 bg-white p-4 text-sm text-muted-foreground">
 										Map snapshot unavailable right now, but the Google Maps link below is still
 										ready for this Place.
 									</p>
@@ -920,7 +1107,7 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 									the manager dashboard on an embedded map request.
 								</p>
 								<div className="mt-4 flex flex-wrap gap-3">
-									<Button asChild className="rounded-md bg-primary text-white hover:bg-primary/90">
+									<Button asChild className="bg-primary text-white hover:bg-primary/90">
 										<a href={googleMapsHref} target="_blank" rel="noreferrer">
 											Open in Google Maps
 										</a>
@@ -962,52 +1149,19 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 						</CardDescription>
 					</CardHeader>
 					<CardContent>
-						{data.comparisons.audits.length === 0 ? (
-							<p className="text-sm leading-6 text-muted-foreground">
-								No reports have been submitted for this place yet. As soon as an assigned auditor
-								submits a YEE audit, its report appears here.
-							</p>
-						) : (
-							<div className="overflow-x-auto">
-								<table className="min-w-full text-left text-sm">
-									<thead className="text-slate-500">
-										<tr className="border-b border-slate-200">
-											<th className="py-3 pr-4 font-medium">Auditor ID</th>
-											<th className="py-3 pr-4 font-medium">Submitted</th>
-											<th className="py-3 pr-4 font-medium">Total Raw Score</th>
-											<th className="py-3 pr-4 font-medium">Total Youth Weighted Average</th>
-											<th className="py-3 font-medium">Report</th>
-										</tr>
-									</thead>
-									<tbody>
-										{data.comparisons.audits.map(record => (
-											<tr
-												key={record.audit_id}
-												className="border-b border-slate-100 last:border-0">
-												<td className="py-4 pr-4 font-medium text-slate-900">
-													{record.auditor_id}
-												</td>
-												<td className="py-4 pr-4 text-slate-600">{record.date}</td>
-												<td className="py-4 pr-4 text-slate-600">
-													{record.total_raw_score} / {record.total_raw_maximum}
-												</td>
-												<td className="py-4 pr-4 text-slate-600">
-													{record.total_weighted_score.toFixed(2)} /{" "}
-													{record.total_weighted_maximum.toFixed(2)}
-												</td>
-												<td className="py-4">
-													<Link
-														href={`/yee/submissions/${record.audit_id}`}
-														className="text-sm font-medium text-emerald-700 underline-offset-4 hover:underline">
-														Open report
-													</Link>
-												</td>
-											</tr>
-										))}
-									</tbody>
-								</table>
-							</div>
-						)}
+						<DataTable
+							columns={submittedReportColumns}
+							data={data.comparisons.audits}
+							getRowId={row => row.audit_id}
+							hideColumnMenu
+							emptyState={
+								<EmptyState
+									title="No reports yet"
+									description="No reports have been submitted for this place yet. As soon as an assigned auditor submits a YEE audit, its report appears here."
+								/>
+							}
+							mobileCard={record => <SubmittedReportMobileCard record={record} />}
+						/>
 					</CardContent>
 				</Card>
 

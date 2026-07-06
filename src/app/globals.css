@@ -14,6 +14,7 @@
 	--radius-md: 0.625rem; /* 10px — buttons, small cards */
 	--radius-lg: 0.875rem; /* 14px — cards, panels */
 	--radius-xl: 1.25rem; /* 20px — major surfaces like auth panel */
+	--radius-control: 0.5rem; /* 8px — buttons, inputs, filters, segmented controls (crisp but in sync with 10px cards) */
 	--radius: 0.625rem;
 
 	/* Shadows — elevation system, not decorative */
@@ -48,6 +49,48 @@
 	--color-sidebar-accent: var(--sidebar-accent);
 	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
 	--color-sidebar-ring: var(--sidebar-ring);
+
+	/* Data-viz palette → Tailwind utilities (fill-*, stroke-*, bg-*, text-*, border-*).
+	   Single source of truth for every domain color (charts, reports, audit wizard). */
+	--color-domain-access-strong: var(--domain-access-strong);
+	--color-domain-access-fill: var(--domain-access-fill);
+	--color-domain-access-light: var(--domain-access-light);
+	--color-domain-access-text: var(--domain-access-text);
+	--color-domain-activity-strong: var(--domain-activity-strong);
+	--color-domain-activity-fill: var(--domain-activity-fill);
+	--color-domain-activity-light: var(--domain-activity-light);
+	--color-domain-activity-text: var(--domain-activity-text);
+	--color-domain-amenities-strong: var(--domain-amenities-strong);
+	--color-domain-amenities-fill: var(--domain-amenities-fill);
+	--color-domain-amenities-light: var(--domain-amenities-light);
+	--color-domain-amenities-text: var(--domain-amenities-text);
+	--color-domain-experience-strong: var(--domain-experience-strong);
+	--color-domain-experience-fill: var(--domain-experience-fill);
+	--color-domain-experience-light: var(--domain-experience-light);
+	--color-domain-experience-text: var(--domain-experience-text);
+	--color-domain-aesthetics-strong: var(--domain-aesthetics-strong);
+	--color-domain-aesthetics-fill: var(--domain-aesthetics-fill);
+	--color-domain-aesthetics-light: var(--domain-aesthetics-light);
+	--color-domain-aesthetics-text: var(--domain-aesthetics-text);
+	--color-domain-use-strong: var(--domain-use-strong);
+	--color-domain-use-fill: var(--domain-use-fill);
+	--color-domain-use-light: var(--domain-use-light);
+	--color-domain-use-text: var(--domain-use-text);
+
+	--color-chart-1: var(--chart-series-1);
+	--color-chart-2: var(--chart-series-2);
+	--color-chart-3: var(--chart-series-3);
+	--color-chart-4: var(--chart-series-4);
+	--color-chart-5: var(--chart-series-5);
+	--color-chart-grid: var(--chart-grid);
+	--color-chart-axis: var(--chart-axis);
+
+	--color-score-high: var(--score-high);
+	--color-score-high-bg: var(--score-high-bg);
+	--color-score-mid: var(--score-mid);
+	--color-score-mid-bg: var(--score-mid-bg);
+	--color-score-low: var(--score-low);
+	--color-score-low-bg: var(--score-low-bg);
 }
 
 :root {
@@ -96,6 +139,67 @@
 	--sidebar-accent-foreground: oklch(0.95 0.006 158);
 	--sidebar-border: oklch(1 0 0 / 0.08);
 	--sidebar-ring: var(--yee-green-600);
+
+	/* --- Data-viz: brand-harmonized DOMAIN palette (SINGLE SOURCE OF TRUTH) ---
+	   All six domains share one OKLCH lightness/chroma envelope anchored to the
+	   brand green, so they read as one coordinated family; only hue varies.
+	   Per domain: text = labels/headings (dark, AA on white) · strong = borders/dots/
+	   lines · fill = bars/areas · light = tint backgrounds. Adjust a domain HERE and
+	   it flows to charts, reports, and the audit wizard everywhere (via yeeDomainThemes). */
+	--domain-access-text: oklch(0.37 0.07 158); /* green (matches brand) */
+	--domain-access-strong: oklch(0.52 0.1 158);
+	--domain-access-fill: oklch(0.68 0.11 158);
+	--domain-access-light: oklch(0.95 0.025 158);
+	--domain-activity-text: oklch(0.37 0.07 250); /* indigo-blue */
+	--domain-activity-strong: oklch(0.52 0.1 250);
+	--domain-activity-fill: oklch(0.68 0.11 250);
+	--domain-activity-light: oklch(0.95 0.025 250);
+	--domain-amenities-text: oklch(0.4 0.07 80); /* muted gold/ochre */
+	--domain-amenities-strong: oklch(0.55 0.1 80);
+	--domain-amenities-fill: oklch(0.72 0.11 80);
+	--domain-amenities-light: oklch(0.95 0.03 80);
+	--domain-experience-text: oklch(0.37 0.06 195); /* teal */
+	--domain-experience-strong: oklch(0.52 0.09 195);
+	--domain-experience-fill: oklch(0.68 0.1 195);
+	--domain-experience-light: oklch(0.95 0.025 195);
+	--domain-aesthetics-text: oklch(0.4 0.08 10); /* rose/mauve */
+	--domain-aesthetics-strong: oklch(0.55 0.1 10);
+	--domain-aesthetics-fill: oklch(0.71 0.11 10);
+	--domain-aesthetics-light: oklch(0.95 0.03 10);
+	--domain-use-text: oklch(0.38 0.08 295); /* violet */
+	--domain-use-strong: oklch(0.53 0.1 295);
+	--domain-use-fill: oklch(0.69 0.11 295);
+	--domain-use-light: oklch(0.95 0.03 295);
+
+	/* Categorical SERIES palette — for comparing N places/audits (radar, trend lines).
+	   Brand green leads; the rest are harmonized to the same muted envelope. */
+	--chart-series-1: oklch(0.45 0.09 160); /* brand green — primary series */
+	--chart-series-2: oklch(0.55 0.09 235); /* harmonized blue */
+	--chart-series-3: oklch(0.6 0.1 70); /* harmonized ochre */
+	--chart-series-4: oklch(0.55 0.1 300); /* harmonized violet */
+	--chart-series-5: oklch(0.55 0.09 20); /* harmonized clay */
+
+	/* Score bands — brand-tuned (replaces default rose-400/amber-400/emerald-500).
+	   high = deep brand green, mid = muted gold, low = restrained clay (not alarm-red). */
+	--score-high: oklch(0.5 0.09 160);
+	--score-high-bg: oklch(0.95 0.03 160);
+	--score-mid: oklch(0.66 0.11 85);
+	--score-mid-bg: oklch(0.95 0.035 85);
+	--score-low: oklch(0.58 0.11 35);
+	--score-low-bg: oklch(0.95 0.03 35);
+
+	/* Chart neutrals — grid rules and axis text (replaces #d6dfe6 / slate-500) */
+	--chart-grid: oklch(0.9 0.005 240);
+	--chart-axis: oklch(0.55 0.01 240);
+
+	/* Banner gradient — maps to brand greens (replaces hardcoded #10231f/#17302c/#21483b) */
+	--banner-from: var(--yee-green-950);
+	--banner-via: var(--yee-green-900);
+	--banner-to: var(--yee-green-800);
+
+	/* Skeleton shimmer — brand-tinted sweep (replaces flat bg-slate-200) */
+	--skeleton-base: var(--yee-surface-muted);
+	--skeleton-shine: var(--yee-green-100);
 }
 
 @layer base {
@@ -131,4 +235,27 @@
 		animation-iteration-count: 1 !important;
 		transition-duration: 0.01ms !important;
 	}
+}
+
+/* Branded skeleton shimmer — a soft brand-tinted sweep instead of a flat gray pulse.
+   Disabled automatically for users with prefers-reduced-motion (see rule above). */
+@keyframes skeleton-shimmer {
+	0% {
+		background-position: 200% 0;
+	}
+	100% {
+		background-position: -200% 0;
+	}
+}
+
+@utility skeleton-shimmer {
+	background-color: var(--skeleton-base);
+	background-image: linear-gradient(
+		90deg,
+		var(--skeleton-base) 0%,
+		var(--skeleton-shine) 50%,
+		var(--skeleton-base) 100%
+	);
+	background-size: 200% 100%;
+	animation: skeleton-shimmer 1.6s cubic-bezier(0.16, 1, 0.3, 1) infinite;
 }

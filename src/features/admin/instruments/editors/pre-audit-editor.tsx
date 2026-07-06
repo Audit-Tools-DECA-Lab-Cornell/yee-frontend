@@ -17,7 +17,7 @@ export function PreAuditEditor({ content, update }: { content: StructuredInstrum
 	return (
 		<div className="space-y-4">
 			{questions.map((question, index) => (
-				<div key={question.id} className="space-y-3 rounded-lg border border-border bg-muted/60 p-4">
+				<div key={question.id} className="space-y-3 rounded-md border border-border bg-muted/60 p-4">
 					<div className="flex flex-wrap items-center gap-2">
 						<IdTag>{question.id}</IdTag>
 						{question.auto_generated ? <Badge variant="secondary">Auto-generated</Badge> : null}
@@ -62,7 +62,7 @@ export function PreAuditEditor({ content, update }: { content: StructuredInstrum
 						}
 					/>
 					{(question.options ?? []).length > 0 ? (
-						<div className="space-y-3 rounded-lg border border-border bg-card p-3">
+						<div className="space-y-3 rounded-md border border-border bg-card p-3">
 							<p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Options</p>
 							{(question.options ?? []).map((option, optionIndex) => (
 								<EditableField

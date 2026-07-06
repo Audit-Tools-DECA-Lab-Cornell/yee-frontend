@@ -14,7 +14,14 @@ export function DashboardSidebar({ variant, onNavigate }: { variant: WorkspaceVa
 	const pathname = usePathname();
 	const config = useWorkspaceConfig(variant);
 
-	const isActive = (href: string) => pathname === href || (href !== "/" && pathname.startsWith(`${href}/`));
+	// Longest-prefix-wins: a nav item is active only if it is the most specific
+	// href matching the current path. This stops the workspace root (e.g. "/auditor")
+	// from staying highlighted on every sub-page like "/auditor/places".
+	const activeHref = [...config.navigation, ...config.secondaryNavigation]
+		.map(item => item.href)
+		.filter(href => pathname === href || pathname.startsWith(`${href}/`))
+		.sort((left, right) => right.length - left.length)[0];
+	const isActive = (href: string) => href === activeHref;
 
 	return (
 		<div

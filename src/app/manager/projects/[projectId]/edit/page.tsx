@@ -11,6 +11,7 @@ import {
 	type ProjectProfileFormValues
 } from "@/features/manager/components/project-profile-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormSkeleton } from "@/components/ui/skeletons";
 import { fetchProjectDetail, updateProject } from "@/features/workspaces/api/live-api";
 
 export default function EditProjectPage() {
@@ -62,16 +63,16 @@ export default function EditProjectPage() {
 	}
 
 	return (
-		<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
+		<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
 			<CardHeader>
 				<CardTitle className="text-2xl">Edit Project</CardTitle>
 				<CardDescription className="max-w-3xl leading-6">
-					Update the Project profile, scope, and Auditor setup details without leaving the manager workflow.
+					Update the profile, scope, and auditor setup for this project.
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
 				{loading || !values ? (
-					<p className="text-sm text-slate-500">Loading Project details...</p>
+					<FormSkeleton />
 				) : (
 					<ProjectProfileForm
 						values={values}

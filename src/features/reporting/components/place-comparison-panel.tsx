@@ -1,21 +1,70 @@
+import type { ColumnDef } from "@tanstack/react-table";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DataTable } from "@/components/ui/data-table";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
-import type { PlaceComparisonGroupRecord } from "@/features/workspaces/api/live-api";
+import type { PlaceComparisonAuditRecord, PlaceComparisonGroupRecord } from "@/features/workspaces/api/live-api";
 import { domainLabels, domainOrder, getComparisonAverages } from "@/features/reporting/reporting";
 import { yeeDomainThemes } from "@/features/yee-audit/config/yee-domain-theme";
+import { scoreBand } from "@/lib/score-band";
 
 function clampPercentage(value: number) {
 	return Math.max(0, Math.min(100, value));
 }
 
 function colorBand(percentage: number) {
-	if (percentage < 34) return "bg-rose-400";
-	if (percentage < 67) return "bg-amber-400";
-	return "bg-emerald-500";
+	return scoreBand(percentage).fill;
 }
 
 function barHeight(value: number) {
 	return `${Math.max(12, clampPercentage(value))}%`;
+}
+
+const auditComparisonColumns: ColumnDef<PlaceComparisonAuditRecord>[] = [
+	{
+		accessorKey: "auditor_id",
+		header: "Auditor ID",
+		cell: ({ getValue }) => <span className="font-medium text-foreground">{String(getValue())}</span>
+	},
+	{
+		accessorKey: "date",
+		header: "Date",
+		cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+	},
+	{
+		id: "raw",
+		header: "Total Raw Score",
+		cell: ({ row }) => (
+			<span className="text-muted-foreground tabular-nums">
+				{row.original.total_raw_score} / {row.original.total_raw_maximum}
+			</span>
+		)
+	},
+	{
+		id: "weighted",
+		header: "Total Youth Weighted Average",
+		cell: ({ row }) => (
+			<span className="text-muted-foreground tabular-nums">
+				{row.original.total_weighted_score.toFixed(2)} / {row.original.total_weighted_maximum.toFixed(2)}
+			</span>
+		)
+	}
+];
+
+function AuditComparisonMobileCard({ record }: { record: PlaceComparisonAuditRecord }) {
+	return (
+		<div className="space-y-1.5 rounded-md border border-border bg-card p-4">
+			<div className="flex items-center justify-between gap-3">
+				<p className="font-medium text-foreground">{record.auditor_id}</p>
+				<span className="text-xs text-muted-foreground">{record.date}</span>
+			</div>
+			<p className="text-sm tabular-nums text-muted-foreground">
+				Raw {record.total_raw_score} / {record.total_raw_maximum} · Youth{" "}
+				{record.total_weighted_score.toFixed(2)} / {record.total_weighted_maximum.toFixed(2)}
+			</p>
+		</div>
+	);
 }
 
 export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRecord }) {
@@ -24,7 +73,7 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 
 	if (records.length === 0) {
 		return (
-			<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
+			<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
 				<CardHeader>
 					<CardTitle>Place comparison</CardTitle>
 					<CardDescription>No comparison audits are available for this place yet.</CardDescription>
@@ -35,7 +84,7 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 
 	return (
 		<div className="space-y-6">
-			<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
+			<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
 				<CardHeader>
 					<CardTitle>Place-level comparison</CardTitle>
 					<CardDescription>
@@ -43,36 +92,24 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 						totals stay separate in this view.
 					</CardDescription>
 				</CardHeader>
-				<CardContent className="overflow-x-auto">
-					<table className="min-w-full text-left text-sm">
-						<thead className="text-slate-500">
-							<tr className="border-b border-slate-200">
-								<th className="py-3 pr-4 font-medium">Auditor ID</th>
-								<th className="py-3 pr-4 font-medium">Date</th>
-								<th className="py-3 pr-4 font-medium">Total Raw Score</th>
-								<th className="py-3 font-medium">Total Youth Weighted Average</th>
-							</tr>
-						</thead>
-						<tbody>
-							{records.map(record => (
-								<tr key={record.audit_id} className="border-b border-slate-100 last:border-0">
-									<td className="py-4 pr-4 font-medium text-slate-900">{record.auditor_id}</td>
-									<td className="py-4 pr-4 text-slate-600">{record.date}</td>
-									<td className="py-4 pr-4 text-slate-600">
-										{record.total_raw_score} / {record.total_raw_maximum}
-									</td>
-									<td className="py-4 text-slate-600">
-										{record.total_weighted_score.toFixed(2)} /{" "}
-										{record.total_weighted_maximum.toFixed(2)}
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
+				<CardContent>
+					<DataTable
+						columns={auditComparisonColumns}
+						data={records}
+						getRowId={row => row.audit_id}
+						hideColumnMenu
+						emptyState={
+							<EmptyState
+								title="No audits"
+								description="No comparison audits are available for this place yet."
+							/>
+						}
+						mobileCard={record => <AuditComparisonMobileCard record={record} />}
+					/>
 				</CardContent>
 			</Card>
 
-			<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
+			<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
 				<CardHeader>
 					<CardTitle>Score bar graphs</CardTitle>
 					<CardDescription>
@@ -84,11 +121,11 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 				<CardContent className="space-y-6">
 					<div className="grid gap-3 md:grid-cols-3">
 						{[
-							{ label: "Lower range", tone: "bg-rose-400", text: "0% to 33% of the available score" },
-							{ label: "Middle range", tone: "bg-amber-400", text: "34% to 66% of the available score" },
-							{ label: "Upper range", tone: "bg-emerald-500", text: "67% to 100% of the available score" }
+							{ label: "Lower range", tone: "bg-score-low", text: "0% to 33% of the available score" },
+							{ label: "Middle range", tone: "bg-score-mid", text: "34% to 66% of the available score" },
+							{ label: "Upper range", tone: "bg-score-high", text: "67% to 100% of the available score" }
 						].map(entry => (
-							<div key={entry.label} className="rounded-lg border border-slate-200 bg-[#f8fbf9] p-3">
+							<div key={entry.label} className="rounded-md border border-border bg-muted/30 p-3">
 								<div className="flex items-center gap-2">
 									<span className={`h-3 w-3 rounded-full ${entry.tone}`} />
 									<p className="text-sm font-medium text-slate-900">{entry.label}</p>
@@ -105,7 +142,7 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 							const youthMax = record.total_weighted_maximum;
 							const youthPercent = youthMax ? (record.total_weighted_score / youthMax) * 100 : 0;
 							return (
-								<div key={record.audit_id} className="rounded-xl border border-slate-200 bg-white p-4">
+								<div key={record.audit_id} className="rounded-lg border border-slate-200 bg-white p-4">
 									<div className="flex items-center justify-between gap-3">
 										<div>
 											<p className="text-sm font-semibold text-slate-900">{record.auditor_id}</p>
@@ -116,7 +153,7 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 										</Badge>
 									</div>
 									<div className="mt-4 space-y-4">
-										<div className="rounded-lg border-4 border-slate-300 bg-white p-4">
+										<div className="rounded-md border-4 border-slate-300 bg-white p-4">
 											<p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
 												Total Raw Score
 											</p>
@@ -138,7 +175,7 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 												</div>
 											</div>
 										</div>
-										<div className="rounded-lg border-4 border-emerald-300 bg-white p-4">
+										<div className="rounded-md border-4 border-emerald-300 bg-white p-4">
 											<p className="text-xs font-medium uppercase tracking-[0.16em] text-emerald-700">
 												Total Youth Weighted Average
 											</p>
@@ -168,7 +205,7 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 				</CardContent>
 			</Card>
 
-			<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
+			<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
 				<CardHeader>
 					<CardTitle>Domain comparison</CardTitle>
 					<CardDescription>
@@ -234,7 +271,7 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 
 			{averages ? (
 				<div className="grid gap-4 md:grid-cols-2">
-					<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
+					<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
 						<CardHeader>
 							<CardTitle>Total score averages</CardTitle>
 							<CardDescription>

@@ -12,7 +12,10 @@ import { PlaceComparisonPanel } from "@/features/reporting/components/place-comp
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { TableSkeleton } from "@/components/ui/skeletons";
+import { DashboardHero } from "@/components/ui/dashboard-hero";
 import { DataTable, DataTableRowActions } from "@/components/ui/data-table";
+import { ScoreCell } from "@/components/ui/score-cell";
 import { StatusBadge, StatusBadgeFor } from "@/components/ui/status-badge";
 import { getPlaceStatus } from "@/lib/status";
 import {
@@ -24,6 +27,7 @@ import {
 	fetchProjects,
 	fetchRawData,
 	fetchUsers,
+	type AuditorRecord,
 	type AuditRecord,
 	type DashboardMetric,
 	type PlaceComparisonGroupRecord,
@@ -159,11 +163,7 @@ function useDashboardData<T>(loader: (session: NonNullable<ReturnType<typeof use
 }
 
 function LoadingCard({ label }: { label: string }) {
-	return (
-		<Card className="rounded-md ">
-			<CardContent className="p-6 text-sm text-muted-foreground">Loading {label}...</CardContent>
-		</Card>
-	);
+	return <TableSkeleton aria-label={`Loading ${label}…`} />;
 }
 
 function ErrorCard({ message }: { message: string }) {
@@ -390,53 +390,28 @@ export function LiveManagerOverview() {
 
 	return (
 		<div className="space-y-6">
-			<section className="overflow-hidden rounded-lg border border-emerald-200/60 bg-linear-to-br from-[#10231f] via-[#17302c] to-[#21483b] text-white shadow-xl shadow-emerald-950/10">
-				<div className="px-6 py-8 sm:px-8 lg:px-10 lg:py-10">
-					<div>
-						<Badge className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-white hover:bg-white/10">
-							Youth Enabling Environments
-						</Badge>
-						<h1 className="mt-4 max-w-2xl text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-							Your dashboard is ready for projects, places, and YEE fieldwork.
-						</h1>
-						<p className="mt-4 max-w-2xl text-sm leading-7 text-emerald-50/80 sm:text-base">
-							Jump straight into your projects, places, auditors, reports, and audit records — all from
-							one place.
-						</p>
-						<div className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-							{managerSnapshotItems.map(item => (
-								<Link
-									key={item.label}
-									href={item.href}
-									className="min-w-0 rounded-md border border-emerald-200/20 bg-linear-to-br from-white/18 to-white/8 px-4 py-4 backdrop-blur-sm transition hover:border-emerald-200/35 hover:bg-white/16">
-									<p className="break-words text-xs font-medium uppercase tracking-normal text-emerald-50/70">
-										{item.label}
-									</p>
-									<p className="mt-2 break-words text-2xl font-semibold text-white">{item.value}</p>
-									<p className="mt-2 break-words text-xs leading-5 text-emerald-50/65">
-										{item.helper}
-									</p>
-									<p className="mt-3 text-xs font-medium text-emerald-100">Open</p>
-								</Link>
-							))}
-						</div>
-						<div className="mt-6 flex flex-wrap gap-3">
-							<Button asChild className="rounded-md bg-white text-foreground hover:bg-emerald-50">
-								<Link href="/manager/projects/new">
-									Create Project
-									<ArrowRight className="size-4" />
-								</Link>
-							</Button>
-							<Button
-								asChild
-								variant="outline"
-								className="rounded-md border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
-								<Link href="/manager/places/new">Add Place</Link>
-							</Button>
-						</div>
-					</div>
-				</div>
-			</section>
+			<DashboardHero
+				badge="Youth Enabling Environments"
+				title="Your dashboard is ready for projects, places, and YEE fieldwork."
+				subtitle="Jump straight into your projects, places, auditors, reports, and audit records — all from one place."
+				stats={managerSnapshotItems}
+				actions={
+					<>
+						<Button asChild className="bg-white text-foreground hover:bg-emerald-50">
+							<Link href="/manager/projects/new">
+								Create Project
+								<ArrowRight className="size-4" />
+							</Link>
+						</Button>
+						<Button
+							asChild
+							variant="outline"
+							className="border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+							<Link href="/manager/places/new">Add Place</Link>
+						</Button>
+					</>
+				}
+			/>
 
 			<section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
 				{scoreSummaryItems.map(item => (
@@ -464,24 +439,17 @@ export function LiveManagerOverview() {
 					item set.
 				</p>
 				<div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-					{domainWeightBreakdown.map(
-						item => (
-							console.log(item.average === null || item.average === undefined),
-							(
-								<div
-									key={item.domain}
-									className="rounded-md border border-border bg-muted/40 px-4 py-3">
-									<p className="text-sm font-medium text-foreground">{item.label}</p>
-									<p className="mt-1 text-xs text-muted-foreground">
-										Average weighting across submitted audits
-									</p>
-									<p className="mt-2 text-sm font-semibold text-emerald-800">
-										{item.average?.toFixed(1)} / 3 ({item.percent?.toFixed(0)}%)
-									</p>
-								</div>
-							)
-						)
-					)}
+					{domainWeightBreakdown.map(item => (
+						<div key={item.domain} className="rounded-md border border-border bg-muted/40 px-4 py-3">
+							<p className="text-sm font-medium text-foreground">{item.label}</p>
+							<p className="mt-1 text-xs text-muted-foreground">
+								Average weighting across submitted audits
+							</p>
+							<p className="mt-2 text-sm font-semibold text-emerald-800">
+								{item.average?.toFixed(1)} / 3 ({item.percent?.toFixed(0)}%)
+							</p>
+						</div>
+					))}
 				</div>
 			</section>
 
@@ -500,21 +468,21 @@ export function LiveManagerOverview() {
 							</CardHeader>
 							<CardContent className="space-y-2">
 								<p className="text-sm leading-6 text-muted-foreground">{metric.description}</p>
-								<div className="flex items-center justify-between">
+								{/* <div className="flex items-center justify-between">
 									<Badge
 										variant="secondary"
 										className={`rounded-full ${metricTone(metric.title).badge}`}>
 										Your organization
 									</Badge>
 									<span className="text-xs font-medium text-muted-foreground">Open</span>
-								</div>
+								</div> */}
 							</CardContent>
 						</Card>
 					</Link>
 				))}
 			</section>
 
-			<section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_330px]">
+			<section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_430px]">
 				<Card className="rounded-md ">
 					<CardHeader>
 						<CardTitle>Recent activity</CardTitle>
@@ -573,6 +541,114 @@ export function LiveManagerOverview() {
 	);
 }
 
+/** Score cell shared by the audit tables — a null-safe ScoreCell once submitted. */
+function AuditScoreCell({ audit }: { audit: AuditRecord }) {
+	if (audit.status !== "Submitted") {
+		return <span className="text-muted-foreground/70">Available after submit</span>;
+	}
+	return (
+		<ScoreCell
+			raw={audit.total_raw_score}
+			rawMax={audit.total_raw_maximum}
+			weighted={audit.total_weighted_score}
+			weightedMax={audit.total_weighted_maximum}
+		/>
+	);
+}
+
+/** Columns for the read-only "latest audits" dashboard summary. */
+const latestAuditColumns: ColumnDef<AuditRecord>[] = [
+	{
+		accessorKey: "place",
+		header: "Place",
+		cell: ({ getValue }) => <span className="font-medium text-foreground">{String(getValue())}</span>
+	},
+	{
+		accessorKey: "auditor",
+		header: "Auditor",
+		cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+	},
+	{
+		accessorKey: "date",
+		header: "Date",
+		cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+	},
+	{
+		id: "score",
+		header: "Score",
+		enableSorting: false,
+		cell: ({ row }) => <AuditScoreCell audit={row.original} />
+	},
+	{
+		accessorKey: "status",
+		header: "Status",
+		cell: ({ getValue }) => <StatusBadge label={String(getValue())} tone="secondary" />
+	}
+];
+
+function AuditSummaryMobileCard({ audit }: { audit: AuditRecord }) {
+	return (
+		<div className="space-y-2 rounded-md border border-border bg-card p-4">
+			<div className="flex items-start justify-between gap-3">
+				<div>
+					<p className="font-medium text-foreground">{audit.place}</p>
+					<p className="text-sm text-muted-foreground">
+						{audit.auditor} · {audit.date}
+					</p>
+				</div>
+				<StatusBadge label={audit.status} tone="secondary" />
+			</div>
+			<AuditScoreCell audit={audit} />
+		</div>
+	);
+}
+
+/** Stacked mobile card for the full audits table — carries selection + row actions. */
+function AuditRowMobileCard({
+	audit,
+	isSelected,
+	onToggle
+}: {
+	audit: AuditRecord;
+	isSelected: boolean;
+	onToggle: (submissionId: string) => void;
+}) {
+	const submissionId = audit.submission_id;
+	const editHref = submissionId
+		? `/manager/audits/${audit.id}/edit/page/1?submissionId=${encodeURIComponent(submissionId)}`
+		: `/manager/audits/${audit.id}/edit/page/1`;
+	return (
+		<div className="space-y-3 rounded-md border border-border bg-card p-4">
+			<div className="flex items-start gap-3">
+				<input
+					type="checkbox"
+					aria-label={`Select audit for ${audit.place}`}
+					className="mt-1"
+					checked={isSelected}
+					disabled={!submissionId}
+					onChange={() => (submissionId ? onToggle(submissionId) : undefined)}
+				/>
+				<div className="min-w-0 flex-1 space-y-1">
+					<div className="flex items-start justify-between gap-2">
+						<p className="font-medium text-foreground">{audit.place}</p>
+						<StatusBadge label={audit.status} tone="secondary" />
+					</div>
+					<p className="text-sm text-muted-foreground">{audit.auditor}</p>
+					<AuditScoreCell audit={audit} />
+				</div>
+			</div>
+			<DataTableRowActions
+				primary={
+					submissionId
+						? { label: "View report", href: `/yee/submissions/${submissionId}` }
+						: { label: "Edit audit", href: editHref }
+				}
+				actions={submissionId ? [{ label: "Edit audit", href: editHref }] : []}
+			/>
+		</div>
+	);
+}
+
 function AuditTableCard({ title, description, audits }: { title: string; description: string; audits: AuditRecord[] }) {
 	return (
 		<Card className="rounded-md ">
@@ -580,55 +656,14 @@ function AuditTableCard({ title, description, audits }: { title: string; descrip
 				<CardTitle>{title}</CardTitle>
 				<CardDescription>{description}</CardDescription>
 			</CardHeader>
-			<CardContent className="overflow-x-auto">
-				{audits.length === 0 ? (
-					<p className="text-sm text-muted-foreground">No audit rows are available yet.</p>
-				) : (
-					<table className="min-w-full text-left text-sm">
-						<thead className="text-muted-foreground">
-							<tr className="border-b border-border">
-								<th className="py-3 pr-4 font-medium">Place</th>
-								<th className="py-3 pr-4 font-medium">Auditor</th>
-								<th className="py-3 pr-4 font-medium">Date</th>
-								<th className="py-3 pr-4 font-medium">Score</th>
-								<th className="py-3 font-medium">Status</th>
-							</tr>
-						</thead>
-						<tbody>
-							{audits.map(audit => (
-								<tr key={audit.id} className="border-b border-border last:border-0">
-									<td className="py-4 pr-4 font-medium text-foreground">{audit.place}</td>
-									<td className="py-4 pr-4 text-muted-foreground">{audit.auditor}</td>
-									<td className="py-4 pr-4 text-muted-foreground">{audit.date}</td>
-									<td className="py-4 pr-4 text-muted-foreground">
-										{audit.status === "Submitted" ? (
-											<div className="space-y-1">
-												<p>
-													<span className="font-medium text-foreground">Raw:</span>{" "}
-													{audit.total_raw_score}/{audit.total_raw_maximum}
-												</p>
-												<p>
-													<span className="font-medium text-foreground">Youth Weighted:</span>{" "}
-													{audit.total_weighted_score?.toFixed(2)}/
-													{audit.total_weighted_maximum?.toFixed(2)}
-												</p>
-											</div>
-										) : (
-											"-"
-										)}
-									</td>
-									<td className="py-4">
-										<Badge
-											variant="secondary"
-											className="rounded-full bg-sky-50 text-sky-700 hover:bg-sky-50">
-											{audit.status}
-										</Badge>
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
-				)}
+			<CardContent>
+				<DataTable
+					columns={latestAuditColumns}
+					data={audits}
+					getRowId={row => row.id}
+					emptyState={<p className="text-sm text-muted-foreground">No audit rows are available yet.</p>}
+					mobileCard={audit => <AuditSummaryMobileCard audit={audit} />}
+				/>
 			</CardContent>
 		</Card>
 	);
@@ -866,33 +901,53 @@ function PlaceMobileCard({ place, variant }: { place: PlaceRecord; variant: "man
 export function LiveProjectsTable() {
 	const { data, loading, error } = useTableData(fetchProjects);
 	const columns = React.useMemo(() => buildProjectColumns("manager"), []);
+	const [selectedStatuses, setSelectedStatuses] = React.useState<string[]>([]);
 	if (loading) return <LoadingCard label="projects" />;
 	if (error) return <ErrorCard message={error} />;
 	if (!data?.length)
 		return <EmptyState title="No projects yet" description="Create your first project and it will appear here." />;
 
-	return (
-		<Card className="rounded-md">
-			<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-				<div>
-					<CardTitle className="text-2xl">Projects</CardTitle>
-					<CardDescription className="mt-2 max-w-2xl leading-6">
-						Every project you own, with its place count, audit activity, and status.
-					</CardDescription>
-				</div>
-				<Button asChild className="rounded-md bg-primary text-white hover:bg-primary/90">
-					<Link href="/manager/projects/new">Create Project</Link>
-				</Button>
-			</CardHeader>
-			<CardContent>
-				<DataTable
-					columns={columns}
-					data={data}
-					getRowId={row => row.id}
-					mobileCard={project => <ProjectMobileCard project={project} variant="manager" />}
+	const statusOptions = uniqueFilterOptions(data.map(project => project.status));
+	const filteredProjects = data.filter(project => includesSelected(selectedStatuses, project.status));
+	const filtersActive = selectedStatuses.length > 0;
+	const toolbar =
+		statusOptions.length > 1 ? (
+			<div className="flex flex-wrap items-center gap-3">
+				<SearchableMultiSelectFilter
+					label="Status"
+					options={statusOptions}
+					selectedValues={selectedStatuses}
+					onChange={setSelectedStatuses}
 				/>
-			</CardContent>
-		</Card>
+				<ClearFiltersButton disabled={!filtersActive} onClick={() => setSelectedStatuses([])} />
+			</div>
+		) : undefined;
+
+	return (
+		<div className="space-y-6">
+			<DashboardHero
+				size="compact"
+				title="Projects"
+				subtitle="Every project you own, with its place count, audit activity, and status."
+				actions={
+					<Button asChild className="bg-white text-foreground hover:bg-emerald-50">
+						<Link href="/manager/projects/new">Create Project</Link>
+					</Button>
+				}
+			/>
+			<Card className="rounded-md">
+				<CardContent>
+					<DataTable
+						columns={columns}
+						data={filteredProjects}
+						getRowId={row => row.id}
+						toolbar={toolbar}
+						noResults="No projects match the selected filters."
+						mobileCard={project => <ProjectMobileCard project={project} variant="manager" />}
+					/>
+				</CardContent>
+			</Card>
+		</div>
 	);
 }
 
@@ -929,7 +984,7 @@ export function LivePlacesTable() {
 				type="button"
 				variant={groupByProject ? "secondary" : "outline"}
 				size="sm"
-				className="ml-auto rounded-md"
+				className="ml-auto"
 				onClick={() => setGroupByProject(value => !value)}>
 				<Layers className="size-4" />
 				{groupByProject ? "Ungroup" : "Group by project"}
@@ -938,31 +993,32 @@ export function LivePlacesTable() {
 	);
 
 	return (
-		<Card className="rounded-md">
-			<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-				<div>
-					<CardTitle className="text-2xl">Places</CardTitle>
-					<CardDescription className="mt-2 max-w-2xl leading-6">
-						Every field location you manage — address, assigned auditors, and what to do next.
-					</CardDescription>
-				</div>
-				<Button asChild variant="outline" className="rounded-md">
-					<Link href="/manager/places/new">Add Place</Link>
-				</Button>
-			</CardHeader>
-			<CardContent>
-				<DataTable
-					columns={columns}
-					data={filteredPlaces}
-					getRowId={row => row.id}
-					groupBy={groupByProject ? "project" : undefined}
-					groupLabel="Project"
-					toolbar={toolbar}
-					noResults="No places match the selected filters."
-					mobileCard={place => <PlaceMobileCard place={place} variant="manager" />}
-				/>
-			</CardContent>
-		</Card>
+		<div className="space-y-6">
+			<DashboardHero
+				size="compact"
+				title="Places"
+				subtitle="Every field location you manage — address, assigned auditors, and what to do next."
+				actions={
+					<Button asChild className="bg-white text-foreground hover:bg-emerald-50">
+						<Link href="/manager/places/new">Add Place</Link>
+					</Button>
+				}
+			/>
+			<Card className="rounded-md">
+				<CardContent>
+					<DataTable
+						columns={columns}
+						data={filteredPlaces}
+						getRowId={row => row.id}
+						groupBy={groupByProject ? "project" : undefined}
+						groupLabel="Project"
+						toolbar={toolbar}
+						noResults="No places match the selected filters."
+						mobileCard={place => <PlaceMobileCard place={place} variant="manager" />}
+					/>
+				</CardContent>
+			</Card>
+		</div>
 	);
 }
 
@@ -1015,24 +1071,25 @@ export function AdminProjectsTable() {
 	);
 
 	return (
-		<Card className="rounded-md">
-			<CardHeader>
-				<CardTitle className="text-2xl">Projects</CardTitle>
-				<CardDescription className="mt-2 max-w-2xl leading-6">
-					Projects across every organization. Filter by organization and project to narrow the list.
-				</CardDescription>
-			</CardHeader>
-			<CardContent>
-				<DataTable
-					columns={columns}
-					data={filteredProjects}
-					getRowId={row => row.id}
-					toolbar={toolbar}
-					noResults="No projects match the selected filters."
-					mobileCard={project => <ProjectMobileCard project={project} variant="admin" />}
-				/>
-			</CardContent>
-		</Card>
+		<div className="space-y-6">
+			<DashboardHero
+				size="compact"
+				title="Projects"
+				subtitle="Projects across every organization. Filter by organization and project to narrow the list."
+			/>
+			<Card className="rounded-md">
+				<CardContent>
+					<DataTable
+						columns={columns}
+						data={filteredProjects}
+						getRowId={row => row.id}
+						toolbar={toolbar}
+						noResults="No projects match the selected filters."
+						mobileCard={project => <ProjectMobileCard project={project} variant="admin" />}
+					/>
+				</CardContent>
+			</Card>
+		</div>
 	);
 }
 
@@ -1085,123 +1142,164 @@ export function AdminPlacesTable() {
 	);
 
 	return (
-		<Card className="rounded-md">
-			<CardHeader>
-				<CardTitle className="text-2xl">Places</CardTitle>
-				<CardDescription className="mt-2 max-w-2xl leading-6">
-					Places across every organization. Filter by organization and project to narrow the list.
-				</CardDescription>
-			</CardHeader>
-			<CardContent>
-				<DataTable
-					columns={columns}
-					data={filteredPlaces}
-					getRowId={row => row.id}
-					toolbar={toolbar}
-					noResults="No places match the selected filters."
-					mobileCard={place => <PlaceMobileCard place={place} variant="admin" />}
-				/>
-			</CardContent>
-		</Card>
+		<div className="space-y-6">
+			<DashboardHero
+				size="compact"
+				title="Places"
+				subtitle="Places across every organization. Filter by organization and project to narrow the list."
+			/>
+			<Card className="rounded-md">
+				<CardContent>
+					<DataTable
+						columns={columns}
+						data={filteredPlaces}
+						getRowId={row => row.id}
+						toolbar={toolbar}
+						noResults="No places match the selected filters."
+						mobileCard={place => <PlaceMobileCard place={place} variant="admin" />}
+					/>
+				</CardContent>
+			</Card>
+		</div>
+	);
+}
+
+/** Column definitions for the auditor roster (display-only, no row actions). */
+function buildAuditorColumns(isAdmin: boolean): ColumnDef<AuditorRecord>[] {
+	return [
+		{
+			accessorKey: "name",
+			header: "Name",
+			cell: ({ getValue }) => <span className="font-medium text-foreground">{String(getValue())}</span>
+		},
+		{
+			accessorKey: "auditor_id",
+			header: "Auditor ID",
+			cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+		},
+		{
+			accessorKey: "email",
+			header: isAdmin ? "Contact info" : "Email / contact info",
+			enableSorting: false,
+			cell: ({ row }) => (
+				<span className="text-muted-foreground">
+					{row.original.email || (isAdmin ? "Hidden from admin" : "—")}
+				</span>
+			)
+		},
+		{
+			id: "assigned_places",
+			accessorFn: row => row.assigned_places.length,
+			header: "Assigned places",
+			enableSorting: false,
+			cell: ({ row }) => (
+				<span className="text-muted-foreground">
+					{row.original.assigned_places.length > 0
+						? row.original.assigned_places.join(", ")
+						: "No places assigned"}
+				</span>
+			)
+		},
+		{
+			accessorKey: "completed_audits",
+			header: "Completed audits",
+			cell: ({ getValue }) => <span className="text-muted-foreground tabular-nums">{String(getValue())}</span>
+		},
+		{
+			accessorKey: "status",
+			header: "Status",
+			cell: ({ getValue }) => <StatusBadge label={String(getValue())} tone="success" />
+		}
+	];
+}
+
+function AuditorMobileCard({ auditor, isAdmin }: { auditor: AuditorRecord; isAdmin: boolean }) {
+	return (
+		<div className="space-y-2 rounded-md border border-border bg-card p-4">
+			<div className="flex items-start justify-between gap-3">
+				<div>
+					<p className="font-medium text-foreground">{auditor.name}</p>
+					<p className="text-sm text-muted-foreground">{auditor.auditor_id}</p>
+				</div>
+				<StatusBadge label={auditor.status} tone="success" />
+			</div>
+			<p className="text-sm text-muted-foreground">{auditor.email || (isAdmin ? "Hidden from admin" : "—")}</p>
+			<p className="text-sm text-muted-foreground">
+				{auditor.assigned_places.length > 0 ? auditor.assigned_places.join(", ") : "No places assigned"}
+			</p>
+			<p className="text-sm text-muted-foreground">{auditor.completed_audits} completed audits</p>
+		</div>
 	);
 }
 
 export function LiveAuditorsTable() {
 	const { session } = useAuth();
 	const { data, loading, error } = useTableData(fetchAuditors);
+	const isAdmin = session?.user.account_type === "ADMIN";
+	const columns = React.useMemo(() => buildAuditorColumns(Boolean(isAdmin)), [isAdmin]);
 	if (loading) return <LoadingCard label="auditors" />;
 	if (error) return <ErrorCard message={error} />;
-	const isAdmin = session?.user.account_type === "ADMIN";
 	if (!data?.length) {
 		return (
-			<Card className="rounded-md ">
-				<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-					<div>
-						<CardTitle className="text-2xl">Auditors</CardTitle>
-						<CardDescription className="mt-2 max-w-2xl leading-6">
-							No auditors are visible in this scope yet. You can still invite an auditor now.
-						</CardDescription>
-					</div>
-					<Button asChild className="rounded-md bg-primary text-white hover:bg-primary/90">
+			<DashboardHero
+				size="compact"
+				title="Auditors"
+				subtitle="No auditors are visible in this scope yet. You can still invite an auditor now."
+				actions={
+					<Button asChild className="bg-white text-foreground hover:bg-emerald-50">
 						<Link href="/manager/auditors/invite">
 							<MailPlus className="size-4" />
 							Invite New Auditor
 						</Link>
 					</Button>
-				</CardHeader>
-			</Card>
+				}
+			/>
 		);
 	}
 
 	return (
-		<Card className="rounded-md ">
-			<CardHeader className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-				<div>
-					<CardTitle className="text-2xl">Auditors</CardTitle>
-					<CardDescription className="mt-2 max-w-2xl leading-6">
-						{isAdmin
-							? "Platform-wide auditor records, shown using auditor IDs only to protect personal details."
-							: "Auditors currently in this manager's scope, with contact info and place assignments."}
-					</CardDescription>
-				</div>
-				<div className="flex flex-wrap gap-3">
-					<Button asChild className="rounded-md bg-primary text-white hover:bg-primary/90">
-						<Link href="/manager/auditors/invite">
-							<MailPlus className="size-4" />
-							Invite New Auditor
-						</Link>
-					</Button>
-					{!isAdmin && session?.user.is_primary_manager ? (
-						<Button asChild variant="outline" className="rounded-md">
-							<Link href="/manager/managers/invite">
-								<ShieldPlus className="size-4" />
-								Invite New Manager
+		<div className="space-y-6">
+			<DashboardHero
+				size="compact"
+				title="Auditors"
+				subtitle={
+					isAdmin
+						? "Platform-wide auditor records, shown using auditor IDs only to protect personal details."
+						: "Auditors currently in this manager's scope, with contact info and place assignments."
+				}
+				actions={
+					<>
+						<Button asChild className="bg-white text-foreground hover:bg-emerald-50">
+							<Link href="/manager/auditors/invite">
+								<MailPlus className="size-4" />
+								Invite New Auditor
 							</Link>
 						</Button>
-					) : null}
-				</div>
-			</CardHeader>
-			<CardContent className="overflow-x-auto">
-				<table className="min-w-full text-left text-sm">
-					<thead className="text-muted-foreground">
-						<tr className="border-b border-border">
-							<th className="py-3 pr-4 font-medium">Name</th>
-							<th className="py-3 pr-4 font-medium">Auditor ID</th>
-							<th className="py-3 pr-4 font-medium">
-								{isAdmin ? "Contact Info" : "Email / Contact Info"}
-							</th>
-							<th className="py-3 pr-4 font-medium">Assigned Places</th>
-							<th className="py-3 pr-4 font-medium">Completed Audits</th>
-							<th className="py-3 font-medium">Status</th>
-						</tr>
-					</thead>
-					<tbody>
-						{data.map(auditor => (
-							<tr key={auditor.id} className="border-b border-border last:border-0">
-								<td className="py-4 pr-4 font-medium text-foreground">{auditor.name}</td>
-								<td className="py-4 pr-4 text-muted-foreground">{auditor.auditor_id}</td>
-								<td className="py-4 pr-4 text-muted-foreground">
-									{auditor.email || (isAdmin ? "Hidden from admin" : "-")}
-								</td>
-								<td className="py-4 pr-4 text-muted-foreground">
-									{auditor.assigned_places.length > 0
-										? auditor.assigned_places.join(", ")
-										: "No places assigned"}
-								</td>
-								<td className="py-4 pr-4 text-muted-foreground">{auditor.completed_audits}</td>
-								<td className="py-4">
-									<Badge
-										variant="secondary"
-										className="rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-50">
-										{auditor.status}
-									</Badge>
-								</td>
-							</tr>
-						))}
-					</tbody>
-				</table>
-			</CardContent>
-		</Card>
+						{!isAdmin && session?.user.is_primary_manager ? (
+							<Button
+								asChild
+								variant="outline"
+								className="border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+								<Link href="/manager/managers/invite">
+									<ShieldPlus className="size-4" />
+									Invite New Manager
+								</Link>
+							</Button>
+						) : null}
+					</>
+				}
+			/>
+			<Card className="rounded-md">
+				<CardContent>
+					<DataTable
+						columns={columns}
+						data={data}
+						getRowId={row => row.id}
+						mobileCard={auditor => <AuditorMobileCard auditor={auditor} isAdmin={Boolean(isAdmin)} />}
+					/>
+				</CardContent>
+			</Card>
+		</div>
 	);
 }
 
@@ -1348,272 +1446,225 @@ export function LiveAuditsTable() {
 		setCompareError(null);
 	}
 
+	const auditColumns = React.useMemo<ColumnDef<AuditRecord>[]>(
+		() => [
+			{
+				id: "select",
+				enableSorting: false,
+				header: () => {
+					const submissionIds = filteredAudits
+						.map(audit => audit.submission_id)
+						.filter((id): id is string => Boolean(id));
+					const everySelected =
+						submissionIds.length > 0 && submissionIds.every(id => selectedAuditIds.includes(id));
+					return (
+						<input
+							type="checkbox"
+							aria-label="Select all audits"
+							checked={everySelected}
+							onChange={() =>
+								setSelectedAuditIds(current => {
+									const ids = filteredAudits
+										.map(audit => audit.submission_id)
+										.filter((id): id is string => Boolean(id));
+									const all = ids.length > 0 && ids.every(id => current.includes(id));
+									return all
+										? current.filter(id => !ids.includes(id))
+										: Array.from(new Set([...current, ...ids]));
+								})
+							}
+						/>
+					);
+				},
+				cell: ({ row }) => {
+					const submissionId = row.original.submission_id;
+					return (
+						<input
+							type="checkbox"
+							aria-label={`Select audit for ${row.original.place}`}
+							checked={submissionId ? selectedAuditIds.includes(submissionId) : false}
+							disabled={!submissionId}
+							onChange={() =>
+								submissionId
+									? setSelectedAuditIds(current =>
+											current.includes(submissionId)
+												? current.filter(id => id !== submissionId)
+												: [...current, submissionId]
+										)
+									: undefined
+							}
+						/>
+					);
+				}
+			},
+			{
+				accessorKey: "place",
+				header: "Place",
+				cell: ({ getValue }) => <span className="font-medium text-foreground">{String(getValue())}</span>
+			},
+			{
+				accessorKey: "auditor",
+				header: "Auditor ID",
+				cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+			},
+			{
+				accessorKey: "status",
+				header: "Status",
+				cell: ({ getValue }) => <StatusBadge label={String(getValue())} tone="secondary" />
+			},
+			{
+				id: "score",
+				header: "Score",
+				enableSorting: false,
+				cell: ({ row }) => <AuditScoreCell audit={row.original} />
+			},
+			{
+				id: "submitted_at",
+				accessorFn: row => row.submitted_at ?? "",
+				header: "Submitted",
+				cell: ({ row }) => (
+					<span className="text-muted-foreground">
+						{row.original.submitted_at ? new Date(row.original.submitted_at).toLocaleDateString() : "—"}
+					</span>
+				)
+			},
+			{
+				id: "actions",
+				header: () => <span className="sr-only">Actions</span>,
+				enableSorting: false,
+				cell: ({ row }) => {
+					const audit = row.original;
+					const editHref = audit.submission_id
+						? `/manager/audits/${audit.id}/edit/page/1?submissionId=${encodeURIComponent(audit.submission_id)}`
+						: `/manager/audits/${audit.id}/edit/page/1`;
+					const submissionId = audit.submission_id;
+					if (!submissionId) {
+						return <DataTableRowActions primary={{ label: "Edit audit", href: editHref }} />;
+					}
+					return (
+						<DataTableRowActions
+							primary={{ label: "View report", href: `/yee/submissions/${submissionId}` }}
+							actions={[
+								{ label: "Edit audit", href: editHref },
+								{
+									label: "Export raw data",
+									onClick: () =>
+										downloadCsv(
+											`audit-${submissionId}.csv`,
+											rawDataToRows(rawData.filter(rawRow => rawRow.audit_id === submissionId))
+										)
+								}
+							]}
+						/>
+					);
+				}
+			}
+		],
+		[filteredAudits, selectedAuditIds, rawData]
+	);
+
 	if (loading) return <LoadingCard label="audits" />;
 	if (error) return <ErrorCard message={error} />;
 	const filtersActive = selectedProjectIds.length > 0 || selectedPlaceIds.length > 0;
 
 	return (
 		<div className="space-y-6">
-			<Card className="rounded-md ">
-				<CardHeader>
-					<CardTitle>Audits</CardTitle>
-					<CardDescription>
-						Filter by project or place, compare selected audits, and export all, filtered, or selected raw
-						data.
-					</CardDescription>
-				</CardHeader>
+			<DashboardHero
+				size="compact"
+				title="Audits"
+				subtitle="Filter by project or place, compare selected audits, and export all, filtered, or selected raw data."
+			/>
+			<Card className="rounded-md">
 				<CardContent className="space-y-4 overflow-x-auto">
-					<div className="flex flex-wrap gap-3">
-						<SearchableMultiSelectFilter
-							label="Project"
-							options={projectOptions}
-							selectedValues={selectedProjectIds}
-							onChange={values => {
-								setSelectedProjectIds(values);
-								const allowedPlaceIds = new Set(
-									audits
-										.filter(audit => values.includes(audit.project_id))
-										.map(audit => audit.place_id)
-								);
-								setSelectedPlaceIds(current => current.filter(placeId => allowedPlaceIds.has(placeId)));
-								setSelectedAuditIds([]);
-							}}
-						/>
-						<SearchableMultiSelectFilter
-							label="Place"
-							options={placeOptions}
-							selectedValues={selectedPlaceIds}
-							onChange={values => {
-								setSelectedPlaceIds(values);
-								setSelectedAuditIds([]);
-							}}
-						/>
-						<ClearFiltersButton
-							disabled={!filtersActive}
-							onClick={() => {
-								setSelectedProjectIds([]);
-								setSelectedPlaceIds([]);
-								setSelectedAuditIds([]);
-								// Drop the deep-link params too, so a refresh or a
-								// shared URL does not re-apply the cleared filters.
-								if (paramProjectId || paramPlaceId) {
-									router.replace(pathname);
-								}
-							}}
-						/>
-						<Button
-							type="button"
-							variant="outline"
-							className="rounded-lg"
-							onClick={() => exportRows(rawData, "all-audits.csv")}>
-							Export All
-						</Button>
-						<Button
-							type="button"
-							variant="outline"
-							className="rounded-lg"
-							onClick={() => exportRows(filteredRawData, "filtered-audits.csv")}>
-							Export Filtered
-						</Button>
-						<Button
-							type="button"
-							variant="outline"
-							className="rounded-lg"
-							onClick={() => exportRows(selectedRawData, "selected-audits.csv")}
-							disabled={selectedAuditIds.length === 0}>
-							Export Selected
-						</Button>
-						<Button
-							type="button"
-							className="rounded-lg bg-primary text-white hover:bg-primary/90"
-							onClick={handleCompare}
-							disabled={selectedAuditIds.length < 2}>
-							Compare Selected
-						</Button>
-					</div>
 					{compareError ? <p className="text-sm text-rose-600">{compareError}</p> : null}
-					<table className="min-w-full text-left text-sm">
-						<thead className="text-muted-foreground">
-							<tr className="border-b border-border">
-								<th className="py-3 pr-4 font-medium">
-									<input
-										type="checkbox"
-										checked={
-											filteredAudits.length > 0 &&
-											filteredAudits.every(
-												audit =>
-													audit.submission_id &&
-													selectedAuditIds.includes(audit.submission_id)
-											)
-										}
-										onChange={() =>
-											setSelectedAuditIds(current =>
-												filteredAudits.every(
-													audit =>
-														audit.submission_id && current.includes(audit.submission_id)
-												)
-													? current.filter(
-															id =>
-																!filteredAudits.some(
-																	audit => audit.submission_id === id
-																)
-														)
-													: Array.from(
-															new Set([
-																...current,
-																...filteredAudits
-																	.map(audit => audit.submission_id)
-																	.filter((submissionId): submissionId is string =>
-																		Boolean(submissionId)
-																	)
-															])
-														)
-											)
-										}
+					<DataTable
+						columns={auditColumns}
+						data={filteredAudits}
+						getRowId={row => row.id}
+						noResults="No audits match the selected filters."
+						mobileCard={audit => (
+							<AuditRowMobileCard
+								audit={audit}
+								isSelected={
+									audit.submission_id ? selectedAuditIds.includes(audit.submission_id) : false
+								}
+								onToggle={toggleAuditSelection}
+							/>
+						)}
+						toolbar={
+							<div className="flex flex-col flex-wrap items-start gap-3">
+								<div className="flex flex-wrap justify-start items-start w-full gap-3">
+									<SearchableMultiSelectFilter
+										label="Project"
+										options={projectOptions}
+										selectedValues={selectedProjectIds}
+										onChange={values => {
+											setSelectedProjectIds(values);
+											const allowedPlaceIds = new Set(
+												audits
+													.filter(audit => values.includes(audit.project_id))
+													.map(audit => audit.place_id)
+											);
+											setSelectedPlaceIds(current =>
+												current.filter(placeId => allowedPlaceIds.has(placeId))
+											);
+											setSelectedAuditIds([]);
+										}}
 									/>
-								</th>
-								<th className="py-3 pr-4 font-medium">Place</th>
-								<th className="py-3 pr-4 font-medium">Auditor ID</th>
-								<th className="py-3 pr-4 font-medium">Status</th>
-								<th className="py-3 pr-4 font-medium">Score</th>
-								<th className="py-3 pr-4 font-medium">Submitted Date</th>
-								<th className="py-3 pr-4 font-medium">Report</th>
-								<th className="py-3 pr-4 font-medium">Edit Audit</th>
-								<th className="py-3 font-medium">Raw Data</th>
-							</tr>
-						</thead>
-						<tbody>
-							{filteredAudits.length === 0 ? (
-								<tr>
-									<td colSpan={9} className="py-8 text-center text-sm text-muted-foreground">
-										No audits match the selected filters.
-									</td>
-								</tr>
-							) : null}
-							{filteredAudits.map(audit => (
-								<tr key={audit.id} className="border-b border-border last:border-0">
-									<td className="py-4 pr-4">
-										<input
-											type="checkbox"
-											checked={
-												audit.submission_id
-													? selectedAuditIds.includes(audit.submission_id)
-													: false
+									<SearchableMultiSelectFilter
+										label="Place"
+										options={placeOptions}
+										selectedValues={selectedPlaceIds}
+										onChange={values => {
+											setSelectedPlaceIds(values);
+											setSelectedAuditIds([]);
+										}}
+									/>
+									<ClearFiltersButton
+										disabled={!filtersActive}
+										onClick={() => {
+											setSelectedProjectIds([]);
+											setSelectedPlaceIds([]);
+											setSelectedAuditIds([]);
+											// Drop the deep-link params too, so a refresh or a
+											// shared URL does not re-apply the cleared filters.
+											if (paramProjectId || paramPlaceId) {
+												router.replace(pathname);
 											}
-											onChange={() =>
-												audit.submission_id
-													? toggleAuditSelection(audit.submission_id)
-													: undefined
-											}
-											disabled={!audit.submission_id}
-										/>
-									</td>
-									<td className="py-4 pr-4 font-medium text-foreground">{audit.place}</td>
-									<td className="py-4 pr-4 text-muted-foreground">{audit.auditor}</td>
-									<td className="py-4 pr-4">
-										<Badge
-											variant="secondary"
-											className="rounded-full bg-sky-50 text-sky-700 hover:bg-sky-50">
-											{audit.status}
-										</Badge>
-									</td>
-									<td className="py-4 pr-4 text-muted-foreground">
-										{audit.status === "Submitted" ? (
-											<div className="space-y-1">
-												<div>
-													<span className="font-medium text-foreground">Raw:</span>{" "}
-													{audit.total_raw_score} / {audit.total_raw_maximum}{" "}
-													<span className="text-muted-foreground">
-														(
-														{audit.total_raw_maximum
-															? (
-																	(audit.total_raw_score / audit.total_raw_maximum) *
-																	100
-																)?.toFixed(0)
-															: "0"}
-														%)
-													</span>
-												</div>
-												<div>
-													<span className="font-medium text-foreground">Youth Weighted:</span>{" "}
-													{audit.total_weighted_score?.toFixed(2)} /{" "}
-													{audit.total_weighted_maximum?.toFixed(2)}{" "}
-													<span className="text-muted-foreground">
-														(
-														{(() => {
-															const denominator = audit.total_weighted_maximum;
-															return denominator
-																? (
-																		(audit.total_weighted_score / denominator) *
-																		100
-																	)?.toFixed(0)
-																: "0";
-														})()}
-														%)
-													</span>
-												</div>
-											</div>
-										) : (
-											<span className="text-muted-foreground/70">Available after submit</span>
-										)}
-									</td>
-									<td className="py-4 pr-4 text-muted-foreground">
-										{audit.submitted_at ? new Date(audit.submitted_at).toLocaleDateString() : "-"}
-									</td>
-									<td className="py-4 pr-4">
-										{audit.submission_id ? (
-											<Button asChild variant="outline" size="sm" className="rounded-lg">
-												<Link href={`/yee/submissions/${audit.submission_id}`}>
-													View Report
-												</Link>
-											</Button>
-										) : (
-											<span className="text-sm text-muted-foreground/70">
-												{audit.status === "Submitted"
-													? "Open via Edit Audit to restore report"
-													: "Available after submit"}
-											</span>
-										)}
-									</td>
-									<td className="py-4 pr-4">
-										<Button asChild variant="outline" size="sm" className="rounded-lg">
-											<Link
-												href={
-													audit.submission_id
-														? `/manager/audits/${audit.id}/edit/page/1?submissionId=${encodeURIComponent(audit.submission_id)}`
-														: `/manager/audits/${audit.id}/edit/page/1`
-												}>
-												Edit Audit
-											</Link>
-										</Button>
-									</td>
-									<td className="py-4">
-										{audit.submission_id ? (
-											<Button
-												type="button"
-												variant="outline"
-												size="sm"
-												className="rounded-lg"
-												onClick={() =>
-													exportRows(
-														rawData.filter(row => row.audit_id === audit.submission_id),
-														`audit-${audit.submission_id}.csv`
-													)
-												}>
-												View Raw Data
-											</Button>
-										) : (
-											<span className="text-sm text-muted-foreground/70">
-												{audit.status === "Submitted"
-													? "Available after report is restored"
-													: "Available after submit"}
-											</span>
-										)}
-									</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
+										}}
+									/>
+								</div>
+								<div className="flex flex-wrap items-center justify-start max-w-full min-w-content gap-3">
+									<Button
+										type="button"
+										variant="outline"
+										onClick={() => exportRows(rawData, "all-audits.csv")}>
+										Export All
+									</Button>
+									<Button
+										type="button"
+										variant="outline"
+										onClick={() => exportRows(filteredRawData, "filtered-audits.csv")}>
+										Export Filtered
+									</Button>
+									<Button
+										type="button"
+										variant="outline"
+										onClick={() => exportRows(selectedRawData, "selected-audits.csv")}
+										disabled={selectedAuditIds.length === 0}>
+										Export Selected
+									</Button>
+									<Button
+										type="button"
+										className="bg-primary text-white hover:bg-primary/90"
+										onClick={handleCompare}
+										disabled={selectedAuditIds.length < 2}>
+										Compare Selected
+									</Button>
+								</div>
+							</div>
+						}
+					/>
 				</CardContent>
 			</Card>
 
@@ -1621,6 +1672,43 @@ export function LiveAuditsTable() {
 		</div>
 	);
 }
+
+type OrgSummaryRecord = {
+	organization: string;
+	users: number;
+	projects: number;
+	places: number;
+	audits: number;
+};
+
+/** Columns for the platform-wide organization summary (display-only). */
+const orgSummaryColumns: ColumnDef<OrgSummaryRecord>[] = [
+	{
+		accessorKey: "organization",
+		header: "Organization",
+		cell: ({ getValue }) => <span className="font-medium text-foreground">{String(getValue())}</span>
+	},
+	{
+		accessorKey: "users",
+		header: "Users",
+		cell: ({ getValue }) => <span className="text-muted-foreground tabular-nums">{String(getValue())}</span>
+	},
+	{
+		accessorKey: "projects",
+		header: "Projects",
+		cell: ({ getValue }) => <span className="text-muted-foreground tabular-nums">{String(getValue())}</span>
+	},
+	{
+		accessorKey: "places",
+		header: "Places",
+		cell: ({ getValue }) => <span className="text-muted-foreground tabular-nums">{String(getValue())}</span>
+	},
+	{
+		accessorKey: "audits",
+		header: "Audits",
+		cell: ({ getValue }) => <span className="text-muted-foreground tabular-nums">{String(getValue())}</span>
+	}
+];
 
 export function LiveAdminOverview() {
 	const { data: overviewData, isLoading: overviewLoading, error: overviewQueryError } = useDashboardOverview();
@@ -1648,68 +1736,50 @@ export function LiveAdminOverview() {
 
 	return (
 		<div className="space-y-6">
-			<section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-				{[
-					{
-						title: "Users",
-						value: `${users.data?.length ?? 0}`,
-						description: "All roles across the platform."
-					},
-					...overview.data.metrics
-				]
-					.slice(0, 4)
-					.map(metric => (
-						<Link key={metric.title} href={adminMetricHref(metric.title)} className="block">
-							<Card
-								className={`rounded-md shadow-sm transition hover:shadow-md ${metricTone(metric.title).card}`}>
-								<CardHeader>
-									<CardDescription>{metric.title}</CardDescription>
-									<CardTitle className="text-3xl">{metric.value}</CardTitle>
-								</CardHeader>
-								<CardContent className="space-y-3 text-sm text-muted-foreground">
-									<p>{metric.description}</p>
-									<div className="flex items-center justify-between">
-										<Badge
-											variant="secondary"
-											className={`rounded-full ${metricTone(metric.title).badge}`}>
-											Admin view
-										</Badge>
-										<span className="text-xs font-medium text-muted-foreground">Open</span>
-									</div>
-								</CardContent>
-							</Card>
-						</Link>
-					))}
-			</section>
+			<DashboardHero
+				badge="Admin console"
+				title="Platform overview across every organization."
+				subtitle="Monitor users, projects, places, and audit activity for all organizations from one console."
+				// action buttons to open reports and instruments
+				actions={
+					<>
+						<Button asChild className="bg-white text-foreground hover:bg-emerald-50">
+							<Link href="/reporting/live-reports">Open Reports</Link>
+						</Button>
+						<Button
+							asChild
+							className="border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+							<Link href="/instruments/live-instruments">Open Instruments</Link>
+						</Button>
+					</>
+				}
+				stats={overview.data.metrics.map(metric => ({
+					label: metric.title,
+					value: metric.value,
+					helper: metric.description
+				}))}
+			/>
 			{overview.data.organization_summaries.length > 0 ? (
-				<Card className="rounded-md ">
+				<Card className="rounded-md space-y-0">
 					<CardHeader>
 						<CardTitle>Organization Summary</CardTitle>
 						<CardDescription>Platform-wide summary grouped by organization.</CardDescription>
 					</CardHeader>
-					<CardContent className="overflow-x-auto">
-						<table className="min-w-full text-left text-sm">
-							<thead className="text-muted-foreground">
-								<tr className="border-b border-border">
-									<th className="py-3 pr-4 font-medium">Organization</th>
-									<th className="py-3 pr-4 font-medium">Users</th>
-									<th className="py-3 pr-4 font-medium">Projects</th>
-									<th className="py-3 pr-4 font-medium">Places</th>
-									<th className="py-3 font-medium">Audits</th>
-								</tr>
-							</thead>
-							<tbody>
-								{overview.data.organization_summaries.map(item => (
-									<tr key={item.organization} className="border-b border-border last:border-0">
-										<td className="py-4 pr-4 font-medium text-foreground">{item.organization}</td>
-										<td className="py-4 pr-4 text-muted-foreground">{item.users}</td>
-										<td className="py-4 pr-4 text-muted-foreground">{item.projects}</td>
-										<td className="py-4 pr-4 text-muted-foreground">{item.places}</td>
-										<td className="py-4 text-muted-foreground">{item.audits}</td>
-									</tr>
-								))}
-							</tbody>
-						</table>
+					<CardContent>
+						<DataTable
+							columns={orgSummaryColumns}
+							data={overview.data.organization_summaries}
+							getRowId={row => row.organization}
+							mobileCard={row => (
+								<div className="space-y-2 rounded-md border border-border bg-card p-4">
+									<p className="font-medium text-foreground">{row.organization}</p>
+									<p className="text-sm tabular-nums text-muted-foreground">
+										{row.users} users · {row.projects} projects · {row.places} places · {row.audits}{" "}
+										audits
+									</p>
+								</div>
+							)}
+						/>
 					</CardContent>
 				</Card>
 			) : null}
@@ -1832,116 +1902,160 @@ export function LiveUsersTable({ embedded = false }: { embedded?: boolean }) {
 		setSelectedProjects([]);
 	}
 
-	return (
-		<Card className="rounded-md ">
-			<CardHeader>
-				<CardTitle>Users</CardTitle>
-				<CardDescription>
-					All managers, auditors, and admins across the system, including approval actions for pending
-					accounts.
-				</CardDescription>
-			</CardHeader>
-			{actionError ? <CardContent className="pt-0 text-sm text-rose-700">{actionError}</CardContent> : null}
-			<CardContent className="space-y-4 overflow-x-auto">
-				<div className="flex flex-wrap gap-3">
-					<SearchableMultiSelectFilter
-						label="Organization"
-						options={organizationOptions}
-						selectedValues={selectedOrganizations}
-						onChange={setSelectedOrganizations}
-					/>
-					<SearchableMultiSelectFilter
-						label="Role"
-						options={roleOptions}
-						selectedValues={selectedRoles}
-						onChange={setSelectedRoles}
-					/>
-					<SearchableMultiSelectFilter
-						label="Project"
-						options={projectOptions}
-						selectedValues={selectedProjects}
-						onChange={setSelectedProjects}
-					/>
-					<ClearFiltersButton disabled={!filtersActive} onClick={clearFilters} />
-				</div>
-				<table className="min-w-full text-left text-sm">
-					<thead className="text-muted-foreground">
-						<tr className="border-b border-border">
-							<th className="py-3 pr-4 font-medium">Organization</th>
-							<th className="py-3 pr-4 font-medium">User Name</th>
-							<th className="py-3 pr-4 font-medium">Role</th>
-							<th className="py-3 pr-4 font-medium">Project Assignment</th>
-							<th className="py-3 pr-4 font-medium">Contact Info</th>
-							<th className="py-3 font-medium">Action / Status</th>
-						</tr>
-					</thead>
-					<tbody>
-						{filteredRows.length === 0 ? (
-							<tr>
-								<td colSpan={6} className="py-8 text-center text-sm text-muted-foreground">
-									No users match the selected filters.
-								</td>
-							</tr>
+	// Status badge + inline approval control, shared by the table cell and the
+	// stacked mobile card. Closes over the component's approval state, so the
+	// columns are rebuilt each render (fine for this admin-only table).
+	function renderUserAction(user: UserRecord) {
+		return (
+			<div className="flex flex-col gap-2">
+				<Badge variant="secondary" className="w-fit rounded-full bg-muted text-foreground hover:bg-muted">
+					{user.status}
+				</Badge>
+				{!user.approved ? (
+					<div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+						{user.role === "AUDITOR" ? (
+							<select
+								value={selectedAccounts[user.id] ?? ""}
+								onChange={event =>
+									setSelectedAccounts(previous => ({
+										...previous,
+										[user.id]: event.target.value
+									}))
+								}
+								className="h-9 rounded-md border border-border bg-white px-3 text-sm text-foreground">
+								<option value="">Select workspace</option>
+								{accountOptions.map(([accountId, organization]) => (
+									<option key={accountId} value={accountId}>
+										{organization}
+									</option>
+								))}
+							</select>
 						) : null}
-						{filteredRows.map(user => (
-							<tr key={user.id} className="border-b border-border last:border-0">
-								<td className="py-4 pr-4 text-muted-foreground">{user.organization}</td>
-								<td className="py-4 pr-4 font-medium text-foreground">{user.name}</td>
-								<td className="py-4 pr-4 text-muted-foreground">{user.role}</td>
-								<td className="py-4 pr-4 text-muted-foreground">{user.project_assignments}</td>
-								<td className="py-4 pr-4 text-muted-foreground">
-									{user.role === "MANAGER" ? user.contact_info || user.email : ""}
-								</td>
-								<td className="py-4">
-									<div className="flex flex-col gap-2">
-										<Badge
-											variant="secondary"
-											className="w-fit rounded-full bg-muted text-foreground hover:bg-muted">
-											{user.status}
-										</Badge>
-										{!user.approved ? (
-											<div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-												{user.role === "AUDITOR" ? (
-													<select
-														value={selectedAccounts[user.id] ?? ""}
-														onChange={event =>
-															setSelectedAccounts(previous => ({
-																...previous,
-																[user.id]: event.target.value
-															}))
-														}
-														className="h-9 rounded-lg border border-border bg-white px-3 text-sm text-foreground">
-														<option value="">Select workspace</option>
-														{accountOptions.map(([accountId, organization]) => (
-															<option key={accountId} value={accountId}>
-																{organization}
-															</option>
-														))}
-													</select>
-												) : null}
-												<Button
-													size="sm"
-													className="rounded-lg bg-primary text-white hover:bg-primary/90"
-													onClick={() => void handleApprove(user)}
-													disabled={
-														submittingUserId === user.id ||
-														(user.role === "AUDITOR" &&
-															!selectedAccounts[user.id] &&
-															!user.account_id)
-													}>
-													{submittingUserId === user.id ? "Approving..." : "Approve"}
-												</Button>
-											</div>
-										) : (
-											<span className="text-sm text-muted-foreground">No action needed</span>
-										)}
-									</div>
-								</td>
-							</tr>
-						))}
-					</tbody>
-				</table>
-			</CardContent>
-		</Card>
+						<Button
+							size="sm"
+							className="rounded-md bg-primary text-white hover:bg-primary/90"
+							onClick={() => void handleApprove(user)}
+							disabled={
+								submittingUserId === user.id ||
+								(user.role === "AUDITOR" && !selectedAccounts[user.id] && !user.account_id)
+							}>
+							{submittingUserId === user.id ? "Approving..." : "Approve"}
+						</Button>
+					</div>
+				) : (
+					<span className="text-sm text-muted-foreground">No action needed</span>
+				)}
+			</div>
+		);
+	}
+
+	const userColumns: ColumnDef<UserRecord>[] = [
+		{
+			accessorKey: "organization",
+			header: "Organization",
+			cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+		},
+		{
+			accessorKey: "name",
+			header: "User name",
+			cell: ({ getValue }) => <span className="font-medium text-foreground">{String(getValue())}</span>
+		},
+		{
+			accessorKey: "role",
+			header: "Role",
+			cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+		},
+		{
+			accessorKey: "project_assignments",
+			header: "Project assignment",
+			enableSorting: false,
+			cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+		},
+		{
+			id: "contact",
+			accessorFn: row => (row.role === "MANAGER" ? row.contact_info || row.email : ""),
+			header: "Contact info",
+			enableSorting: false,
+			cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+		},
+		{
+			id: "action",
+			header: "Action / status",
+			enableSorting: false,
+			cell: ({ row }) => renderUserAction(row.original)
+		}
+	];
+
+	const userMobileCard = (user: UserRecord) => (
+		<div className="space-y-2 rounded-md border border-border bg-card p-4">
+			<div className="flex items-start justify-between gap-3">
+				<div>
+					<p className="font-medium text-foreground">{user.name}</p>
+					<p className="text-sm text-muted-foreground">
+						{user.role} · {user.organization}
+					</p>
+				</div>
+			</div>
+			{user.project_assignments ? (
+				<p className="text-sm text-muted-foreground">{user.project_assignments}</p>
+			) : null}
+			{renderUserAction(user)}
+		</div>
+	);
+
+	return (
+		<div className="space-y-6">
+			{embedded ? null : (
+				<DashboardHero
+					size="compact"
+					title="Users"
+					subtitle="All managers, auditors, and admins across the system, including approval actions for pending accounts."
+				/>
+			)}
+			<Card className="rounded-md">
+				{embedded ? (
+					<CardHeader>
+						<CardTitle>Users</CardTitle>
+						<CardDescription>
+							All managers, auditors, and admins across the system, including approval actions for pending
+							accounts.
+						</CardDescription>
+					</CardHeader>
+				) : null}
+				{actionError ? <CardContent className="pt-0 text-sm text-rose-700">{actionError}</CardContent> : null}
+				<CardContent className="space-y-4 overflow-x-auto">
+					<DataTable
+						columns={userColumns}
+						data={filteredRows}
+						getRowId={row => row.id}
+						noResults="No users match the selected filters."
+						mobileCard={userMobileCard}
+						toolbar={
+							<div className="flex flex-wrap items-center gap-3">
+								<SearchableMultiSelectFilter
+									label="Organization"
+									options={organizationOptions}
+									selectedValues={selectedOrganizations}
+									onChange={setSelectedOrganizations}
+								/>
+								<SearchableMultiSelectFilter
+									label="Role"
+									options={roleOptions}
+									selectedValues={selectedRoles}
+									onChange={setSelectedRoles}
+								/>
+								<SearchableMultiSelectFilter
+									label="Project"
+									options={projectOptions}
+									selectedValues={selectedProjects}
+									onChange={setSelectedProjects}
+								/>
+								<ClearFiltersButton disabled={!filtersActive} onClick={clearFilters} />
+							</div>
+						}
+					/>
+				</CardContent>
+			</Card>
+		</div>
 	);
 }

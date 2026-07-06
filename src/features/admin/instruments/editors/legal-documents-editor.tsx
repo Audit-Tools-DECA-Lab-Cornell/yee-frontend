@@ -21,7 +21,7 @@ export function LegalDocumentsEditor({
 	return (
 		<div className="space-y-4">
 			{documents.map((doc, index) => (
-				<div key={doc.id} className="space-y-3 rounded-lg border border-border bg-muted/60 p-4">
+				<div key={doc.id} className="space-y-3 rounded-md border border-border bg-muted/60 p-4">
 					<div className="flex flex-wrap items-center justify-between gap-2">
 						<p className="text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
 							{cleanInstrumentText(doc.document_type?.replaceAll("_", " ") || "Document")}

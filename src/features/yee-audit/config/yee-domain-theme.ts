@@ -1,38 +1,47 @@
 import type { YeeDomainKey, YeeStepNumber } from "@/features/yee-audit/config/yee-audit-config";
 
+/**
+ * Domain color theme — the ONE place the app maps YEE domains to colors.
+ *
+ * The actual color VALUES live entirely in `--domain-<name>-{text,strong,fill,light}`
+ * in `src/app/globals.css` (the single source of truth). This file only references
+ * those tokens: the `*Hex` fields as raw `var(--domain-*)` (for inline styles / SVG
+ * in charts, reports, and the individual report) and the `*Class` fields as Tailwind
+ * utilities generated from the same tokens (`domain-*` color namespace — used by the
+ * audit wizard). Adjust a color in globals.css and it updates everywhere.
+ *
+ * NOTE: the `*Class` strings are written out literally per domain (not generated) so
+ * Tailwind's content scanner sees them and emits the corresponding utilities.
+ */
 type DomainTheme = {
 	label: string;
 	step: YeeStepNumber;
-	/** Light background hex — used for review panels, keeping visual differentiation. */
+	/** Raw CSS color (`var(--domain-*)`) — tint background for inline styles/SVG. */
 	lightHex: string;
-	/** Strong foreground hex — used for text and borders in review mode. */
+	/** Raw CSS color — borders/dots/lines for inline styles/SVG. */
 	strongHex: string;
-	/** Medium fill hex — used for accents in review mode. */
+	/** Raw CSS color — bar/area fills for inline styles/SVG. */
 	strongFillHex: string;
 
-	/** Tailwind classes for an active/focused step nav or card border. */
+	/** Active/focused step-nav or card border. */
 	borderClass: string;
-	/** Tailwind classes for text in domain context. */
+	/** Domain-context text. */
 	textClass: string;
-	/** Tailwind classes for a progress bar fill. */
+	/** Progress-bar fill. */
 	fillClass: string;
 
-	/**
-	 * Option card classes:
-	 * selected — solid 2px border + light tint bg (no stacked shadows/gradients)
-	 * idle — subtle border + white bg with hover
-	 */
+	/** Option card: selected = solid border + light tint; idle = subtle + hover tint. */
 	selectedBorderClass: string;
 	selectedBgClass: string;
 	idleClass: string;
 
-	/** Instruction box style (domain intro callout). */
+	/** Instruction/callout box. */
 	instruction: string;
 	/** Section/domain card wrapper. */
 	card: string;
-	/** Condition sub-item style. */
+	/** Condition sub-item. */
 	condition: string;
-	/** Progress track style. */
+	/** Progress track. */
 	progress: string;
 };
 
@@ -40,104 +49,104 @@ export const yeeDomainThemes: Record<YeeDomainKey, DomainTheme> = {
 	access: {
 		label: "Access",
 		step: 3,
-		lightHex: "#dcefe0",
-		strongHex: "#5c8f68",
-		strongFillHex: "#7fb58b",
-		borderClass: "border-emerald-300",
-		textClass: "text-emerald-900",
-		fillClass: "bg-emerald-500",
-		selectedBorderClass: "border-emerald-500",
-		selectedBgClass: "bg-emerald-50",
-		idleClass: "border-border bg-background hover:bg-emerald-50/50",
-		instruction: "border-emerald-300 bg-emerald-100 text-emerald-900",
-		card: "border-emerald-200/80 bg-emerald-50/30",
-		condition: "border-emerald-200 bg-emerald-50",
-		progress: "border-emerald-200/80 bg-emerald-50/50"
+		lightHex: "var(--domain-access-light)",
+		strongHex: "var(--domain-access-strong)",
+		strongFillHex: "var(--domain-access-fill)",
+		borderClass: "border-domain-access-strong",
+		textClass: "text-domain-access-text",
+		fillClass: "bg-domain-access-fill",
+		selectedBorderClass: "border-domain-access-strong",
+		selectedBgClass: "bg-domain-access-light",
+		idleClass: "border-border bg-background hover:bg-domain-access-light/50",
+		instruction: "border-domain-access-strong bg-domain-access-light text-domain-access-text",
+		card: "border-domain-access-strong/20 bg-domain-access-light/40",
+		condition: "border-domain-access-strong/25 bg-domain-access-light",
+		progress: "border-domain-access-strong/20 bg-domain-access-light/50"
 	},
 	activitySpaces: {
 		label: "Activity Spaces",
 		step: 4,
-		lightHex: "#dfe8ff",
-		strongHex: "#6d8fe0",
-		strongFillHex: "#95aff5",
-		borderClass: "border-blue-300",
-		textClass: "text-blue-900",
-		fillClass: "bg-blue-500",
-		selectedBorderClass: "border-blue-500",
-		selectedBgClass: "bg-blue-50",
-		idleClass: "border-border bg-background hover:bg-blue-50/50",
-		instruction: "border-blue-300 bg-blue-100 text-blue-900",
-		card: "border-blue-200/80 bg-blue-50/30",
-		condition: "border-blue-200 bg-blue-50",
-		progress: "border-blue-200/80 bg-blue-50/50"
+		lightHex: "var(--domain-activity-light)",
+		strongHex: "var(--domain-activity-strong)",
+		strongFillHex: "var(--domain-activity-fill)",
+		borderClass: "border-domain-activity-strong",
+		textClass: "text-domain-activity-text",
+		fillClass: "bg-domain-activity-fill",
+		selectedBorderClass: "border-domain-activity-strong",
+		selectedBgClass: "bg-domain-activity-light",
+		idleClass: "border-border bg-background hover:bg-domain-activity-light/50",
+		instruction: "border-domain-activity-strong bg-domain-activity-light text-domain-activity-text",
+		card: "border-domain-activity-strong/20 bg-domain-activity-light/40",
+		condition: "border-domain-activity-strong/25 bg-domain-activity-light",
+		progress: "border-domain-activity-strong/20 bg-domain-activity-light/50"
 	},
 	amenities: {
 		label: "Amenities",
 		step: 5,
-		lightHex: "#fef3c7",
-		strongHex: "#d6a43b",
-		strongFillHex: "#e8be63",
-		borderClass: "border-amber-300",
-		textClass: "text-amber-900",
-		fillClass: "bg-amber-500",
-		selectedBorderClass: "border-amber-500",
-		selectedBgClass: "bg-amber-50",
-		idleClass: "border-border bg-background hover:bg-amber-50/50",
-		instruction: "border-amber-300 bg-amber-100 text-amber-900",
-		card: "border-amber-200/80 bg-amber-50/30",
-		condition: "border-amber-200 bg-amber-50",
-		progress: "border-amber-200/80 bg-amber-50/50"
+		lightHex: "var(--domain-amenities-light)",
+		strongHex: "var(--domain-amenities-strong)",
+		strongFillHex: "var(--domain-amenities-fill)",
+		borderClass: "border-domain-amenities-strong",
+		textClass: "text-domain-amenities-text",
+		fillClass: "bg-domain-amenities-fill",
+		selectedBorderClass: "border-domain-amenities-strong",
+		selectedBgClass: "bg-domain-amenities-light",
+		idleClass: "border-border bg-background hover:bg-domain-amenities-light/50",
+		instruction: "border-domain-amenities-strong bg-domain-amenities-light text-domain-amenities-text",
+		card: "border-domain-amenities-strong/20 bg-domain-amenities-light/40",
+		condition: "border-domain-amenities-strong/25 bg-domain-amenities-light",
+		progress: "border-domain-amenities-strong/20 bg-domain-amenities-light/50"
 	},
 	experienceOfSpace: {
 		label: "Experience of the Space",
 		step: 6,
-		lightHex: "#ccfbf1",
-		strongHex: "#4db5aa",
-		strongFillHex: "#67cdc0",
-		borderClass: "border-teal-300",
-		textClass: "text-teal-900",
-		fillClass: "bg-teal-500",
-		selectedBorderClass: "border-teal-500",
-		selectedBgClass: "bg-teal-50",
-		idleClass: "border-border bg-background hover:bg-teal-50/50",
-		instruction: "border-teal-300 bg-teal-100 text-teal-900",
-		card: "border-teal-200/80 bg-teal-50/30",
-		condition: "border-teal-200 bg-teal-50",
-		progress: "border-teal-200/80 bg-teal-50/50"
+		lightHex: "var(--domain-experience-light)",
+		strongHex: "var(--domain-experience-strong)",
+		strongFillHex: "var(--domain-experience-fill)",
+		borderClass: "border-domain-experience-strong",
+		textClass: "text-domain-experience-text",
+		fillClass: "bg-domain-experience-fill",
+		selectedBorderClass: "border-domain-experience-strong",
+		selectedBgClass: "bg-domain-experience-light",
+		idleClass: "border-border bg-background hover:bg-domain-experience-light/50",
+		instruction: "border-domain-experience-strong bg-domain-experience-light text-domain-experience-text",
+		card: "border-domain-experience-strong/20 bg-domain-experience-light/40",
+		condition: "border-domain-experience-strong/25 bg-domain-experience-light",
+		progress: "border-domain-experience-strong/20 bg-domain-experience-light/50"
 	},
 	aestheticsAndCare: {
 		label: "Aesthetics & Care",
 		step: 7,
-		lightHex: "#ffe4e6",
-		strongHex: "#d980a2",
-		strongFillHex: "#eca6c0",
-		borderClass: "border-rose-300",
-		textClass: "text-rose-900",
-		fillClass: "bg-rose-400",
-		selectedBorderClass: "border-rose-500",
-		selectedBgClass: "bg-rose-50",
-		idleClass: "border-border bg-background hover:bg-rose-50/50",
-		instruction: "border-rose-300 bg-rose-100 text-rose-900",
-		card: "border-rose-200/80 bg-rose-50/30",
-		condition: "border-rose-200 bg-rose-50",
-		progress: "border-rose-200/80 bg-rose-50/50"
+		lightHex: "var(--domain-aesthetics-light)",
+		strongHex: "var(--domain-aesthetics-strong)",
+		strongFillHex: "var(--domain-aesthetics-fill)",
+		borderClass: "border-domain-aesthetics-strong",
+		textClass: "text-domain-aesthetics-text",
+		fillClass: "bg-domain-aesthetics-fill",
+		selectedBorderClass: "border-domain-aesthetics-strong",
+		selectedBgClass: "bg-domain-aesthetics-light",
+		idleClass: "border-border bg-background hover:bg-domain-aesthetics-light/50",
+		instruction: "border-domain-aesthetics-strong bg-domain-aesthetics-light text-domain-aesthetics-text",
+		card: "border-domain-aesthetics-strong/20 bg-domain-aesthetics-light/40",
+		condition: "border-domain-aesthetics-strong/25 bg-domain-aesthetics-light",
+		progress: "border-domain-aesthetics-strong/20 bg-domain-aesthetics-light/50"
 	},
 	useAndUsability: {
 		label: "Use & Usability",
 		step: 8,
-		lightHex: "#ede9fe",
-		strongHex: "#8f79d6",
-		strongFillHex: "#b19af0",
-		borderClass: "border-violet-300",
-		textClass: "text-violet-900",
-		fillClass: "bg-violet-500",
-		selectedBorderClass: "border-violet-500",
-		selectedBgClass: "bg-violet-50",
-		idleClass: "border-border bg-background hover:bg-violet-50/50",
-		instruction: "border-violet-300 bg-violet-100 text-violet-900",
-		card: "border-violet-200/80 bg-violet-50/30",
-		condition: "border-violet-200 bg-violet-50",
-		progress: "border-violet-200/80 bg-violet-50/50"
+		lightHex: "var(--domain-use-light)",
+		strongHex: "var(--domain-use-strong)",
+		strongFillHex: "var(--domain-use-fill)",
+		borderClass: "border-domain-use-strong",
+		textClass: "text-domain-use-text",
+		fillClass: "bg-domain-use-fill",
+		selectedBorderClass: "border-domain-use-strong",
+		selectedBgClass: "bg-domain-use-light",
+		idleClass: "border-border bg-background hover:bg-domain-use-light/50",
+		instruction: "border-domain-use-strong bg-domain-use-light text-domain-use-text",
+		card: "border-domain-use-strong/20 bg-domain-use-light/40",
+		condition: "border-domain-use-strong/25 bg-domain-use-light",
+		progress: "border-domain-use-strong/20 bg-domain-use-light/50"
 	}
 };
 

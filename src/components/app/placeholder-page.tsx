@@ -22,7 +22,7 @@ export function PlaceholderPage({
 	actions?: PlaceholderAction[];
 }) {
 	return (
-		<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
+		<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
 			<CardHeader>
 				<CardTitle className="text-2xl">{title}</CardTitle>
 				<CardDescription className="max-w-3xl leading-6">{description}</CardDescription>
@@ -35,12 +35,7 @@ export function PlaceholderPage({
 							<Button
 								key={`${action.href}-${action.label}`}
 								asChild
-								variant={action.variant === "outline" ? "outline" : "default"}
-								className={
-									action.variant === "outline"
-										? "rounded-lg"
-										: "rounded-lg bg-[#10231f] text-white hover:bg-[#17302c]"
-								}>
+								variant={action.variant === "outline" ? "outline" : "default"}>
 								<Link href={action.href}>{action.label}</Link>
 							</Button>
 						))}

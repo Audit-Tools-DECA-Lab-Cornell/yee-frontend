@@ -11,6 +11,7 @@ import {
 	type PlaceProfileFormValues
 } from "@/features/manager/components/place-profile-form";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormSkeleton } from "@/components/ui/skeletons";
 import { fetchPlaceDetail, fetchProjects, updatePlace, type ProjectRecord } from "@/features/workspaces/api/live-api";
 
 export default function EditPlacePage() {
@@ -67,17 +68,16 @@ export default function EditPlacePage() {
 	}
 
 	return (
-		<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
+		<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
 			<CardHeader>
 				<CardTitle className="text-2xl">Edit Place</CardTitle>
 				<CardDescription className="max-w-3xl leading-6">
-					Update the Place profile, detailed location, anticipated timing, and Auditor setup information
-					without leaving the manager workflow.
+					Update the location, anticipated timing, and auditor setup for this place.
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
 				{loading || !values ? (
-					<p className="text-sm text-slate-500">Loading Place details...</p>
+					<FormSkeleton />
 				) : (
 					<PlaceProfileForm
 						values={values}

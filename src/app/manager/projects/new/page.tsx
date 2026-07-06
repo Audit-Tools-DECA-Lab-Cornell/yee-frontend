@@ -9,7 +9,8 @@ import {
 	ProjectProfileForm,
 	type ProjectProfileFormValues
 } from "@/features/manager/components/project-profile-form";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { DashboardHero } from "@/components/ui/dashboard-hero";
 import { createProject } from "@/features/workspaces/api/live-api";
 
 const INITIAL_VALUES: ProjectProfileFormValues = {
@@ -52,26 +53,27 @@ export default function NewProjectPage() {
 	}
 
 	return (
-		<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
-			<CardHeader>
-				<CardTitle className="text-2xl">Create Project</CardTitle>
-				<CardDescription className="max-w-3xl leading-6">
-					Create the Project profile first, then continue directly into that Project page to add Places and
-					invite Auditors without leaving the setup flow.
-				</CardDescription>
-			</CardHeader>
-			<CardContent>
-				<ProjectProfileForm
-					values={values}
-					onChange={setValues}
-					onSubmit={handleSubmit}
-					saving={saving}
-					error={error}
-					submitLabel="Save Project"
-					cancelHref="/manager/projects"
-					cancelLabel="Back to Projects"
-				/>
-			</CardContent>
-		</Card>
+		<div className="space-y-6">
+			<DashboardHero
+				size="compact"
+				badge="Projects"
+				title="Create Project"
+				subtitle="Create the Project profile first, then continue directly into that Project page to add Places and invite Auditors without leaving the setup flow."
+			/>
+			<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
+				<CardContent className="pt-6">
+					<ProjectProfileForm
+						values={values}
+						onChange={setValues}
+						onSubmit={handleSubmit}
+						saving={saving}
+						error={error}
+						submitLabel="Save Project"
+						cancelHref="/manager/projects"
+						cancelLabel="Back to Projects"
+					/>
+				</CardContent>
+			</Card>
+		</div>
 	);
 }

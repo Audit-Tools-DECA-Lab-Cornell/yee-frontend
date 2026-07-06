@@ -21,7 +21,7 @@ export function ScaleGuidanceEditor({
 	return (
 		<div className="space-y-4">
 			{scales.map((scale, index) => (
-				<div key={scale.id} className="space-y-3 rounded-lg border border-border bg-muted/60 p-4">
+				<div key={scale.id} className="space-y-3 rounded-md border border-border bg-muted/60 p-4">
 					<IdTag>{scale.id}</IdTag>
 					<EditableField
 						label="Title"
@@ -62,7 +62,7 @@ export function ScaleGuidanceEditor({
 						}
 					/>
 					{(scale.rules ?? []).length > 0 ? (
-						<div className="space-y-3 rounded-lg border border-border bg-card p-3">
+						<div className="space-y-3 rounded-md border border-border bg-card p-3">
 							<p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Rules</p>
 							{(scale.rules ?? []).map((rule, ruleIndex) => (
 								<EditableField

@@ -26,7 +26,7 @@ export function ExportCsvButton({
 	}
 
 	return (
-		<Button className="rounded-lg bg-[#10231f] text-white hover:bg-[#17302c]" onClick={handleExport}>
+		<Button variant="outline" onClick={handleExport}>
 			<Download className="size-4" />
 			{label}
 		</Button>

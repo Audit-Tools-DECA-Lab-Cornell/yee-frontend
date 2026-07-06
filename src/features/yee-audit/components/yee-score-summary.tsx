@@ -2,11 +2,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import type { YeeScoreResult, YeeDomainKey } from "@/features/yee-audit/config/yee-audit-config";
 import { yeeDomainThemes } from "@/features/yee-audit/config/yee-domain-theme";
 import { getScoreRows } from "@/features/yee-audit/scoring/yee-scoring";
+import { scoreBand } from "@/lib/score-band";
 
 const rangeBands = [
-	{ label: "Lower range", range: "0–33%", dot: "bg-rose-400" },
-	{ label: "Middle range", range: "34–66%", dot: "bg-amber-400" },
-	{ label: "Upper range", range: "67–100%", dot: "bg-emerald-500" }
+	{ label: "Lower range", range: "0–33%", dot: "bg-score-low" },
+	{ label: "Middle range", range: "34–66%", dot: "bg-score-mid" },
+	{ label: "Upper range", range: "67–100%", dot: "bg-score-high" }
 ];
 
 function clampPercentage(value: number) {
@@ -14,15 +15,11 @@ function clampPercentage(value: number) {
 }
 
 function bandFillClass(percentage: number) {
-	if (percentage < 34) return "bg-rose-400";
-	if (percentage < 67) return "bg-amber-400";
-	return "bg-emerald-500";
+	return scoreBand(percentage).fill;
 }
 
 function bandTextClass(percentage: number) {
-	if (percentage < 34) return "text-rose-700";
-	if (percentage < 67) return "text-amber-700";
-	return "text-emerald-700";
+	return scoreBand(percentage).text;
 }
 
 function findScoreExtremes(rows: ReturnType<typeof getScoreRows>, mode: "raw" | "weighted") {
@@ -46,7 +43,7 @@ function findScoreExtremes(rows: ReturnType<typeof getScoreRows>, mode: "raw" | 
 function ProgressBar({ percentage, className = "h-2" }: { percentage: number; className?: string }) {
 	const clamped = clampPercentage(percentage);
 	return (
-		<div className={`w-full overflow-hidden rounded-full bg-slate-200/70 ${className}`}>
+		<div className={`w-full overflow-hidden rounded-full bg-muted ${className}`}>
 			<div
 				className={`h-full rounded-full transition-[width] duration-500 ${bandFillClass(clamped)}`}
 				style={{ width: `${Math.max(clamped, 1.5)}%` }}

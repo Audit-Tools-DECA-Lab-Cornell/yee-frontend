@@ -8,6 +8,7 @@ import { useAuth } from "@/features/auth/components/auth-provider";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DashboardHero } from "@/components/ui/dashboard-hero";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -153,11 +154,61 @@ export function InstrumentsAdminClient() {
 	}
 
 	if (!session) return null;
+	const activeVersionStats = [
+		{
+			label: "Sections",
+			value: activeSummary.sections,
+			helper: "The number of sections in the instrument."
+		},
+		{
+			label: "Questions",
+			value: activeSummary.items,
+			helper: "The number of questions in the instrument."
+		},
+		{
+			label: "Pre-Audit",
+			value: activeSummary.preAuditQuestions,
+			helper: "The number of pre-audit questions in the instrument."
+		},
+		{
+			label: "Scale Guidance",
+			value: activeSummary.scaleGuidance,
+			helper: "The number of scale guidance questions in the instrument."
+		},
+		{
+			label: "Legal Documents",
+			value: activeSummary.legalDocuments,
+			helper: "The number of legal documents in the instrument."
+		}
+	];
 
 	const loadError = versionsQuery.error ?? canonicalQuery.error;
 
 	return (
 		<div className="space-y-6">
+			<DashboardHero
+				size="compact"
+				title="Instrument management"
+				subtitle="Manage the YEE audit instrument — edit drafts, publish a version, and review version history."
+				stats={activeVersion ? activeVersionStats : undefined}
+				statsLabel={
+					<div className="space-y-1 text-shadow pb-4 pt-3">
+						<p className="text-xs font-semibold uppercase tracking-[0.15em]">Currently live</p>
+						<div className="flex flex-wrap items-start gap-2">
+							<p className="text-3xl font-semibold text-shadow-foreground">
+								{activeVersion?.instrument_version}
+							</p>
+							<Badge className="w-10 h-3 text-[9px] leading-4" variant="success">
+								Active
+							</Badge>
+						</div>
+						<p className="text-sm text-shadow-secondary">
+							Published {formatCreatedAt(activeVersion?.created_at ?? "")} - this is the version the
+							public site uses right now.
+						</p>
+					</div>
+				}
+			/>
 			{loadError ? (
 				<Card className="border-destructive/30 bg-destructive/10">
 					<CardHeader>
@@ -181,34 +232,16 @@ export function InstrumentsAdminClient() {
 						</div>
 					</CardContent>
 				</Card>
-			) : activeVersion ? (
-				<Card>
-					<CardContent className="space-y-4">
-						<div className="space-y-1">
-							<p className="text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
-								Currently live
-							</p>
-							<div className="flex flex-wrap items-center gap-2">
-								<p className="text-xl font-semibold text-foreground">
-									{activeVersion.instrument_version}
-								</p>
-								<Badge variant="success">Active</Badge>
-							</div>
-							<p className="text-sm text-muted-foreground">
-								Published {formatCreatedAt(activeVersion.created_at)} - this is the version the public
-								site uses right now.
-							</p>
-						</div>
-						<MetricRow summary={activeSummary} />
-					</CardContent>
-				</Card>
 			) : (
-				<div className="rounded-md border border-dashed border-border">
-					<EmptyState
-						title="No published version yet"
-						description="Create and publish a draft to make an instrument version live for the website."
-					/>
-				</div>
+				!activeVersion &&
+				!canonicalInstrument && (
+					<div className="rounded-md border border-dashed border-border">
+						<EmptyState
+							title="No published version yet"
+							description="Create and publish a draft to make an instrument version live for the website."
+						/>
+					</div>
+				)
 			)}
 
 			<div className="space-y-2">

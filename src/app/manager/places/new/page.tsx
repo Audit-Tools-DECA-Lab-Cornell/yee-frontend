@@ -9,7 +9,8 @@ import {
 	PlaceProfileForm,
 	type PlaceProfileFormValues
 } from "@/features/manager/components/place-profile-form";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { DashboardHero } from "@/components/ui/dashboard-hero";
 import { createPlace, fetchProjects, type ProjectRecord } from "@/features/workspaces/api/live-api";
 
 const INITIAL_VALUES: PlaceProfileFormValues = {
@@ -93,28 +94,29 @@ export default function NewPlacePage() {
 	}
 
 	return (
-		<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
-			<CardHeader>
-				<CardTitle className="text-2xl">Add Place</CardTitle>
-				<CardDescription className="max-w-3xl leading-6">
-					Create a richer Place profile with detailed location information, Place Type, anticipated timing,
-					and Auditor setup details for this manager-scoped Project.
-				</CardDescription>
-			</CardHeader>
-			<CardContent>
-				<PlaceProfileForm
-					values={values}
-					onChange={setValues}
-					onSubmit={handleSubmit}
-					projects={projects}
-					loadingProjects={loadingProjects}
-					saving={saving}
-					error={error}
-					submitLabel="Save Place"
-					cancelHref="/manager/places"
-					cancelLabel="Back to Places"
-				/>
-			</CardContent>
-		</Card>
+		<div className="space-y-6">
+			<DashboardHero
+				size="compact"
+				badge="Places"
+				title="Add Place"
+				subtitle="Add location details, place type, anticipated timing, and auditor setup for this place in your project."
+			/>
+			<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
+				<CardContent className="pt-6">
+					<PlaceProfileForm
+						values={values}
+						onChange={setValues}
+						onSubmit={handleSubmit}
+						projects={projects}
+						loadingProjects={loadingProjects}
+						saving={saving}
+						error={error}
+						submitLabel="Save Place"
+						cancelHref="/manager/places"
+						cancelLabel="Back to Places"
+					/>
+				</CardContent>
+			</Card>
+		</div>
 	);
 }

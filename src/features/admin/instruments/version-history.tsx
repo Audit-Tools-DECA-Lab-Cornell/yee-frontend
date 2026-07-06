@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { FormSkeleton } from "@/components/ui/skeletons";
 import { cn } from "@/lib/utils";
 
 import { InstrumentContentViewer } from "./instrument-content-viewer";
@@ -48,7 +49,7 @@ export function VersionHistory({
 			</CardHeader>
 			<CardContent className="space-y-4">
 				{loading ? (
-					<p className="text-sm text-muted-foreground">Loading instrument versions…</p>
+					<FormSkeleton rows={3} />
 				) : versions.length === 0 ? (
 					<div className="rounded-md border border-dashed border-border bg-muted/40 p-4 text-sm text-muted-foreground">
 						No saved versions yet.

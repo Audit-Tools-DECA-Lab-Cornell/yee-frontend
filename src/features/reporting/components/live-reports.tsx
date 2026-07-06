@@ -2,12 +2,17 @@
 
 import Link from "next/link";
 import * as React from "react";
+import type { ColumnDef } from "@tanstack/react-table";
 
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { ClearFiltersButton, SearchableMultiSelectFilter } from "@/features/workspaces/components/table-filters";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DataTable } from "@/components/ui/data-table";
+import { SegmentedControl } from "@/components/ui/segmented-control";
+import { TableSkeleton } from "@/components/ui/skeletons";
+import { DashboardHero } from "@/components/ui/dashboard-hero";
 import {
 	fetchPlaceComparisons,
 	fetchRawData,
@@ -112,6 +117,113 @@ function getAuditRawPercent(record: PlaceComparisonAuditRecord) {
 
 function getAuditWeightedPercent(record: PlaceComparisonAuditRecord) {
 	return percentage(record.total_weighted_score, record.total_weighted_maximum);
+}
+
+/** Columns for the "Compare Places" report table (display-only, sortable). */
+const comparePlacesColumns: ColumnDef<PlaceSummary>[] = [
+	{
+		accessorKey: "place_name",
+		header: "Place",
+		cell: ({ row }) => (
+			<Link
+				href={`/manager/places/${row.original.place_id}`}
+				className="font-medium text-foreground underline decoration-border underline-offset-4 hover:text-foreground">
+				{row.original.place_name}
+			</Link>
+		)
+	},
+	{
+		accessorKey: "project_name",
+		header: "Project",
+		cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+	},
+	{
+		accessorKey: "avgRawScore",
+		header: "Raw score",
+		cell: ({ row }) => (
+			<span className="text-muted-foreground tabular-nums">
+				{row.original.avgRawScore} ({row.original.avgRawPercent.toFixed(0)}%)
+			</span>
+		)
+	},
+	{
+		accessorKey: "avgWeightedScore",
+		header: "Youth weighted average",
+		cell: ({ row }) => (
+			<span className="text-muted-foreground tabular-nums">
+				{row.original.avgWeightedScore.toFixed(2)} ({row.original.avgWeightedPercent.toFixed(0)}%)
+			</span>
+		)
+	},
+	{
+		id: "access",
+		accessorFn: row => row.rawPercentByDomain.access,
+		header: "Access",
+		cell: ({ row }) => (
+			<span className="text-muted-foreground tabular-nums">
+				{row.original.rawPercentByDomain.access.toFixed(0)}%
+			</span>
+		)
+	},
+	{
+		id: "amenities",
+		accessorFn: row => row.rawPercentByDomain.amenities,
+		header: "Amenities",
+		cell: ({ row }) => (
+			<span className="text-muted-foreground tabular-nums">
+				{row.original.rawPercentByDomain.amenities.toFixed(0)}%
+			</span>
+		)
+	},
+	{
+		id: "report",
+		header: "Detailed report",
+		enableSorting: false,
+		cell: ({ row }) =>
+			row.original.latestSubmissionId ? (
+				<Link
+					href={`/yee/submissions/${row.original.latestSubmissionId}`}
+					className="font-medium text-muted-foreground underline decoration-border underline-offset-4 hover:text-foreground">
+					Open latest report
+				</Link>
+			) : (
+				<span className="text-muted-foreground">No linked report</span>
+			)
+	}
+];
+
+function ComparePlaceMobileCard({ summary }: { summary: PlaceSummary }) {
+	return (
+		<div className="space-y-2 rounded-md border border-border bg-card p-4">
+			<div className="flex items-start justify-between gap-3">
+				<Link
+					href={`/manager/places/${summary.place_id}`}
+					className="font-medium text-foreground underline decoration-border underline-offset-4">
+					{summary.place_name}
+				</Link>
+				<span className="text-sm text-muted-foreground">{summary.project_name}</span>
+			</div>
+			<div className="flex flex-wrap gap-x-4 gap-y-1 text-sm tabular-nums text-muted-foreground">
+				<span>
+					Raw: {summary.avgRawScore} ({summary.avgRawPercent.toFixed(0)}%)
+				</span>
+				<span>
+					Youth weighted: {summary.avgWeightedScore.toFixed(2)} ({summary.avgWeightedPercent.toFixed(0)}%)
+				</span>
+				<span>Access: {summary.rawPercentByDomain.access.toFixed(0)}%</span>
+				<span>Amenities: {summary.rawPercentByDomain.amenities.toFixed(0)}%</span>
+			</div>
+			{summary.latestSubmissionId ? (
+				<Link
+					href={`/yee/submissions/${summary.latestSubmissionId}`}
+					className="text-sm font-medium text-muted-foreground underline decoration-border underline-offset-4">
+					Open latest report
+				</Link>
+			) : (
+				<span className="text-sm text-muted-foreground">No linked report</span>
+			)}
+		</div>
+	);
 }
 
 function buildPlaceSummaries(records: PlaceComparisonAuditRecord[]): PlaceSummary[] {
@@ -227,9 +339,9 @@ function RadarComparisonChart({
 	const center = 110;
 	const rings = [25, 50, 75, 100];
 	const colors = [
-		{ stroke: "#0f766e", fill: "rgba(15, 118, 110, 0.12)" },
-		{ stroke: "#2563eb", fill: "rgba(37, 99, 235, 0.12)" },
-		{ stroke: "#c2410c", fill: "rgba(194, 65, 12, 0.12)" }
+		{ stroke: "var(--chart-series-1)", fill: "color-mix(in oklab, var(--chart-series-1) 14%, transparent)" },
+		{ stroke: "var(--chart-series-2)", fill: "color-mix(in oklab, var(--chart-series-2) 14%, transparent)" },
+		{ stroke: "var(--chart-series-3)", fill: "color-mix(in oklab, var(--chart-series-3) 14%, transparent)" }
 	];
 
 	return (
@@ -254,7 +366,7 @@ function RadarComparisonChart({
 							cy={center}
 							r={(radius * ring) / 100}
 							fill="none"
-							stroke="#d6dfe6"
+							className="stroke-chart-grid"
 							strokeDasharray="4 4"
 						/>
 					))}
@@ -263,12 +375,18 @@ function RadarComparisonChart({
 						const labelPoint = radialPoint(index, domainOrder.length, 118, radius, center);
 						return (
 							<g key={domain}>
-								<line x1={center} y1={center} x2={outerPoint.x} y2={outerPoint.y} stroke="#d6dfe6" />
+								<line
+									x1={center}
+									y1={center}
+									x2={outerPoint.x}
+									y2={outerPoint.y}
+									className="stroke-chart-grid"
+								/>
 								<text
 									x={labelPoint.x}
 									y={labelPoint.y}
 									textAnchor="middle"
-									className="fill-slate-600 text-[8px] font-medium">
+									className="fill-chart-axis text-[8px] font-medium">
 									{domainLabels[domain]}
 								</text>
 							</g>
@@ -282,8 +400,7 @@ function RadarComparisonChart({
 								radius,
 								center
 							)}
-							fill={colors[index].fill}
-							stroke={colors[index].stroke}
+							style={{ fill: colors[index].fill, stroke: colors[index].stroke }}
 							strokeWidth={2.5}
 						/>
 					))}
@@ -349,7 +466,7 @@ function TrendLineChart({
 				<svg
 					ref={svgRef}
 					viewBox={`0 0 ${width} ${height}`}
-					className="h-[260px] w-full rounded-lg bg-[#f8fbf9]">
+					className="h-[260px] w-full rounded-md bg-muted/40">
 					{[0, 25, 50, 75, 100].map(value => (
 						<g key={value}>
 							<line
@@ -357,25 +474,35 @@ function TrendLineChart({
 								y1={pointY(value)}
 								x2={width - padding}
 								y2={pointY(value)}
-								stroke="#d6dfe6"
+								className="stroke-chart-grid"
 								strokeDasharray="4 4"
 							/>
-							<text x={8} y={pointY(value) + 4} className="fill-slate-500 text-[10px]">
+							<text x={8} y={pointY(value) + 4} className="fill-chart-axis text-[10px]">
 								{value}%
 							</text>
 						</g>
 					))}
-					<polyline fill="none" stroke="#2563eb" strokeWidth={3} points={rawPolyline} />
-					<polyline fill="none" stroke="#059669" strokeWidth={3} points={weightedPolyline} />
+					<polyline fill="none" className="stroke-chart-2" strokeWidth={3} points={rawPolyline} />
+					<polyline fill="none" className="stroke-chart-1" strokeWidth={3} points={weightedPolyline} />
 					{points.map(point => (
 						<g key={point.label}>
-							<circle cx={pointX(point.index)} cy={pointY(point.rawPercent)} r={4} fill="#2563eb" />
-							<circle cx={pointX(point.index)} cy={pointY(point.weightedPercent)} r={4} fill="#059669" />
+							<circle
+								cx={pointX(point.index)}
+								cy={pointY(point.rawPercent)}
+								r={4}
+								className="fill-chart-2"
+							/>
+							<circle
+								cx={pointX(point.index)}
+								cy={pointY(point.weightedPercent)}
+								r={4}
+								className="fill-chart-1"
+							/>
 							<text
 								x={pointX(point.index)}
 								y={height - 8}
 								textAnchor="middle"
-								className="fill-slate-500 text-[10px]">
+								className="fill-chart-axis text-[10px]">
 								{point.label}
 							</text>
 						</g>
@@ -560,6 +687,132 @@ export function LiveReports() {
 	const highestPlace = placeSummaries[0] ?? null;
 	const lowestPlace = placeSummaries[placeSummaries.length - 1] ?? null;
 
+	// Built fresh each render so the selection checkboxes stay in sync with state.
+	const individualAuditColumns: ColumnDef<PlaceComparisonAuditRecord>[] = [
+		{
+			id: "select",
+			enableSorting: false,
+			header: () => <span className="sr-only">Select</span>,
+			cell: ({ row }) => {
+				const auditId = row.original.audit_id;
+				const checked = selectedAuditIds.includes(auditId);
+				return (
+					<input
+						type="checkbox"
+						aria-label={`Select audit for ${row.original.place_name}`}
+						checked={checked}
+						onChange={() =>
+							setSelectedAuditIds(current =>
+								checked ? current.filter(id => id !== auditId) : [...current, auditId]
+							)
+						}
+					/>
+				);
+			}
+		},
+		{
+			accessorKey: "place_name",
+			header: "Place",
+			cell: ({ row }) => (
+				<Link
+					href={`/manager/places/${row.original.place_id}`}
+					className="font-medium text-foreground underline decoration-border underline-offset-4 hover:text-foreground">
+					{row.original.place_name}
+				</Link>
+			)
+		},
+		{
+			accessorKey: "auditor_id",
+			header: "Auditor",
+			cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+		},
+		{
+			accessorKey: "date",
+			header: "Date",
+			cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+		},
+		{
+			id: "raw",
+			accessorFn: row => getAuditRawPercent(row),
+			header: "Raw score",
+			cell: ({ row }) => (
+				<span className="text-muted-foreground tabular-nums">
+					{row.original.total_raw_score}/{row.original.total_raw_maximum} (
+					{getAuditRawPercent(row.original).toFixed(0)}%)
+				</span>
+			)
+		},
+		{
+			id: "weighted",
+			accessorFn: row => getAuditWeightedPercent(row),
+			header: "Youth weighted average",
+			cell: ({ row }) => (
+				<span className="text-muted-foreground tabular-nums">
+					{row.original.total_weighted_score.toFixed(2)}/{row.original.total_weighted_maximum.toFixed(2)} (
+					{getAuditWeightedPercent(row.original).toFixed(0)}%)
+				</span>
+			)
+		},
+		{
+			id: "report",
+			header: "Full report",
+			enableSorting: false,
+			cell: ({ row }) => (
+				<Link
+					href={`/yee/submissions/${row.original.audit_id}`}
+					className="font-medium text-muted-foreground underline decoration-border underline-offset-4 hover:text-foreground">
+					Open report
+				</Link>
+			)
+		}
+	];
+
+	const individualAuditMobileCard = (record: PlaceComparisonAuditRecord) => {
+		const checked = selectedAuditIds.includes(record.audit_id);
+		return (
+			<div className="space-y-2 rounded-md border border-border bg-card p-4">
+				<div className="flex items-start gap-3">
+					<input
+						type="checkbox"
+						aria-label={`Select audit for ${record.place_name}`}
+						className="mt-1"
+						checked={checked}
+						onChange={() =>
+							setSelectedAuditIds(current =>
+								checked ? current.filter(id => id !== record.audit_id) : [...current, record.audit_id]
+							)
+						}
+					/>
+					<div className="min-w-0 flex-1">
+						<Link
+							href={`/manager/places/${record.place_id}`}
+							className="font-medium text-foreground underline decoration-border underline-offset-4">
+							{record.place_name}
+						</Link>
+						<p className="text-sm text-muted-foreground">
+							{record.auditor_id} · {record.date}
+						</p>
+					</div>
+				</div>
+				<div className="flex flex-wrap gap-x-4 gap-y-1 text-sm tabular-nums text-muted-foreground">
+					<span>
+						Raw: {record.total_raw_score}/{record.total_raw_maximum} (
+						{getAuditRawPercent(record).toFixed(0)}%)
+					</span>
+					<span>
+						Youth weighted: {record.total_weighted_score.toFixed(2)}/
+						{record.total_weighted_maximum.toFixed(2)} ({getAuditWeightedPercent(record).toFixed(0)}%)
+					</span>
+				</div>
+				<Link
+					href={`/yee/submissions/${record.audit_id}`}
+					className="text-sm font-medium text-muted-foreground underline decoration-border underline-offset-4">
+					Open report
+				</Link>
+			</div>
+		);
+	};
+
 	function exportCurrentComparison() {
 		if (compareMode === "places") {
 			const rows = placeSummaries.map(summary => ({
@@ -637,11 +890,7 @@ export function LiveReports() {
 	}
 
 	if (loading) {
-		return (
-			<Card className="rounded-md border-border">
-				<CardContent className="p-6 text-sm text-muted-foreground">Loading reports dashboard...</CardContent>
-			</Card>
-		);
+		return <TableSkeleton aria-label="Loading reports dashboard…" />;
 	}
 
 	if (error) {
@@ -654,52 +903,108 @@ export function LiveReports() {
 
 	return (
 		<div className="space-y-6">
+			<DashboardHero
+				size="compact"
+				title="Reports dashboard"
+				subtitle="Analyze performance across Places and time with project, Place, auditor, and date filters."
+				actions={
+					<Button asChild className="bg-white text-foreground hover:bg-emerald-50">
+						<Link href="/auditor/places">View My Audits</Link>
+					</Button>
+				}
+				stats={[
+					{
+						label: "Average Raw Score",
+						value: averageRawScore.toFixed(1),
+						helper: `${filteredAudits.length} audits in the current view`
+					},
+					{
+						label: "Average Youth Weighted Average",
+						value: averageWeightedScore.toFixed(1),
+						helper: "Across the currently filtered audits"
+					},
+					{
+						label: "Total Audits",
+						value: String(filteredAudits.length).padStart(2, "0"),
+						helper: "Submitted audits available in this analysis view"
+					},
+					{
+						label: "Total Places",
+						value: String(placeSummaries.length).padStart(2, "0"),
+						helper: "Places included in the current view"
+					}
+				]}
+			/>
+
 			<Card className="rounded-md border-border">
-				<CardHeader>
-					<CardTitle>Reports dashboard</CardTitle>
-					<CardDescription>
-						Analyze performance across Places and time with project, Place, auditor, and date filters.
-					</CardDescription>
-				</CardHeader>
 				<CardContent className="space-y-5">
-					<div className="flex flex-wrap gap-3">
-						<SearchableMultiSelectFilter
-							label="Project"
-							options={projectOptions}
-							selectedValues={selectedProjectIds}
-							onChange={setSelectedProjectIds}
-						/>
-						<SearchableMultiSelectFilter
-							label="Place"
-							options={placeOptions}
-							selectedValues={selectedPlaceIds}
-							onChange={values => {
-								setSelectedPlaceIds(values);
-								if (compareMode === "audits" && values.length > 1) {
-									setSelectedPlaceIds(values.slice(0, 1));
-								}
-							}}
-						/>
-						<SearchableMultiSelectFilter
-							label="Auditor"
-							options={auditorOptions}
-							selectedValues={selectedAuditorIds}
-							onChange={setSelectedAuditorIds}
-						/>
-						<div className="flex flex-wrap items-center gap-2 rounded-md border border-border bg-white px-3 py-2">
-							<span className="text-sm font-medium text-foreground">Date range</span>
-							{(["all", "30", "90", "180", "365"] as DateRangeValue[]).map(option => (
-								<Button
-									key={option}
-									type="button"
-									size="sm"
-									variant={dateRange === option ? "default" : "outline"}
-									className={`rounded-lg ${dateRange === option ? "bg-[#10231f] text-white hover:bg-[#17302c]" : ""}`}
-									onClick={() => setDateRange(option)}>
-									{rangeLabel(option)}
-								</Button>
-							))}
+					<div className="flex flex-col gap-3">
+						<div className="flex flex-wrap w-full items-start justify-between gap-3">
+							<div className="flex flex-col gap-5">
+								<div className="flex flex-wrap items-center gap-3">
+									<SearchableMultiSelectFilter
+										label="Project"
+										options={projectOptions}
+										selectedValues={selectedProjectIds}
+										onChange={setSelectedProjectIds}
+									/>
+									<SearchableMultiSelectFilter
+										label="Place"
+										options={placeOptions}
+										selectedValues={selectedPlaceIds}
+										onChange={values => {
+											setSelectedPlaceIds(values);
+											if (compareMode === "audits" && values.length > 1) {
+												setSelectedPlaceIds(values.slice(0, 1));
+											}
+										}}
+									/>
+									<SearchableMultiSelectFilter
+										label="Auditor"
+										options={auditorOptions}
+										selectedValues={selectedAuditorIds}
+										onChange={setSelectedAuditorIds}
+									/>
+								</div>
+								<SegmentedControl
+									aria-label="Compare mode"
+									value={compareMode}
+									onValueChange={value => {
+										const mode = value as CompareMode;
+										setCompareMode(mode);
+										if (mode === "audits" && selectedPlaceIds.length > 1) {
+											setSelectedPlaceIds(selectedPlaceIds.slice(0, 1));
+										}
+									}}
+									options={(["places", "audits", "individual"] as CompareMode[]).map(mode => ({
+										value: mode,
+										label: compareModeLabel(mode)
+									}))}
+								/>
+							</div>
+
+							<div className="flex flex-col items-end justify-end gap-5">
+								<span className="text-sm font-medium text-foreground pt-2 pb-1">Date range</span>
+								<SegmentedControl
+									aria-label="Date range"
+									value={dateRange}
+									onValueChange={value => setDateRange(value as DateRangeValue)}
+									options={(["all", "30", "90", "180", "365"] as DateRangeValue[]).map(option => ({
+										value: option,
+										label: rangeLabel(option)
+									}))}
+								/>
+							</div>
 						</div>
+					</div>
+					<div className="flex flex-wrap w-full items-start justify-between gap-3">
+						<p className="text-sm leading-6 text-muted-foreground">
+							Current scope:{" "}
+							{selectedProjectIds.length > 0 ? `${selectedProjectIds.length} Projects` : "All Projects"},{" "}
+							{selectedPlaceIds.length > 0 ? `${selectedPlaceIds.length} Places` : "All Places"},{" "}
+							{selectedAuditorIds.length > 0 ? `${selectedAuditorIds.length} Auditors` : "All Auditors"},{" "}
+							{rangeLabel(dateRange)}.
+						</p>
 						<ClearFiltersButton
 							disabled={!filtersActive}
 							onClick={() => {
@@ -710,76 +1015,8 @@ export function LiveReports() {
 							}}
 						/>
 					</div>
-					<div className="flex flex-wrap gap-2">
-						{(["places", "audits", "individual"] as CompareMode[]).map(mode => (
-							<Button
-								key={mode}
-								type="button"
-								variant={compareMode === mode ? "default" : "outline"}
-								className={`rounded-lg ${compareMode === mode ? "bg-[#10231f] text-white hover:bg-[#17302c]" : ""}`}
-								onClick={() => {
-									setCompareMode(mode);
-									if (mode === "audits" && selectedPlaceIds.length > 1) {
-										setSelectedPlaceIds(selectedPlaceIds.slice(0, 1));
-									}
-								}}>
-								{compareModeLabel(mode)}
-							</Button>
-						))}
-					</div>
-					<p className="text-sm leading-6 text-muted-foreground">
-						Current scope:{" "}
-						{selectedProjectIds.length > 0 ? `${selectedProjectIds.length} Projects` : "All Projects"},{" "}
-						{selectedPlaceIds.length > 0 ? `${selectedPlaceIds.length} Places` : "All Places"},{" "}
-						{selectedAuditorIds.length > 0 ? `${selectedAuditorIds.length} Auditors` : "All Auditors"},{" "}
-						{rangeLabel(dateRange)}.
-					</p>
 				</CardContent>
 			</Card>
-
-			<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-				{[
-					{
-						label: "Average Raw Score",
-						value: averageRawScore.toFixed(1),
-						description: `${filteredAudits.length} audits in the current view`
-					},
-					{
-						label: "Average Youth Weighted Average",
-						value: averageWeightedScore.toFixed(1),
-						description: "Across the currently filtered audits"
-					},
-					{
-						label: "Highest Scoring Place",
-						value: highestPlace?.place_name ?? "N/A",
-						description: highestPlace
-							? `${highestPlace.avgWeightedScore.toFixed(2)} Youth Weighted`
-							: "No filtered place data"
-					},
-					{
-						label: "Lowest Scoring Place",
-						value: lowestPlace?.place_name ?? "N/A",
-						description: lowestPlace
-							? `${lowestPlace.avgWeightedScore.toFixed(2)} Youth Weighted`
-							: "No filtered place data"
-					},
-					{
-						label: "Total Audits",
-						value: String(filteredAudits.length).padStart(2, "0"),
-						description: "Submitted audits available in this analysis view"
-					}
-				].map(card => (
-					<Card key={card.label} className="rounded-md border-border">
-						<CardContent className="space-y-2 p-5">
-							<p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
-								{card.label}
-							</p>
-							<p className="text-2xl font-semibold text-foreground">{card.value}</p>
-							<p className="text-sm text-muted-foreground">{card.description}</p>
-						</CardContent>
-					</Card>
-				))}
-			</div>
 
 			<Card className="rounded-md border-border">
 				<CardHeader>
@@ -790,24 +1027,23 @@ export function LiveReports() {
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="flex flex-wrap gap-3">
-					<Button type="button" variant="outline" className="rounded-lg" onClick={exportCurrentComparison}>
+					<Button type="button" variant="outline" onClick={exportCurrentComparison}>
 						Export current comparison
 					</Button>
 					<Button
 						type="button"
 						variant="outline"
-						className="rounded-lg"
 						onClick={exportSelectedAudits}
 						disabled={selectedAuditIds.length === 0}>
 						Export selected audits
 					</Button>
-					<Button type="button" variant="outline" className="rounded-lg" onClick={() => window.print()}>
+					<Button type="button" variant="outline" onClick={() => window.print()}>
 						Export full PDF report
 					</Button>
-					<Button type="button" variant="outline" className="rounded-lg" onClick={exportRawDataCsv}>
+					<Button type="button" variant="outline" onClick={exportRawDataCsv}>
 						Export CSV raw data
 					</Button>
-					<Button type="button" className="" onClick={exportCurrentChart}>
+					<Button type="button" onClick={exportCurrentChart}>
 						Export charts only
 					</Button>
 				</CardContent>
@@ -824,57 +1060,12 @@ export function LiveReports() {
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="overflow-x-auto">
-							<table className="min-w-full text-left text-sm">
-								<thead className="text-muted-foreground">
-									<tr className="border-b border-border">
-										<th className="py-3 pr-4 font-medium">Place</th>
-										<th className="py-3 pr-4 font-medium">Project</th>
-										<th className="py-3 pr-4 font-medium">Raw Score</th>
-										<th className="py-3 pr-4 font-medium">Youth Weighted Average</th>
-										<th className="py-3 pr-4 font-medium">Access</th>
-										<th className="py-3 pr-4 font-medium">Amenities</th>
-										<th className="py-3 font-medium">Detailed report</th>
-									</tr>
-								</thead>
-								<tbody>
-									{placeSummaries.map(summary => (
-										<tr key={summary.place_id} className="border-b border-slate-100 last:border-0">
-											<td className="py-4 pr-4 font-medium text-foreground">
-												<Link
-													href={`/manager/places/${summary.place_id}`}
-													className="underline decoration-slate-300 underline-offset-4 hover:text-foreground">
-													{summary.place_name}
-												</Link>
-											</td>
-											<td className="py-4 pr-4 text-muted-foreground">{summary.project_name}</td>
-											<td className="py-4 pr-4 text-muted-foreground">
-												{summary.avgRawScore} ({summary.avgRawPercent.toFixed(0)}%)
-											</td>
-											<td className="py-4 pr-4 text-muted-foreground">
-												{summary.avgWeightedScore.toFixed(2)} (
-												{summary.avgWeightedPercent.toFixed(0)}%)
-											</td>
-											<td className="py-4 pr-4 text-muted-foreground">
-												{summary.rawPercentByDomain.access.toFixed(0)}%
-											</td>
-											<td className="py-4 pr-4 text-muted-foreground">
-												{summary.rawPercentByDomain.amenities.toFixed(0)}%
-											</td>
-											<td className="py-4 text-muted-foreground">
-												{summary.latestSubmissionId ? (
-													<Link
-														href={`/yee/submissions/${summary.latestSubmissionId}`}
-														className="font-medium underline decoration-slate-300 underline-offset-4 hover:text-foreground">
-														Open latest report
-													</Link>
-												) : (
-													"No linked report"
-												)}
-											</td>
-										</tr>
-									))}
-								</tbody>
-							</table>
+							<DataTable
+								columns={comparePlacesColumns}
+								data={placeSummaries}
+								getRowId={row => row.place_id}
+								mobileCard={summary => <ComparePlaceMobileCard summary={summary} />}
+							/>
 						</CardContent>
 					</Card>
 
@@ -909,7 +1100,7 @@ export function LiveReports() {
 											<p className="mb-2 text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
 												Average Raw Score by section
 											</p>
-											<div className="flex h-10 overflow-hidden rounded-full border border-border bg-white">
+											<div className="flex h-10 overflow-hidden rounded-bl-md rounded-tr-md border border-border bg-white">
 												{domainOrder.map(domain => (
 													<div
 														key={domain}
@@ -927,7 +1118,7 @@ export function LiveReports() {
 											<p className="mb-2 text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
 												Average Youth Weighted Average by section
 											</p>
-											<div className="flex h-10 overflow-hidden rounded-full border border-border bg-white">
+											<div className="flex h-10 overflow-hidden rounded-bl-md rounded-tr-md border border-border bg-white">
 												{domainOrder.map(domain => (
 													<div
 														key={domain}
@@ -1024,68 +1215,12 @@ export function LiveReports() {
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="overflow-x-auto">
-							<table className="min-w-full text-left text-sm">
-								<thead className="text-muted-foreground">
-									<tr className="border-b border-border">
-										<th className="py-3 pr-4 font-medium">Select</th>
-										<th className="py-3 pr-4 font-medium">Place</th>
-										<th className="py-3 pr-4 font-medium">Auditor</th>
-										<th className="py-3 pr-4 font-medium">Date</th>
-										<th className="py-3 pr-4 font-medium">Raw Score</th>
-										<th className="py-3 pr-4 font-medium">Youth Weighted Average</th>
-										<th className="py-3 font-medium">Full report</th>
-									</tr>
-								</thead>
-								<tbody>
-									{filteredAudits.map(record => {
-										const checked = selectedAuditIds.includes(record.audit_id);
-										return (
-											<tr
-												key={record.audit_id}
-												className="border-b border-slate-100 last:border-0">
-												<td className="py-4 pr-4">
-													<input
-														type="checkbox"
-														checked={checked}
-														onChange={() =>
-															setSelectedAuditIds(current =>
-																checked
-																	? current.filter(id => id !== record.audit_id)
-																	: [...current, record.audit_id]
-															)
-														}
-													/>
-												</td>
-												<td className="py-4 pr-4 font-medium text-foreground">
-													<Link
-														href={`/manager/places/${record.place_id}`}
-														className="underline decoration-slate-300 underline-offset-4 hover:text-foreground">
-														{record.place_name}
-													</Link>
-												</td>
-												<td className="py-4 pr-4 text-muted-foreground">{record.auditor_id}</td>
-												<td className="py-4 pr-4 text-muted-foreground">{record.date}</td>
-												<td className="py-4 pr-4 text-muted-foreground">
-													{record.total_raw_score}/{record.total_raw_maximum} (
-													{getAuditRawPercent(record).toFixed(0)}%)
-												</td>
-												<td className="py-4 pr-4 text-muted-foreground">
-													{record.total_weighted_score.toFixed(2)}/
-													{record.total_weighted_maximum.toFixed(2)} (
-													{getAuditWeightedPercent(record).toFixed(0)}%)
-												</td>
-												<td className="py-4 text-muted-foreground">
-													<Link
-														href={`/yee/submissions/${record.audit_id}`}
-														className="font-medium underline decoration-slate-300 underline-offset-4 hover:text-foreground">
-														Open report
-													</Link>
-												</td>
-											</tr>
-										);
-									})}
-								</tbody>
-							</table>
+							<DataTable
+								columns={individualAuditColumns}
+								data={filteredAudits}
+								getRowId={row => row.audit_id}
+								mobileCard={individualAuditMobileCard}
+							/>
 						</CardContent>
 					</Card>
 
@@ -1101,7 +1236,7 @@ export function LiveReports() {
 								<CardContent className="space-y-4">
 									<div className="grid gap-3 md:grid-cols-2">
 										<div
-											className={`rounded-lg border p-4 ${colorBandClasses(getAuditRawPercent(record))}`}>
+											className={`rounded-md border p-4 ${colorBandClasses(getAuditRawPercent(record))}`}>
 											<p className="text-xs font-medium uppercase tracking-[0.16em]">Raw Score</p>
 											<p className="mt-2 text-lg font-semibold">
 												{record.total_raw_score}/{record.total_raw_maximum}
@@ -1109,7 +1244,7 @@ export function LiveReports() {
 											<p className="text-sm">{getAuditRawPercent(record).toFixed(0)}%</p>
 										</div>
 										<div
-											className={`rounded-lg border p-4 ${colorBandClasses(getAuditWeightedPercent(record))}`}>
+											className={`rounded-md border p-4 ${colorBandClasses(getAuditWeightedPercent(record))}`}>
 											<p className="text-xs font-medium uppercase tracking-[0.16em]">
 												Youth Weighted Average
 											</p>
@@ -1124,7 +1259,7 @@ export function LiveReports() {
 										{domainOrder.map(domain => (
 											<div
 												key={domain}
-												className="rounded-lg border p-4"
+												className="rounded-md border p-4"
 												style={{
 													borderColor: yeeDomainThemes[domain].strongFillHex,
 													backgroundColor: "#ffffff"

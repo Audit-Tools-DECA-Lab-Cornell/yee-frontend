@@ -42,7 +42,7 @@ export function AuthShell({ eyebrow, title, description, children }: AuthShellPr
 					{/* Proof points */}
 					<div className="space-y-3">
 						<div
-							className="rounded-lg border p-4"
+							className="rounded-md border p-4"
 							style={{
 								borderColor: "var(--sidebar-border)",
 								background: "oklch(1 0 0 / 0.05)"
@@ -57,7 +57,7 @@ export function AuthShell({ eyebrow, title, description, children }: AuthShellPr
 							</p>
 						</div>
 						<div
-							className="rounded-lg border p-4"
+							className="rounded-md border p-4"
 							style={{
 								borderColor: "var(--sidebar-border)",
 								background: "oklch(1 0 0 / 0.05)"
@@ -78,7 +78,7 @@ export function AuthShell({ eyebrow, title, description, children }: AuthShellPr
 				<section className="flex min-h-dvh items-center justify-center bg-[radial-gradient(circle_at_top,oklch(0.98_0.01_158)_0,oklch(0.97_0.004_240)_40%,oklch(0.965_0.003_240)_100%)] px-4 py-12 sm:px-8">
 					<div className="w-full max-w-md">
 						<div className="mb-6 flex items-center justify-center lg:justify-start">
-							<div className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 shadow-(--shadow-card)">
+							<div className="flex items-center gap-3 rounded-md border border-border bg-card px-4 py-3 shadow-(--shadow-card)">
 								<BrandLogo variant="mark" tone="light" className="h-10 w-10 shrink-0" priority />
 								<div className="min-w-0">
 									<p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
@@ -91,7 +91,7 @@ export function AuthShell({ eyebrow, title, description, children }: AuthShellPr
 							</div>
 						</div>
 
-						<div className="rounded-lg border border-border bg-card p-8 shadow-(--shadow-panel)">
+						<div className="rounded-md border border-border bg-card p-8 shadow-(--shadow-panel)">
 							<div className="space-y-3">
 								{eyebrow ? (
 									<p className="text-xs font-medium uppercase tracking-[0.22em] text-muted-foreground">

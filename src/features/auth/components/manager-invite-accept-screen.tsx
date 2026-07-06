@@ -88,7 +88,7 @@ export function ManagerInviteAcceptScreen({ token }: { token: string }) {
 								: "Invite details unavailable."}
 					</p>
 				</div>
-				<div className="rounded-lg border border-slate-200 bg-slate-50 p-5 text-sm leading-7 text-slate-600">
+				<div className="rounded-md border border-slate-200 bg-slate-50 p-5 text-sm leading-7 text-slate-600">
 					<p>
 						Organization:{" "}
 						<span className="font-medium text-slate-900">{organization ?? "Unknown organization"}</span>
@@ -130,13 +130,10 @@ export function ManagerInviteAcceptScreen({ token }: { token: string }) {
 					</div>
 					{error ? <p className="text-sm text-rose-600">{error}</p> : null}
 					<div className="flex flex-wrap gap-3">
-						<Button
-							type="submit"
-							className="rounded-lg bg-[#10231f] text-white hover:bg-[#17302c]"
-							disabled={loading || saving}>
+						<Button type="submit" disabled={loading || saving}>
 							{saving ? "Joining organization..." : "Accept invite"}
 						</Button>
-						<Button asChild variant="outline" className="rounded-lg">
+						<Button asChild variant="outline">
 							<Link href="/login">Back to login</Link>
 						</Button>
 					</div>

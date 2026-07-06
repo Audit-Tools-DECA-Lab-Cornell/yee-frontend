@@ -5,6 +5,7 @@ import * as React from "react";
 
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { getRouteForUser, type UserRole } from "@/features/auth/session";
+import { LoadingScreen } from "@/components/ui/loading-screen";
 
 export function AuthGuard({
 	children,
@@ -43,7 +44,7 @@ export function AuthGuard({
 	}, [hasRoleAccess, loading, router, session]);
 
 	if (loading || !session || session.user.next_step !== "DASHBOARD" || !hasRoleAccess) {
-		return <main className="mx-auto max-w-4xl p-6 text-sm text-slate-600">Checking access...</main>;
+		return <LoadingScreen message="Checking access" />;
 	}
 
 	return <>{children}</>;

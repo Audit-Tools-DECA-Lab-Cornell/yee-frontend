@@ -9,6 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { FormSkeleton } from "@/components/ui/skeletons";
+import { DashboardHero } from "@/components/ui/dashboard-hero";
 import {
 	createSiteCopyVersion,
 	fetchSiteCopyVersions,
@@ -195,7 +197,13 @@ export function SiteCopyAdminPanel() {
 
 	return (
 		<div className="space-y-6">
-			<Card className="rounded-lg border-sky-200/70 bg-sky-50/70 shadow-sm">
+			<DashboardHero
+				size="compact"
+				badge="Admin"
+				title="Website copy"
+				subtitle="Update dashboard wording across the admin, manager, and auditor websites without editing code."
+			/>
+			<Card className="rounded-md border-sky-200/70 bg-sky-50/70 shadow-sm">
 				<CardHeader>
 					<CardTitle>Website copy editor</CardTitle>
 					<CardDescription className="text-slate-700">
@@ -204,19 +212,19 @@ export function SiteCopyAdminPanel() {
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="grid gap-3 text-sm text-slate-700 md:grid-cols-3">
-					<div className="rounded-lg border border-sky-200 bg-white/80 p-4">
+					<div className="rounded-md border border-sky-200 bg-white/80 p-4">
 						<p className="font-medium text-slate-900">Dashboard text only</p>
 						<p className="mt-1">
 							This page changes website copy like headings, sidebar text, and page descriptions.
 						</p>
 					</div>
-					<div className="rounded-lg border border-sky-200 bg-white/80 p-4">
+					<div className="rounded-md border border-sky-200 bg-white/80 p-4">
 						<p className="font-medium text-slate-900">Survey wording stays separate</p>
 						<p className="mt-1">
 							Survey questions and section instructions are still managed from the Instruments page.
 						</p>
 					</div>
-					<div className="rounded-lg border border-sky-200 bg-white/80 p-4">
+					<div className="rounded-md border border-sky-200 bg-white/80 p-4">
 						<p className="font-medium text-slate-900">Version and activate</p>
 						<p className="mt-1">Save a new website copy version, then make it live when you are ready.</p>
 					</div>
@@ -224,7 +232,7 @@ export function SiteCopyAdminPanel() {
 			</Card>
 
 			<div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
-				<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
+				<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
 					<CardHeader>
 						<CardTitle>Website copy versions</CardTitle>
 						<CardDescription>
@@ -233,7 +241,7 @@ export function SiteCopyAdminPanel() {
 					</CardHeader>
 					<CardContent className="space-y-3">
 						{loading ? (
-							<p className="text-sm text-slate-500">Loading website copy versions...</p>
+							<FormSkeleton rows={3} />
 						) : versions.length === 0 ? (
 							<p className="text-sm text-slate-500">
 								No saved website copy versions yet. The editor on the right starts from the current
@@ -241,7 +249,7 @@ export function SiteCopyAdminPanel() {
 							</p>
 						) : (
 							versions.map(version => (
-								<div key={version.id} className="rounded-lg border border-slate-200 bg-white p-4">
+								<div key={version.id} className="rounded-md border border-slate-200 bg-white p-4">
 									<div className="flex items-start justify-between gap-3">
 										<div>
 											<p className="font-medium text-slate-900">{version.instrument_version}</p>
@@ -258,7 +266,6 @@ export function SiteCopyAdminPanel() {
 											<Button
 												type="button"
 												variant="outline"
-												className="rounded-lg"
 												onClick={() => {
 													setSelectedVersionId(version.id);
 													setDraft(version.content as SiteCopyPayload);
@@ -269,7 +276,6 @@ export function SiteCopyAdminPanel() {
 											{!version.is_active ? (
 												<Button
 													type="button"
-													className="rounded-lg bg-[#10231f] text-white hover:bg-[#17302c]"
 													onClick={() => void handleActivate(version.id)}
 													disabled={saving}>
 													Activate
@@ -283,7 +289,7 @@ export function SiteCopyAdminPanel() {
 					</CardContent>
 				</Card>
 
-				<Card className="rounded-lg border-slate-200/80 bg-white shadow-sm">
+				<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
 					<CardHeader>
 						<CardTitle>Edit website text</CardTitle>
 						<CardDescription>
@@ -303,7 +309,7 @@ export function SiteCopyAdminPanel() {
 								/>
 							</div>
 							<div className="flex items-end">
-								<label className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+								<label className="flex items-center gap-3 rounded-md border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700">
 									<input
 										type="checkbox"
 										checked={activateOnCreate}
@@ -321,7 +327,7 @@ export function SiteCopyAdminPanel() {
 							return (
 								<div
 									key={variant}
-									className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 space-y-4">
+									className="rounded-lg border border-slate-200 bg-slate-50/60 p-4 space-y-4">
 									<div>
 										<h3 className="text-base font-semibold capitalize text-slate-900">
 											{variant} dashboard
@@ -418,7 +424,7 @@ export function SiteCopyAdminPanel() {
 										{Object.entries(config.pageCopy).map(([path, content]) => (
 											<div
 												key={path}
-												className="rounded-lg border border-slate-200 bg-white p-3 space-y-2">
+												className="rounded-md border border-slate-200 bg-white p-3 space-y-2">
 												<p className="text-xs font-medium uppercase tracking-wide text-slate-500">
 													{path}
 												</p>
@@ -445,7 +451,6 @@ export function SiteCopyAdminPanel() {
 						<div className="flex flex-wrap items-center gap-3">
 							<Button
 								type="button"
-								className="rounded-lg bg-[#10231f] text-white hover:bg-[#17302c]"
 								onClick={() => void handleCreate()}
 								disabled={saving || !versionLabel.trim()}>
 								{saving ? "Saving..." : "Save Website Copy Version"}
