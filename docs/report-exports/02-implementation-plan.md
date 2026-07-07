@@ -19,8 +19,20 @@ Done means:
    weighting, domain-grouped responses, and comments in YEE branding.
 3. R2/R3/R4 exports reproduce exactly what the active compare mode + filters
    show, with the scope printed on the cover.
-4. Existing CSV outputs remain byte-compatible (same columns, same order).
-5. Every export identifies auditors by `auditor_generated_id` only.
+4. Existing CSV outputs remain byte-compatible (same columns, same order,
+   same formatting and escaping) — **except identity columns where a legacy
+   CSV exposes a non-generated auditor identifier**; the privacy invariant
+   (criterion 5) takes precedence, and any such intentional schema change
+   gets an explicit golden-file update and a release note. Known instances
+   today: the trend and individual-comparison CSVs emit `auditor_id`
+   verbatim, and the single-submission CSV falls back to raw
+   `submission.auditor_id` when `auditor_generated_id` is absent. M0
+   includes verifying with the backend whether the comparison payload's
+   `auditor_id` is already the generated ID; if it is, those CSVs stay
+   byte-identical.
+5. Every export identifies auditors by `auditor_generated_id` only. When a
+   payload lacks a generated ID, the export shows a redaction placeholder —
+   never the raw identifier.
 6. Playwright specs assert each download (filename pattern, magic bytes,
    parseable content) and pass in CI alongside `pnpm lint` and `pnpm build`.
 
@@ -44,7 +56,7 @@ stays a future project (logistics §7).
 |---|---|---|
 | PDF | `jspdf` + `jspdf-autotable` | COPA-proven table styling, section banner pattern ports directly |
 | Excel | `xlsx-js-style` | COPA-proven styled worksheets; we decided against embedded chart images in Excel (logistics §5), which removes the only reason to prefer exceljs |
-| CSV | existing `toCsv` in `src/features/reporting/reporting.ts` | already correct, keeps byte-compatibility |
+| CSV | existing legacy CSV generators — `toCsv` in `src/features/reporting/reporting.ts` **and** the manual single-submission builder in `yee-submission-report.tsx` (its own header order, quoting, and escaping) | each report's current headers, ordering, value formatting, and escaping are preserved as-is unless the acceptance-criterion-4 privacy migration changes an identity column |
 | ZIP | small local `zip-builder` ported from COPA (store-only ZIP writer, no dependency) | COPA already wrote and shipped this; PDFs/XLSX are already compressed |
 | Charts | **no library** — pure functions emitting SVG strings (D3 below) | the dashboard's charts are already hand-rolled SVG; a charting dependency would be a second rendering system to keep in sync |
 
@@ -105,7 +117,11 @@ src/features/reporting/export/
 │   ├── svg-primitives.ts # shared text/axis/legend helpers
 │   ├── radar.ts, trend.ts, domain-bars.ts, grouped-bars.ts
 │   └── raster.ts         # svgToPngDataUrl
-├── row-builders.ts       # pure data→rows for tables (shared by pdf/xlsx/csv)
+├── row-builders.ts       # pure data→presentation rows for PDF/XLSX only
+├── csv-builders.ts       # per-report legacy CSV rows: explicit ordered columns,
+│                         #   formatting, and escaping frozen per generator (never
+│                         #   derived from row-builders — CSV bytes must not move
+│                         #   when a PDF/XLSX layout changes)
 ├── pdf/
 │   ├── pdf-shared.ts     # brand header/footer, cover page, banner-row helpers
 │   ├── audit-pdf.ts      # R1
@@ -137,7 +153,7 @@ aborting the archive.
 
 | Today | Fate |
 |---|---|
-| `toCsv`, existing CSV column layouts | kept, moved behind `index.ts` re-export |
+| `toCsv`, `downloadSingleSubmissionCsv`, existing CSV column layouts | kept — absorbed verbatim into `csv-builders.ts` (identical bytes, verified by goldens), re-exported via `index.ts` |
 | `window.print()` + `(reports)` print stylesheet | kept as the free "Print" path on R1 (print CSS already invested; some users genuinely print) |
 | "Export full PDF report" button that just calls `window.print()` | retired — replaced by real PDF |
 | `exportCurrentChart` DOM-SVG serializer | retired (broken colors) — replaced by builder SVG/PNG |
@@ -156,6 +172,10 @@ surface) lands before the manager-only complexity.
   (+ fallback table), `index.ts`.
 - Port `zip-builder.ts` and `export-estimator.ts` from COPA, retargeting
   names/thresholds.
+- Capture golden CSV fixtures from the current generators **before any code
+  moves**, and confirm with the backend whether the place-comparisons
+  payload's `auditor_id` is already the generated ID (acceptance criterion
+  4); record the answer in this doc.
 - Playwright helper for download assertions (magic bytes `%PDF`, `PK`).
 
 ### M1 — Chart builders — medium
@@ -172,7 +192,9 @@ surface) lands before the manager-only complexity.
 ### M2 — R1 individual audit export — large
 
 - `row-builders.ts` (submission → overview/scores/weighting/responses/comment
-  rows; reuse `buildQuestionColumns` logic from `yee-submission-report.tsx`).
+  rows for PDF/XLSX; reuse `buildQuestionColumns` logic from
+  `yee-submission-report.tsx`) and `csv-builders.ts` (the existing
+  single-submission CSV moved as-is, goldens proving identical bytes).
 - `pdf/pdf-shared.ts` + `pdf/audit-pdf.ts`; `excel/audit-xlsx.ts`.
 - UI: `yee-submission-report.tsx` header/footer — Print + **Export ▾**
   (PDF / Excel / CSV) via a small `ExportMenuButton` component
@@ -223,7 +245,7 @@ Suggested PR slicing: M0+M1 / M2 / M3 / M4+M5 — each independently shippable.
 | Bulk ZIP memory / tab jank on big datasets | estimator thresholds, concurrency cap 4, progress dialog, partial-failure reporting |
 | N submission fetches hammer the backend | cap 4 concurrent; threshold warning at 25; document as the one place a future batch endpoint would help |
 | `jspdf` bundle weight | dynamic `import()` only from click handlers; verify with `pnpm build` output |
-| CSV byte-compatibility silently broken | Playwright golden-column assertions on every legacy CSV |
+| CSV byte-compatibility silently broken | dedicated `csv-builders.ts` (never shared with PDF/XLSX row shaping) + Playwright golden assertions on every legacy CSV, captured in M0 before any code moves; the only sanctioned diff is the acceptance-criterion-4 identity-column migration |
 | Long text (comments, question prompts) overflowing PDF cells | autotable wrapping + COPA's `stripPromptMarkup`/normalization ports; worst-case fixtures in tests |
 
 ## 5. Appendix — self-review (grill-me pass)

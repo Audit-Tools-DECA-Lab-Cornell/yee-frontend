@@ -210,7 +210,7 @@ export page.
 |---|---|---|
 | PDF | Presentation / archival | Branded, chart-bearing, self-contained; the file that leaves the org |
 | Excel (.xlsx) | Analysis | Styled multi-sheet workbooks; no embedded chart images (analysis surface — keeps us on the proven COPA styling stack) |
-| CSV | Interoperability | Existing flat formats preserved byte-compatible where they exist today; R/SPSS/Sheets ingestion |
+| CSV | Interoperability | Existing flat formats preserved byte-compatible where they exist today — except identity columns that expose a non-generated auditor identifier, which the privacy invariant (§3) overrides; R/SPSS/Sheets ingestion |
 | PNG / SVG | Charts only | Per-chart, for decks and publications |
 | ZIP | Bulk | Wraps per-audit R1 files |
 
