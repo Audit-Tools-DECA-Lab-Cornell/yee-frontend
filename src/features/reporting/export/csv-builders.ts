@@ -13,8 +13,11 @@ import type { InstrumentResponse } from "@/features/yee-audit/api/yee-instrument
 import type { YeeSubmissionRecord } from "@/features/yee-audit/api/yee-audit-api";
 import type { PlaceComparisonAuditRecord } from "@/features/workspaces/api/live-api";
 
+import type { RawDataRecord } from "@/features/workspaces/api/live-api";
+
 import { auditRawPercent, auditWeightedPercent } from "./comparison-metrics";
 import { resolveAuditorId } from "./identity";
+import { rawDataExportRows } from "./raw-data-columns";
 import { normalizeText, walkDomainResponses } from "./response-walk";
 import { toCsv } from "../reporting";
 import type { PlaceComparisonSummary } from "./types";
@@ -117,4 +120,13 @@ export function buildTrendCsv(records: PlaceComparisonAuditRecord[]): string {
  */
 export function buildAuditComparisonCsv(records: PlaceComparisonAuditRecord[]): string {
 	return auditRowsCsv(records);
+}
+
+/**
+ * R5 raw-data CSV — byte-compatible with the legacy raw-data page export
+ * (`toExportRows` + `ExportCsvButton`), including the per-row dynamic
+ * `Domain Weight *` / `Response *` columns.
+ */
+export function buildRawDataTableCsv(rows: RawDataRecord[]): string {
+	return toCsv(rawDataExportRows(rows));
 }

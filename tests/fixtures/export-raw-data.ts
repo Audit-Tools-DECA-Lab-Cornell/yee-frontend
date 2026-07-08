@@ -1,0 +1,40 @@
+import type { RawDataRecord } from "../../src/features/workspaces/api/live-api";
+
+export const rawDataRecords: RawDataRecord[] = [
+	{
+		audit_id: "11111111-1111-4111-8111-111111111111",
+		auditor_generated_id: "AUD007",
+		organization: "Youth Enabling Environments Collaborative",
+		place_id: "place-a",
+		place_name: "Riverside Park",
+		project_id: "proj-1",
+		project_name: "Downtown Greening",
+		date: "2026-06-12",
+		submitted_at: "2026-06-12T14:30:00Z",
+		start_time: "10:00",
+		finish_time: "11:15",
+		total_minutes: 75,
+		visit_frequency: "Weekly",
+		season: "Summer",
+		weather: "Sunny",
+		comments: 'Welcoming space; "north gate" needs signage.',
+		raw_access: 7,
+		raw_activity_spaces: 13,
+		raw_amenities: 9,
+		raw_experience_of_space: 11,
+		raw_aesthetics_and_care: 8,
+		raw_use_and_usability: 8,
+		weighted_access: 0.14,
+		weighted_activity_spaces: 0.31,
+		weighted_amenities: 0.18,
+		weighted_experience_of_space: 0.22,
+		weighted_aesthetics_and_care: 0.1,
+		weighted_use_and_usability: 0.08,
+		total_raw_score: 56,
+		total_raw_maximum: 125,
+		total_weighted_score: 1.03,
+		total_weighted_maximum: 1.83,
+		domain_weights: { access: 2, activitySpaces: 1, amenities: 2, experienceOfSpace: 3, aestheticsAndCare: 2, useAndUsability: 2 },
+		responses: { "access-q1": "Yes", "amenities-q1": "Partially" }
+	}
+];

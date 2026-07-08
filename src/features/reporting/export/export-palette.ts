@@ -115,11 +115,16 @@ export function resolveCssColorToHex(cssValue: string): string | null {
 	const context = getCanvasContext();
 	if (!context) return null;
 
-	// Paint over a known pixel; if the browser rejects the color, fillStyle
-	// stays at the previous value and the sentinel below catches it.
+	// Detect a rejected color (e.g. `oklch(...)` on an engine that lacks it) by
+	// reading `fillStyle` back: the browser normalizes an accepted value but
+	// leaves a rejected one at the prior sentinel. Without this, a rejected color
+	// would silently paint the previous pixel and we'd cache the wrong hex instead
+	// of falling back to the literal table.
 	context.clearRect(0, 0, 1, 1);
-	context.fillStyle = "#000000";
+	context.fillStyle = "#010203";
+	const sentinel = context.fillStyle;
 	context.fillStyle = trimmed;
+	if (context.fillStyle === sentinel) return null;
 	context.fillRect(0, 0, 1, 1);
 	const [r, g, b, a] = context.getImageData(0, 0, 1, 1).data;
 	if (a === 0) return null;

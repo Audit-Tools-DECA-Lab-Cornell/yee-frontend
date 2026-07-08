@@ -77,9 +77,11 @@ export function ExportMenuButton<TFormat extends string>({
 		</Button>
 	);
 
-	// A disabled trigger can't receive hover events, so wrap it to explain why.
-	const triggerNode =
-		disabled && disabledReason ? (
+	// When disabled, never render the interactive menu. A disabled trigger can't
+	// receive hover events, so wrap it: a tooltip when we can explain why,
+	// otherwise a plain aria-disabled wrapper (never a silently-inert dropdown).
+	if (disabled) {
+		return disabledReason ? (
 			<Tooltip>
 				<TooltipTrigger asChild>
 					<span className="inline-flex" tabIndex={0} aria-label={disabledReason}>
@@ -88,9 +90,12 @@ export function ExportMenuButton<TFormat extends string>({
 				</TooltipTrigger>
 				<TooltipContent>{disabledReason}</TooltipContent>
 			</Tooltip>
-		) : null;
-
-	if (triggerNode) return triggerNode;
+		) : (
+			<span className="inline-flex" aria-disabled="true">
+				{trigger}
+			</span>
+		);
+	}
 
 	return (
 		<DropdownMenu>

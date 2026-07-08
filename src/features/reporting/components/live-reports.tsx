@@ -32,6 +32,7 @@ import {
 } from "@/features/reporting/export/dashboard-charts";
 import { ExportMenuButton, type ExportMenuOption } from "@/features/reporting/components/export-menu-button";
 import { ChartDownloadButton } from "@/features/reporting/components/chart-download-button";
+import { BulkAuditZipButton } from "@/features/reporting/components/bulk-audit-zip-button";
 import { yeeDomainThemes } from "@/features/yee-audit/config/yee-domain-theme";
 
 type CompareMode = "places" | "audits" | "individual";
@@ -1138,6 +1139,26 @@ export function LiveReports() {
 
 			{compareMode === "individual" ? (
 				<div className="space-y-6">
+					{selectedAuditIds.length > 0 ? (
+						<div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-muted/40 px-4 py-3">
+							<span className="text-sm font-medium text-foreground">
+								{selectedAuditIds.length} selected
+							</span>
+							<div className="flex flex-wrap items-center gap-2">
+								<ExportMenuButton
+									label="Export comparison"
+									options={exportFormatOptions}
+									onExport={handleComparisonExport}
+									disabled={selectedIndividualAudits.length < 2}
+									disabledReason="Select at least 2 audits to compare"
+								/>
+								<BulkAuditZipButton auditIds={selectedAuditIds} />
+								<Button type="button" variant="quiet" size="sm" onClick={() => setSelectedAuditIds([])}>
+									Clear
+								</Button>
+							</div>
+						</div>
+					) : null}
 					<Card className="rounded-md border-border">
 						<CardHeader>
 							<CardTitle>Compare individual audits</CardTitle>

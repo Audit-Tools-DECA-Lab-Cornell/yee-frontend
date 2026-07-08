@@ -8,7 +8,6 @@ export default function DashboardRawDataPage() {
 	return (
 		<LiveRawDataTable
 			scope="manager"
-			filename="manager-raw-data.csv"
 			title="Manager Raw Data"
 			description="Export raw data for the audits in your scope. Auditor names are replaced with generated IDs to protect privacy."
 		/>

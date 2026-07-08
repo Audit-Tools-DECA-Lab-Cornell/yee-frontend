@@ -13,9 +13,20 @@ import { generateTrendPdf } from "./pdf/trend-pdf";
 import { generateAuditComparisonPdf } from "./pdf/audit-comparison-pdf";
 import { generateAuditXlsx } from "./excel/audit-xlsx";
 import { generatePlaceComparisonXlsx, generateTrendXlsx, generateAuditComparisonXlsx } from "./excel/comparison-xlsx";
-import { buildAuditComparisonCsv, buildPlaceComparisonCsv, buildSingleSubmissionCsv, buildTrendCsv } from "./csv-builders";
+import { generateRawDataXlsx } from "./excel/raw-data-xlsx";
+import {
+	buildAuditComparisonCsv,
+	buildPlaceComparisonCsv,
+	buildRawDataTableCsv,
+	buildSingleSubmissionCsv,
+	buildTrendCsv
+} from "./csv-builders";
+import { generateAuditBatchZip, type BatchProgress, type BatchResult } from "./batch";
 import { getExportPalette } from "./export-palette";
 import { buildExportFileName, isoDateStamp, triggerBrowserDownload } from "./file-utils";
+import type { InstrumentResponse } from "@/features/yee-audit/api/yee-instrument";
+import type { YeeSubmissionRecord } from "@/features/yee-audit/api/yee-audit-api";
+import type { RawDataRecord } from "@/features/workspaces/api/live-api";
 import type {
 	AuditComparisonReportInput,
 	AuditReportInput,
@@ -94,13 +105,46 @@ export async function exportAuditComparison(input: AuditComparisonReportInput, f
 	triggerBrowserDownload(fileName, await generateAuditComparisonPdf(input, palette), MIME.pdf);
 }
 
+/** R5 — raw-data export (CSV or Excel with a Data Dictionary sheet). */
+export async function exportRawData(
+	rows: RawDataRecord[],
+	format: "csv" | "xlsx",
+	scope: "all" | "filtered" | "selected" = "all"
+): Promise<void> {
+	const report = scope === "all" ? "raw-data" : `raw-data-${scope}`;
+	const fileName = buildExportFileName(report, format);
+	if (format === "csv") {
+		triggerBrowserDownload(fileName, buildRawDataTableCsv(rows), MIME.csv);
+		return;
+	}
+	triggerBrowserDownload(fileName, generateRawDataXlsx(rows, getExportPalette()), MIME.xlsx);
+}
+
+/**
+ * R5 — bulk audit ZIP. Generates each audit's R1 file(s) and downloads one ZIP.
+ * Returns the result (including any per-audit failures) so the caller can report
+ * "N audits could not be exported".
+ */
+export async function exportAuditBatchZip(options: {
+	auditIds: string[];
+	fetchSubmission: (auditId: string) => Promise<YeeSubmissionRecord>;
+	instrument: InstrumentResponse | null;
+	includeExcel?: boolean;
+	onProgress?: (progress: BatchProgress) => void;
+}): Promise<BatchResult> {
+	const result = await generateAuditBatchZip({ ...options, palette: getExportPalette() });
+	triggerBrowserDownload(buildExportFileName("audits", "zip"), result.zipBlob, "application/zip");
+	return result;
+}
+
 // Re-exports for callers that need lower-level pieces (per-chart download, ZIP).
 export { downloadChart } from "./charts/download";
+export { estimateBulkExport, formatBytes, ENTITY_WARN_THRESHOLD } from "./export-estimator";
+export type { BatchProgress, BatchResult, BatchFailure } from "./batch";
 export { getExportPalette } from "./export-palette";
 export { buildExportFileName, isoDateStamp, slugify, triggerBrowserDownload } from "./file-utils";
 export { rasterizeSvg, svgToPngDataUrl } from "./charts/raster";
 export { buildZip, type ZipEntry } from "./zip-builder";
-export { estimateBulkExport, formatBytes } from "./export-estimator";
 export { resolveAuditorId } from "./identity";
 export { buildPlaceComparisonSummaries, auditRawPercent, auditWeightedPercent } from "./comparison-metrics";
 export type {
