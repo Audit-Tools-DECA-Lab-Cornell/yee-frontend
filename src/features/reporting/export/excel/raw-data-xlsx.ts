@@ -7,16 +7,35 @@ import type { RawDataRecord } from "@/features/workspaces/api/live-api";
 
 import { rawDataExportRows, RAW_DATA_DICTIONARY } from "../raw-data-columns";
 import type { ExportPalette } from "../types";
-import { appendSheet, buildStyledSheet, cell, makeStyles, newWorkbook, workbookToBlob, type StyledCell } from "./excel-shared";
+import {
+	appendSheet,
+	buildStyledSheet,
+	cell,
+	makeStyles,
+	newWorkbook,
+	workbookToBlob,
+	type StyledCell
+} from "./excel-shared";
 
 export function generateRawDataXlsx(rows: RawDataRecord[], palette: ExportPalette): Blob {
 	const styles = makeStyles(palette);
 	const wb = newWorkbook();
 	const exportRows = rawDataExportRows(rows);
 
-	// Column order = first row's keys (matches the CSV); fall back to the base
-	// header set when there are no rows so the sheet still has a header.
-	const columns = exportRows.length > 0 ? Object.keys(exportRows[0]) : RAW_DATA_DICTIONARY.map(entry => entry.column);
+	// Column order = union of EVERY row's keys (insertion order keeps the first
+	// row's columns first, with any extras appended as encountered). Keying off
+	// only the first row would drop the per-instrument `Response …`/`Domain Weight …`
+	// columns for audits from a different project when exporting "all"/"filtered"
+	// across projects. Falls back to the base header set when there are no rows.
+	const columns =
+		exportRows.length > 0
+			? Array.from(
+					exportRows.reduce((set, row) => {
+						for (const key of Object.keys(row)) set.add(key);
+						return set;
+					}, new Set<string>())
+				)
+			: RAW_DATA_DICTIONARY.map(entry => entry.column);
 
 	const dataGrid: StyledCell[][] = [columns.map(column => cell(column, styles.header))];
 	for (const row of exportRows) {
@@ -29,7 +48,12 @@ export function generateRawDataXlsx(rows: RawDataRecord[], palette: ExportPalett
 		[cell("Data Dictionary", styles.title)],
 		[cell("What each column in the Raw data sheet means.", styles.subtitle)],
 		[cell(null)],
-		[cell("Column", styles.header), cell("Meaning", styles.header), cell("Type", styles.header), cell("Allowed values", styles.header)]
+		[
+			cell("Column", styles.header),
+			cell("Meaning", styles.header),
+			cell("Type", styles.header),
+			cell("Allowed values", styles.header)
+		]
 	];
 	for (const entry of RAW_DATA_DICTIONARY) {
 		dictGrid.push([

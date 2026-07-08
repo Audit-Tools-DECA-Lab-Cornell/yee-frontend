@@ -119,7 +119,11 @@ export function walkDomainResponses(
 
 			if (hasMatrixAnswers) {
 				choices.forEach(([choiceId, choice]) => {
-					const responseAnswerId = getSelectedMatrixAnswer(presenceItem.item_id, choiceId, submission.responses);
+					const responseAnswerId = getSelectedMatrixAnswer(
+						presenceItem.item_id,
+						choiceId,
+						submission.responses
+					);
 					const conditionAnswerId = conditionItem
 						? getSelectedMatrixAnswer(conditionItem.item_id, choiceId, submission.responses)
 						: "";

@@ -8,8 +8,7 @@
 
 /** Trigger a browser download for a Blob or string payload. */
 export function triggerBrowserDownload(filename: string, data: Blob | string, mimeType?: string): void {
-	const blob =
-		typeof data === "string" ? new Blob([data], { type: mimeType ?? "text/plain;charset=utf-8;" }) : data;
+	const blob = typeof data === "string" ? new Blob([data], { type: mimeType ?? "text/plain;charset=utf-8;" }) : data;
 	const url = URL.createObjectURL(blob);
 	const anchor = document.createElement("a");
 	anchor.href = url;
@@ -28,8 +27,8 @@ export function slugify(value: string): string {
 			.replace(/[̀-ͯ]/g, "") // strip combining diacritics
 			.toLowerCase()
 			.replace(/[^a-z0-9]+/g, "-")
-			.replace(/^-+|-+$/g, "")
-			.slice(0, 60) || "export"
+			.slice(0, 60)
+			.replace(/^-+|-+$/g, "") || "export"
 	);
 }
 

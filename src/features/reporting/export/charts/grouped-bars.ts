@@ -25,7 +25,7 @@ export function buildGroupedBarsSvg(options: {
 	height?: number;
 	title?: string;
 }): string {
-	const { groups, series, palette, width = 760, height = 340, title } = options;
+	const { groups, series, palette, width = 760, height = 400, title } = options;
 	const padding = 44;
 	const plotTop = 16;
 	const plotBottom = height - 48;
@@ -41,7 +41,9 @@ export function buildGroupedBarsSvg(options: {
 	for (const value of GRID_VALUES) {
 		const y = yFor(value);
 		parts.push(svgLine(plotLeft, y, plotRight, y, palette.grid, { width: 1, dash: "3 3" }));
-		parts.push(svgText({ x: plotLeft - 8, y: y + 4, text: `${value}%`, fill: palette.axis, size: 10, anchor: "end" }));
+		parts.push(
+			svgText({ x: plotLeft - 8, y: y + 4, text: `${value}%`, fill: palette.axis, size: 10, anchor: "end" })
+		);
 	}
 
 	const groupWidth = plotWidth / Math.max(groups.length, 1);
@@ -65,9 +67,20 @@ export function buildGroupedBarsSvg(options: {
 		const words = group.label.split(" ");
 		const line1 = words.slice(0, Math.ceil(words.length / 2)).join(" ");
 		const line2 = words.slice(Math.ceil(words.length / 2)).join(" ");
-		parts.push(svgText({ x: centerX, y: plotBottom + 16, text: line1, fill: palette.axis, size: 9.5, anchor: "middle" }));
+		parts.push(
+			svgText({ x: centerX, y: plotBottom + 16, text: line1, fill: palette.axis, size: 9.5, anchor: "middle" })
+		);
 		if (line2) {
-			parts.push(svgText({ x: centerX, y: plotBottom + 27, text: line2, fill: palette.axis, size: 9.5, anchor: "middle" }));
+			parts.push(
+				svgText({
+					x: centerX,
+					y: plotBottom + 27,
+					text: line2,
+					fill: palette.axis,
+					size: 9.5,
+					anchor: "middle"
+				})
+			);
 		}
 	});
 

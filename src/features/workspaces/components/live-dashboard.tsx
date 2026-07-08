@@ -3,11 +3,15 @@
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import * as React from "react";
-import { ArrowRight, ArrowUpRight, FilePlus2, Layers, MailPlus, MapPinned, ShieldPlus, UserPlus } from "lucide-react";
+import { ArrowRight, ArrowUpRight, FilePlus2, MailPlus, MapPinned, ShieldPlus, UserPlus } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 
 import { useAuth } from "@/features/auth/components/auth-provider";
-import { ClearFiltersButton, SearchableMultiSelectFilter } from "@/features/workspaces/components/table-filters";
+import {
+	ClearFiltersButton,
+	GroupByToggle,
+	SearchableMultiSelectFilter
+} from "@/features/workspaces/components/table-filters";
 import { PlaceComparisonPanel } from "@/features/reporting/components/place-comparison-panel";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -980,15 +984,11 @@ export function LivePlacesTable() {
 				onChange={setSelectedProjects}
 			/>
 			<ClearFiltersButton disabled={!filtersActive} onClick={() => setSelectedProjects([])} />
-			<Button
-				type="button"
-				variant={groupByProject ? "secondary" : "outline"}
-				size="sm"
+			<GroupByToggle
+				grouped={groupByProject}
+				onToggle={() => setGroupByProject(value => !value)}
 				className="ml-auto"
-				onClick={() => setGroupByProject(value => !value)}>
-				<Layers className="size-4" />
-				{groupByProject ? "Ungroup" : "Group by project"}
-			</Button>
+			/>
 		</div>
 	);
 
@@ -1324,6 +1324,7 @@ export function LiveAuditsTable() {
 	const [selectedAuditIds, setSelectedAuditIds] = React.useState<string[]>([]);
 	const [syncedParams, setSyncedParams] = React.useState<string>(`${paramProjectId ?? ""}|${paramPlaceId ?? ""}`);
 	const [compareError, setCompareError] = React.useState<string | null>(null);
+	const [groupByProject, setGroupByProject] = React.useState(false);
 
 	// Keep the filters in sync with the URL so a soft navigation that changes the
 	// deep-link params (e.g. the sidebar link back to the bare /manager/audits
@@ -1457,10 +1458,14 @@ export function LiveAuditsTable() {
 						.filter((id): id is string => Boolean(id));
 					const everySelected =
 						submissionIds.length > 0 && submissionIds.every(id => selectedAuditIds.includes(id));
+					const someSelected = submissionIds.some(id => selectedAuditIds.includes(id));
 					return (
 						<input
 							type="checkbox"
 							aria-label="Select all audits"
+							ref={el => {
+								if (el) el.indeterminate = someSelected && !everySelected;
+							}}
 							checked={everySelected}
 							onChange={() =>
 								setSelectedAuditIds(current => {
@@ -1501,6 +1506,11 @@ export function LiveAuditsTable() {
 				accessorKey: "place",
 				header: "Place",
 				cell: ({ getValue }) => <span className="font-medium text-foreground">{String(getValue())}</span>
+			},
+			{
+				accessorKey: "project_name",
+				header: "Project",
+				cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue() ?? "—")}</span>
 			},
 			{
 				accessorKey: "auditor",
@@ -1581,6 +1591,8 @@ export function LiveAuditsTable() {
 						columns={auditColumns}
 						data={filteredAudits}
 						getRowId={row => row.id}
+						groupBy={groupByProject ? "project_name" : undefined}
+						groupLabel="Project"
 						noResults="No audits match the selected filters."
 						mobileCard={audit => (
 							<AuditRowMobileCard
@@ -1632,6 +1644,11 @@ export function LiveAuditsTable() {
 												router.replace(pathname);
 											}
 										}}
+									/>
+									<GroupByToggle
+										grouped={groupByProject}
+										onToggle={() => setGroupByProject(value => !value)}
+										className="ml-auto"
 									/>
 								</div>
 								<div className="flex flex-wrap items-center justify-start max-w-full min-w-content gap-3">
@@ -1756,7 +1773,8 @@ export function LiveAdminOverview() {
 				stats={overview.data.metrics.map(metric => ({
 					label: metric.title,
 					value: metric.value,
-					helper: metric.description
+					helper: metric.description,
+					href: adminMetricHref(metric.title)
 				}))}
 			/>
 			{overview.data.organization_summaries.length > 0 ? (

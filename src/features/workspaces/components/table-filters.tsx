@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ChevronDown, Search, X } from "lucide-react";
+import { ChevronDown, Layers, Search, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -86,7 +86,7 @@ export function SearchableMultiSelectFilter({
 					</div>
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="start" className="w-[290px] border-slate-200 p-3 shadow-xl">
+			<DropdownMenuContent align="start" className="w-[290px] border-slate-300 p-3 shadow-xl">
 				<div className="space-y-3">
 					<div className="flex items-center justify-between gap-3">
 						<p className="text-sm font-semibold text-slate-900">{label}</p>
@@ -139,6 +139,29 @@ export function ClearFiltersButton({ disabled, onClick }: { disabled: boolean; o
 	return (
 		<Button type="button" variant="secondary" onClick={onClick} disabled={disabled}>
 			Clear filters
+		</Button>
+	);
+}
+
+/** Shared "Group by project" / "Ungroup" toggle for any groupable table. */
+export function GroupByToggle({
+	grouped,
+	onToggle,
+	className
+}: {
+	grouped: boolean;
+	onToggle: () => void;
+	className?: string;
+}) {
+	return (
+		<Button
+			type="button"
+			variant={grouped ? "secondary" : "outline"}
+			size="sm"
+			className={className}
+			onClick={onToggle}>
+			<Layers className="size-4" />
+			{grouped ? "Ungroup" : "Group by project"}
 		</Button>
 	);
 }

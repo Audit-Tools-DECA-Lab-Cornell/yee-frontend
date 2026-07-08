@@ -18,7 +18,15 @@ import {
 	type PlaceComparisonReportInput,
 	type TrendReportInput
 } from "../types";
-import { appendSheet, buildStyledSheet, cell, makeStyles, newWorkbook, workbookToBlob, type StyledCell } from "./excel-shared";
+import {
+	appendSheet,
+	buildStyledSheet,
+	cell,
+	makeStyles,
+	newWorkbook,
+	workbookToBlob,
+	type StyledCell
+} from "./excel-shared";
 
 export function generatePlaceComparisonXlsx(input: PlaceComparisonReportInput, palette: ExportPalette): Blob {
 	const styles = makeStyles(palette);
@@ -57,12 +65,19 @@ export function generatePlaceComparisonXlsx(input: PlaceComparisonReportInput, p
 		[cell("Place", styles.header), ...domainOrder.map(domain => cell(domainLabels[domain], styles.header))]
 	];
 	for (const row of input.summaries) {
-		matrix.push([cell(row.placeName, styles.label), ...domainOrder.map(domain => cell(Math.round(row.rawPercentByDomain[domain]), styles.body))]);
+		matrix.push([
+			cell(row.placeName, styles.label),
+			...domainOrder.map(domain => cell(Math.round(row.rawPercentByDomain[domain]), styles.body))
+		]);
 	}
 	appendSheet(wb, buildStyledSheet(matrix, { colWidths: [28, 12, 12, 12, 16, 14, 12] }), "Domain matrix");
 
 	// Audit rows sheet.
-	appendSheet(wb, buildStyledSheet(auditRowsGrid(input.audits, styles), { colWidths: [24, 24, 12, 12, 12, 18, 10] }), "Audit rows");
+	appendSheet(
+		wb,
+		buildStyledSheet(auditRowsGrid(input.audits, styles), { colWidths: [24, 24, 12, 12, 12, 18, 10] }),
+		"Audit rows"
+	);
 
 	return workbookToBlob(wb);
 }
@@ -101,7 +116,12 @@ export function generateTrendXlsx(input: TrendReportInput, palette: ExportPalett
 
 	// Change summary sheet.
 	const change: StyledCell[][] = [
-		[cell("Section", styles.header), cell("First %", styles.header), cell("Latest %", styles.header), cell("Change", styles.header)]
+		[
+			cell("Section", styles.header),
+			cell("First %", styles.header),
+			cell("Latest %", styles.header),
+			cell("Change", styles.header)
+		]
 	];
 	for (const delta of firstVsLatestDeltas(sorted)) {
 		change.push([
@@ -121,7 +141,13 @@ export function generateAuditComparisonXlsx(input: AuditComparisonReportInput, p
 	const wb = newWorkbook();
 	const labels = input.records.map(record => `${record.place_name} (${record.date})`);
 
-	appendSheet(wb, buildStyledSheet(auditRowsGrid(input.records, styles, "Selected audits"), { colWidths: [24, 24, 12, 12, 12, 18, 10] }), "Side by side");
+	appendSheet(
+		wb,
+		buildStyledSheet(auditRowsGrid(input.records, styles, "Selected audits"), {
+			colWidths: [24, 24, 12, 12, 12, 18, 10]
+		}),
+		"Side by side"
+	);
 
 	// Domain deltas sheet.
 	const twoUp = input.records.length === 2;
@@ -129,7 +155,10 @@ export function generateAuditComparisonXlsx(input: AuditComparisonReportInput, p
 	if (twoUp) header.push(cell("Δ", styles.header));
 	const deltas: StyledCell[][] = [header];
 	for (const row of pairwiseDomainDeltas(input.records)) {
-		const line: StyledCell[] = [cell(row.label, styles.label), ...row.values.map(value => cell(Math.round(value), styles.body))];
+		const line: StyledCell[] = [
+			cell(row.label, styles.label),
+			...row.values.map(value => cell(Math.round(value), styles.body))
+		];
 		if (twoUp) line.push(cell(deltaMark(row.delta ?? 0), styles.body));
 		deltas.push(line);
 	}
@@ -175,5 +204,7 @@ function deltaMark(delta: number): string {
 }
 function timeOf(date: string): number {
 	const parsed = new Date(date);
-	return Number.isNaN(parsed.getTime()) ? 0 : parsed.getTime();
+	// Unparseable/empty dates sort LAST — not to epoch 0, which would wrongly make
+	// an undated record the "earliest" row in the trend timeline.
+	return Number.isNaN(parsed.getTime()) ? Number.POSITIVE_INFINITY : parsed.getTime();
 }

@@ -64,7 +64,10 @@ export async function exportAudit(input: AuditReportInput, format: ReportDocumen
 			? input.submission.participant_info.audit_date
 			: null) ?? input.submission.submitted_at
 	);
-	const fileName = buildExportFileName("audit", format, { scopeSlug: placeName, date: new Date(`${audstamp}T00:00:00`) });
+	const fileName = buildExportFileName("audit", format, {
+		scopeSlug: placeName,
+		date: new Date(`${audstamp}T00:00:00`)
+	});
 
 	if (format === "csv") {
 		triggerBrowserDownload(fileName, buildSingleSubmissionCsv(input.submission, input.instrument), MIME.csv);
@@ -79,11 +82,15 @@ export async function exportAudit(input: AuditReportInput, format: ReportDocumen
 }
 
 /** R2 — Compare Places export in the chosen format. */
-export async function exportPlaceComparison(input: PlaceComparisonReportInput, format: ReportDocumentFormat): Promise<void> {
+export async function exportPlaceComparison(
+	input: PlaceComparisonReportInput,
+	format: ReportDocumentFormat
+): Promise<void> {
 	const palette = getExportPalette();
 	const fileName = buildExportFileName("place-comparison", format);
 	if (format === "csv") return triggerBrowserDownload(fileName, buildPlaceComparisonCsv(input.summaries), MIME.csv);
-	if (format === "xlsx") return triggerBrowserDownload(fileName, generatePlaceComparisonXlsx(input, palette), MIME.xlsx);
+	if (format === "xlsx")
+		return triggerBrowserDownload(fileName, generatePlaceComparisonXlsx(input, palette), MIME.xlsx);
 	triggerBrowserDownload(fileName, await generatePlaceComparisonPdf(input, palette), MIME.pdf);
 }
 
@@ -97,11 +104,15 @@ export async function exportTrend(input: TrendReportInput, format: ReportDocumen
 }
 
 /** R4 — Compare Individual Audits export in the chosen format. */
-export async function exportAuditComparison(input: AuditComparisonReportInput, format: ReportDocumentFormat): Promise<void> {
+export async function exportAuditComparison(
+	input: AuditComparisonReportInput,
+	format: ReportDocumentFormat
+): Promise<void> {
 	const palette = getExportPalette();
 	const fileName = buildExportFileName("audit-comparison", format);
 	if (format === "csv") return triggerBrowserDownload(fileName, buildAuditComparisonCsv(input.records), MIME.csv);
-	if (format === "xlsx") return triggerBrowserDownload(fileName, generateAuditComparisonXlsx(input, palette), MIME.xlsx);
+	if (format === "xlsx")
+		return triggerBrowserDownload(fileName, generateAuditComparisonXlsx(input, palette), MIME.xlsx);
 	triggerBrowserDownload(fileName, await generateAuditComparisonPdf(input, palette), MIME.pdf);
 }
 

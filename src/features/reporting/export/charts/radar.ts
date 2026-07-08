@@ -26,9 +26,16 @@ export function buildRadarSvg(options: {
 	size?: number;
 	title?: string;
 }): string {
-	const { series, axisLabels, palette, size = 380, title } = options;
+	const { series, axisLabels, palette, size = 420, title } = options;
 	const center = size / 2;
-	const radius = center - 78; // leave room for axis labels
+	// A smaller inner pad keeps the plotted polygon large; horizontal room for the
+	// axis labels comes from the side gutters below (which scale to the longest
+	// label) rather than from shrinking the radius.
+	const radius = center - 58;
+	// Side gutters so start/end-anchored axis labels never clip the canvas edge.
+	const longestLabel = axisLabels.reduce((max, label) => Math.max(max, label.length), 0);
+	const hGutter = Math.min(150, Math.max(64, Math.round(longestLabel * 6.4)));
+	const width = size + hGutter * 2;
 	const total = axisLabels.length;
 	const parts: string[] = [];
 
@@ -45,11 +52,31 @@ export function buildRadarSvg(options: {
 		);
 	}
 
+	// Numeric ring labels along the top (12 o'clock) spoke so the distance of each
+	// vertex from center reads as an actual percentage, not just a shape. The
+	// outermost ring is skipped: its label would sit on the chart edge, colliding
+	// with the top axis label and the 100%-value vertex dot.
+	for (const ring of RING_VALUES) {
+		if (ring >= 100) continue;
+		const point = radarRadialPoint(0, total, ring, radius, center);
+		parts.push(
+			svgText({
+				x: center - 5,
+				y: point.y + 3,
+				text: `${ring}`,
+				fill: palette.axis,
+				size: 8,
+				anchor: "end",
+				opacity: 0.65
+			})
+		);
+	}
+
 	// Spokes + axis labels.
 	axisLabels.forEach((label, index) => {
 		const outer = radarRadialPoint(index, total, 100, radius, center);
 		parts.push(svgLine(center, center, outer.x, outer.y, palette.grid, { width: 1 }));
-		const labelPoint = radarRadialPoint(index, total, 122, radius, center);
+		const labelPoint = radarRadialPoint(index, total, 118, radius, center);
 		const anchor = labelPoint.x < center - 1 ? "end" : labelPoint.x > center + 1 ? "start" : "middle";
 		parts.push(
 			svgText({
@@ -57,7 +84,7 @@ export function buildRadarSvg(options: {
 				y: labelPoint.y + 3,
 				text: label,
 				fill: palette.axis,
-				size: 11,
+				size: 11.5,
 				weight: 500,
 				anchor
 			})
@@ -77,19 +104,23 @@ export function buildRadarSvg(options: {
 		});
 	}
 
+	// The square chart is drawn in 0…size coordinates, then shifted right by the
+	// gutter so the wider canvas gives the side labels room on both edges.
+	const chart = `<g transform="translate(${hGutter},0)">${parts.join("")}</g>`;
+
 	const legend = svgLegend({
 		items: series.map(item => ({ label: item.label, color: item.color })),
 		x: 12,
 		y: size + 16,
-		maxWidth: size - 24,
+		maxWidth: width - 24,
 		textFill: palette.brand.foreground
 	});
 
 	return svgDocument({
-		width: size,
+		width,
 		height: size + legend.height + 8,
 		background: palette.brand.surface,
 		title: title ?? "Domain profile radar",
-		body: parts.join("") + legend.markup
+		body: chart + legend.markup
 	});
 }

@@ -22,12 +22,13 @@ export type Rgb = [number, number, number];
 
 export function hexToRgb(hex: string): Rgb {
 	const clean = hex.replace("#", "");
-	const value = clean.length === 3
-		? clean
-				.split("")
-				.map(c => c + c)
-				.join("")
-		: clean;
+	const value =
+		clean.length === 3
+			? clean
+					.split("")
+					.map(c => c + c)
+					.join("")
+			: clean;
 	const int = parseInt(value, 16);
 	return [(int >> 16) & 255, (int >> 8) & 255, int & 255];
 }
@@ -80,9 +81,16 @@ export function ensureSpace(doc: jsPDF, y: number, needed: number): number {
 	return PAGE.continuationTop;
 }
 
+/** Leading gap added before every section so sections aren't tightly packed. */
+const SECTION_LEAD_GAP = 14;
+
 /** Section heading with a colored tick; returns the y below it. */
 export function drawSectionTitle(doc: jsPDF, palette: ExportPalette, title: string, y: number): number {
-	const top = ensureSpace(doc, y, 34);
+	// Add breathing room above the heading, but skip it when the title (with the
+	// gap) would spill the page — there ensureSpace resets to a fresh page top and
+	// the extra pad would just waste space.
+	const fitsWithLead = y + SECTION_LEAD_GAP + 34 <= pageHeight(doc) - PAGE.marginBottom;
+	const top = ensureSpace(doc, y + (fitsWithLead ? SECTION_LEAD_GAP : 0), 34);
 	setFill(doc, palette.brand.green900);
 	doc.rect(PAGE.marginX, top - 9, 3, 13, "F");
 	setText(doc, palette.brand.foreground);
@@ -162,7 +170,16 @@ export async function drawCover(doc: jsPDF, palette: ExportPalette, options: Cov
 	if (logos.horizontal) {
 		const logoHeight = 44;
 		const logoWidth = logoHeight / LOGO_ASPECT.horizontal;
-		doc.addImage(logos.horizontal, "PNG", PAGE.marginX, (bannerHeight - logoHeight) / 2, logoWidth, logoHeight, undefined, "FAST");
+		doc.addImage(
+			logos.horizontal,
+			"PNG",
+			PAGE.marginX,
+			(bannerHeight - logoHeight) / 2,
+			logoWidth,
+			logoHeight,
+			undefined,
+			"FAST"
+		);
 	} else {
 		setText(doc, "#ffffff");
 		doc.setFont("helvetica", "bold");
@@ -265,13 +282,31 @@ export function drawChartImage(
  * Draw the brand chrome on every page AFTER all content exists, so "Page X of Y"
  * is accurate. Slim header wordmark on continuation pages; footer everywhere.
  */
-export function finalizeChrome(doc: jsPDF, palette: ExportPalette, generatedDate: Date): void {
+export async function finalizeChrome(doc: jsPDF, palette: ExportPalette, generatedDate: Date): Promise<void> {
 	const total = doc.getNumberOfPages();
 	const stamp = generatedDate.toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "numeric" });
+	const logos = await getBrandLogos();
 	for (let page = 1; page <= total; page += 1) {
 		doc.setPage(page);
 		const width = pageWidth(doc);
 		const height = pageHeight(doc);
+
+		// Subtle brand watermark in the bottom-right corner, just above the footer.
+		if (logos.mark) {
+			const markSize = 22;
+			withOpacity(doc, 0.12, () => {
+				doc.addImage(
+					logos.mark as string,
+					"PNG",
+					width - PAGE.marginX - markSize,
+					height - 34 - markSize,
+					markSize,
+					markSize,
+					undefined,
+					"FAST"
+				);
+			});
+		}
 
 		if (page > 1) {
 			setText(doc, palette.brand.green900);
@@ -321,12 +356,23 @@ export function drawBannerTable(
 		startY: options.startY,
 		margin: { top: PAGE.continuationTop, bottom: PAGE.marginBottom, left: PAGE.marginX, right: PAGE.marginX },
 		head: [options.head],
-		body: body.map(row =>
-			row.banner ? [{ content: row.banner.label, colSpan: columnCount }] : (row.cells ?? [])
-		),
+		body: body.map(row => (row.banner ? [{ content: row.banner.label, colSpan: columnCount }] : (row.cells ?? []))),
 		theme: "grid",
-		styles: { font: "helvetica", fontSize: 8.5, cellPadding: 4, overflow: "linebreak", lineColor: hexToRgb(palette.brand.border), lineWidth: 0.4, textColor: hexToRgb(palette.brand.foreground) },
-		headStyles: { fillColor: hexToRgb(palette.brand.green900), textColor: [255, 255, 255], fontStyle: "bold", fontSize: 8.5 },
+		styles: {
+			font: "helvetica",
+			fontSize: 8.5,
+			cellPadding: 4,
+			overflow: "linebreak",
+			lineColor: hexToRgb(palette.brand.border),
+			lineWidth: 0.4,
+			textColor: hexToRgb(palette.brand.foreground)
+		},
+		headStyles: {
+			fillColor: hexToRgb(palette.brand.green900),
+			textColor: [255, 255, 255],
+			fontStyle: "bold",
+			fontSize: 8.5
+		},
 		columnStyles: options.columnStyles,
 		didParseCell: data => {
 			const raw = body[data.row.index];

@@ -1179,7 +1179,7 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 						</CardContent>
 					</Card>
 				) : (
-					<PlaceComparisonPanel group={data.comparisons} />
+					<PlaceComparisonPanel group={data.comparisons} hideAuditTable />
 				)}
 			</div>
 			<ConfirmDialog

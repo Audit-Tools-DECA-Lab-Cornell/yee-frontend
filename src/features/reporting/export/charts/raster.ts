@@ -49,17 +49,14 @@ export function rasterizeSvg(svg: string, scale = 2): Promise<RasterResult> {
 				}
 				context.drawImage(image, 0, 0, canvas.width, canvas.height);
 				const dataUrl = canvas.toDataURL("image/png");
-				canvas.toBlob(
-					blob => {
-						resolve({
-							dataUrl,
-							blob: blob ?? new Blob([], { type: "image/png" }),
-							width: canvas.width,
-							height: canvas.height
-						});
-					},
-					"image/png"
-				);
+				canvas.toBlob(blob => {
+					resolve({
+						dataUrl,
+						blob: blob ?? new Blob([], { type: "image/png" }),
+						width: canvas.width,
+						height: canvas.height
+					});
+				}, "image/png");
 			} catch (error) {
 				reject(error instanceof Error ? error : new Error(String(error)));
 			} finally {

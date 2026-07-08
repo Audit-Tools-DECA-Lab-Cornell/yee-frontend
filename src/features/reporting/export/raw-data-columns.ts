@@ -62,8 +62,18 @@ export type DataDictionaryEntry = {
 
 /** Column metadata for the Excel Data Dictionary sheet. */
 export const RAW_DATA_DICTIONARY: DataDictionaryEntry[] = [
-	{ column: "Organization", meaning: "Organization the audited place belongs to", type: "text", allowed: "free text" },
-	{ column: "Auditor ID", meaning: "Generated auditor code (never a name or email)", type: "text", allowed: "AUD###" },
+	{
+		column: "Organization",
+		meaning: "Organization the audited place belongs to",
+		type: "text",
+		allowed: "free text"
+	},
+	{
+		column: "Auditor ID",
+		meaning: "Generated auditor code (never a name or email)",
+		type: "text",
+		allowed: "AUD###"
+	},
 	{ column: "Place", meaning: "Name of the audited place", type: "text", allowed: "free text" },
 	{ column: "Project", meaning: "Project the place belongs to", type: "text", allowed: "free text" },
 	{ column: "Date", meaning: "Audit date", type: "date", allowed: "YYYY-MM-DD" },
@@ -71,14 +81,44 @@ export const RAW_DATA_DICTIONARY: DataDictionaryEntry[] = [
 	{ column: "Start Time", meaning: "Recorded visit start time", type: "text", allowed: "free text / time" },
 	{ column: "Finish Time", meaning: "Recorded visit finish time", type: "text", allowed: "free text / time" },
 	{ column: "Total Minutes", meaning: "Visit duration in minutes", type: "number", allowed: "≥ 0" },
-	{ column: "Visit Frequency", meaning: "How often the auditor visits this place", type: "text", allowed: "free text" },
+	{
+		column: "Visit Frequency",
+		meaning: "How often the auditor visits this place",
+		type: "text",
+		allowed: "free text"
+	},
 	{ column: "Season", meaning: "Season during the visit", type: "text", allowed: "free text" },
 	{ column: "Weather", meaning: "Weather during the visit", type: "text", allowed: "free text" },
 	{ column: "Comments", meaning: "Overall auditor comments", type: "text", allowed: "free text" },
-	{ column: "Raw <Domain>", meaning: "Raw score for each of the six domains", type: "number", allowed: "0 – domain max" },
-	{ column: "Youth Weighted <Domain>", meaning: "Youth-weighted score for each domain", type: "number", allowed: "0 – domain max" },
+	{
+		column: "Raw <Domain>",
+		meaning: "Raw score for each of the six domains",
+		type: "number",
+		allowed: "0 – domain max"
+	},
+	{
+		column: "Youth Weighted <Domain>",
+		meaning: "Youth-weighted score for each domain",
+		type: "number",
+		allowed: "0 – domain max"
+	},
 	{ column: "Total Raw Score", meaning: "Sum of raw domain scores", type: "number", allowed: "0 – total max" },
-	{ column: "Total Youth Weighted Average", meaning: "Youth-weighted average across domains", type: "number", allowed: "0 – total max" },
-	{ column: "Domain Weight <domain>", meaning: "Participant importance weight per domain", type: "number", allowed: "1 – 3" },
-	{ column: "Response <item id>", meaning: "Recorded answer for each instrument item", type: "text", allowed: "answer label" }
+	{
+		column: "Total Youth Weighted Average",
+		meaning: "Youth-weighted average across domains",
+		type: "number",
+		allowed: "0 – total max"
+	},
+	{
+		column: "Domain Weight <domain>",
+		meaning: "Participant importance weight per domain",
+		type: "number",
+		allowed: "1 – 3"
+	},
+	{
+		column: "Response <item id>",
+		meaning: "Recorded answer for each instrument item",
+		type: "text",
+		allowed: "answer label"
+	}
 ];

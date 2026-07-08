@@ -50,8 +50,15 @@ export function makeStyles(palette: ExportPalette): ExcelStyles {
 			alignment: { vertical: "center", wrapText: true },
 			border
 		},
-		label: { font: { bold: true, sz: 10, color: { rgb: rgb(palette.brand.muted) } }, alignment: { vertical: "top" } },
-		body: { font: { sz: 10, color: { rgb: rgb(palette.brand.foreground) } }, alignment: { vertical: "top", wrapText: true }, border },
+		label: {
+			font: { bold: true, sz: 10, color: { rgb: rgb(palette.brand.muted) } },
+			alignment: { vertical: "top" }
+		},
+		body: {
+			font: { sz: 10, color: { rgb: rgb(palette.brand.foreground) } },
+			alignment: { vertical: "top", wrapText: true },
+			border
+		},
 		bandHeader: bandHex => ({
 			font: { bold: true, sz: 10, color: { rgb: "FFFFFF" } },
 			fill: { patternType: "solid", fgColor: { rgb: rgb(bandHex) } },
@@ -69,7 +76,10 @@ export function makeStyles(palette: ExportPalette): ExcelStyles {
  * Falls back to "Sheet" for an empty result.
  */
 export function sanitizeSheetName(name: string): string {
-	const cleaned = name.replace(/[[\]:*?/\\]/g, " ").replace(/\s+/g, " ").trim();
+	const cleaned = name
+		.replace(/[[\]:*?/\\]/g, " ")
+		.replace(/\s+/g, " ")
+		.trim();
 	return (cleaned || "Sheet").slice(0, 31);
 }
 

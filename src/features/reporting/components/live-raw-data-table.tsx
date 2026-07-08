@@ -153,7 +153,30 @@ export function LiveRawDataTable({
 		{
 			id: "select",
 			enableSorting: false,
-			header: () => <span className="sr-only">Select</span>,
+			header: () => {
+				const auditIds = filteredRows.map(row => row.audit_id);
+				const everySelected = auditIds.length > 0 && auditIds.every(id => selectedAuditIds.includes(id));
+				const someSelected = auditIds.some(id => selectedAuditIds.includes(id));
+				return (
+					<input
+						type="checkbox"
+						aria-label="Select all audits"
+						ref={el => {
+							if (el) el.indeterminate = someSelected && !everySelected;
+						}}
+						checked={everySelected}
+						onChange={() =>
+							setSelectedAuditIds(current => {
+								const ids = filteredRows.map(row => row.audit_id);
+								const all = ids.length > 0 && ids.every(id => current.includes(id));
+								return all
+									? current.filter(id => !ids.includes(id))
+									: Array.from(new Set([...current, ...ids]));
+							})
+						}
+					/>
+				);
+			},
 			cell: ({ row }) => (
 				<input
 					type="checkbox"

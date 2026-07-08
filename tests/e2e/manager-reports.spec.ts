@@ -78,7 +78,9 @@ test.describe("@manager reports + raw-data export", () => {
 		await page.goto("/manager/raw-data");
 
 		await page.getByRole("button", { name: "Export all" }).first().click();
-		const download = await captureDownload(page, () => page.getByRole("menuitem", { name: /excel/i }).first().click());
+		const download = await captureDownload(page, () =>
+			page.getByRole("menuitem", { name: /excel/i }).first().click()
+		);
 		expectZipContainer(download, "xlsx");
 	});
 

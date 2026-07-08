@@ -5,7 +5,11 @@ import * as React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
 
 import { useAuth } from "@/features/auth/components/auth-provider";
-import { ClearFiltersButton, SearchableMultiSelectFilter } from "@/features/workspaces/components/table-filters";
+import {
+	ClearFiltersButton,
+	GroupByToggle,
+	SearchableMultiSelectFilter
+} from "@/features/workspaces/components/table-filters";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -460,9 +464,7 @@ function TrendLineChart({ records }: { records: PlaceComparisonAuditRecord[] }) 
 				/>
 			</CardHeader>
 			<CardContent className="space-y-4">
-				<svg
-					viewBox={`0 0 ${width} ${height}`}
-					className="h-[260px] w-full rounded-md bg-muted/40">
+				<svg viewBox={`0 0 ${width} ${height}`} className="h-[260px] w-full rounded-md bg-muted/40">
 					{[0, 25, 50, 75, 100].map(value => (
 						<g key={value}>
 							<line
@@ -526,6 +528,7 @@ export function LiveReports() {
 	const [dateRange, setDateRange] = React.useState<DateRangeValue>("180");
 	const [compareMode, setCompareMode] = React.useState<CompareMode>("places");
 	const [selectedAuditIds, setSelectedAuditIds] = React.useState<string[]>([]);
+	const [groupByProject, setGroupByProject] = React.useState(false);
 	const [loading, setLoading] = React.useState(true);
 	const [error, setError] = React.useState<string | null>(null);
 
@@ -603,7 +606,6 @@ export function LiveReports() {
 			}),
 		[allAudits, dateRange, selectedAuditorIds, selectedPlaceIds, selectedProjectIds]
 	);
-
 
 	const placeSummaries = React.useMemo(() => buildPlaceSummaries(filteredAudits), [filteredAudits]);
 	const filtersActive =
@@ -696,6 +698,11 @@ export function LiveReports() {
 					{row.original.place_name}
 				</Link>
 			)
+		},
+		{
+			accessorKey: "project_name",
+			header: "Project",
+			cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue() ?? "—")}</span>
 		},
 		{
 			accessorKey: "auditor_id",
@@ -803,9 +810,17 @@ export function LiveReports() {
 	// export: it always reflects the active compare mode + filters.
 	const exportConfig =
 		compareMode === "places"
-			? { label: "Export place comparison", disabled: placeSummaries.length === 0, disabledReason: "No audits in the current scope" }
+			? {
+					label: "Export place comparison",
+					disabled: placeSummaries.length === 0,
+					disabledReason: "No audits in the current scope"
+				}
 			: compareMode === "audits"
-				? { label: "Export trend report", disabled: timelineRecords.length === 0, disabledReason: "No audits for this place in the current range" }
+				? {
+						label: "Export trend report",
+						disabled: timelineRecords.length === 0,
+						disabledReason: "No audits for this place in the current range"
+					}
 				: {
 						label: `Export audit comparison (${selectedIndividualAudits.length} selected)`,
 						disabled: selectedIndividualAudits.length < 2,
@@ -854,6 +869,12 @@ export function LiveReports() {
 			</Card>
 		);
 	}
+
+	const groupToggle = (
+		<div className="flex justify-end">
+			<GroupByToggle grouped={groupByProject} onToggle={() => setGroupByProject(value => !value)} />
+		</div>
+	);
 
 	return (
 		<div className="space-y-6">
@@ -997,6 +1018,9 @@ export function LiveReports() {
 								columns={comparePlacesColumns}
 								data={placeSummaries}
 								getRowId={row => row.place_id}
+								groupBy={groupByProject ? "project_name" : undefined}
+								groupLabel="Project"
+								toolbar={groupToggle}
 								mobileCard={summary => <ComparePlaceMobileCard summary={summary} />}
 							/>
 						</CardContent>
@@ -1172,6 +1196,9 @@ export function LiveReports() {
 								columns={individualAuditColumns}
 								data={filteredAudits}
 								getRowId={row => row.audit_id}
+								groupBy={groupByProject ? "project_name" : undefined}
+								groupLabel="Project"
+								toolbar={groupToggle}
 								mobileCard={individualAuditMobileCard}
 							/>
 						</CardContent>

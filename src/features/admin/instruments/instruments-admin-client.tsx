@@ -20,7 +20,6 @@ import {
 
 import { INSTRUMENT_KEY, INSTRUMENTS_LIST_QUERY_KEY } from "./constants";
 import { InstrumentEditor } from "./instrument-editor";
-import { MetricRow } from "./shared-components";
 import type { InstrumentVersionRecord } from "./types";
 import { VersionHistory } from "./version-history";
 import {

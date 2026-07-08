@@ -51,24 +51,53 @@ export async function generatePlaceComparisonPdf(
 			summary.avgWeightedScore.toFixed(2),
 			`${summary.avgWeightedPercent.toFixed(0)}%`
 		]),
-		styles: { font: "helvetica", fontSize: 8.5, cellPadding: 4, lineColor: hexToRgb(palette.brand.border), lineWidth: 0.4, textColor: hexToRgb(palette.brand.foreground) },
+		styles: {
+			font: "helvetica",
+			fontSize: 8.5,
+			cellPadding: 4,
+			lineColor: hexToRgb(palette.brand.border),
+			lineWidth: 0.4,
+			textColor: hexToRgb(palette.brand.foreground)
+		},
 		headStyles: { fillColor: hexToRgb(palette.brand.green900), textColor: [255, 255, 255], fontStyle: "bold" },
-		columnStyles: { 2: { halign: "right" }, 3: { halign: "right" }, 4: { halign: "right" }, 5: { halign: "right" }, 6: { halign: "right" } }
+		columnStyles: {
+			2: { halign: "right" },
+			3: { halign: "right" },
+			4: { halign: "right" },
+			5: { halign: "right" },
+			6: { halign: "right" }
+		}
 	});
 	y = lastTableY(doc) + 12;
 
 	// Domain matrix — cells tinted by score band.
 	y = drawSectionTitle(doc, palette, "Domain matrix (raw %)", y);
 	const matrixHead = ["Place", ...domainOrder.map(domain => domainLabels[domain])];
-	const matrixBody = summaries.map(summary => [summary.placeName, ...domainOrder.map(domain => `${summary.rawPercentByDomain[domain].toFixed(0)}%`)]);
+	const matrixBody = summaries.map(summary => [
+		summary.placeName,
+		...domainOrder.map(domain => `${summary.rawPercentByDomain[domain].toFixed(0)}%`)
+	]);
 	autoTable(doc, {
 		startY: y,
 		margin: { top: PAGE.continuationTop, bottom: PAGE.marginBottom, left: PAGE.marginX, right: PAGE.marginX },
 		theme: "grid",
 		head: [matrixHead],
 		body: matrixBody,
-		styles: { font: "helvetica", fontSize: 8, cellPadding: 3.5, halign: "center", lineColor: hexToRgb(palette.brand.border), lineWidth: 0.4, textColor: hexToRgb(palette.brand.foreground) },
-		headStyles: { fillColor: hexToRgb(palette.brand.green900), textColor: [255, 255, 255], fontStyle: "bold", fontSize: 7.5 },
+		styles: {
+			font: "helvetica",
+			fontSize: 8,
+			cellPadding: 3.5,
+			halign: "center",
+			lineColor: hexToRgb(palette.brand.border),
+			lineWidth: 0.4,
+			textColor: hexToRgb(palette.brand.foreground)
+		},
+		headStyles: {
+			fillColor: hexToRgb(palette.brand.green900),
+			textColor: [255, 255, 255],
+			fontStyle: "bold",
+			fontSize: 7.5
+		},
 		columnStyles: { 0: { halign: "left", fontStyle: "bold" } },
 		didParseCell: data => {
 			if (data.section === "body" && data.column.index > 0) {
@@ -89,7 +118,6 @@ export async function generatePlaceComparisonPdf(
 		const radarSvg = buildRadarSvg({
 			axisLabels: domainOrder.map(domain => domainLabels[domain]),
 			palette,
-			size: 340,
 			series: topPlaces.map((summary, index) => ({
 				label: summary.placeName,
 				color: palette.chartSeries[index % palette.chartSeries.length],
@@ -98,10 +126,13 @@ export async function generatePlaceComparisonPdf(
 		});
 		const radar = await rasterizeSvg(radarSvg, 2).catch(() => null);
 		if (radar) {
-			y = drawChartImage(doc, radar.dataUrl, radar.width, radar.height, y, { maxWidth: contentWidth(doc) * 0.72, maxHeight: 280 });
+			y = drawChartImage(doc, radar.dataUrl, radar.width, radar.height, y, {
+				maxWidth: contentWidth(doc) * 0.92,
+				maxHeight: 330
+			});
 		}
 	}
 
-	finalizeChrome(doc, palette, generatedDate);
+	await finalizeChrome(doc, palette, generatedDate);
 	return doc.output("blob");
 }

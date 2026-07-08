@@ -17,7 +17,6 @@ import { yeeDomainLabels, type YeeDomainKey } from "@/features/yee-audit/config/
 import { yeeDomainThemes } from "@/features/yee-audit/config/yee-domain-theme";
 import type { ReportDocumentFormat } from "@/features/reporting/export/types";
 
-
 function formatSubmittedAt(value: string) {
 	const date = new Date(value);
 	if (Number.isNaN(date.getTime())) return value;

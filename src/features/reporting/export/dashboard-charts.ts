@@ -10,10 +10,5 @@ export { getExportPalette } from "./export-palette";
 export { buildRadarSvg, type RadarSeries } from "./charts/radar";
 export { buildTrendSvg, type TrendPoint } from "./charts/trend";
 export { downloadChart } from "./charts/download";
-export {
-	auditRawPercent,
-	auditWeightedPercent,
-	buildPlaceComparisonSummaries,
-	percentage
-} from "./comparison-metrics";
+export { auditRawPercent, auditWeightedPercent, buildPlaceComparisonSummaries, percentage } from "./comparison-metrics";
 export type { ExportPalette, PlaceComparisonSummary, ReportDocumentFormat, ReportScope } from "./types";

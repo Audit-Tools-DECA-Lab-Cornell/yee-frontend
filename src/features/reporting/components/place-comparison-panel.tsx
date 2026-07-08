@@ -67,7 +67,15 @@ function AuditComparisonMobileCard({ record }: { record: PlaceComparisonAuditRec
 	);
 }
 
-export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRecord }) {
+export function PlaceComparisonPanel({
+	group,
+	hideAuditTable = false
+}: {
+	group: PlaceComparisonGroupRecord;
+	/** Skip the leading audit table (used on the place detail page, where the
+	 * "Submitted reports" card already lists the same audits). */
+	hideAuditTable?: boolean;
+}) {
 	const records = group.audits;
 	const averages = getComparisonAverages(records);
 
@@ -84,30 +92,32 @@ export function PlaceComparisonPanel({ group }: { group: PlaceComparisonGroupRec
 
 	return (
 		<div className="space-y-6">
-			<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
-				<CardHeader>
-					<CardTitle>Place-level comparison</CardTitle>
-					<CardDescription>
-						Compare audits for {group.place_name} using generated auditor IDs only. Raw and Youth Weighted
-						totals stay separate in this view.
-					</CardDescription>
-				</CardHeader>
-				<CardContent>
-					<DataTable
-						columns={auditComparisonColumns}
-						data={records}
-						getRowId={row => row.audit_id}
-						hideColumnMenu
-						emptyState={
-							<EmptyState
-								title="No audits"
-								description="No comparison audits are available for this place yet."
-							/>
-						}
-						mobileCard={record => <AuditComparisonMobileCard record={record} />}
-					/>
-				</CardContent>
-			</Card>
+			{hideAuditTable ? null : (
+				<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
+					<CardHeader>
+						<CardTitle>Place-level comparison</CardTitle>
+						<CardDescription>
+							Compare audits for {group.place_name} using generated auditor IDs only. Raw and Youth
+							Weighted totals stay separate in this view.
+						</CardDescription>
+					</CardHeader>
+					<CardContent>
+						<DataTable
+							columns={auditComparisonColumns}
+							data={records}
+							getRowId={row => row.audit_id}
+							hideColumnMenu
+							emptyState={
+								<EmptyState
+									title="No audits"
+									description="No comparison audits are available for this place yet."
+								/>
+							}
+							mobileCard={record => <AuditComparisonMobileCard record={record} />}
+						/>
+					</CardContent>
+				</Card>
+			)}
 
 			<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
 				<CardHeader>

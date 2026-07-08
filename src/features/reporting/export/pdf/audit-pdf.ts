@@ -47,8 +47,18 @@ export async function generateAuditPdf(
 		title: `${overview.placeName} — YEE Audit Report`,
 		subtitle: `Submitted by ${overview.auditorId} on ${submittedLabel}. Scores and comments are locked as recorded.`,
 		measures: [
-			{ label: overview.raw.label, value: `${overview.raw.value}/${overview.raw.max}`, sub: `${overview.raw.percent.toFixed(0)}% of available`, band: overview.raw.band },
-			{ label: overview.weighted.label, value: `${overview.weighted.value}/${overview.weighted.max}`, sub: `${overview.weighted.percent.toFixed(0)}% of available`, band: overview.weighted.band }
+			{
+				label: overview.raw.label,
+				value: `${overview.raw.value}/${overview.raw.max}`,
+				sub: `${overview.raw.percent.toFixed(0)}% of available`,
+				band: overview.raw.band
+			},
+			{
+				label: overview.weighted.label,
+				value: `${overview.weighted.value}/${overview.weighted.max}`,
+				sub: `${overview.weighted.percent.toFixed(0)}% of available`,
+				band: overview.weighted.band
+			}
 		]
 	});
 
@@ -60,7 +70,10 @@ export async function generateAuditPdf(
 		theme: "plain",
 		styles: { font: "helvetica", fontSize: 9, cellPadding: 2.5, textColor: hexToRgb(palette.brand.foreground) },
 		body: overview.fields.map(field => [
-			{ content: field.label, styles: { fontStyle: "bold" as const, textColor: hexToRgb(palette.brand.muted), cellWidth: 130 } },
+			{
+				content: field.label,
+				styles: { fontStyle: "bold" as const, textColor: hexToRgb(palette.brand.muted), cellWidth: 130 }
+			},
 			{ content: field.value || "Not recorded" }
 		])
 	});
@@ -81,9 +94,21 @@ export async function generateAuditPdf(
 			`${round2(row.weightedScore)} / ${round2(row.weightedMax)}`,
 			`${row.weightedPercent.toFixed(0)}%`
 		]),
-		styles: { font: "helvetica", fontSize: 8.5, cellPadding: 4, lineColor: hexToRgb(palette.brand.border), lineWidth: 0.4, textColor: hexToRgb(palette.brand.foreground) },
+		styles: {
+			font: "helvetica",
+			fontSize: 8.5,
+			cellPadding: 4,
+			lineColor: hexToRgb(palette.brand.border),
+			lineWidth: 0.4,
+			textColor: hexToRgb(palette.brand.foreground)
+		},
 		headStyles: { fillColor: hexToRgb(palette.brand.green900), textColor: [255, 255, 255], fontStyle: "bold" },
-		columnStyles: { 1: { halign: "right" }, 2: { halign: "right" }, 3: { halign: "right" }, 4: { halign: "right" } },
+		columnStyles: {
+			1: { halign: "right" },
+			2: { halign: "right" },
+			3: { halign: "right" },
+			4: { halign: "right" }
+		},
 		didParseCell: data => {
 			if (data.section === "body" && data.column.index === 0) {
 				data.cell.styles.fillColor = hexToRgb(palette.domains[scoreRows[data.row.index].domainKey].light);
@@ -98,8 +123,7 @@ export async function generateAuditPdf(
 	const radarSvg = buildRadarSvg({
 		axisLabels: domainOrder.map(domain => domainLabels[domain]),
 		palette,
-		series: [{ label: overview.placeName, color: palette.chartSeries[0], values: buildRadarValues(submission) }],
-		size: 320
+		series: [{ label: overview.placeName, color: palette.chartSeries[0], values: buildRadarValues(submission) }]
 	});
 	const barsSvg = buildDomainBarsSvg({ rows: buildDomainBarRows(submission), palette, width: 720 });
 	// Rasterization needs a browser canvas; if it's unavailable (or fails) the
@@ -107,14 +131,17 @@ export async function generateAuditPdf(
 	// chart rather than abort the document.
 	const [radar, bars] = await Promise.all([tryRasterize(radarSvg), tryRasterize(barsSvg)]);
 	if (radar) {
-		y = drawChartImage(doc, radar.dataUrl, radar.width, radar.height, y, { maxWidth: contentWidth(doc) * 0.62, maxHeight: 240 });
+		y = drawChartImage(doc, radar.dataUrl, radar.width, radar.height, y, {
+			maxWidth: contentWidth(doc) * 0.92,
+			maxHeight: 260
+		});
 	}
 	if (bars) {
-		y = drawChartImage(doc, bars.dataUrl, bars.width, bars.height, y + 4, { maxHeight: 220 });
+		y = drawChartImage(doc, bars.dataUrl, bars.width, bars.height, y + 6, { maxHeight: 280 });
 	}
 
 	// Section weighting.
-	y = drawSectionTitle(doc, palette, "Section weighting", y + 6);
+	y = drawSectionTitle(doc, palette, "Section weighting", y);
 	autoTable(doc, {
 		startY: y,
 		margin: { top: PAGE.continuationTop, bottom: PAGE.marginBottom, left: PAGE.marginX, right: PAGE.marginX },
@@ -126,7 +153,14 @@ export async function generateAuditPdf(
 			row.weight ? `${row.weight}/3` : "Not recorded",
 			`${row.normalizedPercent}%`
 		]),
-		styles: { font: "helvetica", fontSize: 8.5, cellPadding: 4, lineColor: hexToRgb(palette.brand.border), lineWidth: 0.4, textColor: hexToRgb(palette.brand.foreground) },
+		styles: {
+			font: "helvetica",
+			fontSize: 8.5,
+			cellPadding: 4,
+			lineColor: hexToRgb(palette.brand.border),
+			lineWidth: 0.4,
+			textColor: hexToRgb(palette.brand.foreground)
+		},
 		headStyles: { fillColor: hexToRgb(palette.brand.green900), textColor: [255, 255, 255], fontStyle: "bold" },
 		columnStyles: { 2: { halign: "right" }, 3: { halign: "right" } }
 	});
@@ -144,14 +178,21 @@ export async function generateAuditPdf(
 		? buildResponseGroups(submission, instrument).filter(group => group.items.length > 0)
 		: [];
 	if (responseGroups.length > 0) {
-		y = drawSectionTitle(doc, palette, "Responses", y + 6);
+		y = drawSectionTitle(doc, palette, "Responses", y);
 		y = drawBannerTable(doc, palette, {
 			startY: y,
 			head: ["Question", "Recorded answer", "Condition"],
 			sections: responseGroups.map(group => ({
 				label: group.label,
 				color: palette.domains[group.domainKey].strong,
-				rows: group.items.map(item => [item.prompt, item.response || "—", item.condition])
+				// "n/a" is the data-layer sentinel for "no condition pair" (kept
+				// verbatim in the frozen CSV / raw-data exports); show an em dash in
+				// the presentation PDF instead.
+				rows: group.items.map(item => [
+					item.prompt,
+					item.response || "—",
+					item.condition === "n/a" ? "—" : item.condition
+				])
 			})),
 			columnStyles: { 0: { cellWidth: "auto" }, 1: { cellWidth: 120 }, 2: { cellWidth: 90 } }
 		});
@@ -159,19 +200,28 @@ export async function generateAuditPdf(
 	}
 
 	// Comments.
-	y = drawSectionTitle(doc, palette, "Auditor comments", y + 6);
+	y = drawSectionTitle(doc, palette, "Auditor comments", y);
 	autoTable(doc, {
 		startY: y,
 		margin: { top: PAGE.continuationTop, bottom: PAGE.marginBottom, left: PAGE.marginX, right: PAGE.marginX },
 		theme: "plain",
-		styles: { font: "helvetica", fontSize: 9, cellPadding: 3, textColor: hexToRgb(palette.brand.foreground), overflow: "linebreak" },
+		styles: {
+			font: "helvetica",
+			fontSize: 9,
+			cellPadding: 3,
+			textColor: hexToRgb(palette.brand.foreground),
+			overflow: "linebreak"
+		},
 		body: buildCommentRows(submission).map(row => [
-			{ content: row.label, styles: { fontStyle: "bold" as const, textColor: hexToRgb(palette.brand.muted), cellWidth: 130 } },
+			{
+				content: row.label,
+				styles: { fontStyle: "bold" as const, textColor: hexToRgb(palette.brand.muted), cellWidth: 130 }
+			},
 			{ content: row.value || "No comments submitted." }
 		])
 	});
 
-	finalizeChrome(doc, palette, generatedDate);
+	await finalizeChrome(doc, palette, generatedDate);
 	return doc.output("blob");
 }
 

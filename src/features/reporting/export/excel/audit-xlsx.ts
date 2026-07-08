@@ -11,7 +11,15 @@ import {
 	buildWeightingRows
 } from "../row-builders";
 import type { AuditReportInput, ExportPalette } from "../types";
-import { appendSheet, buildStyledSheet, cell, makeStyles, newWorkbook, workbookToBlob, type StyledCell } from "./excel-shared";
+import {
+	appendSheet,
+	buildStyledSheet,
+	cell,
+	makeStyles,
+	newWorkbook,
+	workbookToBlob,
+	type StyledCell
+} from "./excel-shared";
 
 export function generateAuditXlsx(input: AuditReportInput, palette: ExportPalette): Blob {
 	const { submission, instrument } = input;
@@ -58,7 +66,13 @@ export function generateAuditXlsx(input: AuditReportInput, palette: ExportPalett
 	];
 	for (const row of scoreRows) {
 		scoresGrid.push([
-			cell(row.label, { ...styles.body, fill: { patternType: "solid", fgColor: { rgb: palette.domains[row.domainKey].light.replace("#", "").toUpperCase() } } }),
+			cell(row.label, {
+				...styles.body,
+				fill: {
+					patternType: "solid",
+					fgColor: { rgb: palette.domains[row.domainKey].light.replace("#", "").toUpperCase() }
+				}
+			}),
 			cell(round1(row.rawScore), styles.body),
 			cell(round1(row.rawMax), styles.body),
 			cell(Math.round(row.rawPercent), styles.body),

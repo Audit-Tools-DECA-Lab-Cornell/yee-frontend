@@ -34,10 +34,14 @@ export function buildTrendSvg(options: {
 	for (const value of GRID_VALUES) {
 		const y = scale.pointY(value);
 		parts.push(svgLine(padding, y, width - padding, y, palette.grid, { width: 1, dash: "3 3" }));
-		parts.push(svgText({ x: padding - 8, y: y + 4, text: `${value}%`, fill: palette.axis, size: 10, anchor: "end" }));
+		parts.push(
+			svgText({ x: padding - 8, y: y + 4, text: `${value}%`, fill: palette.axis, size: 10, anchor: "end" })
+		);
 	}
 
-	const rawPolyline = points.map((point, index) => `${round(scale.pointX(index))},${round(scale.pointY(point.rawPercent))}`).join(" ");
+	const rawPolyline = points
+		.map((point, index) => `${round(scale.pointX(index))},${round(scale.pointY(point.rawPercent))}`)
+		.join(" ");
 	const weightedPolyline = points
 		.map((point, index) => `${round(scale.pointX(index))},${round(scale.pointY(point.weightedPercent))}`)
 		.join(" ");
@@ -47,7 +51,9 @@ export function buildTrendSvg(options: {
 	// Vertex dots + x labels.
 	points.forEach((point, index) => {
 		const x = scale.pointX(index);
-		parts.push(`<circle cx="${round(x)}" cy="${round(scale.pointY(point.rawPercent))}" r="3" fill="${rawColor}" />`);
+		parts.push(
+			`<circle cx="${round(x)}" cy="${round(scale.pointY(point.rawPercent))}" r="3" fill="${rawColor}" />`
+		);
 		parts.push(
 			`<circle cx="${round(x)}" cy="${round(scale.pointY(point.weightedPercent))}" r="3" fill="${weightedColor}" />`
 		);

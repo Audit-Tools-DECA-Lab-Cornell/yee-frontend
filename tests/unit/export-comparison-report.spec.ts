@@ -13,7 +13,11 @@ import { getExportPalette } from "../../src/features/reporting/export/export-pal
 import { comparisonRecords } from "../fixtures/export-comparison";
 
 const palette = getExportPalette();
-const scope = { line: "All Projects, All Places, All Auditors, Last 6 months", auditCount: comparisonRecords.length, placeCount: 2 };
+const scope = {
+	line: "All Projects, All Places, All Auditors, Last 6 months",
+	auditCount: comparisonRecords.length,
+	placeCount: 2
+};
 
 async function bytes(blob: Blob): Promise<Buffer> {
 	return Buffer.from(await blob.arrayBuffer());

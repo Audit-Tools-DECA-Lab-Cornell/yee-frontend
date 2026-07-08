@@ -51,11 +51,14 @@ export async function generateTrendPdf(
 	const trend = await rasterizeSvg(trendSvg, 2).catch(() => null);
 	if (trend) {
 		y = drawSectionTitle(doc, palette, "Performance over time", y);
-		y = drawChartImage(doc, trend.dataUrl, trend.width, trend.height, y, { maxWidth: contentWidth(doc), maxHeight: 280 });
+		y = drawChartImage(doc, trend.dataUrl, trend.width, trend.height, y, {
+			maxWidth: contentWidth(doc),
+			maxHeight: 280
+		});
 	}
 
 	// Audit timeline table.
-	y = drawSectionTitle(doc, palette, "Audit timeline", y + 4);
+	y = drawSectionTitle(doc, palette, "Audit timeline", y);
 	autoTable(doc, {
 		startY: y,
 		margin: { top: PAGE.continuationTop, bottom: PAGE.marginBottom, left: PAGE.marginX, right: PAGE.marginX },
@@ -69,7 +72,14 @@ export async function generateTrendPdf(
 			`${record.total_weighted_score.toFixed(2)}/${record.total_weighted_maximum.toFixed(2)}`,
 			`${auditWeightedPercent(record).toFixed(0)}%`
 		]),
-		styles: { font: "helvetica", fontSize: 8.5, cellPadding: 4, lineColor: hexToRgb(palette.brand.border), lineWidth: 0.4, textColor: hexToRgb(palette.brand.foreground) },
+		styles: {
+			font: "helvetica",
+			fontSize: 8.5,
+			cellPadding: 4,
+			lineColor: hexToRgb(palette.brand.border),
+			lineWidth: 0.4,
+			textColor: hexToRgb(palette.brand.foreground)
+		},
 		headStyles: { fillColor: hexToRgb(palette.brand.green900), textColor: [255, 255, 255], fontStyle: "bold" },
 		columnStyles: { 2: { halign: "right" }, 3: { halign: "right" }, 4: { halign: "right" }, 5: { halign: "right" } }
 	});
@@ -84,8 +94,20 @@ export async function generateTrendPdf(
 			margin: { top: PAGE.continuationTop, bottom: PAGE.marginBottom, left: PAGE.marginX, right: PAGE.marginX },
 			theme: "grid",
 			head: [["Section", "First", "Latest", "Change"]],
-			body: deltas.map(delta => [delta.label, `${delta.first.toFixed(0)}%`, `${delta.latest.toFixed(0)}%`, formatDelta(delta.delta)]),
-			styles: { font: "helvetica", fontSize: 8.5, cellPadding: 4, lineColor: hexToRgb(palette.brand.border), lineWidth: 0.4, textColor: hexToRgb(palette.brand.foreground) },
+			body: deltas.map(delta => [
+				delta.label,
+				`${delta.first.toFixed(0)}%`,
+				`${delta.latest.toFixed(0)}%`,
+				formatDelta(delta.delta)
+			]),
+			styles: {
+				font: "helvetica",
+				fontSize: 8.5,
+				cellPadding: 4,
+				lineColor: hexToRgb(palette.brand.border),
+				lineWidth: 0.4,
+				textColor: hexToRgb(palette.brand.foreground)
+			},
 			headStyles: { fillColor: hexToRgb(palette.brand.green900), textColor: [255, 255, 255], fontStyle: "bold" },
 			columnStyles: { 1: { halign: "right" }, 2: { halign: "right" }, 3: { halign: "right" } },
 			didParseCell: data => {
@@ -99,7 +121,7 @@ export async function generateTrendPdf(
 		});
 	}
 
-	finalizeChrome(doc, palette, generatedDate);
+	await finalizeChrome(doc, palette, generatedDate);
 	return doc.output("blob");
 }
 
@@ -110,5 +132,7 @@ function formatDelta(delta: number): string {
 }
 function timeOf(date: string): number {
 	const parsed = new Date(date);
-	return Number.isNaN(parsed.getTime()) ? 0 : parsed.getTime();
+	// Unparseable/empty dates sort LAST — not to epoch 0, which would wrongly make
+	// an undated record the "earliest" point in the trend chart + timeline.
+	return Number.isNaN(parsed.getTime()) ? Number.POSITIVE_INFINITY : parsed.getTime();
 }

@@ -19,7 +19,11 @@ export type BatchFailure = { auditId: string; reason: string };
 export type BatchResult = { zipBlob: Blob; failures: BatchFailure[]; fileCount: number };
 
 /** Run `worker` over `items` with at most `limit` in flight at once. */
-async function mapWithConcurrency<T>(items: T[], limit: number, worker: (item: T, index: number) => Promise<void>): Promise<void> {
+async function mapWithConcurrency<T>(
+	items: T[],
+	limit: number,
+	worker: (item: T, index: number) => Promise<void>
+): Promise<void> {
 	let cursor = 0;
 	const runners = Array.from({ length: Math.min(limit, items.length) }, async () => {
 		while (cursor < items.length) {
@@ -50,7 +54,16 @@ export async function generateAuditBatchZip(options: {
 	generatedDate?: Date;
 	onProgress?: (progress: BatchProgress) => void;
 }): Promise<BatchResult> {
-	const { auditIds, fetchSubmission, instrument, palette, includeExcel = false, concurrency = 4, generatedDate = new Date(), onProgress } = options;
+	const {
+		auditIds,
+		fetchSubmission,
+		instrument,
+		palette,
+		includeExcel = false,
+		concurrency = 4,
+		generatedDate = new Date(),
+		onProgress
+	} = options;
 	const total = auditIds.length;
 	const entriesById = new Map<string, ZipEntry[]>();
 	const failures: BatchFailure[] = [];
@@ -68,7 +81,10 @@ export async function generateAuditBatchZip(options: {
 			entries.push({ name: uniqueName("audit", "pdf", placeName, suffix), data: await blobToBytes(pdfBlob) });
 			if (includeExcel) {
 				const xlsxBlob = generateAuditXlsx(input, palette);
-				entries.push({ name: uniqueName("audit", "xlsx", placeName, suffix), data: await blobToBytes(xlsxBlob) });
+				entries.push({
+					name: uniqueName("audit", "xlsx", placeName, suffix),
+					data: await blobToBytes(xlsxBlob)
+				});
 			}
 			entriesById.set(auditId, entries);
 		} catch (error) {

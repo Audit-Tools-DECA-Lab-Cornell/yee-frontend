@@ -34,7 +34,14 @@ export const rawDataRecords: RawDataRecord[] = [
 		total_raw_maximum: 125,
 		total_weighted_score: 1.03,
 		total_weighted_maximum: 1.83,
-		domain_weights: { access: 2, activitySpaces: 1, amenities: 2, experienceOfSpace: 3, aestheticsAndCare: 2, useAndUsability: 2 },
+		domain_weights: {
+			access: 2,
+			activitySpaces: 1,
+			amenities: 2,
+			experienceOfSpace: 3,
+			aestheticsAndCare: 2,
+			useAndUsability: 2
+		},
 		responses: { "access-q1": "Yes", "amenities-q1": "Partially" }
 	}
 ];

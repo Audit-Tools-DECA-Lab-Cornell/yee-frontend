@@ -37,11 +37,13 @@ export function BulkAuditZipButton({
 	disabled?: boolean;
 }) {
 	const [progress, setProgress] = React.useState<BatchProgress | null>(null);
-	const [confirmState, setConfirmState] = React.useState<{ open: boolean; includeExcel: boolean; reasons: string[] }>({
-		open: false,
-		includeExcel: false,
-		reasons: []
-	});
+	const [confirmState, setConfirmState] = React.useState<{ open: boolean; includeExcel: boolean; reasons: string[] }>(
+		{
+			open: false,
+			includeExcel: false,
+			reasons: []
+		}
+	);
 
 	const busy = progress !== null;
 

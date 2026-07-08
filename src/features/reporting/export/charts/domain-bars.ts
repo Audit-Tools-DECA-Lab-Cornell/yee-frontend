@@ -22,9 +22,9 @@ export function buildDomainBarsSvg(options: {
 }): string {
 	const { rows, palette, width = 720, title } = options;
 	const labelWidth = 150;
-	const rowGap = 14;
-	const barHeight = 13;
-	const barGap = 7;
+	const rowGap = 18;
+	const barHeight = 18;
+	const barGap = 9;
 	const groupHeight = barHeight * 2 + barGap + rowGap;
 	const top = 16;
 	const trackLeft = labelWidth + 12;
@@ -51,12 +51,19 @@ export function buildDomainBarsSvg(options: {
 
 		const bars: { y: number; percent: number; color: string; tag: string }[] = [
 			{ y: groupTop, percent: clampPercent(row.rawPercent), color: colors.fill, tag: "Raw" },
-			{ y: groupTop + barHeight + barGap, percent: clampPercent(row.weightedPercent), color: colors.strong, tag: "YW" }
+			{
+				y: groupTop + barHeight + barGap,
+				percent: clampPercent(row.weightedPercent),
+				color: colors.strong,
+				tag: "YW"
+			}
 		];
 
 		for (const bar of bars) {
 			// Track.
-			parts.push(svgRect(trackLeft, bar.y, trackWidth, barHeight, palette.brand.border, { rx: 3, opacity: 0.35 }));
+			parts.push(
+				svgRect(trackLeft, bar.y, trackWidth, barHeight, palette.brand.border, { rx: 3, opacity: 0.35 })
+			);
 			// Fill.
 			const fillWidth = Math.max((trackWidth * bar.percent) / 100, bar.percent > 0 ? 2 : 0);
 			parts.push(svgRect(trackLeft, bar.y, fillWidth, barHeight, bar.color, { rx: 3 }));

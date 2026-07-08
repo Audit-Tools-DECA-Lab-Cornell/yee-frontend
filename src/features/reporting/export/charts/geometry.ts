@@ -44,12 +44,7 @@ export type TrendScale = {
 };
 
 /** Linear x-by-index / y-by-percent scale for the trend line chart. */
-export function trendScale(options: {
-	count: number;
-	width: number;
-	height: number;
-	padding: number;
-}): TrendScale {
+export function trendScale(options: { count: number; width: number; height: number; padding: number }): TrendScale {
 	const { count, width, height, padding } = options;
 	const xStep = count > 1 ? (width - padding * 2) / (count - 1) : 0;
 	return {
