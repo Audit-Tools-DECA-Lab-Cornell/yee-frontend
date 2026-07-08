@@ -92,13 +92,21 @@ function LatestSubmittedScores({
 
 	if (!latestSubmitted?.state?.score) {
 		return (
-			<Link href="/auditor/places" className={cn("block transition hover:border-white/30 hover:bg-white/16")}>
+			<Link
+				href="/auditor/places"
+				className={cn("block transition hover:border-white/30 hover:bg-white/16", tileClass)}>
 				<p className="text-xs font-medium tracking-wide text-emerald-50/70 uppercase">
 					Latest submitted scores
 				</p>
 				<p className="mt-2 text-sm text-emerald-50/85">
 					A Raw Score and Youth Weighted average will appear here after your first submitted audit.
 				</p>
+				<ScoreCell
+					className="mt-3 font-medium text-xs text-white"
+					tone="inverse"
+					showRaw={false}
+					showWeighted={false}
+				/>
 				<p className="mt-3 text-xs font-medium text-emerald-100">Open</p>
 			</Link>
 		);
