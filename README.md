@@ -133,7 +133,8 @@ Current manager pages support:
 - project and place edit flows with real backend persistence
 - place-level auditor assignment with project/place/auditor selection
 - structured filtering on manager audit, report, and raw-data pages
-- CSV export for all, filtered, or selected raw audit rows
+- CSV and styled-Excel export (with a Data Dictionary) for all, filtered, or
+  selected raw audit rows, plus bulk audit-PDF ZIP downloads
 - comparison views that use generated auditor IDs only
 
 ### Reporting and score display
@@ -143,7 +144,9 @@ The current reporting experience includes:
 - raw and youth-weighted totals
 - domain-level raw and youth-weighted breakdowns
 - read-only submitted report pages
-- print and CSV export actions from submitted reports
+- print plus branded PDF / styled Excel / CSV export from submitted reports and
+  the comparison dashboard (client-side; see `src/features/reporting/export/`)
+- per-chart PNG/SVG downloads on the reports dashboard
 - manager comparison views with bar-style score summaries
 - per-domain percentage bar graphics for both raw and youth-weighted score views
 - shared score legends that explain lower / middle / upper score ranges

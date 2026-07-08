@@ -27,20 +27,20 @@ test.describe("@admin instrument + users + raw-data export", () => {
 		});
 	});
 
-	test("admin raw-data page renders scoped title and Export All triggers a download", async ({ page }) => {
+	test("admin raw-data page renders scoped title and Export all → CSV downloads", async ({ page }) => {
 		await loginAsAdmin(page);
 		await page.goto("/admin/raw-data");
 
 		await expect(page.getByText("Admin Raw Data").first()).toBeVisible({ timeout: 30_000 });
-		await expect(page.getByRole("button", { name: "Export All" }).first()).toBeVisible({
+		await expect(page.getByRole("button", { name: "Export all" }).first()).toBeVisible({
 			timeout: 15_000
 		});
 
+		await page.getByRole("button", { name: "Export all" }).first().click();
 		const [download] = await Promise.all([
 			page.waitForEvent("download"),
-			page.getByRole("button", { name: "Export All" }).first().click()
+			page.getByRole("menuitem", { name: /csv/i }).first().click()
 		]);
-		// The admin page sets filename="admin-raw-data.csv".
-		expect(download.suggestedFilename()).toBe("admin-raw-data.csv");
+		expect(download.suggestedFilename()).toMatch(/^yee-raw-data-\d{4}-\d{2}-\d{2}\.csv$/);
 	});
 });

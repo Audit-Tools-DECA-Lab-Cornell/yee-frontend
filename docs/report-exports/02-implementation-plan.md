@@ -1,8 +1,17 @@
 # YEE Report Exports — Phase 2: Implementation Plan
 
-Status: proposed (self-reviewed, see appendix)
+Status: implemented (M0–M5 landed on `src/features/reporting/export/`)
 Prerequisite: [`01-logistics.md`](./01-logistics.md) — report catalog R1–R5,
 access matrix, button placement. This doc is the coding plan for Phase 3.
+
+**Implementation note.** The pipeline shipped as described: the public surface is
+`src/features/reporting/export/index.ts` (dynamic-import target), with chart
+builders under `export/charts/`, PDF/Excel generators under `export/pdf/` and
+`export/excel/`, byte-frozen CSVs in `csv-builders.ts`, the palette in
+`export-palette.ts`, and the bulk ZIP in `batch.ts` + `zip-builder.ts`. The
+on-screen dashboard imports only the pure pieces via `dashboard-charts.ts` so
+jsPDF/xlsx stay out of the initial bundle. Coverage lives in `tests/unit/export-*`
+(generators + CSV goldens) and `tests/e2e` (download + role specs).
 
 ## 1. Goal and acceptance criteria
 
@@ -30,6 +39,18 @@ Done means:
    includes verifying with the backend whether the comparison payload's
    `auditor_id` is already the generated ID; if it is, those CSVs stay
    byte-identical.
+
+   **M0 finding (resolved).** The comparison/trend payload's `auditor_id`
+   is populated by `_display_auditor_code(auditor_code)` in
+   `audit-tools-backend/app/products/yee/services/dashboard.py`, i.e. it is
+   already the `AUD###` generated code — so the trend and individual-comparison
+   CSVs stay **byte-identical** (no privacy migration needed for them). The
+   single-submission record is the sole leak: `services/audits.py` sets
+   `auditor_id = submission.auditor_id` (the raw auditor-profile UUID) while
+   `auditor_generated_id` carries the `AUD###` code. The legacy single-submission
+   CSV's `auditor_generated_id || auditor_id` fallback is therefore replaced by a
+   redaction placeholder when the generated ID is absent (criterion 5); when it is
+   present — the normal case — the CSV bytes are unchanged.
 5. Every export identifies auditors by `auditor_generated_id` only. When a
    payload lacks a generated ID, the export shows a redaction placeholder —
    never the raw identifier.

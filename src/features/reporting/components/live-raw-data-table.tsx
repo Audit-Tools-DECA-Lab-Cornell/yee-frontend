@@ -6,7 +6,8 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { ClearFiltersButton, SearchableMultiSelectFilter } from "@/features/workspaces/components/table-filters";
-import { ExportCsvButton } from "@/features/reporting/components/export-csv-button";
+import { ExportMenuButton, type ExportMenuOption } from "@/features/reporting/components/export-menu-button";
+import { BulkAuditZipButton } from "@/features/reporting/components/bulk-audit-zip-button";
 import { Card, CardContent } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
 import { DashboardHero } from "@/components/ui/dashboard-hero";
@@ -15,60 +16,30 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { fetchRawData, type RawDataRecord } from "@/features/workspaces/api/live-api";
 import { formatNumber } from "@/lib/format";
 
+type RawDataFormat = "csv" | "xlsx";
+
+const rawDataFormatOptions: ExportMenuOption<RawDataFormat>[] = [
+	{ format: "csv", label: "CSV", description: "Flat data (legacy format)" },
+	{ format: "xlsx", label: "Excel", description: "Styled workbook + Data Dictionary" }
+];
+
+/** Generate a raw-data export for the given scope via the dynamically-loaded export layer. */
+async function exportScope(rows: RawDataRecord[], format: RawDataFormat, scope: "all" | "filtered" | "selected") {
+	const { exportRawData } = await import("@/features/reporting/export");
+	await exportRawData(rows, format, scope);
+}
+
 /** Two-decimal youth-weighted average, or an em dash while scores roll out. */
 function formatWeightedAverage(value?: number | null): string {
 	return value == null ? "—" : value.toFixed(2);
 }
 
-function toExportRows(rows: RawDataRecord[]) {
-	return rows.map(row => {
-		const base: Record<string, string | number> = {
-			Organization: row.organization,
-			"Auditor ID": row.auditor_generated_id,
-			Place: row.place_name,
-			Project: row.project_name,
-			Date: row.date,
-			"Submitted At": row.submitted_at,
-			"Start Time": row.start_time,
-			"Finish Time": row.finish_time,
-			"Total Minutes": row.total_minutes,
-			"Visit Frequency": row.visit_frequency,
-			Season: row.season,
-			Weather: row.weather,
-			Comments: row.comments,
-			"Raw Access": row.raw_access,
-			"Raw Activity Spaces": row.raw_activity_spaces,
-			"Raw Amenities": row.raw_amenities,
-			"Raw Experience of the Space": row.raw_experience_of_space,
-			"Raw Aesthetics and Care": row.raw_aesthetics_and_care,
-			"Raw Use and Usability": row.raw_use_and_usability,
-			"Youth Weighted Access": row.weighted_access,
-			"Youth Weighted Activity Spaces": row.weighted_activity_spaces,
-			"Youth Weighted Amenities": row.weighted_amenities,
-			"Youth Weighted Experience of the Space": row.weighted_experience_of_space,
-			"Youth Weighted Aesthetics and Care": row.weighted_aesthetics_and_care,
-			"Youth Weighted Use and Usability": row.weighted_use_and_usability,
-			"Total Raw Score": row.total_raw_score,
-			"Total Youth Weighted Average": row.total_weighted_score
-		};
-		for (const [key, value] of Object.entries(row.domain_weights)) {
-			base[`Domain Weight ${key}`] = value;
-		}
-		for (const [key, value] of Object.entries(row.responses)) {
-			base[`Response ${key}`] = value;
-		}
-		return base;
-	});
-}
-
 export function LiveRawDataTable({
 	scope,
-	filename,
 	title,
 	description
 }: {
 	scope: "admin" | "manager";
-	filename: string;
 	title: string;
 	description: string;
 }) {
@@ -312,17 +283,24 @@ export function LiveRawDataTable({
 				/>
 			</div>
 			<div className="flex flex-wrap justify-start items-start w-full gap-3">
-				<ExportCsvButton filename={filename} rows={toExportRows(rows)} label="Export All" />
-				<ExportCsvButton
-					filename={`filtered-${filename}`}
-					rows={toExportRows(filteredRows)}
-					label="Export Filtered"
+				<ExportMenuButton
+					label="Export all"
+					options={rawDataFormatOptions}
+					onExport={format => exportScope(rows, format, "all")}
 				/>
-				<ExportCsvButton
-					filename={`selected-${filename}`}
-					rows={toExportRows(selectedRows)}
-					label="Export Selected"
+				<ExportMenuButton
+					label="Export filtered"
+					options={rawDataFormatOptions}
+					onExport={format => exportScope(filteredRows, format, "filtered")}
 				/>
+				<ExportMenuButton
+					label="Export selected"
+					options={rawDataFormatOptions}
+					onExport={format => exportScope(selectedRows, format, "selected")}
+					disabled={selectedRows.length === 0}
+					disabledReason="Select at least one row to export"
+				/>
+				<BulkAuditZipButton auditIds={filteredRows.map(row => row.audit_id)} />
 			</div>
 		</div>
 	);

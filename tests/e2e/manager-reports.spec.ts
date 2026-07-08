@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { SUBMISSION_HUB } from "../fixtures/ids";
 import { loginAsManager } from "../helpers/auth";
+import { captureDownload, expectCsv, expectPdf, expectZipContainer } from "../helpers/downloads";
 
 // Runs under `manager-chromium` (filename matches /manager/).
 // Covers Stage 9: reports dashboard + manager-scoped raw-data export.
@@ -11,8 +12,11 @@ test.describe("@manager reports + raw-data export", () => {
 		await page.goto("/manager/reports");
 
 		await expect(page.getByText("Reports dashboard").first()).toBeVisible({ timeout: 30_000 });
-		// Export options card is a manager-distinctive reporting affordance.
-		await expect(page.getByText("Export options").first()).toBeVisible({ timeout: 15_000 });
+		// The mode-aware export split-button replaces the old "Export options" card;
+		// in the default Compare Places mode its label names the artifact.
+		await expect(page.getByRole("button", { name: /export place comparison/i }).first()).toBeVisible({
+			timeout: 15_000
+		});
 	});
 
 	// Formerly DEFERRED: the seed now writes YeeAuditSubmission rows for every
@@ -51,24 +55,60 @@ test.describe("@manager reports + raw-data export", () => {
 
 		// Manager scope title (the page passes title="Manager Raw Data").
 		await expect(page.getByText("Manager Raw Data").first()).toBeVisible({ timeout: 30_000 });
-		await expect(page.getByRole("button", { name: "Export All" }).first()).toBeVisible({
+		await expect(page.getByRole("button", { name: "Export all" }).first()).toBeVisible({
 			timeout: 15_000
 		});
 	});
 
-	test("clicking Export All triggers a CSV download", async ({ page }) => {
+	test("Export all → CSV triggers a raw-data download", async ({ page }) => {
 		await loginAsManager(page);
 		await page.goto("/manager/raw-data");
 
-		await expect(page.getByRole("button", { name: "Export All" }).first()).toBeVisible({
-			timeout: 30_000
-		});
-
+		// The format-aware control is now a dropdown: open it, then pick CSV.
+		await page.getByRole("button", { name: "Export all" }).first().click();
 		const [download] = await Promise.all([
 			page.waitForEvent("download"),
-			page.getByRole("button", { name: "Export All" }).first().click()
+			page.getByRole("menuitem", { name: /csv/i }).first().click()
 		]);
-		// The page sets filename="manager-raw-data.csv".
-		expect(download.suggestedFilename()).toBe("manager-raw-data.csv");
+		expect(download.suggestedFilename()).toMatch(/^yee-raw-data-\d{4}-\d{2}-\d{2}\.csv$/);
+	});
+
+	test("Export all → Excel downloads a PK-headered workbook", async ({ page }) => {
+		await loginAsManager(page);
+		await page.goto("/manager/raw-data");
+
+		await page.getByRole("button", { name: "Export all" }).first().click();
+		const download = await captureDownload(page, () => page.getByRole("menuitem", { name: /excel/i }).first().click());
+		expectZipContainer(download, "xlsx");
+	});
+
+	test("R1 submission report exports a byte-valid PDF and CSV", async ({ page }) => {
+		await loginAsManager(page);
+		await page.goto(`/yee/submissions/${SUBMISSION_HUB}`);
+		await expect(page.getByText("Submission overview").first()).toBeVisible({ timeout: 30_000 });
+
+		// PDF.
+		await page.getByRole("button", { name: "Export" }).first().click();
+		const pdf = await captureDownload(page, () => page.getByRole("menuitem", { name: /pdf/i }).first().click());
+		expectPdf(pdf);
+		expect(pdf.filename).toMatch(/^yee-audit-.+\.pdf$/);
+
+		// CSV — asserts the legacy identity columns are preserved.
+		await page.getByRole("button", { name: "Export" }).first().click();
+		const csv = await captureDownload(page, () => page.getByRole("menuitem", { name: /csv/i }).first().click());
+		const [header] = expectCsv(csv);
+		expect(header.slice(0, 5)).toEqual(["Auditor ID", "Place", "Place ID", "Submitted At", "Raw Score"]);
+	});
+
+	test("R2 place comparison exports a PDF from the dashboard toolbar", async ({ page }) => {
+		await loginAsManager(page);
+		await page.goto("/manager/reports");
+
+		const exportButton = page.getByRole("button", { name: /export place comparison/i }).first();
+		await expect(exportButton).toBeVisible({ timeout: 30_000 });
+		await exportButton.click();
+		const pdf = await captureDownload(page, () => page.getByRole("menuitem", { name: /pdf/i }).first().click());
+		expectPdf(pdf);
+		expect(pdf.filename).toMatch(/^yee-place-comparison-\d{4}-\d{2}-\d{2}\.pdf$/);
 	});
 });

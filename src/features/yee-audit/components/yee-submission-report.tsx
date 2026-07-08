@@ -2,174 +2,21 @@
 
 import Link from "next/link";
 import * as React from "react";
-import { ArrowLeft, Download, LayoutDashboard, Lock, Printer } from "lucide-react";
+import { ArrowLeft, LayoutDashboard, Lock, Printer } from "lucide-react";
 
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DashboardHero } from "@/components/ui/dashboard-hero";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ExportMenuButton } from "@/features/reporting/components/export-menu-button";
 import { YeeScoreSummary } from "@/features/yee-audit/components/yee-score-summary";
-import {
-	fetchInstrument,
-	filterItemsForDomain,
-	type InstrumentItem,
-	type InstrumentResponse
-} from "@/features/yee-audit/api/yee-instrument";
+import { fetchInstrument } from "@/features/yee-audit/api/yee-instrument";
 import { fetchSubmission, type YeeSubmissionRecord } from "@/features/yee-audit/api/yee-audit-api";
 import { yeeDomainLabels, type YeeDomainKey } from "@/features/yee-audit/config/yee-audit-config";
 import { yeeDomainThemes } from "@/features/yee-audit/config/yee-domain-theme";
+import type { ReportDocumentFormat } from "@/features/reporting/export/types";
 
-function normalizeText(value: string) {
-	return value
-		.replace(/<[^>]+>/g, "")
-		.replace(/\s+/g, " ")
-		.trim();
-}
-
-function ensureQuestionMark(value: string) {
-	if (!value) return value;
-	return /[?.!]$/.test(value) ? value : `${value}?`;
-}
-
-function normalizeVisibleQuestion(value: string) {
-	return ensureQuestionMark(normalizeText(value));
-}
-
-function isPlaceholderQuestionText(value: string) {
-	const normalized = normalizeText(value).toLowerCase();
-	return normalized === "" || normalized === "click to write the question text";
-}
-
-function getChoiceLabel(choice: { Display?: string } | undefined, fallback: string) {
-	return choice?.Display || fallback;
-}
-
-function answerLabels(item: InstrumentItem) {
-	return Object.values(item.answers || {}).map(answer => normalizeText(getChoiceLabel(answer, "")).toLowerCase());
-}
-
-function isConditionItem(item: InstrumentItem) {
-	if (item.item_kind) return item.item_kind === "condition";
-	const labels = answerLabels(item);
-	return (
-		normalizeText(item.question_text).toLowerCase().includes("if yes") ||
-		(labels.includes("poor") && labels.includes("acceptable") && labels.includes("great"))
-	);
-}
-
-function getSelectedMatrixAnswer(
-	itemId: string,
-	choiceId: string,
-	responses: Record<string, string | Record<string, string>>
-) {
-	const currentValue = responses[itemId];
-	if (typeof currentValue !== "object" || !currentValue) return "";
-	return currentValue[choiceId] || "";
-}
-
-function getSelectedAnswerLabel(item: InstrumentItem, answerId: string | null | undefined) {
-	if (!answerId) return "";
-	return getChoiceLabel(item.answers?.[answerId], answerId);
-}
-
-function buildQuestionColumns(submission: YeeSubmissionRecord, instrument: InstrumentResponse) {
-	const columns: Record<string, string> = {};
-	const participantInfo: Record<string, unknown> = submission.participant_info ?? {};
-	const sectionComments =
-		participantInfo.section_comments && typeof participantInfo.section_comments === "object"
-			? (participantInfo.section_comments as Partial<Record<YeeDomainKey, string>>)
-			: {};
-	for (const [domainKey, label] of Object.entries(yeeDomainLabels) as [YeeDomainKey, string][]) {
-		const items = filterItemsForDomain(instrument.scoring_items, label);
-		const grouped = new Map<string, InstrumentItem[]>();
-		for (const item of items) {
-			const key = item.base_question_id || item.item_id;
-			const next = grouped.get(key) ?? [];
-			next.push(item);
-			grouped.set(key, next);
-		}
-		let questionIndex = 0;
-		Array.from(grouped.values()).forEach(groupItems => {
-			const presenceItem = groupItems.find(item => !isConditionItem(item)) ?? groupItems[0];
-			const conditionItem = groupItems.find(item => isConditionItem(item)) ?? null;
-			const choices = Object.entries(presenceItem.choices || {});
-			const hasMatrixAnswers = Object.keys(presenceItem.answers || {}).length > 0;
-
-			if (hasMatrixAnswers) {
-				choices.forEach(([choiceId, choice]) => {
-					questionIndex += 1;
-					const responseAnswerId = getSelectedMatrixAnswer(
-						presenceItem.item_id,
-						choiceId,
-						submission.responses
-					);
-					const conditionAnswerId = conditionItem
-						? getSelectedMatrixAnswer(conditionItem.item_id, choiceId, submission.responses)
-						: "";
-					columns[`${label} Question ${questionIndex} Prompt`] = normalizeVisibleQuestion(
-						getChoiceLabel(choice, choiceId)
-					);
-					columns[`${label} Question ${questionIndex} Response`] = responseAnswerId
-						? getSelectedAnswerLabel(presenceItem, responseAnswerId)
-						: "";
-					columns[`${label} Question ${questionIndex} Condition`] = conditionItem
-						? conditionAnswerId
-							? getSelectedAnswerLabel(conditionItem, conditionAnswerId)
-							: "n/a"
-						: "n/a";
-				});
-				return;
-			}
-
-			questionIndex += 1;
-			const currentValue = submission.responses[presenceItem.item_id];
-			const selectedValue = typeof currentValue === "string" ? currentValue : "";
-			const prompt =
-				!isPlaceholderQuestionText(presenceItem.question_text) && presenceItem.question_text
-					? normalizeVisibleQuestion(presenceItem.question_text)
-					: normalizeVisibleQuestion(presenceItem.item_id);
-			columns[`${label} Question ${questionIndex} Prompt`] = prompt;
-			columns[`${label} Question ${questionIndex} Response`] = selectedValue
-				? getChoiceLabel(presenceItem.choices?.[selectedValue], selectedValue)
-				: "";
-			columns[`${label} Question ${questionIndex} Condition`] = "n/a";
-		});
-		columns[`${label} Comments`] = sectionComments[domainKey] || "";
-	}
-	return columns;
-}
-
-async function downloadSingleSubmissionCsv(submission: YeeSubmissionRecord) {
-	const instrument = await fetchInstrument().catch(() => null);
-	const row: Record<string, string | number> = {
-		"Auditor ID": submission.auditor_generated_id || submission.auditor_id,
-		Place: submission.place_name || submission.place_id,
-		"Place ID": submission.place_id,
-		"Submitted At": submission.submitted_at,
-		"Raw Score": submission.score.total_score
-	};
-	for (const [key, value] of Object.entries(submission.participant_info ?? {})) {
-		if (key === "domain_weights" || key === "section_comments") continue;
-		row[`Participant ${normalizeText(key.replace(/_/g, " "))}`] =
-			typeof value === "object" ? JSON.stringify(value) : String(value ?? "");
-	}
-	if (instrument) {
-		Object.assign(row, buildQuestionColumns(submission, instrument));
-	}
-
-	const headers = Object.keys(row);
-	const csv = [
-		headers.join(","),
-		headers.map(header => `"${String(row[header] ?? "").replace(/"/g, '""')}"`).join(",")
-	].join("\n");
-	const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-	const url = URL.createObjectURL(blob);
-	const anchor = document.createElement("a");
-	anchor.href = url;
-	anchor.download = `yee-submission-${submission.id}.csv`;
-	anchor.click();
-	URL.revokeObjectURL(url);
-}
 
 function formatSubmittedAt(value: string) {
 	const date = new Date(value);
@@ -382,6 +229,24 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 	const placeName = submission.place_name || submission.place_id;
 	const auditorLabel = submission.auditor_generated_id || submission.auditor_id;
 
+	// R1 export: fetch the instrument (for the responses section) and hand the
+	// submission to the export layer. Loaded via dynamic import so jsPDF/xlsx stay
+	// out of the report bundle until an export is actually requested.
+	const submissionRecord = submission; // non-null past the guards above
+	async function handleExport(format: ReportDocumentFormat) {
+		const [{ exportAudit }, instrument] = await Promise.all([
+			import("@/features/reporting/export"),
+			fetchInstrument().catch(() => null)
+		]);
+		await exportAudit({ submission: submissionRecord, instrument }, format);
+	}
+
+	const exportOptions = [
+		{ format: "pdf" as const, label: "PDF", description: "Branded, chart-bearing report" },
+		{ format: "xlsx" as const, label: "Excel", description: "Multi-sheet analysis workbook" },
+		{ format: "csv" as const, label: "CSV", description: "Flat single-row data" }
+	];
+
 	return (
 		<div className="space-y-6">
 			<style jsx global>{`
@@ -416,44 +281,49 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 					}
 				}
 			`}</style>
-			{/* Report header */}
-			<header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-				<div className="min-w-0 space-y-2">
-					<Link
-						href={auditsHref}
-						className="report-actions inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
-						<ArrowLeft className="h-3.5 w-3.5" aria-hidden />
-						Back to my audits
-					</Link>
-					<div className="flex flex-wrap items-center gap-3">
-						<h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-							{placeName}
-						</h1>
-						<span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+			{/* Report header — the brand DashboardHero (dotted bg + YEE watermark). */}
+			<div className="space-y-3">
+				<Link
+					href={auditsHref}
+					className="report-actions inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
+					<ArrowLeft className="h-3.5 w-3.5" aria-hidden />
+					Back to my audits
+				</Link>
+				<DashboardHero
+					size="compact"
+					title={placeName}
+					meta={
+						<span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-2.5 py-0.5 text-xs font-medium text-white">
 							<Lock className="h-3 w-3" aria-hidden />
 							Read-only report
 						</span>
-					</div>
-					<p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
-						Submitted YEE audit by <span className="font-medium text-foreground">{auditorLabel}</span> on{" "}
-						{formatSubmittedAt(submission.submitted_at)}. Scores and comments are locked as recorded.
-					</p>
-				</div>
-				<div className="report-actions flex shrink-0 flex-wrap items-center gap-2">
-					<Button type="button" variant="outline" className="rounded-sm" onClick={() => window.print()}>
-						<Printer className="h-4 w-4" aria-hidden />
-						Print
-					</Button>
-					<Button
-						type="button"
-						variant="outline"
-						className="rounded-sm"
-						onClick={() => void downloadSingleSubmissionCsv(submission)}>
-						<Download className="h-4 w-4" aria-hidden />
-						Export CSV
-					</Button>
-				</div>
-			</header>
+					}
+					subtitle={
+						<>
+							Submitted YEE audit by <span className="font-medium text-white">{auditorLabel}</span> on{" "}
+							{formatSubmittedAt(submission.submitted_at)}. Scores and comments are locked as recorded.
+						</>
+					}
+					actions={
+						<div className="report-actions flex flex-wrap items-center gap-2">
+							<Button
+								type="button"
+								variant="outline"
+								className="rounded-sm bg-white text-foreground hover:bg-emerald-50"
+								onClick={() => window.print()}>
+								<Printer className="h-4 w-4" aria-hidden />
+								Print
+							</Button>
+							<ExportMenuButton
+								label="Export"
+								className="rounded-sm bg-white text-foreground hover:bg-emerald-50"
+								options={exportOptions}
+								onExport={handleExport}
+							/>
+						</div>
+					}
+				/>
+			</div>
 
 			{/* Submission overview */}
 			<Card className="rounded-md">
@@ -470,7 +340,6 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 						<MetaField label="Visit frequency" value={String(participantInfo.visit_frequency || "")} />
 						<MetaField label="Season" value={String(participantInfo.season || "")} />
 						<MetaField label="Weather" value={String(participantInfo.weather || "")} />
-						<MetaField label="Submission ID" value={submission.id} mono />
 					</dl>
 				</CardContent>
 			</Card>
@@ -570,14 +439,12 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 						<Printer className="h-4 w-4" aria-hidden />
 						Print report
 					</Button>
-					<Button
-						type="button"
-						variant="outline"
+					<ExportMenuButton
+						label="Export"
 						className="rounded-sm"
-						onClick={() => void downloadSingleSubmissionCsv(submission)}>
-						<Download className="h-4 w-4" aria-hidden />
-						Export CSV
-					</Button>
+						options={exportOptions}
+						onExport={handleExport}
+					/>
 				</div>
 				<div className="flex flex-wrap gap-2">
 					<Button asChild variant="outline" className="rounded-sm">

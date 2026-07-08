@@ -1,6 +1,6 @@
 # YEE Report Exports — Phase 1: Business Logistics
 
-Status: proposed (awaiting stakeholder review)
+Status: implemented (R1–R5 shipped; see `src/features/reporting/export/`)
 Owner: yee-frontend
 Companion doc: [`02-implementation-plan.md`](./02-implementation-plan.md)
 

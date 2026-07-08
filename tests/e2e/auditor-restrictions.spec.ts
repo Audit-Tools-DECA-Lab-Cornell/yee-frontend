@@ -15,7 +15,8 @@ test.describe("@auditor cannot access manager reports/exports", () => {
 		await page.goto("/manager/reports");
 
 		await expect(page).not.toHaveURL(/\/manager\/reports/, { timeout: 30_000 });
-		await expect(page.getByText("Export options")).toHaveCount(0);
+		// The manager-only comparison export control must never render for auditors.
+		await expect(page.getByRole("button", { name: /export place comparison/i })).toHaveCount(0);
 	});
 
 	test("auditor is kept out of the manager raw-data export", async ({ page }) => {
