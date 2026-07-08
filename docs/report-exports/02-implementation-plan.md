@@ -1,8 +1,17 @@
 # YEE Report Exports — Phase 2: Implementation Plan
 
-Status: proposed (self-reviewed, see appendix)
+Status: implemented (M0–M5 landed on `src/features/reporting/export/`)
 Prerequisite: [`01-logistics.md`](./01-logistics.md) — report catalog R1–R5,
 access matrix, button placement. This doc is the coding plan for Phase 3.
+
+**Implementation note.** The pipeline shipped as described: the public surface is
+`src/features/reporting/export/index.ts` (dynamic-import target), with chart
+builders under `export/charts/`, PDF/Excel generators under `export/pdf/` and
+`export/excel/`, byte-frozen CSVs in `csv-builders.ts`, the palette in
+`export-palette.ts`, and the bulk ZIP in `batch.ts` + `zip-builder.ts`. The
+on-screen dashboard imports only the pure pieces via `dashboard-charts.ts` so
+jsPDF/xlsx stay out of the initial bundle. Coverage lives in `tests/unit/export-*`
+(generators + CSV goldens) and `tests/e2e` (download + role specs).
 
 ## 1. Goal and acceptance criteria
 

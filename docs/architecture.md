@@ -43,6 +43,11 @@ The app follows a lightweight layered model:
    - feature-owned hooks, state machines, and domain-specific client logic
    - current slices are `auth`, `admin`, `manager`, `auditor`, `workspaces`,
      `reporting`, and `yee-audit`
+   - the client-side report export pipeline lives under
+     `src/features/reporting/export/` (branded PDFs, styled Excel, byte-compatible
+     CSVs, per-chart PNG/SVG, bulk ZIP). Consumers import only from its
+     `index.ts` (dynamic-import target) or the jsPDF-free `dashboard-charts.ts`;
+     see [`docs/report-exports/`](report-exports/) for the catalog and plan.
 
 3. `src/components/*`
    - shared UI primitives
