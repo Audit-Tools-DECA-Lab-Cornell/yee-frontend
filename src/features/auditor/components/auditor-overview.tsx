@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { TableSkeleton } from "@/components/ui/skeletons";
 import { DashboardHero } from "@/components/ui/dashboard-hero";
 import { ScoreCell } from "@/components/ui/score-cell";
+import { cn } from "@/lib/utils";
 
 export function AuditorOverview() {
 	const { places, auditStates, submittedCount, draftCount, loading, error } = useAuditorAuditData();
@@ -91,7 +92,7 @@ function LatestSubmittedScores({
 
 	if (!latestSubmitted?.state?.score) {
 		return (
-			<Link href="/auditor/places" className={tileClass}>
+			<Link href="/auditor/places" className={cn("block transition hover:border-white/30 hover:bg-white/16")}>
 				<p className="text-xs font-medium tracking-wide text-emerald-50/70 uppercase">
 					Latest submitted scores
 				</p>
@@ -112,7 +113,7 @@ function LatestSubmittedScores({
 					? `/yee/submissions/${latestSubmitted.state.submission_id}`
 					: "/auditor/places"
 			}
-			className={tileClass}>
+			className={cn("block transition hover:border-white/30 hover:bg-white/16", tileClass)}>
 			<p className="text-xs font-medium tracking-wide text-emerald-50/70 uppercase">Latest submitted scores</p>
 			<p className="mt-2 text-sm text-emerald-50/85">{latestSubmitted.place.name}</p>
 			<ScoreCell

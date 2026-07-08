@@ -156,7 +156,6 @@ function DashboardHero({
 
 				{hasStats ? (
 					<div className={cn(compact ? "mt-4 space-y-2" : "mt-8 space-y-4")}>
-						{children ? <div className="min-w-full">{children}</div> : null}
 						{statsLabel && typeof statsLabel === "string" ? (
 							<p className={cn("text-sm font-medium text-emerald-50/80", compact ? "pb-2" : "")}>
 								{statsLabel}
@@ -171,6 +170,7 @@ function DashboardHero({
 							{stats?.map(stat => (
 								<HeroStatTile key={stat.label} stat={stat} />
 							))}
+							{children ? <div className="min-w-0">{children}</div> : null}
 						</div>
 					</div>
 				) : null}
