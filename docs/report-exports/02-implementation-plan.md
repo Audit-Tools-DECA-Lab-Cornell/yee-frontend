@@ -30,6 +30,18 @@ Done means:
    includes verifying with the backend whether the comparison payload's
    `auditor_id` is already the generated ID; if it is, those CSVs stay
    byte-identical.
+
+   **M0 finding (resolved).** The comparison/trend payload's `auditor_id`
+   is populated by `_display_auditor_code(auditor_code)` in
+   `audit-tools-backend/app/products/yee/services/dashboard.py`, i.e. it is
+   already the `AUD###` generated code — so the trend and individual-comparison
+   CSVs stay **byte-identical** (no privacy migration needed for them). The
+   single-submission record is the sole leak: `services/audits.py` sets
+   `auditor_id = submission.auditor_id` (the raw auditor-profile UUID) while
+   `auditor_generated_id` carries the `AUD###` code. The legacy single-submission
+   CSV's `auditor_generated_id || auditor_id` fallback is therefore replaced by a
+   redaction placeholder when the generated ID is absent (criterion 5); when it is
+   present — the normal case — the CSV bytes are unchanged.
 5. Every export identifies auditors by `auditor_generated_id` only. When a
    payload lacks a generated ID, the export shows a redaction placeholder —
    never the raw identifier.

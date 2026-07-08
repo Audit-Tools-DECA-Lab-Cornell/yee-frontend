@@ -15,12 +15,23 @@ import { TableSkeleton } from "@/components/ui/skeletons";
 import { DashboardHero } from "@/components/ui/dashboard-hero";
 import {
 	fetchPlaceComparisons,
-	fetchRawData,
 	type PlaceComparisonAuditRecord,
-	type PlaceComparisonGroupRecord,
-	type RawDataRecord
+	type PlaceComparisonGroupRecord
 } from "@/features/workspaces/api/live-api";
-import { domainLabels, domainOrder, toCsv } from "@/features/reporting/reporting";
+import { domainLabels, domainOrder } from "@/features/reporting/reporting";
+import { radarPolygonPoints, radarRadialPoint, trendScale } from "@/features/reporting/export/charts/geometry";
+import {
+	auditRawPercent as getAuditRawPercent,
+	auditWeightedPercent as getAuditWeightedPercent,
+	buildRadarSvg,
+	buildTrendSvg,
+	getExportPalette,
+	percentage,
+	type PlaceComparisonSummary,
+	type ReportDocumentFormat
+} from "@/features/reporting/export/dashboard-charts";
+import { ExportMenuButton, type ExportMenuOption } from "@/features/reporting/components/export-menu-button";
+import { ChartDownloadButton } from "@/features/reporting/components/chart-download-button";
 import { yeeDomainThemes } from "@/features/yee-audit/config/yee-domain-theme";
 
 type CompareMode = "places" | "audits" | "individual";
@@ -46,15 +57,6 @@ function parseIsoDate(value: string | null | undefined) {
 	if (!value) return null;
 	const parsed = new Date(value);
 	return Number.isNaN(parsed.getTime()) ? null : parsed;
-}
-
-function clampPercentage(value: number) {
-	return Math.max(0, Math.min(100, value));
-}
-
-function percentage(numerator: number, denominator: number) {
-	if (!denominator) return 0;
-	return clampPercentage((numerator / denominator) * 100);
 }
 
 function colorBandClasses(value: number) {
@@ -99,24 +101,6 @@ function withinDateRange(dateValue: string, range: DateRangeValue) {
 	const earliest = new Date(now);
 	earliest.setDate(now.getDate() - days);
 	return currentDate >= earliest;
-}
-
-function downloadTextFile(filename: string, content: string, type = "text/csv;charset=utf-8;") {
-	const blob = new Blob([content], { type });
-	const url = URL.createObjectURL(blob);
-	const anchor = document.createElement("a");
-	anchor.href = url;
-	anchor.download = filename;
-	anchor.click();
-	URL.revokeObjectURL(url);
-}
-
-function getAuditRawPercent(record: PlaceComparisonAuditRecord) {
-	return percentage(record.total_raw_score, record.total_raw_maximum);
-}
-
-function getAuditWeightedPercent(record: PlaceComparisonAuditRecord) {
-	return percentage(record.total_weighted_score, record.total_weighted_maximum);
 }
 
 /** Columns for the "Compare Places" report table (display-only, sortable). */
@@ -309,31 +293,11 @@ function buildPlaceSummaries(records: PlaceComparisonAuditRecord[]): PlaceSummar
 		.sort((left, right) => right.avgWeightedScore - left.avgWeightedScore);
 }
 
-function radialPoint(index: number, total: number, value: number, radius: number, center = 110) {
-	const angle = (Math.PI * 2 * index) / total - Math.PI / 2;
-	const scaledRadius = radius * (value / 100);
-	return {
-		x: center + Math.cos(angle) * scaledRadius,
-		y: center + Math.sin(angle) * scaledRadius
-	};
-}
+// Radar/trend geometry is imported from the export layer's shared helpers
+// (`export/charts/geometry.ts`) so the on-screen chart and the exported chart
+// compute identical points and can never drift (implementation-plan D3/M1).
 
-function buildPolygonPoints(values: number[], radius: number, center = 110) {
-	return values
-		.map((value, index) => {
-			const point = radialPoint(index, values.length, value, radius, center);
-			return `${point.x},${point.y}`;
-		})
-		.join(" ");
-}
-
-function RadarComparisonChart({
-	summaries,
-	svgRef
-}: {
-	summaries: PlaceSummary[];
-	svgRef: React.RefObject<SVGSVGElement | null>;
-}) {
+function RadarComparisonChart({ summaries }: { summaries: PlaceSummary[] }) {
 	const series = summaries.slice(0, 3);
 	const radius = 72;
 	const center = 110;
@@ -344,17 +308,38 @@ function RadarComparisonChart({
 		{ stroke: "var(--chart-series-3)", fill: "color-mix(in oklab, var(--chart-series-3) 14%, transparent)" }
 	];
 
+	// Builds the exportable standalone SVG from the same top-3 data on demand.
+	const buildRadarDownloadSvg = () => {
+		const palette = getExportPalette();
+		return buildRadarSvg({
+			axisLabels: domainOrder.map(domain => domainLabels[domain]),
+			palette,
+			size: 380,
+			series: series.map((summary, index) => ({
+				label: summary.place_name,
+				color: palette.chartSeries[index % palette.chartSeries.length],
+				values: domainOrder.map(domain => summary.rawPercentByDomain[domain])
+			}))
+		});
+	};
+
 	return (
 		<Card className="rounded-md border-border">
-			<CardHeader>
-				<CardTitle>Radar comparison</CardTitle>
-				<CardDescription>
-					A spider chart makes section strengths and gaps across places visible at a glance.
-				</CardDescription>
+			<CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
+				<div className="space-y-1.5">
+					<CardTitle>Radar comparison</CardTitle>
+					<CardDescription>
+						A spider chart makes section strengths and gaps across places visible at a glance.
+					</CardDescription>
+				</div>
+				<ChartDownloadButton
+					buildSvg={buildRadarDownloadSvg}
+					baseName="radar-comparison"
+					label="Download radar chart"
+				/>
 			</CardHeader>
 			<CardContent className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
 				<svg
-					ref={svgRef}
 					viewBox="0 0 220 220"
 					className="mx-auto h-[220px] w-[220px]"
 					role="img"
@@ -371,8 +356,8 @@ function RadarComparisonChart({
 						/>
 					))}
 					{domainOrder.map((domain, index) => {
-						const outerPoint = radialPoint(index, domainOrder.length, 100, radius, center);
-						const labelPoint = radialPoint(index, domainOrder.length, 118, radius, center);
+						const outerPoint = radarRadialPoint(index, domainOrder.length, 100, radius, center);
+						const labelPoint = radarRadialPoint(index, domainOrder.length, 118, radius, center);
 						return (
 							<g key={domain}>
 								<line
@@ -395,7 +380,7 @@ function RadarComparisonChart({
 					{series.map((summary, index) => (
 						<polygon
 							key={summary.place_id}
-							points={buildPolygonPoints(
+							points={radarPolygonPoints(
 								domainOrder.map(domain => summary.rawPercentByDomain[domain]),
 								radius,
 								center
@@ -432,13 +417,7 @@ function RadarComparisonChart({
 	);
 }
 
-function TrendLineChart({
-	records,
-	svgRef
-}: {
-	records: PlaceComparisonAuditRecord[];
-	svgRef: React.RefObject<SVGSVGElement | null>;
-}) {
+function TrendLineChart({ records }: { records: PlaceComparisonAuditRecord[] }) {
 	const points = records.map((record, index) => ({
 		label: record.date,
 		rawPercent: getAuditRawPercent(record),
@@ -448,23 +427,39 @@ function TrendLineChart({
 	const width = 720;
 	const height = 260;
 	const padding = 28;
-	const xStep = points.length > 1 ? (width - padding * 2) / (points.length - 1) : 0;
-	const pointX = (index: number) => padding + index * xStep;
-	const pointY = (value: number) => height - padding - ((height - padding * 2) * clampPercentage(value)) / 100;
+	// Shared scale helper — identical math to the exported trend chart (D3/M1).
+	const { pointX, pointY } = trendScale({ count: points.length, width, height, padding });
 	const rawPolyline = points.map(point => `${pointX(point.index)},${pointY(point.rawPercent)}`).join(" ");
 	const weightedPolyline = points.map(point => `${pointX(point.index)},${pointY(point.weightedPercent)}`).join(" ");
 
+	// Builds the exportable standalone SVG from the same records on demand.
+	const buildTrendDownloadSvg = () =>
+		buildTrendSvg({
+			palette: getExportPalette(),
+			points: records.map(record => ({
+				label: record.date,
+				rawPercent: getAuditRawPercent(record),
+				weightedPercent: getAuditWeightedPercent(record)
+			}))
+		});
+
 	return (
 		<Card className="rounded-md border-border">
-			<CardHeader>
-				<CardTitle>Trend over time</CardTitle>
-				<CardDescription>
-					Track how one place changes across repeated audits, interventions, and seasons.
-				</CardDescription>
+			<CardHeader className="flex flex-row items-start justify-between gap-3 space-y-0">
+				<div className="space-y-1.5">
+					<CardTitle>Trend over time</CardTitle>
+					<CardDescription>
+						Track how one place changes across repeated audits, interventions, and seasons.
+					</CardDescription>
+				</div>
+				<ChartDownloadButton
+					buildSvg={buildTrendDownloadSvg}
+					baseName="trend-report"
+					label="Download trend chart"
+				/>
 			</CardHeader>
 			<CardContent className="space-y-4">
 				<svg
-					ref={svgRef}
 					viewBox={`0 0 ${width} ${height}`}
 					className="h-[260px] w-full rounded-md bg-muted/40">
 					{[0, 25, 50, 75, 100].map(value => (
@@ -524,7 +519,6 @@ function TrendLineChart({
 export function LiveReports() {
 	const { session } = useAuth();
 	const [groups, setGroups] = React.useState<PlaceComparisonGroupRecord[]>([]);
-	const [rawRows, setRawRows] = React.useState<RawDataRecord[]>([]);
 	const [selectedProjectIds, setSelectedProjectIds] = React.useState<string[]>([]);
 	const [selectedPlaceIds, setSelectedPlaceIds] = React.useState<string[]>([]);
 	const [selectedAuditorIds, setSelectedAuditorIds] = React.useState<string[]>([]);
@@ -533,7 +527,6 @@ export function LiveReports() {
 	const [selectedAuditIds, setSelectedAuditIds] = React.useState<string[]>([]);
 	const [loading, setLoading] = React.useState(true);
 	const [error, setError] = React.useState<string | null>(null);
-	const chartSvgRef = React.useRef<SVGSVGElement | null>(null);
 
 	React.useEffect(() => {
 		if (!session) return;
@@ -543,13 +536,9 @@ export function LiveReports() {
 			setLoading(true);
 			setError(null);
 			try {
-				const [comparisonResult, rawResult] = await Promise.all([
-					fetchPlaceComparisons(session),
-					fetchRawData(session)
-				]);
+				const comparisonResult = await fetchPlaceComparisons(session);
 				if (!cancelled) {
 					setGroups(comparisonResult);
-					setRawRows(rawResult);
 				}
 			} catch (err) {
 				if (!cancelled) {
@@ -614,18 +603,6 @@ export function LiveReports() {
 		[allAudits, dateRange, selectedAuditorIds, selectedPlaceIds, selectedProjectIds]
 	);
 
-	const filteredRawRows = React.useMemo(
-		() =>
-			rawRows.filter(row => {
-				if (selectedProjectIds.length > 0 && !selectedProjectIds.includes(row.project_id)) return false;
-				if (selectedPlaceIds.length > 0 && !selectedPlaceIds.includes(row.place_id)) return false;
-				if (selectedAuditorIds.length > 0 && !selectedAuditorIds.includes(row.auditor_generated_id))
-					return false;
-				if (!withinDateRange(row.submitted_at || row.date, dateRange)) return false;
-				return true;
-			}),
-		[dateRange, rawRows, selectedAuditorIds, selectedPlaceIds, selectedProjectIds]
-	);
 
 	const placeSummaries = React.useMemo(() => buildPlaceSummaries(filteredAudits), [filteredAudits]);
 	const filtersActive =
@@ -684,8 +661,6 @@ export function LiveReports() {
 					).toFixed(2)
 				)
 			: 0;
-	const highestPlace = placeSummaries[0] ?? null;
-	const lowestPlace = placeSummaries[placeSummaries.length - 1] ?? null;
 
 	// Built fresh each render so the selection checkboxes stay in sync with state.
 	const individualAuditColumns: ColumnDef<PlaceComparisonAuditRecord>[] = [
@@ -813,80 +788,58 @@ export function LiveReports() {
 		);
 	};
 
-	function exportCurrentComparison() {
+	// Self-describing scope printed on export covers — mirrors the on-screen
+	// "Current scope" sentence so the document says exactly what it contains.
+	const scopeLine = `${selectedProjectIds.length > 0 ? `${selectedProjectIds.length} Projects` : "All Projects"}, ${selectedPlaceIds.length > 0 ? `${selectedPlaceIds.length} Places` : "All Places"}, ${selectedAuditorIds.length > 0 ? `${selectedAuditorIds.length} Auditors` : "All Auditors"}, ${rangeLabel(dateRange)}`;
+
+	const exportFormatOptions: ExportMenuOption<ReportDocumentFormat>[] = [
+		{ format: "pdf", label: "PDF", description: "Branded, chart-bearing report" },
+		{ format: "xlsx", label: "Excel", description: "Multi-sheet analysis workbook" },
+		{ format: "csv", label: "CSV", description: "Flat data (legacy format)" }
+	];
+
+	// Mode-aware label + disabled state. The export is what-you-see-is-what-you-
+	// export: it always reflects the active compare mode + filters.
+	const exportConfig =
+		compareMode === "places"
+			? { label: "Export place comparison", disabled: placeSummaries.length === 0, disabledReason: "No audits in the current scope" }
+			: compareMode === "audits"
+				? { label: "Export trend report", disabled: timelineRecords.length === 0, disabledReason: "No audits for this place in the current range" }
+				: {
+						label: `Export audit comparison (${selectedIndividualAudits.length} selected)`,
+						disabled: selectedIndividualAudits.length < 2,
+						disabledReason: "Select at least 2 audits to compare"
+					};
+
+	async function handleComparisonExport(format: ReportDocumentFormat) {
+		const scope = { line: scopeLine, auditCount: filteredAudits.length, placeCount: placeSummaries.length };
+		const exp = await import("@/features/reporting/export");
 		if (compareMode === "places") {
-			const rows = placeSummaries.map(summary => ({
-				project: summary.project_name,
-				place: summary.place_name,
-				raw_score: summary.avgRawScore,
-				raw_percent: `${summary.avgRawPercent.toFixed(1)}%`,
-				youth_weighted_score: summary.avgWeightedScore,
-				youth_weighted_percent: `${summary.avgWeightedPercent.toFixed(1)}%`,
-				total_audits: summary.auditCount
+			const summaries: PlaceComparisonSummary[] = placeSummaries.map(summary => ({
+				placeId: summary.place_id,
+				placeName: summary.place_name,
+				projectName: summary.project_name,
+				auditCount: summary.auditCount,
+				avgRawScore: summary.avgRawScore,
+				avgWeightedScore: summary.avgWeightedScore,
+				avgRawPercent: summary.avgRawPercent,
+				avgWeightedPercent: summary.avgWeightedPercent,
+				rawPercentByDomain: summary.rawPercentByDomain,
+				weightedPercentByDomain: summary.weightedPercentByDomain
 			}));
-			downloadTextFile("yee-place-comparison.csv", toCsv(rows));
+			await exp.exportPlaceComparison({ summaries, audits: filteredAudits, scope }, format);
 			return;
 		}
 		if (compareMode === "audits") {
-			const rows = timelineRecords.map(record => ({
-				project: record.project_name,
-				place: record.place_name,
-				auditor_id: record.auditor_id,
-				date: record.date,
-				raw_score: `${record.total_raw_score}/${record.total_raw_maximum}`,
-				raw_percent: `${getAuditRawPercent(record).toFixed(1)}%`,
-				youth_weighted_score: `${record.total_weighted_score.toFixed(2)}/${record.total_weighted_maximum.toFixed(2)}`,
-				youth_weighted_percent: `${getAuditWeightedPercent(record).toFixed(1)}%`
-			}));
-			downloadTextFile("yee-audit-trend.csv", toCsv(rows));
+			const placeName =
+				timelineRecords[0]?.place_name ??
+				placeSummaries.find(summary => summary.place_id === timelinePlaceId)?.place_name ??
+				"Place";
+			const projectName = timelineRecords[0]?.project_name ?? "";
+			await exp.exportTrend({ placeName, projectName, records: timelineRecords, scope }, format);
 			return;
 		}
-		const rows = selectedIndividualAudits.map(record => ({
-			project: record.project_name,
-			place: record.place_name,
-			auditor_id: record.auditor_id,
-			date: record.date,
-			raw_score: `${record.total_raw_score}/${record.total_raw_maximum}`,
-			raw_percent: `${getAuditRawPercent(record).toFixed(1)}%`,
-			youth_weighted_score: `${record.total_weighted_score.toFixed(2)}/${record.total_weighted_maximum.toFixed(2)}`,
-			youth_weighted_percent: `${getAuditWeightedPercent(record).toFixed(1)}%`
-		}));
-		downloadTextFile("yee-individual-audit-comparison.csv", toCsv(rows));
-	}
-
-	function exportSelectedAudits() {
-		const rows = filteredRawRows
-			.filter(row => selectedAuditIds.includes(row.audit_id))
-			.map(row => ({
-				project: row.project_name,
-				place: row.place_name,
-				auditor_id: row.auditor_generated_id,
-				date: row.date,
-				raw_score: row.total_raw_score,
-				youth_weighted_score: row.total_weighted_score
-			}));
-		downloadTextFile("yee-selected-audits.csv", toCsv(rows));
-	}
-
-	function exportRawDataCsv() {
-		const flattened = filteredRawRows.map(row => ({
-			organization: "Youth Enabling Environments Collaborative",
-			project: row.project_name,
-			place: row.place_name,
-			auditor: row.auditor_generated_id,
-			date: row.date,
-			total_raw_score: row.total_raw_score,
-			total_youth_weighted_score: row.total_weighted_score,
-			...row.responses
-		}));
-		downloadTextFile("yee-raw-data.csv", toCsv(flattened));
-	}
-
-	function exportCurrentChart() {
-		const svg = chartSvgRef.current;
-		if (!svg) return;
-		const serialized = new XMLSerializer().serializeToString(svg);
-		downloadTextFile(`yee-${compareMode}-chart.svg`, serialized, "image/svg+xml;charset=utf-8;");
+		await exp.exportAuditComparison({ records: selectedIndividualAudits, scope }, format);
 	}
 
 	if (loading) {
@@ -966,21 +919,31 @@ export function LiveReports() {
 										onChange={setSelectedAuditorIds}
 									/>
 								</div>
-								<SegmentedControl
-									aria-label="Compare mode"
-									value={compareMode}
-									onValueChange={value => {
-										const mode = value as CompareMode;
-										setCompareMode(mode);
-										if (mode === "audits" && selectedPlaceIds.length > 1) {
-											setSelectedPlaceIds(selectedPlaceIds.slice(0, 1));
-										}
-									}}
-									options={(["places", "audits", "individual"] as CompareMode[]).map(mode => ({
-										value: mode,
-										label: compareModeLabel(mode)
-									}))}
-								/>
+								<div className="flex flex-wrap items-center gap-3">
+									<SegmentedControl
+										aria-label="Compare mode"
+										value={compareMode}
+										onValueChange={value => {
+											const mode = value as CompareMode;
+											setCompareMode(mode);
+											if (mode === "audits" && selectedPlaceIds.length > 1) {
+												setSelectedPlaceIds(selectedPlaceIds.slice(0, 1));
+											}
+										}}
+										options={(["places", "audits", "individual"] as CompareMode[]).map(mode => ({
+											value: mode,
+											label: compareModeLabel(mode)
+										}))}
+									/>
+									{/* Context-aware export: what-you-see-is-what-you-export. */}
+									<ExportMenuButton
+										label={exportConfig.label}
+										options={exportFormatOptions}
+										onExport={handleComparisonExport}
+										disabled={exportConfig.disabled}
+										disabledReason={exportConfig.disabledReason}
+									/>
+								</div>
 							</div>
 
 							<div className="flex flex-col items-end justify-end gap-5">
@@ -1015,37 +978,6 @@ export function LiveReports() {
 							}}
 						/>
 					</div>
-				</CardContent>
-			</Card>
-
-			<Card className="rounded-md border-border">
-				<CardHeader>
-					<CardTitle>Export options</CardTitle>
-					<CardDescription>
-						Export the current comparison, selected audits, printable report view, raw CSV data, or the
-						current chart only.
-					</CardDescription>
-				</CardHeader>
-				<CardContent className="flex flex-wrap gap-3">
-					<Button type="button" variant="outline" onClick={exportCurrentComparison}>
-						Export current comparison
-					</Button>
-					<Button
-						type="button"
-						variant="outline"
-						onClick={exportSelectedAudits}
-						disabled={selectedAuditIds.length === 0}>
-						Export selected audits
-					</Button>
-					<Button type="button" variant="outline" onClick={() => window.print()}>
-						Export full PDF report
-					</Button>
-					<Button type="button" variant="outline" onClick={exportRawDataCsv}>
-						Export CSV raw data
-					</Button>
-					<Button type="button" onClick={exportCurrentChart}>
-						Export charts only
-					</Button>
 				</CardContent>
 			</Card>
 
@@ -1138,7 +1070,7 @@ export function LiveReports() {
 						</CardContent>
 					</Card>
 
-					<RadarComparisonChart summaries={placeSummaries} svgRef={chartSvgRef} />
+					<RadarComparisonChart summaries={placeSummaries} />
 				</div>
 			) : null}
 
@@ -1165,7 +1097,7 @@ export function LiveReports() {
 							</p>
 							{timelineRecords.length > 0 ? (
 								<>
-									<TrendLineChart records={timelineRecords} svgRef={chartSvgRef} />
+									<TrendLineChart records={timelineRecords} />
 									<div className="grid gap-4 md:grid-cols-3">
 										{timelineRecords.slice(-3).map(record => (
 											<Card key={record.audit_id} className="rounded-md border-border">
