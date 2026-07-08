@@ -29,7 +29,7 @@ export async function generatePlaceComparisonPdf(
 	const { summaries, scope } = input;
 	const doc = createReportDoc();
 
-	let y = drawCover(doc, palette, {
+	let y = await drawCover(doc, palette, {
 		title: "Place Comparison Report",
 		subtitle: "Average performance across the places in the current view.",
 		scopeLine: `Scope: ${scope.line} · ${scope.auditCount} audits · ${scope.placeCount} places`

@@ -32,7 +32,7 @@ export async function generateTrendPdf(
 	const doc = createReportDoc();
 	const sorted = [...records].sort((a, b) => timeOf(a.date) - timeOf(b.date));
 
-	let y = drawCover(doc, palette, {
+	let y = await drawCover(doc, palette, {
 		title: `Trend Report — ${placeName}`,
 		subtitle: `${projectName}. How this place changes across repeated audits.`,
 		scopeLine: `Scope: ${scope.line} · ${sorted.length} audits in range`

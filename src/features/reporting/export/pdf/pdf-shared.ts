@@ -8,6 +8,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 
 import type { ExportPalette, ScoreBandKey } from "../types";
+import { getBrandLogos, LOGO_ASPECT } from "./pdf-assets";
 
 /** A4 portrait, points. */
 export const PAGE = {
@@ -113,24 +114,74 @@ export type CoverOptions = {
 	measures?: { label: string; value: string; sub: string; band: ScoreBandKey }[];
 };
 
-/**
- * Draw the brand cover block at the top of page 1. Returns the y below it.
- */
-export function drawCover(doc: jsPDF, palette: ExportPalette, options: CoverOptions): number {
-	const width = pageWidth(doc);
-	// Deep-green title band.
-	setFill(doc, palette.brand.green950);
-	doc.rect(0, 0, width, 74, "F");
-	setText(doc, "#ffffff");
-	doc.setFont("helvetica", "bold");
-	doc.setFontSize(15);
-	doc.text("YEE Audit Tools", PAGE.marginX, 34);
-	setText(doc, palette.brand.green50);
-	doc.setFont("helvetica", "normal");
-	doc.setFontSize(9);
-	doc.text("Youth Enabling Environments Collaborative", PAGE.marginX, 52);
+/** Run `draw` with a temporary global alpha (jsPDF GState), then restore it. */
+function withOpacity(doc: jsPDF, opacity: number, draw: () => void): void {
+	const g = doc as unknown as {
+		GState?: new (options: { opacity: number }) => unknown;
+		setGState?: (state: unknown) => void;
+	};
+	if (g.GState && g.setGState) g.setGState(new g.GState({ opacity }));
+	draw();
+	if (g.GState && g.setGState) g.setGState(new g.GState({ opacity: 1 }));
+}
 
-	let y = 104;
+/**
+ * Draw the brand cover block at the top of page 1. Echoes the on-screen
+ * DashboardHero — deep-green banner, faint dot-grid, a transparent logo-mark
+ * watermark bleeding off the top-right, and the horizontal YEE wordmark (with a
+ * text fallback when the logo assets can't be loaded). Returns the y below it.
+ */
+export async function drawCover(doc: jsPDF, palette: ExportPalette, options: CoverOptions): Promise<number> {
+	const width = pageWidth(doc);
+	const bannerHeight = 96;
+	const logos = await getBrandLogos();
+
+	// Deep-green brand banner.
+	setFill(doc, palette.brand.green950);
+	doc.rect(0, 0, width, bannerHeight, "F");
+
+	// Faint white dot-grid motif (matches the hero's radial dot pattern).
+	withOpacity(doc, 0.08, () => {
+		setFill(doc, "#ffffff");
+		for (let dotY = 12; dotY < bannerHeight; dotY += 15) {
+			for (let dotX = 14; dotX < width; dotX += 15) {
+				doc.circle(dotX, dotY, 0.6, "F");
+			}
+		}
+	});
+
+	// Transparent logo-mark watermark, bleeding off the top-right corner.
+	if (logos.mark) {
+		withOpacity(doc, 0.1, () => {
+			const size = 150;
+			doc.addImage(logos.mark as string, "PNG", width - 96, -54, size, size, undefined, "FAST");
+		});
+	}
+
+	// Horizontal wordmark (with subtitle), or a wordmark text fallback.
+	if (logos.horizontal) {
+		const logoHeight = 44;
+		const logoWidth = logoHeight / LOGO_ASPECT.horizontal;
+		doc.addImage(logos.horizontal, "PNG", PAGE.marginX, (bannerHeight - logoHeight) / 2, logoWidth, logoHeight, undefined, "FAST");
+	} else {
+		setText(doc, "#ffffff");
+		doc.setFont("helvetica", "bold");
+		doc.setFontSize(15);
+		doc.text("YEE Audit Tools", PAGE.marginX, 42);
+		setText(doc, palette.brand.green50);
+		doc.setFont("helvetica", "normal");
+		doc.setFontSize(9);
+		doc.text("Youth Enabling Environments Collaborative", PAGE.marginX, 60);
+	}
+
+	// Hairline top highlight.
+	withOpacity(doc, 0.25, () => {
+		setDraw(doc, "#ffffff");
+		doc.setLineWidth(0.5);
+		doc.line(0, 0.4, width, 0.4);
+	});
+
+	let y = bannerHeight + 30;
 	setText(doc, palette.brand.foreground);
 	doc.setFont("helvetica", "bold");
 	doc.setFontSize(20);

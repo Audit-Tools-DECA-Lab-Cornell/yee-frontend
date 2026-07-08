@@ -43,7 +43,7 @@ export async function generateAuditPdf(
 	const submittedLabel = formatDateTime(submission.submitted_at);
 
 	// Cover.
-	let y = drawCover(doc, palette, {
+	let y = await drawCover(doc, palette, {
 		title: `${overview.placeName} — YEE Audit Report`,
 		subtitle: `Submitted by ${overview.auditorId} on ${submittedLabel}. Scores and comments are locked as recorded.`,
 		measures: [

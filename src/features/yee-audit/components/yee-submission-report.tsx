@@ -7,6 +7,7 @@ import { ArrowLeft, LayoutDashboard, Lock, Printer } from "lucide-react";
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { DashboardHero } from "@/components/ui/dashboard-hero";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ExportMenuButton } from "@/features/reporting/components/export-menu-button";
 import { YeeScoreSummary } from "@/features/yee-audit/components/yee-score-summary";
@@ -280,42 +281,49 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 					}
 				}
 			`}</style>
-			{/* Report header */}
-			<header className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-				<div className="min-w-0 space-y-2">
-					<Link
-						href={auditsHref}
-						className="report-actions inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
-						<ArrowLeft className="h-3.5 w-3.5" aria-hidden />
-						Back to my audits
-					</Link>
-					<div className="flex flex-wrap items-center gap-3">
-						<h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-							{placeName}
-						</h1>
-						<span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+			{/* Report header — the brand DashboardHero (dotted bg + YEE watermark). */}
+			<div className="space-y-3">
+				<Link
+					href={auditsHref}
+					className="report-actions inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground">
+					<ArrowLeft className="h-3.5 w-3.5" aria-hidden />
+					Back to my audits
+				</Link>
+				<DashboardHero
+					size="compact"
+					title={placeName}
+					meta={
+						<span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/10 px-2.5 py-0.5 text-xs font-medium text-white">
 							<Lock className="h-3 w-3" aria-hidden />
 							Read-only report
 						</span>
-					</div>
-					<p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">
-						Submitted YEE audit by <span className="font-medium text-foreground">{auditorLabel}</span> on{" "}
-						{formatSubmittedAt(submission.submitted_at)}. Scores and comments are locked as recorded.
-					</p>
-				</div>
-				<div className="report-actions flex shrink-0 flex-wrap items-center gap-2">
-					<Button type="button" variant="outline" className="rounded-sm" onClick={() => window.print()}>
-						<Printer className="h-4 w-4" aria-hidden />
-						Print
-					</Button>
-					<ExportMenuButton
-						label="Export"
-						className="rounded-sm"
-						options={exportOptions}
-						onExport={handleExport}
-					/>
-				</div>
-			</header>
+					}
+					subtitle={
+						<>
+							Submitted YEE audit by <span className="font-medium text-white">{auditorLabel}</span> on{" "}
+							{formatSubmittedAt(submission.submitted_at)}. Scores and comments are locked as recorded.
+						</>
+					}
+					actions={
+						<div className="report-actions flex flex-wrap items-center gap-2">
+							<Button
+								type="button"
+								variant="outline"
+								className="rounded-sm bg-white text-foreground hover:bg-emerald-50"
+								onClick={() => window.print()}>
+								<Printer className="h-4 w-4" aria-hidden />
+								Print
+							</Button>
+							<ExportMenuButton
+								label="Export"
+								className="rounded-sm bg-white text-foreground hover:bg-emerald-50"
+								options={exportOptions}
+								onExport={handleExport}
+							/>
+						</div>
+					}
+				/>
+			</div>
 
 			{/* Submission overview */}
 			<Card className="rounded-md">
@@ -332,7 +340,6 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 						<MetaField label="Visit frequency" value={String(participantInfo.visit_frequency || "")} />
 						<MetaField label="Season" value={String(participantInfo.season || "")} />
 						<MetaField label="Weather" value={String(participantInfo.weather || "")} />
-						<MetaField label="Submission ID" value={submission.id} mono />
 					</dl>
 				</CardContent>
 			</Card>

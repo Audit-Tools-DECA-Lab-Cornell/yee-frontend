@@ -34,7 +34,7 @@ export async function generateAuditComparisonPdf(
 	const doc = createReportDoc();
 	const seriesLabels = records.map(record => `${record.place_name} (${record.date})`);
 
-	let y = drawCover(doc, palette, {
+	let y = await drawCover(doc, palette, {
 		title: "Audit Comparison Report",
 		subtitle: `Side-by-side comparison of ${records.length} selected audits.`,
 		scopeLine: `Scope: ${scope.line}`

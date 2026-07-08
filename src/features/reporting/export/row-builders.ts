@@ -78,8 +78,8 @@ export function buildAuditOverview(submission: YeeSubmissionRecord): AuditOvervi
 			{ label: "Audit date", value: participantString(participantInfo, "audit_date") },
 			{ label: "Visit frequency", value: participantString(participantInfo, "visit_frequency") },
 			{ label: "Season", value: participantString(participantInfo, "season") },
-			{ label: "Weather", value: participantString(participantInfo, "weather") },
-			{ label: "Submission ID", value: submission.id }
+			{ label: "Weather", value: participantString(participantInfo, "weather") }
+			// Submission ID is a database identifier — intentionally not shown to users.
 		],
 		raw: {
 			label: "Total Raw Score",
