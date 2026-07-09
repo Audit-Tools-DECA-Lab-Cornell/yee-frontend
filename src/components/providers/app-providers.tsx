@@ -5,6 +5,7 @@ import * as React from "react";
 import { Toaster } from "sonner";
 
 import { AuthProvider } from "@/features/auth/components/auth-provider";
+import { AnalyticsProvider } from "@/components/providers/analytics-provider";
 
 export interface AppProvidersProps {
 	children: React.ReactNode;
@@ -31,7 +32,9 @@ export function AppProviders({ children }: AppProvidersProps) {
 
 	return (
 		<QueryClientProvider client={queryClient}>
-			<AuthProvider>{children}</AuthProvider>
+			<AuthProvider>
+				<AnalyticsProvider>{children}</AnalyticsProvider>
+			</AuthProvider>
 			<Toaster richColors position="top-right" />
 		</QueryClientProvider>
 	);

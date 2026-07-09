@@ -189,6 +189,15 @@ Copy `.env.example` to `.env` and point it at the backend:
 API_BASE_URL=http://127.0.0.1:8000
 NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8000
 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=
+
+# Analytics & error monitoring (all optional — features no-op when unset)
+NEXT_PUBLIC_POSTHOG_KEY=
+NEXT_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
+NEXT_PUBLIC_SENTRY_DSN=
+# Build-time only (server), needed for Sentry source-map upload:
+SENTRY_AUTH_TOKEN=
+SENTRY_ORG=
+SENTRY_PROJECT=
 ```
 
 Notes:
@@ -197,6 +206,8 @@ Notes:
 - `NEXT_PUBLIC_API_BASE_URL` is available to client-side helpers if needed
 - `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` enables Google Places autocomplete and richer map previews in manager place forms
 - In production on Vercel, `API_BASE_URL` must point to the real deployed backend. If it is missing, the frontend proxy routes fall back to `http://127.0.0.1:8000`, which causes `Could not reach backend` errors.
+- `NEXT_PUBLIC_POSTHOG_KEY` / `NEXT_PUBLIC_POSTHOG_HOST` enable PostHog product analytics + full-fidelity session replay. Without the key, no analytics code runs.
+- `NEXT_PUBLIC_SENTRY_DSN` enables browser + server error monitoring. `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, and `SENTRY_PROJECT` are only read at build time to upload source maps (set them in Vercel + CI, not the client). Builds succeed without them — source maps just won't upload.
 
 ## Local Setup
 

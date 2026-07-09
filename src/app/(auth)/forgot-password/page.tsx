@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import * as React from "react";
+import posthog from "posthog-js";
 
 import { AuthShell } from "@/features/auth/components/auth-shell";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ export default function ForgotPasswordPage() {
 
 		try {
 			const result = await requestPasswordReset(email);
+			posthog.capture("password_reset_requested");
 			setMessage(result.message);
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Could not send a reset link. Please try again.");

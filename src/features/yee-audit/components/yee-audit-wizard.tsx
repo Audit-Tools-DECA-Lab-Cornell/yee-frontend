@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import posthog from "posthog-js";
 import * as React from "react";
 
 import { useAuth } from "@/features/auth/components/auth-provider";
@@ -1309,6 +1310,14 @@ export function YeeAuditWizard({
 		try {
 			setError(null);
 			await persistCurrentDraft({ ...draft, responses }, responses);
+			if (step && nextStep > step) {
+				posthog.capture("audit_step_advanced", {
+					from_step: step,
+					to_step: nextStep,
+					place_id: placeId,
+					step_label: getShortStepLabel(step)
+				});
+			}
 			router.push(
 				variant === "manager-edit" && basePath
 					? buildManagerEditHref(`${basePath}/page/${nextStep}`)
@@ -1347,6 +1356,7 @@ export function YeeAuditWizard({
 				return;
 			}
 			await persistCurrentDraft({ ...draft, responses }, responses);
+			posthog.capture("audit_review_opened", { place_id: placeId });
 			router.push(
 				variant === "manager-edit" && basePath
 					? buildManagerEditHref(`${basePath}/review`)
@@ -1488,6 +1498,11 @@ export function YeeAuditWizard({
 				scorePreview: scorePayload ?? draft.scorePreview
 			};
 			setDraft(nextDraft);
+			posthog.capture("audit_submitted", {
+				place_id: placeId,
+				total_score: scorePayload?.total_score ?? null,
+				total_minutes: submissionDraft.totalMinutes
+			});
 			router.push(`/yee/audit/${placeId}/submitted?submissionId=${encodeURIComponent(String(data.id))}`);
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Failed to submit audit.");
@@ -2105,6 +2120,11 @@ export function YeeAuditWizard({
 									} else {
 										await persistCurrentDraft(draft, responses);
 									}
+									posthog.capture("audit_saved_and_exited", {
+										place_id: placeId,
+										current_step: step ?? null,
+										variant
+									});
 									router.push(exitHref);
 								} catch (err) {
 									setError(

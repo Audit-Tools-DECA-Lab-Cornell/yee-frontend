@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
+import posthog from "posthog-js";
 
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { AuthShell } from "@/features/auth/components/auth-shell";
@@ -98,6 +99,10 @@ export default function CompleteProfilePage() {
 				profession_disciplines: disciplines,
 				organization,
 				phone_number: phoneNumber.trim() || undefined
+			});
+			posthog.capture("profile_completed", {
+				discipline_count: disciplines.length,
+				account_type: nextSession.user.account_type
 			});
 			router.replace(getRouteForUser(nextSession.user));
 		} catch (err) {

@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -58,6 +59,9 @@ export async function proxyRequest({
 		const data: unknown = parseBackendJson(text);
 		return NextResponse.json(data, { status: response.status });
 	} catch (error) {
+		// Report the transport failure (timeout, DNS, connection refused) to Sentry
+		// with the backend path for triage; the URL itself is not exposed to the client.
+		Sentry.captureException(error, { tags: { proxy: "authed", backend_path: path } });
 		// Do NOT expose backendUrl in the error — it could reveal internal topology.
 		return errorResponse(`Backend request failed: ${error instanceof Error ? error.message : String(error)}`, 502);
 	}
@@ -97,6 +101,7 @@ export async function proxyPublicRequest({
 		const data: unknown = parseBackendJson(text);
 		return NextResponse.json(data, { status: response.status });
 	} catch (error) {
+		Sentry.captureException(error, { tags: { proxy: "public", backend_path: path } });
 		return errorResponse(`Backend request failed: ${error instanceof Error ? error.message : String(error)}`, 502);
 	}
 }

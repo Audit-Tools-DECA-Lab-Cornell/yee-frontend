@@ -44,3 +44,7 @@ next-env.d.ts
 .worktrees/
 test-results/
 public/screenshots/
+.env.local
+
+# Sentry Config File
+.env.sentry-build-plugin

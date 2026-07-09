@@ -1,0 +1,7 @@
+{
+	"mcpServers": {
+		"Sentry": {
+			"url": "https://mcp.sentry.dev/mcp/audit-tools-deca-lab/yee-frontend"
+		}
+	}
+}

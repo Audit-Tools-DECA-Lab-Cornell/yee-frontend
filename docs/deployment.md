@@ -114,6 +114,15 @@ These are both important:
 - `API_BASE_URL` is used by server-side Next.js API proxy routes
 - `NEXT_PUBLIC_API_BASE_URL` is available to client-side helpers
 
+### Analytics & error-monitoring env (optional but recommended for the pilot)
+
+- `NEXT_PUBLIC_POSTHOG_KEY` — PostHog project API key (enables product analytics + session replay)
+- `NEXT_PUBLIC_POSTHOG_HOST` — e.g. `https://us.i.posthog.com`
+- `NEXT_PUBLIC_SENTRY_DSN` — Sentry browser/server DSN (enables error monitoring)
+- `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` — build-time only; enable Sentry source-map upload so stack traces are readable. Mark `SENTRY_AUTH_TOKEN` as a sensitive/secret env in Vercel.
+
+All are optional: the app builds and runs with them unset (analytics/monitoring simply stay dormant).
+
 ### Frontend verification
 
 After deploy, verify:

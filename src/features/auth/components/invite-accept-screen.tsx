@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 
+import posthog from "posthog-js";
+
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { AuthShell } from "@/features/auth/components/auth-shell";
 import { PasswordField } from "@/features/auth/components/password-field";
@@ -56,6 +58,15 @@ export function InviteAcceptScreen({ token }: { token: string }) {
 		setError(null);
 		try {
 			const session = await acceptInvite(token, { name, password });
+			posthog.identify(session.user.id, {
+				name: session.user.name ?? undefined,
+				role: session.user.account_type,
+				organization: session.user.organization ?? undefined
+			});
+			posthog.capture("invite_accepted", {
+				account_type: session.user.account_type,
+				organization: session.user.organization ?? undefined
+			});
 			adoptSession(session);
 			router.replace(getRouteForUser(session.user));
 		} catch (err) {

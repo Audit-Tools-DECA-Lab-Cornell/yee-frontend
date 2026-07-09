@@ -3,6 +3,7 @@
 import * as React from "react";
 import { ChevronDown, Download } from "lucide-react";
 import { toast } from "sonner";
+import posthog from "posthog-js";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -54,10 +55,12 @@ export function ExportMenuButton<TFormat extends string>({
 		setPending(format);
 		try {
 			await onExport(format);
+			posthog.capture("report_exported", { format });
 		} catch (error) {
 			toast.error("Export failed", {
 				description: error instanceof Error ? error.message : "Something went wrong while generating the file."
 			});
+			posthog.captureException(error);
 		} finally {
 			setPending(null);
 		}

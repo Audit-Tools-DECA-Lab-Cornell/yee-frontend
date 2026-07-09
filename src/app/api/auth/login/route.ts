@@ -4,6 +4,7 @@ import { setSessionCookie } from "@/lib/auth/cookies";
 import type { SessionUser } from "@/types/auth";
 import { getApiBaseUrl } from "@/server/backend/config";
 import { errorResponse, parseBackendJson } from "@/server/backend/response";
+import { getPostHogServerClient } from "@/lib/analytics/posthog-server";
 
 type BackendLoginResponse = {
 	access_token: string;
@@ -33,6 +34,18 @@ export async function POST(request: Request) {
 		}
 
 		const loginData = data as BackendLoginResponse;
+
+		// Track server-side login event so it is captured even if the client
+		// call is blocked by an ad blocker.
+		const posthog = getPostHogServerClient();
+		posthog.capture({
+			distinctId: loginData.user.id,
+			event: "server_user_logged_in",
+			properties: {
+				account_type: loginData.user.account_type,
+				organization: loginData.user.organization ?? undefined
+			}
+		});
 
 		// Return only the user to the browser — the raw access_token goes into
 		// an HttpOnly cookie and is never visible to client-side JavaScript.

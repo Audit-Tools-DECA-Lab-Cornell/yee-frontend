@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import * as React from "react";
 
+import posthog from "posthog-js";
+
 import { useAuth } from "@/features/auth/components/auth-provider";
 import { AuthShell } from "@/features/auth/components/auth-shell";
 import { PasswordField } from "@/features/auth/components/password-field";
@@ -50,6 +52,7 @@ export default function SignupPage() {
 
 		try {
 			await submitSignup(false);
+			posthog.capture("manager_signed_up", { organization });
 			router.push(`/verify-email?email=${encodeURIComponent(email)}`);
 		} catch (err) {
 			const message = err instanceof Error ? err.message : "Signup failed.";
