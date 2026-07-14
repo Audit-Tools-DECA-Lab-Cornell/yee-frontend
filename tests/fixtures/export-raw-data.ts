@@ -4,6 +4,7 @@ export const rawDataRecords: RawDataRecord[] = [
 	{
 		audit_id: "11111111-1111-4111-8111-111111111111",
 		auditor_generated_id: "AUD007",
+		participant_id: "P-042",
 		organization: "Youth Enabling Environments Collaborative",
 		place_id: "place-a",
 		place_name: "Riverside Park",

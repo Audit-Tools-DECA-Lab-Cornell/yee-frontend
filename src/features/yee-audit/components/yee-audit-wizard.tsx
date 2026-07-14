@@ -618,6 +618,7 @@ function buildParticipantInfo(draft: YeeAuditDraft) {
 	return {
 		auditor_id: draft.auditorId,
 		auditor_name: draft.auditorName,
+		participant_id: draft.participantId,
 		place_id: draft.placeId,
 		place_name: draft.placeName,
 		audit_date: draft.auditDate,
@@ -652,6 +653,10 @@ function draftFromAuditState(placeId: string, state: YeeAuditState): YeeAuditDra
 			typeof participantInfo.auditor_name === "string" && participantInfo.auditor_name
 				? participantInfo.auditor_name
 				: baseDraft.auditorName,
+		participantId:
+			typeof participantInfo.participant_id === "string"
+				? participantInfo.participant_id
+				: baseDraft.participantId,
 		auditDate:
 			typeof participantInfo.audit_date === "string" && participantInfo.audit_date
 				? participantInfo.audit_date
@@ -718,6 +723,10 @@ function draftFromStoredRecord(
 			typeof participantInfo.auditor_name === "string" && participantInfo.auditor_name
 				? participantInfo.auditor_name
 				: baseDraft.auditorName,
+		participantId:
+			typeof participantInfo.participant_id === "string"
+				? participantInfo.participant_id
+				: baseDraft.participantId,
 		auditDate:
 			typeof participantInfo.audit_date === "string" && participantInfo.audit_date
 				? participantInfo.audit_date
@@ -1587,6 +1596,7 @@ export function YeeAuditWizard({
 									<p className="font-medium text-foreground">Audit metadata</p>
 									<p>Place: {draft.placeName || "Not recorded"}</p>
 									<p>Generated auditor ID: {draft.auditorId}</p>
+									<p>Participant ID: {draft.participantId || "Not provided"}</p>
 									<p>Date: {draft.auditDate || "Not answered"}</p>
 									<p>Start time: {draft.startTime || "Not answered"}</p>
 									<p>Finish time: {draft.finishTime || "Will be recorded on submit"}</p>
@@ -1869,6 +1879,18 @@ export function YeeAuditWizard({
 										onChange={event => updateDraft("auditDate", event.target.value)}
 									/>
 								</div>
+							</div>
+							<div className="space-y-2">
+								<Label htmlFor="participant-id">Participant ID</Label>
+								<Input
+									id="participant-id"
+									value={draft.participantId}
+									onChange={event => updateDraft("participantId", event.target.value)}
+									placeholder="Optional"
+								/>
+								<p className="text-xs text-muted-foreground">
+									Optional — links this audit to a study or workshop participant.
+								</p>
 							</div>
 							<div className="space-y-3">
 								<Label>

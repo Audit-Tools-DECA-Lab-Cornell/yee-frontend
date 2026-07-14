@@ -75,6 +75,7 @@ export function buildAuditOverview(submission: YeeSubmissionRecord): AuditOvervi
 		fields: [
 			{ label: "Place", value: submission.place_name || submission.place_id },
 			{ label: "Auditor ID", value: resolveAuditorId(submission.auditor_generated_id) },
+			{ label: "Participant ID", value: participantString(participantInfo, "participant_id") },
 			{ label: "Audit date", value: participantString(participantInfo, "audit_date") },
 			{ label: "Visit frequency", value: participantString(participantInfo, "visit_frequency") },
 			{ label: "Season", value: participantString(participantInfo, "season") },

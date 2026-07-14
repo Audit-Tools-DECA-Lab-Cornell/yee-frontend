@@ -6,6 +6,7 @@ export type MyYeeAuditRecord = {
 	place_name: string;
 	submitted_at: string;
 	total_score: number;
+	participant_id?: string | null;
 };
 
 /**

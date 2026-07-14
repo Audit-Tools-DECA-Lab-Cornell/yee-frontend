@@ -573,6 +573,14 @@ const latestAuditColumns: ColumnDef<AuditRecord>[] = [
 		cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
 	},
 	{
+		accessorKey: "participant_id",
+		header: "Participant ID",
+		cell: ({ getValue }) => {
+			const value = getValue();
+			return <span className="text-muted-foreground">{value ? String(value) : "—"}</span>;
+		}
+	},
+	{
 		accessorKey: "date",
 		header: "Date",
 		cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
@@ -599,6 +607,9 @@ function AuditSummaryMobileCard({ audit }: { audit: AuditRecord }) {
 					<p className="text-sm text-muted-foreground">
 						{audit.auditor} · {audit.date}
 					</p>
+					{audit.participant_id ? (
+						<p className="text-sm text-muted-foreground">Participant {audit.participant_id}</p>
+					) : null}
 				</div>
 				<StatusBadge label={audit.status} tone="secondary" />
 			</div>
@@ -637,7 +648,10 @@ function AuditRowMobileCard({
 						<p className="font-medium text-foreground">{audit.place}</p>
 						<StatusBadge label={audit.status} tone="secondary" />
 					</div>
-					<p className="text-sm text-muted-foreground">{audit.auditor}</p>
+					<p className="text-sm text-muted-foreground">
+						{audit.auditor}
+						{audit.participant_id ? ` · Participant ${audit.participant_id}` : ""}
+					</p>
 					<AuditScoreCell audit={audit} />
 				</div>
 			</div>
@@ -1516,6 +1530,14 @@ export function LiveAuditsTable() {
 				accessorKey: "auditor",
 				header: "Auditor ID",
 				cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+			},
+			{
+				accessorKey: "participant_id",
+				header: "Participant ID",
+				cell: ({ getValue }) => {
+					const value = getValue();
+					return <span className="text-muted-foreground">{value ? String(value) : "—"}</span>;
+				}
 			},
 			{
 				accessorKey: "status",

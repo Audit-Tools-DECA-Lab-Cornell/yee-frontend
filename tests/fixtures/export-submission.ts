@@ -83,6 +83,7 @@ export const sampleSubmission: YeeSubmissionRecord = {
 	auditor_generated_id: "AUD007",
 	submitted_at: "2026-06-12T14:30:00Z",
 	participant_info: {
+		participant_id: "P-042",
 		audit_date: "2026-06-12",
 		visit_frequency: "Weekly",
 		season: "Summer",

@@ -199,6 +199,14 @@ export function LiveRawDataTable({
 			)
 		},
 		{
+			accessorKey: "participant_id",
+			header: "Participant ID",
+			cell: ({ getValue }) => {
+				const value = getValue();
+				return <span className="text-muted-foreground">{value ? String(value) : "—"}</span>;
+			}
+		},
+		{
 			accessorKey: "place_name",
 			header: "Place",
 			cell: ({ getValue }) => <span className="font-medium text-foreground">{String(getValue())}</span>
@@ -242,6 +250,9 @@ export function LiveRawDataTable({
 						{row.project_name} · {row.organization}
 					</p>
 					<p className="font-mono text-xs text-muted-foreground">{row.auditor_generated_id}</p>
+					{row.participant_id ? (
+						<p className="text-xs text-muted-foreground">Participant {row.participant_id}</p>
+					) : null}
 				</div>
 			</div>
 			<div className="flex justify-between text-sm tabular-nums text-foreground">

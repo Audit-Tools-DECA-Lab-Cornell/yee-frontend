@@ -23,6 +23,11 @@ function auditStatusMeta(state: AuditState | undefined): { label: string; tone: 
 	return { label: "Not started", tone: "secondary" };
 }
 
+function participantIdLabel(state: AuditState | undefined): string {
+	const value = state?.participant_info?.participant_id;
+	return typeof value === "string" && value.trim() ? value : "—";
+}
+
 function ScoreCellContent({ state }: { state: AuditState | undefined }) {
 	const score = state?.score ?? null;
 	if (!score) return <span className="text-muted-foreground">—</span>;
@@ -74,6 +79,9 @@ function AuditHistoryMobileCard({ place, state }: { place: AssignedPlace; state:
 				<p className="font-medium text-foreground">{place.name}</p>
 				<StatusBadge label={status.label} tone={status.tone} />
 			</div>
+			{participantIdLabel(state) !== "—" ? (
+				<p className="text-sm text-muted-foreground">Participant {participantIdLabel(state)}</p>
+			) : null}
 			<ScoreCellContent state={state} />
 			<AuditActionButton place={place} state={state} />
 		</div>
@@ -130,6 +138,14 @@ export function AuditorAuditHistory({
 				accessorKey: "name",
 				header: "Place",
 				cell: ({ row }) => <span className="font-medium text-foreground">{row.original.name}</span>
+			},
+			{
+				id: "participant",
+				header: "Participant ID",
+				enableSorting: false,
+				cell: ({ row }) => (
+					<span className="text-muted-foreground">{participantIdLabel(auditStates[row.original.id])}</span>
+				)
 			},
 			{
 				id: "status",

@@ -17,6 +17,7 @@ export function rawDataExportRows(rows: RawDataRecord[]): Record<string, string 
 		const base: Record<string, string | number> = {
 			Organization: row.organization,
 			"Auditor ID": row.auditor_generated_id,
+			"Participant ID": row.participant_id || "",
 			Place: row.place_name,
 			Project: row.project_name,
 			Date: row.date,
@@ -73,6 +74,12 @@ export const RAW_DATA_DICTIONARY: DataDictionaryEntry[] = [
 		meaning: "Generated auditor code (never a name or email)",
 		type: "text",
 		allowed: "AUD###"
+	},
+	{
+		column: "Participant ID",
+		meaning: "Optional free-text ID linking the audit to a study/workshop participant",
+		type: "text",
+		allowed: "free text (may be blank)"
 	},
 	{ column: "Place", meaning: "Name of the audited place", type: "text", allowed: "free text" },
 	{ column: "Project", meaning: "Project the place belongs to", type: "text", allowed: "free text" },

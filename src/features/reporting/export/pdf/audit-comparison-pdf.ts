@@ -46,10 +46,11 @@ export async function generateAuditComparisonPdf(
 		startY: y,
 		margin: { top: PAGE.continuationTop, bottom: PAGE.marginBottom, left: PAGE.marginX, right: PAGE.marginX },
 		theme: "grid",
-		head: [["Place", "Auditor", "Date", "Raw", "Raw %", "Youth-weighted", "YW %"]],
+		head: [["Place", "Auditor", "Participant", "Date", "Raw", "Raw %", "Youth-weighted", "YW %"]],
 		body: records.map(record => [
 			record.place_name,
 			resolveAuditorId(record.auditor_id),
+			record.participant_id || "—",
 			record.date,
 			`${record.total_raw_score}/${record.total_raw_maximum}`,
 			`${auditRawPercent(record).toFixed(0)}%`,
@@ -66,15 +67,15 @@ export async function generateAuditComparisonPdf(
 		},
 		headStyles: { fillColor: hexToRgb(palette.brand.green900), textColor: [255, 255, 255], fontStyle: "bold" },
 		columnStyles: {
-			3: { halign: "right" },
 			4: { halign: "right" },
 			5: { halign: "right" },
-			6: { halign: "right" }
+			6: { halign: "right" },
+			7: { halign: "right" }
 		},
 		didParseCell: data => {
-			if (data.section === "body" && (data.column.index === 4 || data.column.index === 6)) {
+			if (data.section === "body" && (data.column.index === 5 || data.column.index === 7)) {
 				const record = records[data.row.index];
-				const percent = data.column.index === 4 ? auditRawPercent(record) : auditWeightedPercent(record);
+				const percent = data.column.index === 5 ? auditRawPercent(record) : auditWeightedPercent(record);
 				const band = bandForPercent(percent);
 				data.cell.styles.fillColor = hexToRgb(palette.bands[band].bg);
 				data.cell.styles.textColor = hexToRgb(palette.bands[band].fg);

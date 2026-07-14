@@ -334,6 +334,7 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 					<dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2 lg:grid-cols-4 report-print-stack">
 						<MetaField label="Place" value={placeName} />
 						<MetaField label="Auditor ID" value={auditorLabel} />
+						<MetaField label="Participant ID" value={String(participantInfo.participant_id || "")} />
 						<MetaField label="Submitted" value={formatSubmittedAt(submission.submitted_at)} />
 						<MetaField label="Audit date" value={String(participantInfo.audit_date || "")} />
 						<MetaField label="Visit frequency" value={String(participantInfo.visit_frequency || "")} />

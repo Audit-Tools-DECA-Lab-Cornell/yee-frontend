@@ -15,6 +15,8 @@ import type { PlaceComparisonAuditRecord } from "@/features/workspaces/api/live-
 
 import type { RawDataRecord } from "@/features/workspaces/api/live-api";
 
+import { sanitizeCsvCell } from "@/lib/csv/sanitize-cell";
+
 import { auditRawPercent, auditWeightedPercent } from "./comparison-metrics";
 import { resolveAuditorId } from "./identity";
 import { rawDataExportRows } from "./raw-data-columns";
@@ -23,10 +25,12 @@ import { toCsv } from "../reporting";
 import type { PlaceComparisonSummary } from "./types";
 
 /**
- * R1 single-submission CSV — byte-compatible with the legacy
- * `downloadSingleSubmissionCsv` in `yee-submission-report.tsx`. Its escaping is
- * intentionally NOT `toCsv` (unquoted header row, every cell double-quoted, no
- * formula-injection prefix), matching the original exactly.
+ * R1 single-submission CSV — layout-compatible with the legacy
+ * `downloadSingleSubmissionCsv` in `yee-submission-report.tsx` (unquoted header
+ * row, every cell double-quoted). Unlike the original, each cell is passed through
+ * `sanitizeCsvCell` so a formula-triggering free-text value (e.g. a participant ID
+ * or comment starting with `=`, `+`, `-`, `@`) is neutralized — quoting alone does
+ * not stop a spreadsheet from evaluating it. Benign values are byte-unchanged.
  */
 export function buildSingleSubmissionCsv(
 	submission: YeeSubmissionRecord,
@@ -61,7 +65,7 @@ export function buildSingleSubmissionCsv(
 	const headers = Object.keys(row);
 	return [
 		headers.join(","),
-		headers.map(header => `"${String(row[header] ?? "").replace(/"/g, '""')}"`).join(",")
+		headers.map(header => `"${sanitizeCsvCell(String(row[header] ?? "")).replace(/"/g, '""')}"`).join(",")
 	].join("\n");
 }
 
@@ -96,6 +100,7 @@ function auditRowsCsv(records: PlaceComparisonAuditRecord[]): string {
 			project: record.project_name,
 			place: record.place_name,
 			auditor_id: record.auditor_id,
+			participant_id: record.participant_id || "",
 			date: record.date,
 			raw_score: `${record.total_raw_score}/${record.total_raw_maximum}`,
 			raw_percent: `${auditRawPercent(record).toFixed(1)}%`,

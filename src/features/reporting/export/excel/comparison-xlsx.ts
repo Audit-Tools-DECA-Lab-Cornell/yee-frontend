@@ -94,6 +94,7 @@ export function generateTrendXlsx(input: TrendReportInput, palette: ExportPalett
 		[
 			cell("Date", styles.header),
 			cell("Auditor", styles.header),
+			cell("Participant", styles.header),
 			cell("Raw score", styles.header),
 			cell("Raw max", styles.header),
 			cell("Raw %", styles.header),
@@ -105,6 +106,7 @@ export function generateTrendXlsx(input: TrendReportInput, palette: ExportPalett
 		timeline.push([
 			cell(record.date, styles.body),
 			cell(resolveAuditorId(record.auditor_id), styles.body),
+			cell(record.participant_id || "—", styles.body),
 			cell(record.total_raw_score, styles.body),
 			cell(record.total_raw_maximum, styles.body),
 			cell(Math.round(auditRawPercent(record)), styles.body),
@@ -112,7 +114,7 @@ export function generateTrendXlsx(input: TrendReportInput, palette: ExportPalett
 			cell(Math.round(auditWeightedPercent(record)), styles.body)
 		]);
 	}
-	appendSheet(wb, buildStyledSheet(timeline, { colWidths: [14, 12, 12, 10, 8, 18, 8] }), "Timeline");
+	appendSheet(wb, buildStyledSheet(timeline, { colWidths: [14, 12, 14, 12, 10, 8, 18, 8] }), "Timeline");
 
 	// Change summary sheet.
 	const change: StyledCell[][] = [
@@ -144,7 +146,7 @@ export function generateAuditComparisonXlsx(input: AuditComparisonReportInput, p
 	appendSheet(
 		wb,
 		buildStyledSheet(auditRowsGrid(input.records, styles, "Selected audits"), {
-			colWidths: [24, 24, 12, 12, 12, 18, 10]
+			colWidths: [24, 24, 14, 12, 12, 12, 18, 10]
 		}),
 		"Side by side"
 	);
@@ -177,6 +179,7 @@ function auditRowsGrid(
 	grid.push([
 		cell("Place", styles.header),
 		cell("Auditor", styles.header),
+		cell("Participant", styles.header),
 		cell("Date", styles.header),
 		cell("Raw score", styles.header),
 		cell("Raw %", styles.header),
@@ -187,6 +190,7 @@ function auditRowsGrid(
 		grid.push([
 			cell(record.place_name, styles.body),
 			cell(resolveAuditorId(record.auditor_id), styles.body),
+			cell(record.participant_id || "—", styles.body),
 			cell(record.date, styles.body),
 			cell(`${record.total_raw_score}/${record.total_raw_maximum}`, styles.body),
 			cell(Math.round(auditRawPercent(record)), styles.body),
