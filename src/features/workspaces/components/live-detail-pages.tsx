@@ -164,6 +164,14 @@ const latestAuditColumns: ColumnDef<AuditRecord>[] = [
 		cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
 	},
 	{
+		accessorKey: "participant_id",
+		header: "Participant ID",
+		cell: ({ getValue }) => {
+			const value = getValue();
+			return <span className="text-muted-foreground">{value ? String(value) : "—"}</span>;
+		}
+	},
+	{
 		accessorKey: "date",
 		header: "Date",
 		cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
@@ -189,6 +197,7 @@ function AuditMobileCard({ audit }: { audit: AuditRecord }) {
 			</div>
 			<p className="text-sm text-muted-foreground">
 				{audit.auditor} · {audit.date}
+				{audit.participant_id ? ` · Participant ${audit.participant_id}` : ""}
 			</p>
 			<p className="text-sm tabular-nums text-muted-foreground">Score: {audit.score || "—"}</p>
 		</div>
