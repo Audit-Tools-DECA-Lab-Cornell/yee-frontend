@@ -96,6 +96,7 @@ function auditRowsCsv(records: PlaceComparisonAuditRecord[]): string {
 			project: record.project_name,
 			place: record.place_name,
 			auditor_id: record.auditor_id,
+			participant_id: record.participant_id || "",
 			date: record.date,
 			raw_score: `${record.total_raw_score}/${record.total_raw_maximum}`,
 			raw_percent: `${auditRawPercent(record).toFixed(1)}%`,

@@ -13,6 +13,8 @@ export type YeeAuditDraft = {
 	placeName: string;
 	auditorId: string;
 	auditorName: string;
+	/** Optional free-text ID linking this audit to a study/workshop participant. */
+	participantId: string;
 	auditDate: string;
 	startTime: string;
 	finishTime: string;
@@ -136,6 +138,7 @@ export function createDefaultDraft(placeId: string): YeeAuditDraft {
 		placeName: "",
 		auditorId: "AUD000",
 		auditorName: "",
+		participantId: "",
 		auditDate: startedAt.toISOString().slice(0, 10),
 		startTime: startedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
 		finishTime: "",

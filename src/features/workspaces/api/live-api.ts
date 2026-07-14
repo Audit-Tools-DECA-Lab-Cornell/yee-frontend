@@ -17,6 +17,7 @@ export type AuditRecord = {
 	place_id: string;
 	place: string;
 	auditor: string;
+	participant_id?: string | null;
 	date: string;
 	submitted_at?: string | null;
 	score: number;
@@ -245,6 +246,7 @@ export type ComparisonDomainScores = {
 export type PlaceComparisonAuditRecord = {
 	audit_id: string;
 	auditor_id: string;
+	participant_id?: string | null;
 	place_id: string;
 	place_name: string;
 	project_id: string;
@@ -323,6 +325,7 @@ export type PlaceDetailRecord = {
 export type RawDataRecord = {
 	audit_id: string;
 	auditor_generated_id: string;
+	participant_id?: string | null;
 	organization: string;
 	place_id: string;
 	place_name: string;

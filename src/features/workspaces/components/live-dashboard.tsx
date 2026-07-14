@@ -573,6 +573,14 @@ const latestAuditColumns: ColumnDef<AuditRecord>[] = [
 		cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
 	},
 	{
+		accessorKey: "participant_id",
+		header: "Participant ID",
+		cell: ({ getValue }) => {
+			const value = getValue();
+			return <span className="text-muted-foreground">{value ? String(value) : "—"}</span>;
+		}
+	},
+	{
 		accessorKey: "date",
 		header: "Date",
 		cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
@@ -1516,6 +1524,14 @@ export function LiveAuditsTable() {
 				accessorKey: "auditor",
 				header: "Auditor ID",
 				cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+			},
+			{
+				accessorKey: "participant_id",
+				header: "Participant ID",
+				cell: ({ getValue }) => {
+					const value = getValue();
+					return <span className="text-muted-foreground">{value ? String(value) : "—"}</span>;
+				}
 			},
 			{
 				accessorKey: "status",

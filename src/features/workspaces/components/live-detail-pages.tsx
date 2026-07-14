@@ -522,6 +522,14 @@ const submittedReportColumns: ColumnDef<PlaceComparisonAuditRecord>[] = [
 		cell: ({ getValue }) => <span className="font-medium text-foreground">{String(getValue())}</span>
 	},
 	{
+		accessorKey: "participant_id",
+		header: "Participant ID",
+		cell: ({ getValue }) => {
+			const value = getValue();
+			return <span className="text-muted-foreground">{value ? String(value) : "—"}</span>;
+		}
+	},
+	{
 		accessorKey: "date",
 		header: "Submitted",
 		cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
@@ -567,6 +575,9 @@ function SubmittedReportMobileCard({ record }: { record: PlaceComparisonAuditRec
 				<p className="font-medium text-foreground">{record.auditor_id}</p>
 				<span className="text-xs text-muted-foreground">{record.date}</span>
 			</div>
+			{record.participant_id ? (
+				<p className="text-sm text-muted-foreground">Participant {record.participant_id}</p>
+			) : null}
 			<p className="text-sm tabular-nums text-muted-foreground">
 				Raw {record.total_raw_score} / {record.total_raw_maximum} · Youth{" "}
 				{record.total_weighted_score.toFixed(2)} / {record.total_weighted_maximum.toFixed(2)}

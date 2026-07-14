@@ -62,6 +62,7 @@ export const comparisonRecords: PlaceComparisonAuditRecord[] = [
 	record({
 		audit_id: "a2",
 		date: "2026-04-20",
+		participant_id: "P-208",
 		total_raw_score: 74,
 		total_weighted_score: 1.31,
 		raw_domain_scores: {
@@ -80,6 +81,7 @@ export const comparisonRecords: PlaceComparisonAuditRecord[] = [
 		date: "2026-03-02",
 		total_raw_score: 62,
 		total_weighted_score: 1.12,
-		auditor_id: "AUD012"
+		auditor_id: "AUD012",
+		participant_id: "P-315"
 	})
 ];

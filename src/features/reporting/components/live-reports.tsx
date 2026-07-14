@@ -710,6 +710,14 @@ export function LiveReports() {
 			cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
 		},
 		{
+			accessorKey: "participant_id",
+			header: "Participant ID",
+			cell: ({ getValue }) => {
+				const value = getValue();
+				return <span className="text-muted-foreground">{value ? String(value) : "—"}</span>;
+			}
+		},
+		{
 			accessorKey: "date",
 			header: "Date",
 			cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
@@ -774,6 +782,7 @@ export function LiveReports() {
 						</Link>
 						<p className="text-sm text-muted-foreground">
 							{record.auditor_id} · {record.date}
+							{record.participant_id ? ` · Participant ${record.participant_id}` : ""}
 						</p>
 					</div>
 				</div>
@@ -1133,6 +1142,11 @@ export function LiveReports() {
 													<p className="text-sm font-semibold text-foreground">
 														{record.auditor_id}
 													</p>
+													{record.participant_id ? (
+														<p className="text-sm text-muted-foreground">
+															Participant {record.participant_id}
+														</p>
+													) : null}
 													<p className="text-sm text-muted-foreground">
 														Raw Score {record.total_raw_score} (
 														{getAuditRawPercent(record).toFixed(0)}%)

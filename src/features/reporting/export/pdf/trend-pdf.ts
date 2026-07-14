@@ -63,10 +63,11 @@ export async function generateTrendPdf(
 		startY: y,
 		margin: { top: PAGE.continuationTop, bottom: PAGE.marginBottom, left: PAGE.marginX, right: PAGE.marginX },
 		theme: "grid",
-		head: [["Date", "Auditor", "Raw score", "Raw %", "Youth-weighted", "YW %"]],
+		head: [["Date", "Auditor", "Participant", "Raw score", "Raw %", "Youth-weighted", "YW %"]],
 		body: sorted.map(record => [
 			record.date,
 			resolveAuditorId(record.auditor_id),
+			record.participant_id || "—",
 			`${record.total_raw_score}/${record.total_raw_maximum}`,
 			`${auditRawPercent(record).toFixed(0)}%`,
 			`${record.total_weighted_score.toFixed(2)}/${record.total_weighted_maximum.toFixed(2)}`,
@@ -81,7 +82,7 @@ export async function generateTrendPdf(
 			textColor: hexToRgb(palette.brand.foreground)
 		},
 		headStyles: { fillColor: hexToRgb(palette.brand.green900), textColor: [255, 255, 255], fontStyle: "bold" },
-		columnStyles: { 2: { halign: "right" }, 3: { halign: "right" }, 4: { halign: "right" }, 5: { halign: "right" } }
+		columnStyles: { 3: { halign: "right" }, 4: { halign: "right" }, 5: { halign: "right" }, 6: { halign: "right" } }
 	});
 	y = lastTableY(doc) + 12;
 

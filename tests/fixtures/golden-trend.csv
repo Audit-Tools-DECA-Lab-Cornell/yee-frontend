@@ -1,4 +1,4 @@
-project,place,auditor_id,date,raw_score,raw_percent,youth_weighted_score,youth_weighted_percent
-"Downtown Greening","Riverside Park","AUD007","2026-01-15","56/125","44.8%","1.03/1.83","56.3%"
-"Downtown Greening","Riverside Park","AUD007","2026-04-20","74/125","59.2%","1.31/1.83","71.6%"
-"Downtown Greening","Lincoln Square","AUD012","2026-03-02","62/125","49.6%","1.12/1.83","61.2%"
+project,place,auditor_id,participant_id,date,raw_score,raw_percent,youth_weighted_score,youth_weighted_percent
+"Downtown Greening","Riverside Park","AUD007","","2026-01-15","56/125","44.8%","1.03/1.83","56.3%"
+"Downtown Greening","Riverside Park","AUD007","P-208","2026-04-20","74/125","59.2%","1.31/1.83","71.6%"
+"Downtown Greening","Lincoln Square","AUD012","P-315","2026-03-02","62/125","49.6%","1.12/1.83","61.2%"
