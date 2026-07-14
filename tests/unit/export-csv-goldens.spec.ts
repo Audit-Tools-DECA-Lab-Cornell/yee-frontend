@@ -39,3 +39,15 @@ test("resolveAuditorId returns the generated id when present", () => {
 	expect(resolveAuditorId("  ")).toBe(resolveAuditorId(null));
 	expect(resolveAuditorId(undefined)).toBe(resolveAuditorId(""));
 });
+
+test("single-submission CSV neutralizes formula injection in free-text participant fields", () => {
+	const malicious = {
+		...sampleSubmission,
+		participant_info: { ...sampleSubmission.participant_info, participant_id: '=HYPERLINK("http://evil")' }
+	};
+	const csv = buildSingleSubmissionCsv(malicious, sampleInstrument);
+	// The dangerous value is prefixed with a single quote so spreadsheets treat it as
+	// literal text; it must never reach the cell as a bare formula.
+	expect(csv).toContain(`"'=HYPERLINK(""http://evil"")"`);
+	expect(csv).not.toContain(`"=HYPERLINK`);
+});
