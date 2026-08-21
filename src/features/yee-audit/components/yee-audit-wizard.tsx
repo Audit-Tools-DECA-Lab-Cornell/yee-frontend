@@ -1074,10 +1074,7 @@ export function YeeAuditWizard({
 	// Auditor-facing copy authored in the instrument and editable from the admin
 	// Audit Copy tab. Falls back to the wording this wizard used before, so
 	// instrument versions that predate these keys render unchanged.
-	const weightingOptions = React.useMemo(
-		() => resolveWeightingOptions(instrument, yeeWeightOptions),
-		[instrument]
-	);
+	const weightingOptions = React.useMemo(() => resolveWeightingOptions(instrument, yeeWeightOptions), [instrument]);
 	const finalCommentsPrompt = resolveFinalCommentsPrompt(instrument, "Final optional comments");
 	const conditionPrompt = resolveConditionPrompt(instrument, "Condition");
 	const [draft, setDraft] = React.useState<YeeAuditDraft>(() => createDefaultDraft(placeId));

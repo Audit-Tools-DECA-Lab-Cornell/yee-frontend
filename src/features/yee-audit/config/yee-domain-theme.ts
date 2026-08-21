@@ -193,5 +193,8 @@ export function getThemeByStep(step: YeeStepNumber) {
 export function getThemeByBlock(block: string | null | undefined): DomainTheme | null {
 	if (!block) return null;
 	const haystack = block.toLowerCase();
-	return Object.values(yeeDomainThemes).find(theme => haystack.includes(getBlockMatch(theme.label).toLowerCase())) ?? null;
+	return (
+		Object.values(yeeDomainThemes).find(theme => haystack.includes(getBlockMatch(theme.label).toLowerCase())) ??
+		null
+	);
 }
