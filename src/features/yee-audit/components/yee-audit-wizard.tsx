@@ -1650,7 +1650,7 @@ export function YeeAuditWizard({
 															borderColor: theme?.strongHex ?? "#94a3b8",
 															color: theme?.strongHex ?? "#0f172a"
 														}}>
-														{getOptionLabel(yeeWeightOptions, draft.weights[key])}
+														{getOptionLabel(weightingOptions, draft.weights[key])}
 													</span>
 												</div>
 											);
@@ -1728,7 +1728,7 @@ export function YeeAuditWizard({
 																	{row.condition ? (
 																		<div className="mt-2 pl-4">
 																			<p className="text-xs font-medium text-muted-foreground">
-																				Condition
+																				{conditionPrompt}
 																			</p>
 																			<span
 																				className={`mt-1.5 inline-flex rounded-full border px-3 py-0.5 text-xs font-semibold ${section.theme?.condition ?? "border-border bg-muted text-foreground"}`}>
