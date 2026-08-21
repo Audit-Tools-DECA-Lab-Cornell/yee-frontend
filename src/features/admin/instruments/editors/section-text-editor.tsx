@@ -45,9 +45,8 @@ function sectionHeading(group: QuestionGroup) {
  * The section → item → field nesting is carried by contrast, not just
  * indentation: the panel is recessed, section cards are raised onto it, each
  * card wears its domain color as a left rail plus header tint, and field groups
- * are inset again. Three previously-identical near-white levels are now four
- * distinguishable ones, so it stays obvious which section and which question is
- * being edited.
+ * are inset again. Each level is a distinguishable surface, so it stays obvious
+ * which section and which question is being edited.
  */
 export function SectionTextEditor({ content, update }: { content: StructuredInstrumentContent; update: UpdateDraft }) {
 	const idBase = React.useId();

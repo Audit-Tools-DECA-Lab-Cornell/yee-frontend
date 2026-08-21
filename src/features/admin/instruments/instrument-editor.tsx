@@ -55,9 +55,9 @@ export function InstrumentEditor({
 	const [confirmingClose, setConfirmingClose] = React.useState(false);
 
 	/**
-	 * Parse once and keep the failure reason. Previously an unparseable draft
-	 * silently produced `null` and the tab editors dropped every keystroke with
-	 * no explanation; the admin typed into a dead form.
+	 * Parse once and keep the failure reason, so an unparseable draft can say why
+	 * it is unparseable. Without the reason the tab editors would drop every
+	 * keystroke with no explanation and the admin would type into a dead form.
 	 */
 	const parseResult = React.useMemo<{ content: StructuredInstrumentContent | null; error: string | null }>(() => {
 		if (!editorValue.trim()) return { content: null, error: "The instrument JSON is empty." };

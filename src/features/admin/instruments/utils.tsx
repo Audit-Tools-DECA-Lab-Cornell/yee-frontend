@@ -229,9 +229,9 @@ export function toDraftLabel(versionLabel: string) {
 
 /**
  * A `-draft` label that no existing version already uses: `1-draft`, then
- * `1-draft-2`, `1-draft-3`, … Saving twice used to mint two rows sharing one
- * label, leaving the history list ambiguous. Existing duplicates are left
- * alone — this only prevents new ones.
+ * `1-draft-2`, `1-draft-3`, … Two rows sharing one label leave the version
+ * history ambiguous. Existing duplicates are left alone — this only keeps new
+ * saves from adding more.
  */
 export function toUniqueDraftLabel(versionLabel: string, existingLabels: Iterable<string>): string {
 	const taken = new Set(Array.from(existingLabels, label => label.trim().toLowerCase()));

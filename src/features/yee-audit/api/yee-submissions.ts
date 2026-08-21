@@ -1,5 +1,7 @@
 "use client";
 
+import { ApiError, readErrorMessage } from "@/lib/api/client";
+
 export type MyYeeAuditRecord = {
 	id: string;
 	place_id: string;
@@ -18,14 +20,7 @@ export async function fetchMyYeeAudits(): Promise<MyYeeAuditRecord[]> {
 	const text = await response.text();
 	const data: unknown = text ? JSON.parse(text) : {};
 	if (!response.ok) {
-		const record = data as Record<string, unknown>;
-		const detail =
-			typeof record.detail === "string"
-				? record.detail
-				: typeof record.error === "string"
-					? record.error
-					: "Request failed.";
-		throw new Error(detail);
+		throw new ApiError(response.status, readErrorMessage(data, response.status), data);
 	}
 	return data as MyYeeAuditRecord[];
 }

@@ -182,14 +182,8 @@ export function InstrumentsAdminClient() {
 							<Skeleton className="h-4 w-28" />
 							<Skeleton className="h-6 w-44" />
 						</div>
-						{/* Column count matches the four hero stats, so nothing shifts on load. */}
 						<div className="grid gap-3 md:grid-cols-4">
 							{[0, 1, 2, 3].map(index => (
-								<Skeleton key={index} className="h-20 rounded-md" />
-							))}
-						</div>
-						<div className="grid gap-3 md:grid-cols-3">
-							{[0, 1, 2].map(index => (
 								<Skeleton key={index} className="h-20 rounded-md" />
 							))}
 						</div>

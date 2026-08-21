@@ -383,8 +383,8 @@ async function authedFetch<T>(
 	const text = await response.text();
 	const data: unknown = text ? JSON.parse(text) : {};
 	if (!response.ok) {
-		// ApiError (not Error) so structured bodies survive to the caller. The
-		// previous flat throw collapsed object-shaped `detail` into a generic
+		// ApiError (not Error) so structured bodies survive to the caller —
+		// a flat throw would collapse object-shaped `detail` into a generic
 		// message, discarding payloads such as the publish 409's
 		// `scoring_compatibility` before any handler could read them.
 		throw new ApiError(response.status, readErrorMessage(data, response.status), data);

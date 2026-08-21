@@ -1072,9 +1072,22 @@ export function YeeAuditWizard({
 	const { session } = useAuth();
 	const [instrument, setInstrument] = React.useState<InstrumentResponse | null>(null);
 	// Auditor-facing copy authored in the instrument and editable from the admin
-	// Audit Copy tab. Falls back to the wording this wizard used before, so
-	// instrument versions that predate these keys render unchanged.
-	const weightingOptions = React.useMemo(() => resolveWeightingOptions(instrument, yeeWeightOptions), [instrument]);
+	// Audit Copy tab, with a fallback for instrument versions that predate each
+	// key. Resolve every string exactly once here and use these values at every
+	// render site — the questionnaire and the review screen must never resolve
+	// the same string independently, or they drift apart.
+	const weightingOptions = resolveWeightingOptions(instrument, yeeWeightOptions);
+	const weightingTitle = resolveWeightingTitle(instrument, "Youth-Weighted Importance");
+	const weightingDescription = resolveWeightingDescription(
+		instrument,
+		"Please start by telling us how important each of the following issues are to you - especially about the play/recreation and green spaces in your community or neighborhood"
+	);
+	const weightingDomainPrompts = Object.fromEntries(
+		(Object.keys(yeeDomainLabels) as YeeDomainKey[]).map(key => [
+			key,
+			resolveWeightingDomainPrompt(instrument, key, getFallbackWeightingPrompt(key))
+		])
+	) as Record<YeeDomainKey, string>;
 	const finalCommentsPrompt = resolveFinalCommentsPrompt(instrument, "Final optional comments");
 	const conditionPrompt = resolveConditionPrompt(instrument, "Condition");
 	const [draft, setDraft] = React.useState<YeeAuditDraft>(() => createDefaultDraft(placeId));
@@ -1102,9 +1115,12 @@ export function YeeAuditWizard({
 		onConfirm: () => undefined
 	});
 
-	const openConfirm = React.useCallback((opts: Omit<ConfirmState, "open">) => {
-		setConfirmState({ ...opts, open: true });
-	}, []);
+	const openConfirm = React.useCallback(
+		(opts: Omit<ConfirmState, "open">) => {
+			setConfirmState({ ...opts, open: true });
+		},
+		[setConfirmState]
+	);
 	const lastPersistedSnapshot = React.useRef<string | null>(null);
 	const managerSubmissionId = variant === "manager-edit" ? searchParams.get("submissionId") : null;
 
@@ -1405,7 +1421,7 @@ export function YeeAuditWizard({
 		} finally {
 			setPreviewLoading(false);
 		}
-	}, [draft, responses]);
+	}, [draft, responses, setPreviewLoading, setError, setDraft]);
 
 	React.useEffect(() => {
 		if (mode !== "review") return;
@@ -1626,7 +1642,7 @@ export function YeeAuditWizard({
 									<p>Weather: {getMultiOptionLabels(weatherOptions, draft.weather)}</p>
 								</div>
 								<div className="rounded-md border border-border bg-muted/40 p-4 text-sm text-foreground">
-									<p className="font-medium text-foreground">Youth-Weighted Importance of Sections</p>
+									<p className="font-medium text-foreground">{weightingTitle}</p>
 									<div className="mt-3 space-y-3">
 										{(Object.keys(yeeDomainLabels) as YeeDomainKey[]).map(key => {
 											const theme = getThemeByStep(getStepForDomainKey(key));
@@ -1754,7 +1770,7 @@ export function YeeAuditWizard({
 								))}
 							</div>
 							<div className="rounded-md border border-border p-4">
-								<p className="text-sm font-medium text-foreground">Overall comments</p>
+								<p className="text-sm font-medium text-foreground">{finalCommentsPrompt}</p>
 								<p className="mt-2 text-sm text-muted-foreground">
 									{draft.comments || "No comments added."}
 								</p>
@@ -1961,17 +1977,8 @@ export function YeeAuditWizard({
 					<div className="space-y-4">
 						<Card className={`rounded-md border shadow-sm ${stepPalette.instruction}`}>
 							<CardContent className="py-5 text-sm leading-7 text-white">
-								<p className="text-base font-semibold text-white">
-									{resolveWeightingTitle(instrument, "Youth-Weighted Importance")}
-								</p>
-								<p className="mt-2 font-medium text-white">
-									{formatExampleText(
-										resolveWeightingDescription(
-											instrument,
-											"Please start by telling us how important each of the following issues are to you - especially about the play/recreation and green spaces in your community or neighborhood"
-										)
-									)}
-								</p>
+								<p className="text-base font-semibold text-white">{weightingTitle}</p>
+								<p className="mt-2 font-medium text-white">{formatExampleText(weightingDescription)}</p>
 								<p className="mt-2 text-white/90">
 									These answers are also used later to calculate Youth Weighted averages alongside the
 									raw section scores for {draft.placeName || "this place"}.
@@ -2002,13 +2009,7 @@ export function YeeAuditWizard({
 								<CardContent className="space-y-4">
 									<p className="text-sm font-medium text-slate-900">
 										{ensureQuestionMark(
-											formatExampleText(
-												resolveWeightingDomainPrompt(
-													instrument,
-													key,
-													getFallbackWeightingPrompt(key as YeeDomainKey)
-												)
-											)
+											formatExampleText(weightingDomainPrompts[key as YeeDomainKey])
 										)}
 									</p>
 									<OptionCards
