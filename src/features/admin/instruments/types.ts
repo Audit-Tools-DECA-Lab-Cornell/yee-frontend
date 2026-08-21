@@ -18,11 +18,63 @@ export type EditableItem = {
 	item_kind?: string;
 	choices?: Record<string, { Display?: string }>;
 	answers?: Record<string, { Display?: string }>;
+	score_entries?: readonly Record<string, unknown>[];
 };
+
+export type EditablePromptEntry =
+	| {
+			target: "sharedPrompt";
+			entryKey: "question-text";
+			label: "Shared prompt";
+			value: string;
+	  }
+	| {
+			/** What this string *is* to an auditor, which drives how it is labelled. */
+			target: "question" | "answerOption";
+			entryKey: string;
+			optionId: string;
+			/**
+			 * Which map on the item the string lives in. Kept separate from `target`
+			 * because the two diverge for single-select items, where `choices` holds
+			 * the answer options rather than matrix rows.
+			 */
+			map: "choices" | "answers";
+			label: string;
+			value: string;
+	  };
 
 export type InstrumentOption = {
 	value: string;
 	label: string;
+};
+
+/**
+ * Backend `ScoringCompatibilityReport` (see `app/products/yee/schemas/instrument.py`),
+ * returned inside the publish 409 body as `detail.scoring_compatibility`.
+ * `missing_items` blocks publishing; `missing_choices` (`"QID1#1:2"`) is a warning.
+ */
+export type ScoringCompatibilityReport = {
+	ok: boolean;
+	scoring_version: string;
+	required_item_count: number;
+	present_item_count: number;
+	missing_items: string[];
+	missing_choices: string[];
+};
+
+/** Per-domain youth-weighting prompt. Keys mirror `YeeDomainKey` on the audit side. */
+export type InstrumentWeightingDomain = {
+	key: string;
+	label: string;
+	prompt: string;
+};
+
+/** Weighting step copy — `YeeInstrumentWeighting` in `app/yee_instrument_schema.py`. */
+export type InstrumentWeighting = {
+	title?: string;
+	description?: string;
+	options?: InstrumentOption[];
+	domains?: InstrumentWeightingDomain[];
 };
 
 export type InstrumentPreAuditQuestion = {
@@ -34,23 +86,6 @@ export type InstrumentPreAuditQuestion = {
 	multi_select?: boolean;
 	required?: boolean;
 	auto_generated?: boolean;
-};
-
-export type InstrumentScaleRule = {
-	value: string;
-	label: string;
-	add?: number | null;
-	boost?: number | null;
-	follow_up_behavior?: string | null;
-	tag?: string | null;
-};
-
-export type InstrumentScaleGuidance = {
-	id: string;
-	title: string;
-	prompt: string;
-	description?: string;
-	rules?: InstrumentScaleRule[];
 };
 
 export type InstrumentLegalDocument = {
@@ -76,11 +111,13 @@ export type StructuredInstrumentContent = {
 	scoring_items?: EditableItem[];
 	preamble?: string[];
 	pre_audit_questions?: InstrumentPreAuditQuestion[];
-	scale_guidance?: InstrumentScaleGuidance[];
 	legal_documents?: InstrumentLegalDocument[];
+	weighting?: InstrumentWeighting;
+	condition_prompt?: string;
+	final_comments_prompt?: string;
 };
 
-export type DetailTabKey = "preamble" | "sections" | "spreadsheet" | "preAudit" | "scaleGuidance" | "legalDocuments";
+export type DetailTabKey = "preamble" | "sections" | "spreadsheet" | "preAudit" | "auditCopy" | "legalDocuments";
 
 export type InstrumentSummary = {
 	name: string;
@@ -89,7 +126,6 @@ export type InstrumentSummary = {
 	sections: number;
 	items: number;
 	preAuditQuestions: number;
-	scaleGuidance: number;
 	legalDocuments: number;
 };
 

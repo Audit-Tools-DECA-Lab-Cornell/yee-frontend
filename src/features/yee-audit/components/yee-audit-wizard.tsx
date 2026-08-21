@@ -45,6 +45,12 @@ import {
 	fetchInstrument,
 	filterItemsForDomain,
 	findSectionMeta,
+	resolveConditionPrompt,
+	resolveFinalCommentsPrompt,
+	resolveWeightingDescription,
+	resolveWeightingDomainPrompt,
+	resolveWeightingOptions,
+	resolveWeightingTitle,
 	type InstrumentItem,
 	type InstrumentResponse
 } from "@/features/yee-audit/api/yee-instrument";
@@ -497,7 +503,12 @@ function getDomainForBlock(block: string): YeeDomainKey | null {
 	return null;
 }
 
-function getWeightingPrompt(domain: YeeDomainKey) {
+/**
+ * Wording used only when the instrument does not supply a prompt for this
+ * domain. The instrument is the source of truth — see
+ * `resolveWeightingDomainPrompt`; this keeps older versions rendering.
+ */
+function getFallbackWeightingPrompt(domain: YeeDomainKey) {
 	switch (domain) {
 		case "access":
 			return "How important is to you that you can easily and safely get to these spaces?";
@@ -949,12 +960,15 @@ function InstrumentQuestionGroupCard({
 	group,
 	responses,
 	setResponses,
-	palette
+	palette,
+	conditionPrompt
 }: {
 	group: QuestionGroup;
 	responses: ResponsesState;
 	setResponses: React.Dispatch<React.SetStateAction<ResponsesState>>;
 	palette: ReturnType<typeof getSurfacePalette>;
+	/** Instrument-supplied follow-up wording shown above the condition scale. */
+	conditionPrompt: string;
 }) {
 	if (group.items.length === 1) {
 		return (
@@ -1015,9 +1029,7 @@ function InstrumentQuestionGroupCard({
 							/>
 							{conditionItem && showCondition ? (
 								<div className={`space-y-2 rounded-md border p-4 ${palette.condition}`}>
-									<p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-800">
-										Condition
-									</p>
+									<p className="text-sm font-medium text-slate-800">{conditionPrompt}</p>
 									<OptionCards
 										name={`${conditionItem.item_id}-${choiceId}`}
 										value={selectedCondition}
@@ -1059,6 +1071,25 @@ export function YeeAuditWizard({
 	const searchParams = useSearchParams();
 	const { session } = useAuth();
 	const [instrument, setInstrument] = React.useState<InstrumentResponse | null>(null);
+	// Auditor-facing copy authored in the instrument and editable from the admin
+	// Audit Copy tab, with a fallback for instrument versions that predate each
+	// key. Resolve every string exactly once here and use these values at every
+	// render site — the questionnaire and the review screen must never resolve
+	// the same string independently, or they drift apart.
+	const weightingOptions = resolveWeightingOptions(instrument, yeeWeightOptions);
+	const weightingTitle = resolveWeightingTitle(instrument, "Youth-Weighted Importance");
+	const weightingDescription = resolveWeightingDescription(
+		instrument,
+		"Please start by telling us how important each of the following issues are to you - especially about the play/recreation and green spaces in your community or neighborhood"
+	);
+	const weightingDomainPrompts = Object.fromEntries(
+		(Object.keys(yeeDomainLabels) as YeeDomainKey[]).map(key => [
+			key,
+			resolveWeightingDomainPrompt(instrument, key, getFallbackWeightingPrompt(key))
+		])
+	) as Record<YeeDomainKey, string>;
+	const finalCommentsPrompt = resolveFinalCommentsPrompt(instrument, "Final optional comments");
+	const conditionPrompt = resolveConditionPrompt(instrument, "Condition");
 	const [draft, setDraft] = React.useState<YeeAuditDraft>(() => createDefaultDraft(placeId));
 	const [responses, setResponses] = React.useState<ResponsesState>({});
 	const [loading, setLoading] = React.useState(true);
@@ -1084,9 +1115,12 @@ export function YeeAuditWizard({
 		onConfirm: () => undefined
 	});
 
-	const openConfirm = React.useCallback((opts: Omit<ConfirmState, "open">) => {
-		setConfirmState({ ...opts, open: true });
-	}, []);
+	const openConfirm = React.useCallback(
+		(opts: Omit<ConfirmState, "open">) => {
+			setConfirmState({ ...opts, open: true });
+		},
+		[setConfirmState]
+	);
 	const lastPersistedSnapshot = React.useRef<string | null>(null);
 	const managerSubmissionId = variant === "manager-edit" ? searchParams.get("submissionId") : null;
 
@@ -1387,7 +1421,7 @@ export function YeeAuditWizard({
 		} finally {
 			setPreviewLoading(false);
 		}
-	}, [draft, responses]);
+	}, [draft, responses, setPreviewLoading, setError, setDraft]);
 
 	React.useEffect(() => {
 		if (mode !== "review") return;
@@ -1608,7 +1642,7 @@ export function YeeAuditWizard({
 									<p>Weather: {getMultiOptionLabels(weatherOptions, draft.weather)}</p>
 								</div>
 								<div className="rounded-md border border-border bg-muted/40 p-4 text-sm text-foreground">
-									<p className="font-medium text-foreground">Youth-Weighted Importance of Sections</p>
+									<p className="font-medium text-foreground">{weightingTitle}</p>
 									<div className="mt-3 space-y-3">
 										{(Object.keys(yeeDomainLabels) as YeeDomainKey[]).map(key => {
 											const theme = getThemeByStep(getStepForDomainKey(key));
@@ -1632,7 +1666,7 @@ export function YeeAuditWizard({
 															borderColor: theme?.strongHex ?? "#94a3b8",
 															color: theme?.strongHex ?? "#0f172a"
 														}}>
-														{getOptionLabel(yeeWeightOptions, draft.weights[key])}
+														{getOptionLabel(weightingOptions, draft.weights[key])}
 													</span>
 												</div>
 											);
@@ -1710,7 +1744,7 @@ export function YeeAuditWizard({
 																	{row.condition ? (
 																		<div className="mt-2 pl-4">
 																			<p className="text-xs font-medium text-muted-foreground">
-																				Condition
+																				{conditionPrompt}
 																			</p>
 																			<span
 																				className={`mt-1.5 inline-flex rounded-full border px-3 py-0.5 text-xs font-semibold ${section.theme?.condition ?? "border-border bg-muted text-foreground"}`}>
@@ -1736,7 +1770,7 @@ export function YeeAuditWizard({
 								))}
 							</div>
 							<div className="rounded-md border border-border p-4">
-								<p className="text-sm font-medium text-foreground">Overall comments</p>
+								<p className="text-sm font-medium text-foreground">{finalCommentsPrompt}</p>
 								<p className="mt-2 text-sm text-muted-foreground">
 									{draft.comments || "No comments added."}
 								</p>
@@ -1943,11 +1977,8 @@ export function YeeAuditWizard({
 					<div className="space-y-4">
 						<Card className={`rounded-md border shadow-sm ${stepPalette.instruction}`}>
 							<CardContent className="py-5 text-sm leading-7 text-white">
-								<p className="font-medium text-white">
-									Please start by telling us how important each of the following issues are to you -
-									especially about the play/recreation and green spaces in your community or
-									neighborhood
-								</p>
+								<p className="text-base font-semibold text-white">{weightingTitle}</p>
+								<p className="mt-2 font-medium text-white">{formatExampleText(weightingDescription)}</p>
 								<p className="mt-2 text-white/90">
 									These answers are also used later to calculate Youth Weighted averages alongside the
 									raw section scores for {draft.placeName || "this place"}.
@@ -1977,7 +2008,9 @@ export function YeeAuditWizard({
 								</CardHeader>
 								<CardContent className="space-y-4">
 									<p className="text-sm font-medium text-slate-900">
-										{ensureQuestionMark(formatExampleText(getWeightingPrompt(key as YeeDomainKey)))}
+										{ensureQuestionMark(
+											formatExampleText(weightingDomainPrompts[key as YeeDomainKey])
+										)}
 									</p>
 									<OptionCards
 										name={`weight-${key}`}
@@ -1991,7 +2024,7 @@ export function YeeAuditWizard({
 												}
 											}))
 										}
-										options={yeeWeightOptions}
+										options={weightingOptions}
 										palette={getSurfacePalette(
 											key === "access"
 												? 3
@@ -2047,6 +2080,7 @@ export function YeeAuditWizard({
 								responses={responses}
 								setResponses={setResponses}
 								palette={stepPalette}
+								conditionPrompt={conditionPrompt}
 							/>
 						))}
 						{domainKey ? (
@@ -2099,7 +2133,7 @@ export function YeeAuditWizard({
 				{step === 9 ? (
 					<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
 						<CardHeader>
-							<CardTitle>Final optional comments</CardTitle>
+							<CardTitle>{finalCommentsPrompt}</CardTitle>
 							<CardDescription>
 								Add any overall notes you want included before the review screen.
 							</CardDescription>

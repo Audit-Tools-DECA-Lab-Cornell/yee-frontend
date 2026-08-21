@@ -12,6 +12,6 @@ export const DETAIL_TABS: { key: DetailTabKey; label: string }[] = [
 	{ key: "sections", label: "Sections" },
 	{ key: "spreadsheet", label: "Spreadsheet" },
 	{ key: "preAudit", label: "Pre-Audit Questions" },
-	{ key: "scaleGuidance", label: "Scale Guidance" },
+	{ key: "auditCopy", label: "Audit Copy" },
 	{ key: "legalDocuments", label: "Legal Documents" }
 ];

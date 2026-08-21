@@ -1,6 +1,7 @@
 "use client";
 
 import type { FrontendSession, SessionUser } from "@/features/auth/session";
+import { ApiError, readErrorMessage } from "@/lib/api/client";
 
 type LoginPayload = {
 	email: string;
@@ -61,14 +62,7 @@ async function apiRequest<T>(input: string, init?: RequestInit): Promise<T> {
 	const text = await response.text();
 	const data: unknown = text ? JSON.parse(text) : {};
 	if (!response.ok) {
-		const record = data as Record<string, unknown>;
-		const detail =
-			typeof record.detail === "string"
-				? record.detail
-				: typeof record.error === "string"
-					? record.error
-					: "Request failed.";
-		throw new Error(detail);
+		throw new ApiError(response.status, readErrorMessage(data, response.status), data);
 	}
 	return data as T;
 }

@@ -5,10 +5,9 @@ import * as React from "react";
 import { toast } from "sonner";
 
 import { useAuth } from "@/features/auth/components/auth-provider";
-import { Badge } from "@/components/ui/badge";
+import type { FrontendSession } from "@/features/auth/session";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { DashboardHero } from "@/components/ui/dashboard-hero";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -19,21 +18,27 @@ import {
 } from "@/features/workspaces/api/live-api";
 
 import { INSTRUMENT_KEY, INSTRUMENTS_LIST_QUERY_KEY } from "./constants";
+import { InstrumentsAdminOverview } from "./instruments-admin-overview";
 import { InstrumentEditor } from "./instrument-editor";
 import type { InstrumentVersionRecord } from "./types";
 import { VersionHistory } from "./version-history";
 import {
+	describeInstrumentSaveError,
 	fetchCanonicalInstrument,
-	formatCreatedAt,
 	isThrowawayVersion,
 	summarizeInstrument,
-	toDraftLabel
+	toUniqueDraftLabel
 } from "./utils";
 
 type EditingState = {
 	initialJson: string;
 	version: string;
 };
+
+function requireSession(session: FrontendSession | null): FrontendSession {
+	if (!session) throw new Error("An admin session is required.");
+	return session;
+}
 
 export function InstrumentsAdminClient() {
 	const { session } = useAuth();
@@ -45,7 +50,7 @@ export function InstrumentsAdminClient() {
 
 	const versionsQuery = useQuery({
 		queryKey: INSTRUMENTS_LIST_QUERY_KEY,
-		queryFn: () => fetchInstrumentVersions(session!, INSTRUMENT_KEY),
+		queryFn: () => fetchInstrumentVersions(requireSession(session), INSTRUMENT_KEY),
 		enabled: Boolean(session),
 		select: rows => rows.filter(row => !isThrowawayVersion(row))
 	});
@@ -74,7 +79,7 @@ export function InstrumentsAdminClient() {
 	const createMutation = useMutation({
 		mutationFn: (vars: { version: string; content: Record<string, unknown>; activate: boolean }) =>
 			createInstrumentVersion(
-				session!,
+				requireSession(session),
 				{ instrument_key: INSTRUMENT_KEY, instrument_version: vars.version, content: vars.content },
 				vars.activate
 			),
@@ -88,12 +93,17 @@ export function InstrumentsAdminClient() {
 			await refreshVersions();
 		},
 		onError: (error: Error) => {
-			toast.error("Could not save version", { description: error.message });
+			// The publish 409 carries `scoring_compatibility`, which names the
+			// scored questions this version is missing. Show those IDs — "could
+			// not save" alone leaves the admin with nowhere to go.
+			const { title, description } = describeInstrumentSaveError(error);
+			toast.error(title, { description });
 		}
 	});
 
 	const activateMutation = useMutation({
-		mutationFn: (instrumentId: string) => updateInstrumentStatus(session!, instrumentId, { is_active: true }),
+		mutationFn: (instrumentId: string) =>
+			updateInstrumentStatus(requireSession(session), instrumentId, { is_active: true }),
 		onSuccess: async updated => {
 			toast.success("Version activated", {
 				description: `Activated instrument version ${updated.instrument_version}.`
@@ -106,7 +116,7 @@ export function InstrumentsAdminClient() {
 	});
 
 	const deleteMutation = useMutation({
-		mutationFn: (instrumentId: string) => deleteInstrumentVersion(session!, instrumentId),
+		mutationFn: (instrumentId: string) => deleteInstrumentVersion(requireSession(session), instrumentId),
 		onMutate: (instrumentId: string) => {
 			setDeletingId(instrumentId);
 		},
@@ -127,87 +137,35 @@ export function InstrumentsAdminClient() {
 		scrollToEditor();
 	}
 
-	function handleOpenCurrent() {
-		const source = activeVersion?.content ?? canonicalInstrument;
-		if (!source) return;
-		const label = activeVersion
-			? toDraftLabel(activeVersion.instrument_version)
-			: toDraftLabel(summarizeInstrument(canonicalInstrument).version);
-		openEditor(source, label);
-	}
+	/** Labels already in use, so a new draft never collides with an existing row. */
+	const existingLabels = versions.map(version => version.instrument_version);
 
 	function handleCreateNewDraft() {
 		const source = activeVersion?.content ?? canonicalInstrument;
 		if (!source) return;
-		const label = activeVersion
-			? toDraftLabel(activeVersion.instrument_version)
-			: toDraftLabel(summarizeInstrument(canonicalInstrument).version);
-		openEditor(source, label);
+		const base = activeVersion
+			? activeVersion.instrument_version
+			: summarizeInstrument(canonicalInstrument).version;
+		openEditor(source, toUniqueDraftLabel(base, existingLabels));
 	}
 
 	function handleEditVersion(version: InstrumentVersionRecord) {
+		// Editing the live version forks a draft; editing a draft keeps its own
+		// label so repeated edits update one line of history, not many.
 		openEditor(
 			version.content,
-			version.is_active ? toDraftLabel(version.instrument_version) : version.instrument_version
+			version.is_active
+				? toUniqueDraftLabel(version.instrument_version, existingLabels)
+				: version.instrument_version
 		);
 	}
 
 	if (!session) return null;
-	const activeVersionStats = [
-		{
-			label: "Sections",
-			value: activeSummary.sections,
-			helper: "The number of sections in the instrument."
-		},
-		{
-			label: "Questions",
-			value: activeSummary.items,
-			helper: "The number of questions in the instrument."
-		},
-		{
-			label: "Pre-Audit",
-			value: activeSummary.preAuditQuestions,
-			helper: "The number of pre-audit questions in the instrument."
-		},
-		{
-			label: "Scale Guidance",
-			value: activeSummary.scaleGuidance,
-			helper: "The number of scale guidance questions in the instrument."
-		},
-		{
-			label: "Legal Documents",
-			value: activeSummary.legalDocuments,
-			helper: "The number of legal documents in the instrument."
-		}
-	];
-
 	const loadError = versionsQuery.error ?? canonicalQuery.error;
 
 	return (
 		<div className="space-y-6">
-			<DashboardHero
-				size="compact"
-				title="Instrument management"
-				subtitle="Manage the YEE audit instrument — edit drafts, publish a version, and review version history."
-				stats={activeVersion ? activeVersionStats : undefined}
-				statsLabel={
-					<div className="space-y-1 text-shadow pb-4 pt-3">
-						<p className="text-xs font-semibold uppercase tracking-[0.15em]">Currently live</p>
-						<div className="flex flex-wrap items-start gap-2">
-							<p className="text-3xl font-semibold text-shadow-foreground">
-								{activeVersion?.instrument_version}
-							</p>
-							<Badge className="w-10 h-3 text-[9px] leading-4" variant="success">
-								Active
-							</Badge>
-						</div>
-						<p className="text-sm text-shadow-secondary">
-							Published {formatCreatedAt(activeVersion?.created_at ?? "")} - this is the version the
-							public site uses right now.
-						</p>
-					</div>
-				}
-			/>
+			<InstrumentsAdminOverview activeVersion={activeVersion} summary={activeSummary} />
 			{loadError ? (
 				<Card className="border-destructive/30 bg-destructive/10">
 					<CardHeader>
@@ -244,20 +202,12 @@ export function InstrumentsAdminClient() {
 			)}
 
 			<div className="space-y-2">
-				<div className="flex flex-wrap gap-2">
-					<Button type="button" variant="outline" onClick={handleOpenCurrent} disabled={!canonicalInstrument}>
-						Open current version
-					</Button>
-					<Button
-						type="button"
-						onClick={handleCreateNewDraft}
-						disabled={!activeVersion && !canonicalInstrument}>
-						Create new draft
-					</Button>
-				</div>
+				<Button type="button" onClick={handleCreateNewDraft} disabled={!activeVersion && !canonicalInstrument}>
+					Create new draft
+				</Button>
 				<p className="text-sm text-muted-foreground">
 					Creating a new draft copies the live version so you can edit safely — nothing changes on the site
-					until you publish it.
+					until you publish it. To revisit a saved draft, use Edit in the version history below.
 				</p>
 			</div>
 

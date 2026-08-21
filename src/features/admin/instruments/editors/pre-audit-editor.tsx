@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 
 import { EditableField, IdTag, type UpdateDraft } from "../shared-components";
 import type { StructuredInstrumentContent } from "../types";
-import { cleanInstrumentText } from "../utils";
 
 /** Pre-Audit tab: light text editing of pre-audit questions and option labels. */
 export function PreAuditEditor({ content, update }: { content: StructuredInstrumentContent; update: UpdateDraft }) {
@@ -25,7 +24,7 @@ export function PreAuditEditor({ content, update }: { content: StructuredInstrum
 					</div>
 					<EditableField
 						label="Title"
-						value={cleanInstrumentText(question.title)}
+						value={question.title}
 						onChange={value =>
 							update(draft => {
 								const next = [...(draft.pre_audit_questions ?? [])];
@@ -37,7 +36,7 @@ export function PreAuditEditor({ content, update }: { content: StructuredInstrum
 					/>
 					<EditableField
 						label="Prompt"
-						value={cleanInstrumentText(question.prompt)}
+						value={question.prompt}
 						multiline
 						onChange={value =>
 							update(draft => {
@@ -50,7 +49,7 @@ export function PreAuditEditor({ content, update }: { content: StructuredInstrum
 					/>
 					<EditableField
 						label="Description"
-						value={cleanInstrumentText(question.description)}
+						value={question.description ?? ""}
 						multiline
 						onChange={value =>
 							update(draft => {
@@ -68,7 +67,7 @@ export function PreAuditEditor({ content, update }: { content: StructuredInstrum
 								<EditableField
 									key={`${question.id}-${option.value}`}
 									label={`Option ${optionIndex + 1}`}
-									value={cleanInstrumentText(option.label)}
+									value={option.label}
 									onChange={value =>
 										update(draft => {
 											const next = [...(draft.pre_audit_questions ?? [])];
