@@ -29,9 +29,16 @@ export type EditablePromptEntry =
 			value: string;
 	  }
 	| {
+			/** What this string *is* to an auditor, which drives how it is labelled. */
 			target: "question" | "answerOption";
 			entryKey: string;
 			optionId: string;
+			/**
+			 * Which map on the item the string lives in. Kept separate from `target`
+			 * because the two diverge for single-select items, where `choices` holds
+			 * the answer options rather than matrix rows.
+			 */
+			map: "choices" | "answers";
 			label: string;
 			value: string;
 	  };

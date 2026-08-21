@@ -143,7 +143,9 @@ export function InstrumentsAdminClient() {
 	function handleCreateNewDraft() {
 		const source = activeVersion?.content ?? canonicalInstrument;
 		if (!source) return;
-		const base = activeVersion ? activeVersion.instrument_version : summarizeInstrument(canonicalInstrument).version;
+		const base = activeVersion
+			? activeVersion.instrument_version
+			: summarizeInstrument(canonicalInstrument).version;
 		openEditor(source, toUniqueDraftLabel(base, existingLabels));
 	}
 

@@ -66,9 +66,7 @@ export function FieldGroup({
 }) {
 	return (
 		<fieldset className={cn("rounded-md border-l-2 border-border bg-muted/70 p-3", className)}>
-			<legend className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-				{label}
-			</legend>
+			<legend className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{label}</legend>
 			{hint ? <p className="mt-1 text-xs text-muted-foreground">{hint}</p> : null}
 			<div className="mt-2 space-y-3">{children}</div>
 		</fieldset>

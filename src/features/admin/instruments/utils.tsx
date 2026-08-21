@@ -52,20 +52,40 @@ export function getDisplayQuestionText(item: EditableItem) {
 	return questionText;
 }
 
+/**
+ * Split a scoring item into the strings an admin may edit, each labelled by what
+ * it actually is to an auditor.
+ *
+ * The split depends on whether the item has an answer scale:
+ *
+ * - **Matrix** (`answers` non-empty) — `choices` are the matrix rows, i.e. the
+ *   questions, and `answers` are the shared options offered for each row.
+ * - **Single select** (`answers` empty) — there is no scale, so the auditor
+ *   picks one `choices` entry directly and `question_text` carries the question.
+ *   Those choices are answer options, not questions; the audit wizard renders
+ *   them as the selectable options (`InstrumentQuestionCard`), and
+ *   `describeAnswerType` already calls this shape "Single select".
+ *
+ * Labelling single-select choices as "Question N" would invite an admin to
+ * rewrite answer labels as prompts — the mirror image of the matrix bug this
+ * helper exists to fix.
+ */
 export function getEditablePromptEntries(item: EditableItem): EditablePromptEntry[] {
 	const questionText = item.question_text ?? "";
+	const isMatrix = Object.keys(item.answers ?? {}).length > 0;
 	const sharedPrompt: EditablePromptEntry = {
 		target: "sharedPrompt",
 		entryKey: "question-text",
 		label: "Shared prompt",
 		value: isPlaceholderQuestionText(questionText) ? "" : questionText
 	};
-	const questions = Object.entries(item.choices ?? {}).map(
+	const choices = Object.entries(item.choices ?? {}).map(
 		([optionId, choice], index): EditablePromptEntry => ({
-			target: "question",
-			entryKey: `question-${optionId}`,
+			target: isMatrix ? "question" : "answerOption",
+			entryKey: isMatrix ? `question-${optionId}` : `answer-choice-${optionId}`,
 			optionId,
-			label: `Question ${index + 1}`,
+			map: "choices",
+			label: isMatrix ? `Question ${index + 1}` : `Answer option ${index + 1}`,
 			value: choice.Display ?? ""
 		})
 	);
@@ -74,33 +94,35 @@ export function getEditablePromptEntries(item: EditableItem): EditablePromptEntr
 			target: "answerOption",
 			entryKey: `answer-${optionId}`,
 			optionId,
+			map: "answers",
 			label: `Answer option ${index + 1}`,
 			value: answer.Display ?? ""
 		})
 	);
 
-	return [sharedPrompt, ...questions, ...answerOptions];
+	return [sharedPrompt, ...choices, ...answerOptions];
 }
 
+/**
+ * Write one edited string back onto its item.
+ *
+ * Routing is by `entry.map`, never by `entry.target` — a single-select answer
+ * option is labelled as an answer but is stored in `choices`. Only the
+ * `Display` string changes: map keys and `score_entries` are left untouched, so
+ * the version stays scorable.
+ */
 export function updateEditablePromptEntry(item: EditableItem, entry: EditablePromptEntry, value: string): EditableItem {
-	switch (entry.target) {
-		case "sharedPrompt":
-			return { ...item, question_text: value };
-		case "question": {
-			const choices = { ...(item.choices ?? {}) };
-			choices[entry.optionId] = { ...(choices[entry.optionId] ?? {}), Display: value };
-			return { ...item, choices };
-		}
-		case "answerOption": {
-			const answers = { ...(item.answers ?? {}) };
-			answers[entry.optionId] = { ...(answers[entry.optionId] ?? {}), Display: value };
-			return { ...item, answers };
-		}
-		default: {
-			const exhaustiveEntry: never = entry;
-			return exhaustiveEntry;
-		}
+	if (entry.target === "sharedPrompt") return { ...item, question_text: value };
+
+	if (entry.map === "choices") {
+		const choices = { ...(item.choices ?? {}) };
+		choices[entry.optionId] = { ...(choices[entry.optionId] ?? {}), Display: value };
+		return { ...item, choices };
 	}
+
+	const answers = { ...(item.answers ?? {}) };
+	answers[entry.optionId] = { ...(answers[entry.optionId] ?? {}), Display: value };
+	return { ...item, answers };
 }
 
 export function isThrowawayVersion(version: InstrumentVersionRecord) {

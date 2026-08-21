@@ -39,6 +39,7 @@ test("returns raw shared prompts, questions, and answer options for matrix items
 			target: "question",
 			entryKey: "question-1",
 			optionId: "1",
+			map: "choices",
 			label: "Question 1",
 			value: "  First  question  "
 		},
@@ -46,6 +47,7 @@ test("returns raw shared prompts, questions, and answer options for matrix items
 			target: "question",
 			entryKey: "question-2",
 			optionId: "2",
+			map: "choices",
 			label: "Question 2",
 			value: ""
 		},
@@ -53,6 +55,7 @@ test("returns raw shared prompts, questions, and answer options for matrix items
 			target: "answerOption",
 			entryKey: "answer-1",
 			optionId: "1",
+			map: "answers",
 			label: "Answer option 1",
 			value: "Yes"
 		},
@@ -60,6 +63,7 @@ test("returns raw shared prompts, questions, and answer options for matrix items
 			target: "answerOption",
 			entryKey: "answer-2",
 			optionId: "2",
+			map: "answers",
 			label: "Answer option 2",
 			value: "No"
 		}
@@ -87,6 +91,7 @@ test("shows the authoring placeholder as an empty shared prompt without dropping
 			target: "question",
 			entryKey: "question-1",
 			optionId: "1",
+			map: "choices",
 			label: "Question 1",
 			value: "Question"
 		},
@@ -94,6 +99,7 @@ test("shows the authoring placeholder as an empty shared prompt without dropping
 			target: "answerOption",
 			entryKey: "answer-1",
 			optionId: "1",
+			map: "answers",
 			label: "Answer option 1",
 			value: ""
 		}
@@ -224,4 +230,68 @@ test("instrument blocks resolve to their audit domain theme, or to neutral", () 
 	// Unscored sections render neutral rather than borrowing another domain's color.
 	expect(getThemeByBlock("Youth Participant Info")).toBeNull();
 	expect(getThemeByBlock(undefined)).toBeNull();
+});
+
+test("single-select choices are answer options, not questions", () => {
+	// No `answers` map means there is no scale: the auditor picks one `choices`
+	// entry directly, so those strings are the selectable answers and
+	// `question_text` carries the question. Labelling them "Question N" would
+	// invite an admin to rewrite answer labels as prompts.
+	const givenSingleSelectItem: EditableItem = {
+		item_id: "QID20",
+		question_text: "How often do you visit this space?",
+		choices: {
+			"1": { Display: "Every day" },
+			"2": { Display: "Once a week" }
+		}
+	};
+
+	const whenEntriesAreBuilt = getEditablePromptEntries(givenSingleSelectItem);
+
+	expect(whenEntriesAreBuilt).toEqual([
+		{
+			target: "sharedPrompt",
+			entryKey: "question-text",
+			label: "Shared prompt",
+			value: "How often do you visit this space?"
+		},
+		{
+			target: "answerOption",
+			entryKey: "answer-choice-1",
+			optionId: "1",
+			map: "choices",
+			label: "Answer option 1",
+			value: "Every day"
+		},
+		{
+			target: "answerOption",
+			entryKey: "answer-choice-2",
+			optionId: "2",
+			map: "choices",
+			label: "Answer option 2",
+			value: "Once a week"
+		}
+	]);
+	expect(whenEntriesAreBuilt.some(entry => entry.target === "question")).toBe(false);
+});
+
+test("editing a single-select answer writes to choices, never to answers", () => {
+	const givenSingleSelectItem: EditableItem = {
+		item_id: "QID20",
+		question_text: "How often do you visit this space?",
+		choices: { "1": { Display: "Every day" }, "2": { Display: "Once a week" } },
+		score_entries: [{ item_id: "QID20", choice_id: "1" }]
+	};
+	const entry = getEditablePromptEntries(givenSingleSelectItem).find(
+		candidate => candidate.target === "answerOption" && candidate.optionId === "2"
+	);
+	if (!entry) throw new Error("Expected answer option 2");
+
+	const whenTheLabelIsEdited = updateEditablePromptEntry(givenSingleSelectItem, entry, "Once a month");
+
+	expect(whenTheLabelIsEdited.choices?.["2"]?.Display).toBe("Once a month");
+	expect(whenTheLabelIsEdited.choices?.["1"]?.Display).toBe("Every day");
+	// An `answers` map must not be conjured onto a single-select item.
+	expect(whenTheLabelIsEdited.answers).toBeUndefined();
+	expect(whenTheLabelIsEdited.score_entries).toBe(givenSingleSelectItem.score_entries);
 });

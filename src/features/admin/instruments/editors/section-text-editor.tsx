@@ -118,7 +118,10 @@ function SectionIndex({
 								className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground transition hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
 								<span
 									aria-hidden
-									className={cn("size-2 shrink-0 rounded-full", theme ? theme.railClass : "bg-border")}
+									className={cn(
+										"size-2 shrink-0 rounded-full",
+										theme ? theme.railClass : "bg-border"
+									)}
 								/>
 								<span className="min-w-0 flex-1 truncate">{sectionHeading(group)}</span>
 								<span className="shrink-0 tabular-nums text-xs opacity-70">{group.items.length}</span>
@@ -331,7 +334,11 @@ function ScoringItemEditor({
 				{answerOptions.length > 0 ? (
 					<FieldGroup
 						label={`Answer options (${answerOptions.length})`}
-						hint="The choices offered for every question above.">
+						hint={
+							questions.length > 0
+								? "The choices offered for every question above."
+								: "The choices offered for the prompt above."
+						}>
 						{answerOptions.map(entry => (
 							<EntryField
 								key={entry.entryKey}
