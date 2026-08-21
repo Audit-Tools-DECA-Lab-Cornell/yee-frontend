@@ -2,7 +2,6 @@
 
 import { EditableField, type UpdateDraft } from "../shared-components";
 import type { StructuredInstrumentContent } from "../types";
-import { cleanInstrumentText } from "../utils";
 
 /** Overview tab: survey title + introduction paragraphs (light text editing). */
 export function PreambleEditor({ content, update }: { content: StructuredInstrumentContent; update: UpdateDraft }) {
@@ -29,7 +28,7 @@ export function PreambleEditor({ content, update }: { content: StructuredInstrum
 						<EditableField
 							key={`preamble-${index}`}
 							label={`Paragraph ${index + 1}`}
-							value={cleanInstrumentText(paragraph)}
+							value={paragraph}
 							multiline
 							onChange={value =>
 								update(draft => {

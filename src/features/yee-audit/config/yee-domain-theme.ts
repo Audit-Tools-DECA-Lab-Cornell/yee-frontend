@@ -1,3 +1,4 @@
+import { getBlockMatch } from "@/features/yee-audit/api/yee-instrument";
 import type { YeeDomainKey, YeeStepNumber } from "@/features/yee-audit/config/yee-audit-config";
 
 /**
@@ -13,7 +14,7 @@ import type { YeeDomainKey, YeeStepNumber } from "@/features/yee-audit/config/ye
  * NOTE: the `*Class` strings are written out literally per domain (not generated) so
  * Tailwind's content scanner sees them and emits the corresponding utilities.
  */
-type DomainTheme = {
+export type DomainTheme = {
 	label: string;
 	step: YeeStepNumber;
 	/** Raw CSS color (`var(--domain-*)`) — tint background for inline styles/SVG. */
@@ -43,6 +44,13 @@ type DomainTheme = {
 	condition: string;
 	/** Progress track. */
 	progress: string;
+
+	/** Section rail: 4px spine on the admin instrument section card. */
+	railClass: string;
+	/** Section header tint + on-tint text for the admin instrument section card. */
+	headerClass: string;
+	/** Focus-within ring on the active item inside a section. */
+	ringClass: string;
 };
 
 export const yeeDomainThemes: Record<YeeDomainKey, DomainTheme> = {
@@ -61,7 +69,10 @@ export const yeeDomainThemes: Record<YeeDomainKey, DomainTheme> = {
 		instruction: "border-domain-access-strong bg-domain-access-light text-domain-access-text",
 		card: "border-domain-access-strong/20 bg-domain-access-light/40",
 		condition: "border-domain-access-strong/25 bg-domain-access-light",
-		progress: "border-domain-access-strong/20 bg-domain-access-light/50"
+		progress: "border-domain-access-strong/20 bg-domain-access-light/50",
+		railClass: "bg-domain-access-strong",
+		headerClass: "bg-domain-access-light text-domain-access-text",
+		ringClass: "ring-domain-access-strong"
 	},
 	activitySpaces: {
 		label: "Activity Spaces",
@@ -78,7 +89,10 @@ export const yeeDomainThemes: Record<YeeDomainKey, DomainTheme> = {
 		instruction: "border-domain-activity-strong bg-domain-activity-light text-domain-activity-text",
 		card: "border-domain-activity-strong/20 bg-domain-activity-light/40",
 		condition: "border-domain-activity-strong/25 bg-domain-activity-light",
-		progress: "border-domain-activity-strong/20 bg-domain-activity-light/50"
+		progress: "border-domain-activity-strong/20 bg-domain-activity-light/50",
+		railClass: "bg-domain-activity-strong",
+		headerClass: "bg-domain-activity-light text-domain-activity-text",
+		ringClass: "ring-domain-activity-strong"
 	},
 	amenities: {
 		label: "Amenities",
@@ -95,7 +109,10 @@ export const yeeDomainThemes: Record<YeeDomainKey, DomainTheme> = {
 		instruction: "border-domain-amenities-strong bg-domain-amenities-light text-domain-amenities-text",
 		card: "border-domain-amenities-strong/20 bg-domain-amenities-light/40",
 		condition: "border-domain-amenities-strong/25 bg-domain-amenities-light",
-		progress: "border-domain-amenities-strong/20 bg-domain-amenities-light/50"
+		progress: "border-domain-amenities-strong/20 bg-domain-amenities-light/50",
+		railClass: "bg-domain-amenities-strong",
+		headerClass: "bg-domain-amenities-light text-domain-amenities-text",
+		ringClass: "ring-domain-amenities-strong"
 	},
 	experienceOfSpace: {
 		label: "Experience of the Space",
@@ -112,7 +129,10 @@ export const yeeDomainThemes: Record<YeeDomainKey, DomainTheme> = {
 		instruction: "border-domain-experience-strong bg-domain-experience-light text-domain-experience-text",
 		card: "border-domain-experience-strong/20 bg-domain-experience-light/40",
 		condition: "border-domain-experience-strong/25 bg-domain-experience-light",
-		progress: "border-domain-experience-strong/20 bg-domain-experience-light/50"
+		progress: "border-domain-experience-strong/20 bg-domain-experience-light/50",
+		railClass: "bg-domain-experience-strong",
+		headerClass: "bg-domain-experience-light text-domain-experience-text",
+		ringClass: "ring-domain-experience-strong"
 	},
 	aestheticsAndCare: {
 		label: "Aesthetics & Care",
@@ -129,7 +149,10 @@ export const yeeDomainThemes: Record<YeeDomainKey, DomainTheme> = {
 		instruction: "border-domain-aesthetics-strong bg-domain-aesthetics-light text-domain-aesthetics-text",
 		card: "border-domain-aesthetics-strong/20 bg-domain-aesthetics-light/40",
 		condition: "border-domain-aesthetics-strong/25 bg-domain-aesthetics-light",
-		progress: "border-domain-aesthetics-strong/20 bg-domain-aesthetics-light/50"
+		progress: "border-domain-aesthetics-strong/20 bg-domain-aesthetics-light/50",
+		railClass: "bg-domain-aesthetics-strong",
+		headerClass: "bg-domain-aesthetics-light text-domain-aesthetics-text",
+		ringClass: "ring-domain-aesthetics-strong"
 	},
 	useAndUsability: {
 		label: "Use & Usability",
@@ -146,10 +169,29 @@ export const yeeDomainThemes: Record<YeeDomainKey, DomainTheme> = {
 		instruction: "border-domain-use-strong bg-domain-use-light text-domain-use-text",
 		card: "border-domain-use-strong/20 bg-domain-use-light/40",
 		condition: "border-domain-use-strong/25 bg-domain-use-light",
-		progress: "border-domain-use-strong/20 bg-domain-use-light/50"
+		progress: "border-domain-use-strong/20 bg-domain-use-light/50",
+		railClass: "bg-domain-use-strong",
+		headerClass: "bg-domain-use-light text-domain-use-text",
+		ringClass: "ring-domain-use-strong"
 	}
 };
 
 export function getThemeByStep(step: YeeStepNumber) {
 	return Object.values(yeeDomainThemes).find(theme => theme.step === step) ?? null;
+}
+
+/**
+ * Resolve an instrument `block` string to its domain theme.
+ *
+ * Instrument blocks carry the full authoring label ("Access: Presence,
+ * Condition, Provision"), so match on the domain's block substring using the
+ * same `getBlockMatch()` semantics the audit wizard already relies on — that is
+ * the single place that knows "Experience of the Space" is stored as
+ * "Experience of Space". Sections with no scored domain (for example "Youth
+ * Participant Info") return `null` and render neutral.
+ */
+export function getThemeByBlock(block: string | null | undefined): DomainTheme | null {
+	if (!block) return null;
+	const haystack = block.toLowerCase();
+	return Object.values(yeeDomainThemes).find(theme => haystack.includes(getBlockMatch(theme.label).toLowerCase())) ?? null;
 }

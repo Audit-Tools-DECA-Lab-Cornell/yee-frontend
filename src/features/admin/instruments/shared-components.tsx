@@ -44,6 +44,37 @@ export function EditableField({
 	);
 }
 
+/**
+ * Inset group of related fields — the deepest rung of the
+ * section → item → field ladder.
+ *
+ * `fieldset`/`legend` rather than a styled `div`: it gives the group a real
+ * accessible name, so a screen reader reads "Questions (2), Question 1" and the
+ * ordinal is unambiguous without stuffing the item ID into every control's
+ * `aria-label` (which would override the visible label).
+ */
+export function FieldGroup({
+	label,
+	hint,
+	className,
+	children
+}: {
+	label: string;
+	hint?: string;
+	className?: string;
+	children: ReactNode;
+}) {
+	return (
+		<fieldset className={cn("rounded-md border-l-2 border-border bg-muted/70 p-3", className)}>
+			<legend className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+				{label}
+			</legend>
+			{hint ? <p className="mt-1 text-xs text-muted-foreground">{hint}</p> : null}
+			<div className="mt-2 space-y-3">{children}</div>
+		</fieldset>
+	);
+}
+
 /** The single "demote but keep" treatment for raw identifiers (QIDs, rule codes, block keys). */
 export function IdTag({ children, className }: { children: ReactNode; className?: string }) {
 	return (
@@ -75,11 +106,10 @@ export function MetricCard({ label, value }: { label: string; value: string }) {
 
 export function MetricRow({ summary }: { summary: InstrumentSummary }) {
 	return (
-		<div className="grid gap-3 md:grid-cols-4">
+		<div className="grid gap-3 md:grid-cols-3">
 			<MetricCard label="Sections" value={String(summary.sections)} />
 			<MetricCard label="Questions" value={String(summary.items)} />
 			<MetricCard label="Pre-Audit" value={String(summary.preAuditQuestions)} />
-			<MetricCard label="Scale Guidance" value={String(summary.scaleGuidance)} />
 		</div>
 	);
 }

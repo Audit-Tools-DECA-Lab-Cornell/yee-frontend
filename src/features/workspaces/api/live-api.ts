@@ -1,6 +1,7 @@
 "use client";
 
 import type { FrontendSession } from "@/features/auth/session";
+import { ApiError, readErrorMessage } from "@/lib/api/client";
 
 export type DashboardMetric = {
 	title: string;
@@ -382,14 +383,11 @@ async function authedFetch<T>(
 	const text = await response.text();
 	const data: unknown = text ? JSON.parse(text) : {};
 	if (!response.ok) {
-		const record = data as Record<string, unknown>;
-		const detail =
-			typeof record.detail === "string"
-				? record.detail
-				: typeof record.error === "string"
-					? record.error
-					: "Request failed.";
-		throw new Error(detail);
+		// ApiError (not Error) so structured bodies survive to the caller. The
+		// previous flat throw collapsed object-shaped `detail` into a generic
+		// message, discarding payloads such as the publish 409's
+		// `scoring_compatibility` before any handler could read them.
+		throw new ApiError(response.status, readErrorMessage(data, response.status), data);
 	}
 	return data as T;
 }

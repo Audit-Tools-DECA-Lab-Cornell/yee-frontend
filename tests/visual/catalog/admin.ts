@@ -1,5 +1,5 @@
 import { dashboardChromeStates } from "./shared";
-import { openFilterDropdown } from "./steps";
+import { openFilterDropdown, openInstrumentEditorTab } from "./steps";
 import type { CaptureTarget } from "./types";
 
 export const adminTargets: readonly CaptureTarget[] = [
@@ -66,7 +66,27 @@ export const adminTargets: readonly CaptureTarget[] = [
 		role: "admin",
 		route: "/admin/instruments",
 		readyText: /Instrument Management/i,
-		states: [{ name: "overview", label: "Admin instruments" }]
+		states: [
+			{ name: "overview", label: "Admin instruments" },
+			{
+				name: "editor-sections-expanded",
+				label: "Instrument editor — Sections, expanded",
+				optional: true,
+				setup: ({ page }) => openInstrumentEditorTab(page, /Sections/, { expandSection: /^Access/ })
+			},
+			{
+				name: "editor-sections-collapsed",
+				label: "Instrument editor — Sections, collapsed",
+				optional: true,
+				setup: ({ page }) => openInstrumentEditorTab(page, /Sections/, { collapseFirstSection: true })
+			},
+			{
+				name: "editor-audit-copy",
+				label: "Instrument editor — Audit Copy",
+				optional: true,
+				setup: ({ page }) => openInstrumentEditorTab(page, /Audit Copy/)
+			}
+		]
 	},
 	{
 		segments: ["admin", "content"],

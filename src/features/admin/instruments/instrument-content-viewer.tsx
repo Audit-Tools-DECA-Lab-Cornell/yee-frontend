@@ -3,13 +3,12 @@ import { useId } from "react";
 import { Badge } from "@/components/ui/badge";
 
 import { DETAIL_TABS } from "./constants";
+import { QuestionPreview } from "./question-preview";
 import { IdTag, MetricRow, TabBar } from "./shared-components";
 import type {
 	DetailTabKey,
-	EditableItem,
 	InstrumentLegalDocument,
 	InstrumentPreAuditQuestion,
-	InstrumentScaleGuidance,
 	QuestionGroup,
 	SpreadsheetGroup,
 	StructuredInstrumentContent
@@ -17,17 +16,14 @@ import type {
 import {
 	buildSpreadsheetGroups,
 	cleanInstrumentText,
-	describeAnswerType,
 	formatCreatedAt,
-	getDisplayQuestionText,
 	getQuestionGroups,
-	isPlaceholderQuestionText,
 	summarizeInstrument
 } from "./utils";
 
 /**
  * Read-only inspection of a single instrument version. Tabs mirror the editor
- * (Overview / Sections / Spreadsheet / Pre-Audit / Scale Guidance / Legal),
+ * (Overview / Sections / Spreadsheet / Pre-Audit / Legal),
  * adapted to the flat YEE schema.
  */
 export function InstrumentContentViewer({
@@ -56,7 +52,6 @@ export function InstrumentContentViewer({
 				counts={{
 					sections: summary.sections,
 					preAudit: summary.preAuditQuestions,
-					scaleGuidance: summary.scaleGuidance,
 					legalDocuments: summary.legalDocuments
 				}}
 			/>
@@ -66,7 +61,7 @@ export function InstrumentContentViewer({
 				{tab === "sections" ? <SectionsPanel groups={questionGroups} /> : null}
 				{tab === "spreadsheet" ? <SpreadsheetPanel groups={spreadsheetGroups} /> : null}
 				{tab === "preAudit" ? <PreAuditPanel questions={content?.pre_audit_questions ?? []} /> : null}
-				{tab === "scaleGuidance" ? <ScaleGuidancePanel scales={content?.scale_guidance ?? []} /> : null}
+				{tab === "auditCopy" ? <AuditCopyPanel content={content} /> : null}
 				{tab === "legalDocuments" ? <LegalDocumentsPanel documents={content?.legal_documents ?? []} /> : null}
 			</div>
 		</div>
@@ -147,35 +142,6 @@ function SectionsPanel({ groups }: { groups: QuestionGroup[] }) {
 	);
 }
 
-function QuestionPreview({ item }: { item: EditableItem }) {
-	const realText = cleanInstrumentText(item.question_text || "");
-	const hasRealText = Boolean(realText) && !isPlaceholderQuestionText(realText);
-	const choices = Object.entries(item.choices ?? {});
-	return (
-		<div className="rounded-md border border-border bg-card p-4">
-			<div className="flex flex-wrap items-center gap-2">
-				<IdTag>{item.item_id}</IdTag>
-				{item.item_kind ? <IdTag>{item.item_kind}</IdTag> : null}
-				<Badge variant="secondary">{describeAnswerType(item)}</Badge>
-			</div>
-			<p className="mt-3 whitespace-pre-wrap break-words text-base font-medium text-foreground">
-				{getDisplayQuestionText(item)}
-			</p>
-			{hasRealText && choices.length > 0 ? (
-				<div className="mt-4 flex flex-wrap gap-2">
-					{choices.map(([choiceId, choice]) => (
-						<span
-							key={`${item.item_id}-${choiceId}`}
-							className="max-w-full whitespace-normal break-words rounded-full border border-border bg-muted px-3 py-1 text-sm text-foreground">
-							{cleanInstrumentText(choice.Display || choiceId)}
-						</span>
-					))}
-				</div>
-			) : null}
-		</div>
-	);
-}
-
 export function SpreadsheetPanel({ groups }: { groups: SpreadsheetGroup[] }) {
 	if (groups.length === 0) return <PanelEmpty message="This version has no sections or questions." />;
 	return (
@@ -203,6 +169,93 @@ export function SpreadsheetPanel({ groups }: { groups: SpreadsheetGroup[] }) {
 					</section>
 				))}
 			</div>
+		</div>
+	);
+}
+
+/** Read-only mirror of the Audit Copy tab: weighting step, condition follow-up, final comments. */
+function AuditCopyPanel({ content }: { content: StructuredInstrumentContent | null }) {
+	const weighting = content?.weighting ?? {};
+	const options = weighting.options ?? [];
+	const domains = weighting.domains ?? [];
+	const conditionPrompt = cleanInstrumentText(content?.condition_prompt);
+	const finalCommentsPrompt = cleanInstrumentText(content?.final_comments_prompt);
+	const hasWeighting = Boolean(weighting.title || weighting.description) || options.length > 0 || domains.length > 0;
+
+	if (!conditionPrompt && !finalCommentsPrompt && !hasWeighting) {
+		return <PanelEmpty message="This version has no weighting or shared audit copy." />;
+	}
+
+	return (
+		<div className="space-y-4">
+			{conditionPrompt || finalCommentsPrompt ? (
+				<div className="rounded-md border border-border bg-card p-5">
+					{conditionPrompt ? (
+						<div>
+							<p className="text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+								Condition follow-up
+							</p>
+							<p className="mt-1 whitespace-pre-wrap break-words text-sm text-foreground">
+								{conditionPrompt}
+							</p>
+						</div>
+					) : null}
+					{finalCommentsPrompt ? (
+						<div className={conditionPrompt ? "mt-4" : undefined}>
+							<p className="text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+								Final comments
+							</p>
+							<p className="mt-1 whitespace-pre-wrap break-words text-sm text-foreground">
+								{finalCommentsPrompt}
+							</p>
+						</div>
+					) : null}
+				</div>
+			) : null}
+
+			{hasWeighting ? (
+				<div className="rounded-md border border-border bg-card p-5">
+					<p className="break-words text-lg font-semibold text-foreground">
+						{cleanInstrumentText(weighting.title) || "Weighting step"}
+					</p>
+					{weighting.description ? (
+						<p className="mt-2 whitespace-pre-wrap break-words text-sm leading-7 text-muted-foreground">
+							{cleanInstrumentText(weighting.description)}
+						</p>
+					) : null}
+					{options.length > 0 ? (
+						<div className="mt-4 flex flex-wrap gap-2">
+							{options.map(option => (
+								<span
+									key={option.value}
+									className="max-w-full whitespace-normal break-words rounded-full border border-border bg-muted px-3 py-1 text-sm text-foreground">
+									{cleanInstrumentText(option.label) || option.value}
+								</span>
+							))}
+						</div>
+					) : null}
+					{domains.length > 0 ? (
+						<div className="mt-4 space-y-2">
+							<p className="text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+								Domain prompts ({domains.length})
+							</p>
+							{domains.map(domain => (
+								<div key={domain.key} className="rounded-md border border-border bg-muted px-3 py-2">
+									<div className="flex flex-wrap items-center gap-2">
+										<p className="text-sm font-medium text-foreground">
+											{cleanInstrumentText(domain.label) || domain.key}
+										</p>
+										<IdTag>{domain.key}</IdTag>
+									</div>
+									<p className="mt-1 whitespace-pre-wrap break-words text-sm text-muted-foreground">
+										{cleanInstrumentText(domain.prompt)}
+									</p>
+								</div>
+							))}
+						</div>
+					) : null}
+				</div>
+			) : null}
 		</div>
 	);
 }
@@ -237,55 +290,6 @@ function PreAuditPanel({ questions }: { questions: InstrumentPreAuditQuestion[] 
 									className="max-w-full whitespace-normal break-words rounded-full border border-border bg-muted px-3 py-1 text-sm text-foreground">
 									{cleanInstrumentText(option.label)}
 								</span>
-							))}
-						</div>
-					) : null}
-				</div>
-			))}
-		</div>
-	);
-}
-
-function ScaleGuidancePanel({ scales }: { scales: InstrumentScaleGuidance[] }) {
-	if (scales.length === 0) return <PanelEmpty message="This version has no scale guidance." />;
-	return (
-		<div className="grid gap-4 md:grid-cols-2">
-			{scales.map(scale => (
-				<div key={scale.id} className="rounded-md border border-border bg-card p-5">
-					<div className="flex flex-wrap items-center gap-2">
-						<p className="break-words text-lg font-semibold text-foreground">
-							{cleanInstrumentText(scale.title)}
-						</p>
-						<IdTag>{scale.id}</IdTag>
-					</div>
-					<p className="mt-3 whitespace-pre-wrap break-words text-sm font-medium text-foreground">
-						{cleanInstrumentText(scale.prompt)}
-					</p>
-					{scale.description ? (
-						<p className="mt-3 whitespace-pre-wrap break-words text-sm leading-7 text-muted-foreground">
-							{cleanInstrumentText(scale.description)}
-						</p>
-					) : null}
-					{(scale.rules ?? []).length > 0 ? (
-						<div className="mt-4 space-y-2">
-							{(scale.rules ?? []).map(rule => (
-								<div
-									key={`${scale.id}-${rule.value}`}
-									className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-muted px-3 py-2 text-sm text-foreground">
-									<div className="flex flex-wrap items-center gap-2">
-										<span className="break-words font-medium">
-											{cleanInstrumentText(rule.label)}
-										</span>
-										{rule.tag ? <IdTag>{rule.tag}</IdTag> : null}
-									</div>
-									<div className="flex flex-wrap items-center gap-1.5">
-										{typeof rule.add === "number" ? <IdTag>Add {rule.add}</IdTag> : null}
-										{typeof rule.boost === "number" ? <IdTag>Boost {rule.boost}</IdTag> : null}
-										{rule.follow_up_behavior ? (
-											<IdTag>{cleanInstrumentText(rule.follow_up_behavior)}</IdTag>
-										) : null}
-									</div>
-								</div>
 							))}
 						</div>
 					) : null}

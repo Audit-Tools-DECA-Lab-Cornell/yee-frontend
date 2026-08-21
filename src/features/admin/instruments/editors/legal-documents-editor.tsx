@@ -30,7 +30,7 @@ export function LegalDocumentsEditor({
 					</div>
 					<EditableField
 						label="Title"
-						value={cleanInstrumentText(doc.title)}
+						value={doc.title}
 						onChange={value =>
 							update(draft => {
 								const next = [...(draft.legal_documents ?? [])];
@@ -54,7 +54,7 @@ export function LegalDocumentsEditor({
 					/>
 					<EditableField
 						label="Content"
-						value={cleanInstrumentText(doc.content)}
+						value={doc.content}
 						multiline
 						className="min-h-[12rem]"
 						onChange={value =>
