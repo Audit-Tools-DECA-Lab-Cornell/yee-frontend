@@ -45,6 +45,12 @@ import {
 	fetchInstrument,
 	filterItemsForDomain,
 	findSectionMeta,
+	resolveConditionPrompt,
+	resolveFinalCommentsPrompt,
+	resolveWeightingDescription,
+	resolveWeightingDomainPrompt,
+	resolveWeightingOptions,
+	resolveWeightingTitle,
 	type InstrumentItem,
 	type InstrumentResponse
 } from "@/features/yee-audit/api/yee-instrument";
@@ -497,7 +503,12 @@ function getDomainForBlock(block: string): YeeDomainKey | null {
 	return null;
 }
 
-function getWeightingPrompt(domain: YeeDomainKey) {
+/**
+ * Wording used only when the instrument does not supply a prompt for this
+ * domain. The instrument is the source of truth — see
+ * `resolveWeightingDomainPrompt`; this keeps older versions rendering.
+ */
+function getFallbackWeightingPrompt(domain: YeeDomainKey) {
 	switch (domain) {
 		case "access":
 			return "How important is to you that you can easily and safely get to these spaces?";
@@ -949,12 +960,15 @@ function InstrumentQuestionGroupCard({
 	group,
 	responses,
 	setResponses,
-	palette
+	palette,
+	conditionPrompt
 }: {
 	group: QuestionGroup;
 	responses: ResponsesState;
 	setResponses: React.Dispatch<React.SetStateAction<ResponsesState>>;
 	palette: ReturnType<typeof getSurfacePalette>;
+	/** Instrument-supplied follow-up wording shown above the condition scale. */
+	conditionPrompt: string;
 }) {
 	if (group.items.length === 1) {
 		return (
@@ -1015,9 +1029,7 @@ function InstrumentQuestionGroupCard({
 							/>
 							{conditionItem && showCondition ? (
 								<div className={`space-y-2 rounded-md border p-4 ${palette.condition}`}>
-									<p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-800">
-										Condition
-									</p>
+									<p className="text-sm font-medium text-slate-800">{conditionPrompt}</p>
 									<OptionCards
 										name={`${conditionItem.item_id}-${choiceId}`}
 										value={selectedCondition}
@@ -1059,6 +1071,15 @@ export function YeeAuditWizard({
 	const searchParams = useSearchParams();
 	const { session } = useAuth();
 	const [instrument, setInstrument] = React.useState<InstrumentResponse | null>(null);
+	// Auditor-facing copy authored in the instrument and editable from the admin
+	// Audit Copy tab. Falls back to the wording this wizard used before, so
+	// instrument versions that predate these keys render unchanged.
+	const weightingOptions = React.useMemo(
+		() => resolveWeightingOptions(instrument, yeeWeightOptions),
+		[instrument]
+	);
+	const finalCommentsPrompt = resolveFinalCommentsPrompt(instrument, "Final optional comments");
+	const conditionPrompt = resolveConditionPrompt(instrument, "Condition");
 	const [draft, setDraft] = React.useState<YeeAuditDraft>(() => createDefaultDraft(placeId));
 	const [responses, setResponses] = React.useState<ResponsesState>({});
 	const [loading, setLoading] = React.useState(true);
@@ -1943,10 +1964,16 @@ export function YeeAuditWizard({
 					<div className="space-y-4">
 						<Card className={`rounded-md border shadow-sm ${stepPalette.instruction}`}>
 							<CardContent className="py-5 text-sm leading-7 text-white">
-								<p className="font-medium text-white">
-									Please start by telling us how important each of the following issues are to you -
-									especially about the play/recreation and green spaces in your community or
-									neighborhood
+								<p className="text-base font-semibold text-white">
+									{resolveWeightingTitle(instrument, "Youth-Weighted Importance")}
+								</p>
+								<p className="mt-2 font-medium text-white">
+									{formatExampleText(
+										resolveWeightingDescription(
+											instrument,
+											"Please start by telling us how important each of the following issues are to you - especially about the play/recreation and green spaces in your community or neighborhood"
+										)
+									)}
 								</p>
 								<p className="mt-2 text-white/90">
 									These answers are also used later to calculate Youth Weighted averages alongside the
@@ -1977,7 +2004,15 @@ export function YeeAuditWizard({
 								</CardHeader>
 								<CardContent className="space-y-4">
 									<p className="text-sm font-medium text-slate-900">
-										{ensureQuestionMark(formatExampleText(getWeightingPrompt(key as YeeDomainKey)))}
+										{ensureQuestionMark(
+											formatExampleText(
+												resolveWeightingDomainPrompt(
+													instrument,
+													key,
+													getFallbackWeightingPrompt(key as YeeDomainKey)
+												)
+											)
+										)}
 									</p>
 									<OptionCards
 										name={`weight-${key}`}
@@ -1991,7 +2026,7 @@ export function YeeAuditWizard({
 												}
 											}))
 										}
-										options={yeeWeightOptions}
+										options={weightingOptions}
 										palette={getSurfacePalette(
 											key === "access"
 												? 3
@@ -2047,6 +2082,7 @@ export function YeeAuditWizard({
 								responses={responses}
 								setResponses={setResponses}
 								palette={stepPalette}
+								conditionPrompt={conditionPrompt}
 							/>
 						))}
 						{domainKey ? (
@@ -2099,7 +2135,7 @@ export function YeeAuditWizard({
 				{step === 9 ? (
 					<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
 						<CardHeader>
-							<CardTitle>Final optional comments</CardTitle>
+							<CardTitle>{finalCommentsPrompt}</CardTitle>
 							<CardDescription>
 								Add any overall notes you want included before the review screen.
 							</CardDescription>
