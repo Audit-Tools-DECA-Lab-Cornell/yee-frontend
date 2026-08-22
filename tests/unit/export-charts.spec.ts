@@ -4,7 +4,8 @@ import { buildDomainBarsSvg } from "../../src/features/reporting/export/charts/d
 import { buildGroupedBarsSvg } from "../../src/features/reporting/export/charts/grouped-bars";
 import { buildRadarSvg } from "../../src/features/reporting/export/charts/radar";
 import { buildTrendSvg } from "../../src/features/reporting/export/charts/trend";
-import { getExportPalette, FALLBACK_HEX_TABLE } from "../../src/features/reporting/export/export-palette";
+import { getExportPalette } from "../../src/features/reporting/export/export-palette";
+import { lightDomainPalette } from "../../src/styles/domain-palette";
 import { domainLabels, domainOrder } from "../../src/features/reporting/export/types";
 
 // Non-DOM (node) environment: getExportPalette() returns the fallback table, so
@@ -66,8 +67,8 @@ test("domain-bars builder tints each row with its domain color", () => {
 	});
 	assertStandaloneSvg(svg);
 	// Each domain's fill hex appears (raw bar) — proves domain coloring.
-	expect(svg).toContain(FALLBACK_HEX_TABLE["domain-access-fill"]);
-	expect(svg).toContain(FALLBACK_HEX_TABLE["domain-use-strong"]);
+	expect(svg).toContain(lightDomainPalette.access.fill);
+	expect(svg).toContain(lightDomainPalette.useAndUsability.strong);
 });
 
 test("grouped-bars builder draws one bar per series in each domain group", () => {

@@ -4,12 +4,14 @@ import type { YeeDomainKey, YeeStepNumber } from "@/features/yee-audit/config/ye
 /**
  * Domain color theme — the ONE place the app maps YEE domains to colors.
  *
- * The actual color VALUES live entirely in `--domain-<name>-{text,strong,fill,light}`
- * in `src/app/globals.css` (the single source of truth). This file only references
+ * The actual color VALUES live entirely in `--domain-<name>-{text,strong,fill,light}`,
+ * generated into `src/app/globals.css` from `src/styles/domain-palette.json` — THE
+ * single source of truth, shared byte-for-byte with yee-mobile. This file only references
  * those tokens: the `*Hex` fields as raw `var(--domain-*)` (for inline styles / SVG
- * in charts, reports, and the individual report) and the `*Class` fields as Tailwind
+ * in charts, reports, and the individual report) — one per role, so `textHex`,
+ * `strongHex`, `strongFillHex` and `lightHex` cover all four — and the `*Class` fields as Tailwind
  * utilities generated from the same tokens (`domain-*` color namespace — used by the
- * audit wizard). Adjust a color in globals.css and it updates everywhere.
+ * audit wizard). Adjust a color in domain-palette.json (in BOTH repos), regenerate, and it updates everywhere.
  *
  * NOTE: the `*Class` strings are written out literally per domain (not generated) so
  * Tailwind's content scanner sees them and emits the corresponding utilities.
@@ -17,6 +19,8 @@ import type { YeeDomainKey, YeeStepNumber } from "@/features/yee-audit/config/ye
 export type DomainTheme = {
 	label: string;
 	step: YeeStepNumber;
+	/** Raw CSS color (`var(--domain-*)`) — labels/headings; 7:1 on the tint and on a card. */
+	textHex: string;
 	/** Raw CSS color (`var(--domain-*)`) — tint background for inline styles/SVG. */
 	lightHex: string;
 	/** Raw CSS color — borders/dots/lines for inline styles/SVG. */
@@ -57,6 +61,7 @@ export const yeeDomainThemes: Record<YeeDomainKey, DomainTheme> = {
 	access: {
 		label: "Access",
 		step: 3,
+		textHex: "var(--domain-access-text)",
 		lightHex: "var(--domain-access-light)",
 		strongHex: "var(--domain-access-strong)",
 		strongFillHex: "var(--domain-access-fill)",
@@ -77,6 +82,7 @@ export const yeeDomainThemes: Record<YeeDomainKey, DomainTheme> = {
 	activitySpaces: {
 		label: "Activity Spaces",
 		step: 4,
+		textHex: "var(--domain-activity-text)",
 		lightHex: "var(--domain-activity-light)",
 		strongHex: "var(--domain-activity-strong)",
 		strongFillHex: "var(--domain-activity-fill)",
@@ -97,6 +103,7 @@ export const yeeDomainThemes: Record<YeeDomainKey, DomainTheme> = {
 	amenities: {
 		label: "Amenities",
 		step: 5,
+		textHex: "var(--domain-amenities-text)",
 		lightHex: "var(--domain-amenities-light)",
 		strongHex: "var(--domain-amenities-strong)",
 		strongFillHex: "var(--domain-amenities-fill)",
@@ -117,6 +124,7 @@ export const yeeDomainThemes: Record<YeeDomainKey, DomainTheme> = {
 	experienceOfSpace: {
 		label: "Experience of the Space",
 		step: 6,
+		textHex: "var(--domain-experience-text)",
 		lightHex: "var(--domain-experience-light)",
 		strongHex: "var(--domain-experience-strong)",
 		strongFillHex: "var(--domain-experience-fill)",
@@ -137,6 +145,7 @@ export const yeeDomainThemes: Record<YeeDomainKey, DomainTheme> = {
 	aestheticsAndCare: {
 		label: "Aesthetics & Care",
 		step: 7,
+		textHex: "var(--domain-aesthetics-text)",
 		lightHex: "var(--domain-aesthetics-light)",
 		strongHex: "var(--domain-aesthetics-strong)",
 		strongFillHex: "var(--domain-aesthetics-fill)",
@@ -157,6 +166,7 @@ export const yeeDomainThemes: Record<YeeDomainKey, DomainTheme> = {
 	useAndUsability: {
 		label: "Use & Usability",
 		step: 8,
+		textHex: "var(--domain-use-text)",
 		lightHex: "var(--domain-use-light)",
 		strongHex: "var(--domain-use-strong)",
 		strongFillHex: "var(--domain-use-fill)",
@@ -175,6 +185,17 @@ export const yeeDomainThemes: Record<YeeDomainKey, DomainTheme> = {
 		ringClass: "ring-domain-use-strong"
 	}
 };
+
+/**
+ * Resolve a raw domain key string (as it arrives from the instrument JSON) to its
+ * theme. Returns `null` for anything that is not one of the six scored domains,
+ * so an unrecognised key renders neutral rather than borrowing another domain's
+ * colour — the same fallback rule the audit copy already follows.
+ */
+export function getThemeByDomainKey(key: string | null | undefined): DomainTheme | null {
+	if (!key) return null;
+	return Object.hasOwn(yeeDomainThemes, key) ? yeeDomainThemes[key as YeeDomainKey] : null;
+}
 
 export function getThemeByStep(step: YeeStepNumber) {
 	return Object.values(yeeDomainThemes).find(theme => theme.step === step) ?? null;

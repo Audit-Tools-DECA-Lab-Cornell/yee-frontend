@@ -112,6 +112,12 @@ export async function generateTrendPdf(
 			headStyles: { fillColor: hexToRgb(palette.brand.green900), textColor: [255, 255, 255], fontStyle: "bold" },
 			columnStyles: { 1: { halign: "right" }, 2: { halign: "right" }, 3: { halign: "right" } },
 			didParseCell: data => {
+				// Section column: the row IS a domain, so it wears that domain's tint.
+				if (data.section === "body" && data.column.index === 0) {
+					const colors = palette.domains[deltas[data.row.index].domainKey];
+					data.cell.styles.fillColor = hexToRgb(colors.light);
+					data.cell.styles.textColor = hexToRgb(colors.text);
+				}
 				if (data.section === "body" && data.column.index === 3) {
 					const delta = deltas[data.row.index].delta;
 					const key = delta > 0 ? "high" : delta < 0 ? "low" : "mid";

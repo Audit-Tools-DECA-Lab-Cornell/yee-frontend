@@ -100,6 +100,15 @@ export async function generatePlaceComparisonPdf(
 		},
 		columnStyles: { 0: { halign: "left", fontStyle: "bold" } },
 		didParseCell: data => {
+			// Header: each column IS a domain, so it carries that domain's colours
+			// rather than one flat brand green — the same identity cue the screen uses.
+			if (data.section === "head" && data.column.index > 0) {
+				const colors = palette.domains[domainOrder[data.column.index - 1]];
+				data.cell.styles.fillColor = hexToRgb(colors.light);
+				data.cell.styles.textColor = hexToRgb(colors.text);
+			}
+			// Body cells stay banded by score: here the question is "how well did this
+			// place do", and a second identity colour would fight the band signal.
 			if (data.section === "body" && data.column.index > 0) {
 				const summary = summaries[data.row.index];
 				const domain = domainOrder[data.column.index - 1];
@@ -117,6 +126,7 @@ export async function generatePlaceComparisonPdf(
 		y = drawSectionTitle(doc, palette, `Domain profile — top ${topPlaces.length} places`, y);
 		const radarSvg = buildRadarSvg({
 			axisLabels: domainOrder.map(domain => domainLabels[domain]),
+			axisColors: domainOrder.map(domain => palette.domains[domain].text),
 			palette,
 			series: topPlaces.map((summary, index) => ({
 				label: summary.placeName,

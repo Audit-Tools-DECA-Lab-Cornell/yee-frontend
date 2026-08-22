@@ -14,13 +14,19 @@ type StatCardTone = "default" | "sky" | "amber" | "emerald" | "violet";
  * label + optional icon chip). No more pastel background floods: every card is
  * a clean white surface, differentiated by a restrained accent from the shared
  * data-viz palette so the grid reads as one coordinated family.
+ *
+ * These tones are decorative: a stat card is never about a YEE domain, so it
+ * must not borrow the `domain-*` tokens — those carry identity, and spending
+ * them here would say "Activity Spaces" on a card that means nothing of the
+ * sort. The categorical `chart-*` steps and the semantic `score-*` pairs cover
+ * it; the neutral chip keeps AA text contrast without inventing a tint.
  */
 const toneAccent: Record<StatCardTone, { tick: string; chip: string }> = {
 	default: { tick: "bg-primary", chip: "bg-accent text-primary" },
 	emerald: { tick: "bg-score-high", chip: "bg-score-high-bg text-score-high" },
-	sky: { tick: "bg-chart-2", chip: "bg-domain-activity-light text-domain-activity-strong" },
+	sky: { tick: "bg-chart-2", chip: "bg-muted text-foreground" },
 	amber: { tick: "bg-score-mid", chip: "bg-score-mid-bg text-score-mid" },
-	violet: { tick: "bg-chart-4", chip: "bg-domain-use-light text-domain-use-strong" }
+	violet: { tick: "bg-chart-4", chip: "bg-muted text-foreground" }
 };
 
 type StatCardTrend = {

@@ -11,6 +11,12 @@ export type GroupedBarsSeries = { label: string; color: string };
 
 export type GroupedBarsGroup = {
 	label: string;
+	/**
+	 * Colour for this group's label. Each group IS a domain, so it wears that
+	 * domain's `text` step instead of a neutral axis grey. Optional so a caller
+	 * grouping by something other than a domain still gets a sane default.
+	 */
+	labelColor?: string;
 	/** One value per series, 0–100, in series order. */
 	values: number[];
 };
@@ -67,8 +73,17 @@ export function buildGroupedBarsSvg(options: {
 		const words = group.label.split(" ");
 		const line1 = words.slice(0, Math.ceil(words.length / 2)).join(" ");
 		const line2 = words.slice(Math.ceil(words.length / 2)).join(" ");
+		const labelFill = group.labelColor ?? palette.axis;
 		parts.push(
-			svgText({ x: centerX, y: plotBottom + 16, text: line1, fill: palette.axis, size: 9.5, anchor: "middle" })
+			svgText({
+				x: centerX,
+				y: plotBottom + 16,
+				text: line1,
+				fill: labelFill,
+				size: 9.5,
+				weight: 600,
+				anchor: "middle"
+			})
 		);
 		if (line2) {
 			parts.push(
@@ -76,8 +91,9 @@ export function buildGroupedBarsSvg(options: {
 					x: centerX,
 					y: plotBottom + 27,
 					text: line2,
-					fill: palette.axis,
+					fill: labelFill,
 					size: 9.5,
+					weight: 600,
 					anchor: "middle"
 				})
 			);

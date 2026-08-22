@@ -6,7 +6,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { Badge } from "@/components/ui/badge";
 import type { PlaceComparisonAuditRecord, PlaceComparisonGroupRecord } from "@/features/workspaces/api/live-api";
 import { domainLabels, domainOrder, getComparisonAverages } from "@/features/reporting/reporting";
-import { yeeDomainThemes } from "@/features/yee-audit/config/yee-domain-theme";
+import { DomainBadge } from "@/components/ui/domain-badge";
 import { scoreBand } from "@/lib/score-band";
 
 function clampPercentage(value: number) {
@@ -81,7 +81,7 @@ export function PlaceComparisonPanel({
 
 	if (records.length === 0) {
 		return (
-			<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
+			<Card className="rounded-md border-border bg-card shadow-sm">
 				<CardHeader>
 					<CardTitle>Place comparison</CardTitle>
 					<CardDescription>No comparison audits are available for this place yet.</CardDescription>
@@ -93,7 +93,7 @@ export function PlaceComparisonPanel({
 	return (
 		<div className="space-y-6">
 			{hideAuditTable ? null : (
-				<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
+				<Card className="rounded-md border-border bg-card shadow-sm">
 					<CardHeader>
 						<CardTitle>Place-level comparison</CardTitle>
 						<CardDescription>
@@ -119,7 +119,7 @@ export function PlaceComparisonPanel({
 				</Card>
 			)}
 
-			<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
+			<Card className="rounded-md border-border bg-card shadow-sm">
 				<CardHeader>
 					<CardTitle>Score bar graphs</CardTitle>
 					<CardDescription>
@@ -138,9 +138,9 @@ export function PlaceComparisonPanel({
 							<div key={entry.label} className="rounded-md border border-border bg-muted/30 p-3">
 								<div className="flex items-center gap-2">
 									<span className={`h-3 w-3 rounded-full ${entry.tone}`} />
-									<p className="text-sm font-medium text-slate-900">{entry.label}</p>
+									<p className="text-sm font-medium text-foreground">{entry.label}</p>
 								</div>
-								<p className="mt-2 text-xs text-slate-600">{entry.text}</p>
+								<p className="mt-2 text-xs text-muted-foreground">{entry.text}</p>
 							</div>
 						))}
 					</div>
@@ -152,30 +152,30 @@ export function PlaceComparisonPanel({
 							const youthMax = record.total_weighted_maximum;
 							const youthPercent = youthMax ? (record.total_weighted_score / youthMax) * 100 : 0;
 							return (
-								<div key={record.audit_id} className="rounded-lg border border-slate-200 bg-white p-4">
+								<div key={record.audit_id} className="rounded-lg border border-border bg-card p-4">
 									<div className="flex items-center justify-between gap-3">
 										<div>
-											<p className="text-sm font-semibold text-slate-900">{record.auditor_id}</p>
-											<p className="text-xs text-slate-600">{record.date}</p>
+											<p className="text-sm font-semibold text-foreground">{record.auditor_id}</p>
+											<p className="text-xs text-muted-foreground">{record.date}</p>
 										</div>
-										<Badge className="rounded-full bg-white px-3 py-1 text-slate-700 hover:bg-white">
+										<Badge className="rounded-full bg-card px-3 py-1 text-foreground hover:bg-card">
 											{record.place_name}
 										</Badge>
 									</div>
 									<div className="mt-4 space-y-4">
-										<div className="rounded-md border-4 border-slate-300 bg-white p-4">
-											<p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">
+										<div className="rounded-md border-4 border-border bg-card p-4">
+											<p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
 												Total Raw Score
 											</p>
 											<div className="mt-3 flex items-end gap-4">
-												<div className="flex h-36 w-14 items-end rounded-full border border-slate-200 bg-slate-50 p-1">
+												<div className="flex h-36 w-14 items-end rounded-full border border-border bg-muted/50 p-1">
 													<div
 														className={`${colorBand(rawPercent)} w-full rounded-full`}
 														style={{ height: barHeight(rawPercent) }}
 													/>
 												</div>
-												<div className="space-y-1 text-xs text-slate-600">
-													<p className="font-medium text-slate-900">
+												<div className="space-y-1 text-xs text-muted-foreground">
+													<p className="font-medium text-foreground">
 														{record.total_raw_score} / {record.total_raw_maximum}
 													</p>
 													<p>
@@ -185,19 +185,19 @@ export function PlaceComparisonPanel({
 												</div>
 											</div>
 										</div>
-										<div className="rounded-md border-4 border-emerald-300 bg-white p-4">
-											<p className="text-xs font-medium uppercase tracking-[0.16em] text-emerald-700">
+										<div className="rounded-md border-4 border-score-high/40 bg-card p-4">
+											<p className="text-xs font-medium uppercase tracking-[0.16em] text-score-high">
 												Total Youth Weighted Average
 											</p>
 											<div className="mt-3 flex items-end gap-4">
-												<div className="flex h-36 w-14 items-end rounded-full border border-emerald-200 bg-white/90 p-1">
+												<div className="flex h-36 w-14 items-end rounded-full border border-score-high/30 bg-card p-1">
 													<div
 														className={`${colorBand(youthPercent)} w-full rounded-full`}
 														style={{ height: barHeight(youthPercent) }}
 													/>
 												</div>
-												<div className="space-y-1 text-xs text-emerald-800">
-													<p className="font-medium text-emerald-900">
+												<div className="space-y-1 text-xs text-score-high">
+													<p className="font-medium text-score-high">
 														{record.total_weighted_score.toFixed(2)} / {youthMax.toFixed(2)}
 													</p>
 													<p>
@@ -215,7 +215,7 @@ export function PlaceComparisonPanel({
 				</CardContent>
 			</Card>
 
-			<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
+			<Card className="rounded-md border-border bg-card shadow-sm">
 				<CardHeader>
 					<CardTitle>Domain comparison</CardTitle>
 					<CardDescription>
@@ -225,8 +225,8 @@ export function PlaceComparisonPanel({
 				</CardHeader>
 				<CardContent className="overflow-x-auto">
 					<table className="min-w-full text-left text-sm">
-						<thead className="text-slate-500">
-							<tr className="border-b border-slate-200">
+						<thead className="text-muted-foreground">
+							<tr className="border-b border-border">
 								<th className="py-3 pr-4 font-medium">Domain</th>
 								{records.map(record => (
 									<th key={record.audit_id} className="py-3 pr-4 font-medium">
@@ -241,35 +241,29 @@ export function PlaceComparisonPanel({
 						</thead>
 						<tbody>
 							{domainOrder.map(domain => (
-								<tr key={domain} className="border-b border-slate-100 last:border-0">
+								<tr key={domain} className="border-b border-border/60 last:border-0">
 									<td className="py-4 pr-4">
-										<span
-											className="inline-flex rounded-full border px-3 py-1 text-sm font-medium"
-											style={{
-												borderColor: yeeDomainThemes[domain].strongFillHex,
-												backgroundColor: yeeDomainThemes[domain].lightHex,
-												color: yeeDomainThemes[domain].strongHex
-											}}>
-											{domainLabels[domain]}
-										</span>
+										<DomainBadge domain={domain} label={domainLabels[domain]} />
 									</td>
 									{records.map(record => (
-										<td key={`${record.audit_id}-${domain}`} className="py-4 pr-4 text-slate-600">
+										<td
+											key={`${record.audit_id}-${domain}`}
+											className="py-4 pr-4 text-muted-foreground">
 											<div>
 												{record.raw_domain_scores[domain]} /{" "}
 												{record.raw_domain_maximums[domain]} raw score
 											</div>
-											<div className="text-xs text-slate-500">
+											<div className="text-xs text-muted-foreground">
 												{record.weighted_domain_scores[domain].toFixed(2)} /{" "}
 												{record.weighted_domain_maximums[domain].toFixed(2)} Youth Weighted
 												average
 											</div>
 										</td>
 									))}
-									<td className="py-4 pr-4 text-slate-600">
+									<td className="py-4 pr-4 text-muted-foreground">
 										{averages?.avgRawByDomain[domain]} / {records[0].raw_domain_maximums[domain]}
 									</td>
-									<td className="py-4 text-slate-600">
+									<td className="py-4 text-muted-foreground">
 										{averages?.avgWeightedByDomain[domain].toFixed(2)} average
 									</td>
 								</tr>
@@ -281,7 +275,7 @@ export function PlaceComparisonPanel({
 
 			{averages ? (
 				<div className="grid gap-4 md:grid-cols-2">
-					<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
+					<Card className="rounded-md border-border bg-card shadow-sm">
 						<CardHeader>
 							<CardTitle>Total score averages</CardTitle>
 							<CardDescription>
@@ -289,10 +283,10 @@ export function PlaceComparisonPanel({
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="flex flex-wrap gap-3">
-							<Badge className="rounded-full bg-slate-100 px-3 py-1 text-slate-700 hover:bg-slate-100">
+							<Badge className="rounded-full bg-muted px-3 py-1 text-foreground hover:bg-muted">
 								Average raw: {averages.totalRawAverage}
 							</Badge>
-							<Badge className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700 hover:bg-emerald-100">
+							<Badge className="rounded-full bg-score-high-bg px-3 py-1 text-score-high hover:bg-score-high-bg">
 								Average youth weighted: {averages.totalWeightedAverage.toFixed(2)}
 							</Badge>
 						</CardContent>

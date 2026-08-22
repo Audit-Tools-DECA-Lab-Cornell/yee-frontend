@@ -142,17 +142,36 @@ Three elevations:
 All charts are hand-drawn SVG/CSS (no chart library). Colors come from tokens in
 `globals.css` — **never hardcode hex in a chart.**
 
-**Domain palette** — **single source of truth** in `globals.css`:
-`--domain-{access,activity,amenities,experience,aesthetics,use}-{text,strong,fill,light}`.
-The six YEE domains share one OKLCH lightness/chroma envelope anchored to the brand green, so they
-read as a coordinated family; only hue varies. `text` = labels/headings (dark, AA on white),
-`strong` = borders/lines/dots, `fill` = bars/areas, `light` = tint backgrounds.
-**Adjust a domain here and it flows everywhere** — charts, the reports page, the individual report,
-AND the audit wizard — because `yeeDomainThemes` (`features/yee-audit/config/yee-domain-theme.ts`) is
-the only mapping and it references nothing but these tokens: `*Hex` fields as raw `var(--domain-*)`
-(inline styles / SVG) and `*Class` fields as `domain-*` Tailwind utilities
-(`border-domain-access-strong`, `bg-domain-access-light`, `text-domain-access-text`, …). Never hardcode
-a domain color (no `emerald-*`/`blue-*`/etc.) — go through the theme.
+**Domain palette** — **single source of truth** is `src/styles/domain-palette.json`, committed with
+identical contents in **yee-mobile** (`lib/domain-palette.json`). Everything else is derived from it:
+
+| Consumer | How it reads the palette |
+|---|---|
+| `globals.css` `--domain-*` tokens | **generated** — `node scripts/generate-domain-tokens.mjs` |
+| Tailwind `domain-*` utilities | generated into `@theme` from the same run |
+| Components / SVG charts | `yeeDomainThemes` (`features/yee-audit/config/yee-domain-theme.ts`), which holds nothing but `var(--domain-*)` strings |
+| PDF / Excel / SVG exports | `getExportPalette()` reads the JSON directly (`export/export-palette.ts`) |
+| yee-mobile | `designSystem.domains`, read from its copy of the same JSON |
+
+Four roles per domain, each tuned to the job it does — this is why one hue is not enough:
+
+| Role | Used for | Floor (enforced) |
+|---|---|---|
+| `text` | labels, headings, any small text | ≥ 7:1 on the card, the app bg **and** its own tint |
+| `strong` | borders, dots, rails; also safe for small text | ≥ 4.5:1 on the same three |
+| `fill` | chart bars, score strips | ≥ 3:1 on the card (WCAG 1.4.11 non-text) |
+| `light` | tint backgrounds | the surface the two above are measured against |
+
+The six `fill` steps additionally clear categorical separation — OKLab ΔE ≥ 15 in full colour and
+≥ 8 under simulated protanopia and deuteranopia — so adjacent domains stay tellable apart. Domain
+colour is never the *only* signal: every domain mark ships beside its name (WCAG 1.4.1).
+
+**To change a domain colour:** edit the JSON in **both** repos, run `pnpm tokens:domains`, update
+`DOMAIN_PALETTE_CHECKSUM` in both, then run the guard tests on both sides.
+`tests/unit/domain-palette.spec.ts` re-runs the generator in `--check` mode, re-measures every
+contrast floor and separation gate, verifies the cross-repo checksum, and **fails if any domain hex
+appears anywhere in `src/` outside the spec**. Never hardcode a domain colour (no `emerald-*`,
+`blue-*`, no raw hex) — go through the tokens.
 
 **Series palette** (`--chart-1 … --chart-5`): categorical colors for comparing N places/audits
 (radar, trend lines). Brand green leads; the rest are harmonized to the same muted envelope.
@@ -216,6 +235,8 @@ one accent per chart. Reusable primitives live in `components/ui/charts/`.
 ## Audit Wizard
 
 **Domain color rule:** Each YEE domain (Access, Activity Spaces, etc.) uses its own color family as a border/accent on option cards. The card background is a very light tint, not a solid domain fill.
+
+**Non-domain steps stay neutral.** Steps 1 (context), 2 (weighting) and 9 (final comments) are not domains, so they wear the brand-neutral base — the same rule yee-mobile's `getSurveyPalette()` follows. Colour on screen answers "which domain am I in"; spending hues on the steps that have no domain would make that signal meaningless. The one exception: inside the weighting step each *card* is a domain, so each card wears its own.
 
 **Selected state:** Solid `2px border` in domain color + `bg-{domain}-50` tint. No stacked shadows/rings/gradients.
 

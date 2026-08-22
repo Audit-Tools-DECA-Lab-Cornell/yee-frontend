@@ -116,6 +116,12 @@ export async function generateAuditComparisonPdf(
 		},
 		columnStyles: { 0: { halign: "left", fontStyle: "bold" } },
 		didParseCell: data => {
+			// Section column: the row IS a domain, so it wears that domain's tint.
+			if (data.section === "body" && data.column.index === 0) {
+				const colors = palette.domains[deltas[data.row.index].domainKey];
+				data.cell.styles.fillColor = hexToRgb(colors.light);
+				data.cell.styles.textColor = hexToRgb(colors.text);
+			}
 			if (twoUp && data.section === "body" && data.column.index === deltaHead.length - 1) {
 				const delta = deltas[data.row.index].delta ?? 0;
 				const key = delta > 0 ? "high" : delta < 0 ? "low" : "mid";
@@ -129,6 +135,7 @@ export async function generateAuditComparisonPdf(
 	// Radar overlay + grouped bars.
 	const radarSvg = buildRadarSvg({
 		axisLabels: domainOrder.map(domain => domainLabels[domain]),
+		axisColors: domainOrder.map(domain => palette.domains[domain].text),
 		palette,
 		series: records.map((record, index) => ({
 			label: seriesLabels[index],
@@ -145,6 +152,7 @@ export async function generateAuditComparisonPdf(
 		})),
 		groups: domainOrder.map(domain => ({
 			label: domainLabels[domain],
+			labelColor: palette.domains[domain].text,
 			values: records.map(record => percentFor(record, domain))
 		}))
 	});

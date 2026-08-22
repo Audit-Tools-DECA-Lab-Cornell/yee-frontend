@@ -122,6 +122,7 @@ export async function generateAuditPdf(
 	// Charts (rasterized standalone SVG).
 	const radarSvg = buildRadarSvg({
 		axisLabels: domainOrder.map(domain => domainLabels[domain]),
+		axisColors: domainOrder.map(domain => palette.domains[domain].text),
 		palette,
 		series: [{ label: overview.placeName, color: palette.chartSeries[0], values: buildRadarValues(submission) }]
 	});
