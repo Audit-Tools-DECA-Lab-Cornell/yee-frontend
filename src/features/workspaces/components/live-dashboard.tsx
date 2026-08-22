@@ -13,6 +13,9 @@ import {
 	SearchableMultiSelectFilter
 } from "@/features/workspaces/components/table-filters";
 import { PlaceComparisonPanel } from "@/features/reporting/components/place-comparison-panel";
+import { domainLabels, domainOrder } from "@/features/reporting/reporting";
+import { yeeDomainThemes } from "@/features/yee-audit/config/yee-domain-theme";
+import { DomainDot } from "@/components/ui/domain-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -100,30 +103,30 @@ function metricTone(title: string) {
 	const normalized = title.toLowerCase();
 	if (normalized.includes("user")) {
 		return {
-			card: "border-sky-200 bg-sky-50/80 hover:border-sky-300",
-			badge: "bg-sky-100 text-sky-700"
+			card: "border-chart-2/30 bg-muted/50 hover:border-chart-2/40",
+			badge: "bg-muted text-chart-2"
 		};
 	}
 	if (normalized.includes("project")) {
 		return {
-			card: "border-amber-200 bg-amber-50/80 hover:border-amber-300",
-			badge: "bg-amber-100 text-amber-700"
+			card: "border-score-mid/30 bg-score-mid-bg/80 hover:border-score-mid/40",
+			badge: "bg-score-mid-bg text-score-mid"
 		};
 	}
 	if (normalized.includes("place")) {
 		return {
-			card: "border-emerald-200 bg-emerald-50/80 hover:border-emerald-300",
-			badge: "bg-emerald-100 text-emerald-700"
+			card: "border-score-high/30 bg-score-high-bg/80 hover:border-score-high/40",
+			badge: "bg-score-high-bg text-score-high"
 		};
 	}
 	if (normalized.includes("audit")) {
 		return {
-			card: "border-violet-200 bg-violet-50/80 hover:border-violet-300",
-			badge: "bg-violet-100 text-violet-700"
+			card: "border-chart-4/30 bg-muted/50 hover:border-chart-4/40",
+			badge: "bg-muted text-chart-4"
 		};
 	}
 	return {
-		card: "border-border bg-white hover:border-slate-300",
+		card: "border-border bg-white hover:border-border",
 		badge: "bg-muted text-foreground"
 	};
 }
@@ -172,8 +175,8 @@ function LoadingCard({ label }: { label: string }) {
 
 function ErrorCard({ message }: { message: string }) {
 	return (
-		<Card className="rounded-md border-rose-200 bg-rose-50 shadow-sm">
-			<CardContent className="p-6 text-sm text-rose-700">{message}</CardContent>
+		<Card className="rounded-md border-score-low/30 bg-score-low-bg shadow-sm">
+			<CardContent className="p-6 text-sm text-score-low">{message}</CardContent>
 		</Card>
 	);
 }
@@ -266,22 +269,16 @@ function formatPercent(value: number | null) {
 
 function averageDomainWeights(rows: RawDataRecord[]) {
 	if (rows.length === 0) return [];
-	const domainLabels = {
-		access: "Access",
-		activitySpaces: "Activity Spaces",
-		amenities: "Amenities",
-		experienceOfSpace: "Experience of the Space",
-		aestheticsAndCare: "Aesthetics & Care",
-		useAndUsability: "Use & Usability"
-	} as const;
-
-	return Object.entries(domainLabels).map(([domain, label]) => {
+	// Labels come from the shared reporting map rather than a local copy, so this
+	// card can never name (or order) the domains differently from the rest of the app.
+	return domainOrder.map(domain => {
 		const total = rows.reduce((sum, row) => sum + Number(row.domain_weights[domain] ?? 0), 0);
 		const average = total / rows.length;
 		const percent = average > 0 ? (average / 3) * 100 : 0;
 		return {
 			domain,
-			label,
+			label: domainLabels[domain],
+			theme: yeeDomainThemes[domain],
 			average,
 			percent
 		};
@@ -401,7 +398,7 @@ export function LiveManagerOverview() {
 				stats={managerSnapshotItems}
 				actions={
 					<>
-						<Button asChild className="bg-white text-foreground hover:bg-emerald-50">
+						<Button asChild className="bg-white text-foreground hover:bg-score-high-bg">
 							<Link href="/manager/projects/new">
 								Create Project
 								<ArrowRight className="size-4" />
@@ -444,12 +441,25 @@ export function LiveManagerOverview() {
 				</p>
 				<div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
 					{domainWeightBreakdown.map(item => (
-						<div key={item.domain} className="rounded-md border border-border bg-muted/40 px-4 py-3">
-							<p className="text-sm font-medium text-foreground">{item.label}</p>
+						<div
+							key={item.domain}
+							className="rounded-md border px-4 py-3"
+							style={{
+								borderColor: item.theme.strongHex,
+								backgroundColor: item.theme.lightHex
+							}}>
+							<p
+								className="flex items-center gap-2 text-sm font-semibold"
+								style={{ color: item.theme.textHex }}>
+								<DomainDot domain={item.domain} />
+								{item.label}
+							</p>
 							<p className="mt-1 text-xs text-muted-foreground">
 								Average weighting across submitted audits
 							</p>
-							<p className="mt-2 text-sm font-semibold text-emerald-800">
+							<p
+								className="mt-2 text-sm font-semibold tabular-nums"
+								style={{ color: item.theme.textHex }}>
 								{item.average?.toFixed(1)} / 3 ({item.percent?.toFixed(0)}%)
 							</p>
 						</div>
@@ -520,7 +530,7 @@ export function LiveManagerOverview() {
 									key={link.href}
 									href={link.href}
 									className="flex items-start gap-3 rounded-md border border-border p-4 transition-colors hover:bg-muted/40">
-									<div className="rounded-md bg-[#e4f5ee] p-2 text-emerald-700">
+									<div className="rounded-md bg-[#e4f5ee] p-2 text-score-high">
 										<Icon className="size-4" />
 									</div>
 									<div className="min-w-0">
@@ -948,7 +958,7 @@ export function LiveProjectsTable() {
 				title="Projects"
 				subtitle="Every project you own, with its place count, audit activity, and status."
 				actions={
-					<Button asChild className="bg-white text-foreground hover:bg-emerald-50">
+					<Button asChild className="bg-white text-foreground hover:bg-score-high-bg">
 						<Link href="/manager/projects/new">Create Project</Link>
 					</Button>
 				}
@@ -1013,7 +1023,7 @@ export function LivePlacesTable() {
 				title="Places"
 				subtitle="Every field location you manage — address, assigned auditors, and what to do next."
 				actions={
-					<Button asChild className="bg-white text-foreground hover:bg-emerald-50">
+					<Button asChild className="bg-white text-foreground hover:bg-score-high-bg">
 						<Link href="/manager/places/new">Add Place</Link>
 					</Button>
 				}
@@ -1260,7 +1270,7 @@ export function LiveAuditorsTable() {
 				title="Auditors"
 				subtitle="No auditors are visible in this scope yet. You can still invite an auditor now."
 				actions={
-					<Button asChild className="bg-white text-foreground hover:bg-emerald-50">
+					<Button asChild className="bg-white text-foreground hover:bg-score-high-bg">
 						<Link href="/manager/auditors/invite">
 							<MailPlus className="size-4" />
 							Invite New Auditor
@@ -1283,7 +1293,7 @@ export function LiveAuditorsTable() {
 				}
 				actions={
 					<>
-						<Button asChild className="bg-white text-foreground hover:bg-emerald-50">
+						<Button asChild className="bg-white text-foreground hover:bg-score-high-bg">
 							<Link href="/manager/auditors/invite">
 								<MailPlus className="size-4" />
 								Invite New Auditor
@@ -1608,7 +1618,7 @@ export function LiveAuditsTable() {
 			/>
 			<Card className="rounded-md">
 				<CardContent className="space-y-4 overflow-x-auto">
-					{compareError ? <p className="text-sm text-rose-600">{compareError}</p> : null}
+					{compareError ? <p className="text-sm text-score-low">{compareError}</p> : null}
 					<DataTable
 						columns={auditColumns}
 						data={filteredAudits}
@@ -1782,7 +1792,7 @@ export function LiveAdminOverview() {
 				// action buttons to open reports and instruments
 				actions={
 					<>
-						<Button asChild className="bg-white text-foreground hover:bg-emerald-50">
+						<Button asChild className="bg-white text-foreground hover:bg-score-high-bg">
 							<Link href="/reporting/live-reports">Open Reports</Link>
 						</Button>
 						<Button
@@ -2062,7 +2072,7 @@ export function LiveUsersTable({ embedded = false }: { embedded?: boolean }) {
 						</CardDescription>
 					</CardHeader>
 				) : null}
-				{actionError ? <CardContent className="pt-0 text-sm text-rose-700">{actionError}</CardContent> : null}
+				{actionError ? <CardContent className="pt-0 text-sm text-score-low">{actionError}</CardContent> : null}
 				<CardContent className="space-y-4 overflow-x-auto">
 					<DataTable
 						columns={userColumns}

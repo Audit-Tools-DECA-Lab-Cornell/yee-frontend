@@ -26,6 +26,25 @@ import {
 import { BrandLogo } from "@/components/brand/brand-logo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { domainPaletteOrder, domainPaletteLabels, domainVar } from "@/styles/domain-palette";
+
+/**
+ * The six audit domains as the marketing page shows them: real domain colours
+ * from the shared palette, in the real audit order, so a visitor sees the same
+ * six hues they will meet in the product. Everything here reads
+ * `var(--domain-*)` — the page never carries a colour of its own.
+ *
+ * `fill` is the role used throughout this page: it is the chart-mark step, which
+ * clears 3:1 on the light card surfaces AND 4.5:1 on the dark green sections.
+ */
+const marketingDomains = domainPaletteOrder.map(key => ({
+	key,
+	label: domainPaletteLabels[key],
+	fill: domainVar(key, "fill"),
+	strong: domainVar(key, "strong"),
+	text: domainVar(key, "text"),
+	tint: domainVar(key, "light")
+}));
 
 /* ─────────────────────────────────────────────────────────────────────────────
    Navigation - charcoal type, brand-colored logo
@@ -224,12 +243,12 @@ function HeroMarkComposition() {
 /** Compact inline report mockup shown beneath the logo mark in the hero. */
 function ReportMockupCard() {
 	const domains = [
-		{ label: "Access", score: 80, color: "oklch(0.55 0.16 200)" },
-		{ label: "Activity Spaces", score: 65, color: "oklch(0.58 0.16 60)" },
-		{ label: "Amenities", score: 78, color: "oklch(0.55 0.15 280)" },
-		{ label: "Experience", score: 71, color: "oklch(0.55 0.18 350)" },
-		{ label: "Aesthetics & Care", score: 69, color: "var(--yee-green-600)" },
-		{ label: "Use & Usability", score: 73, color: "oklch(0.52 0.15 230)" }
+		{ ...marketingDomains[0], score: 80 },
+		{ ...marketingDomains[1], score: 65 },
+		{ ...marketingDomains[2], score: 78 },
+		{ ...marketingDomains[3], score: 71 },
+		{ ...marketingDomains[4], score: 69 },
+		{ ...marketingDomains[5], score: 73 }
 	];
 
 	return (
@@ -277,7 +296,7 @@ function ReportMockupCard() {
 							aria-label={`${domain.label}: ${domain.score} out of 100`}>
 							<div
 								className="h-full rounded-full"
-								style={{ width: `${domain.score}%`, background: domain.color }}
+								style={{ width: `${domain.score}%`, background: domain.fill }}
 							/>
 						</div>
 					</div>
@@ -607,7 +626,7 @@ function HowItWorksSection() {
 								<div
 									className="relative z-10 flex size-14 shrink-0 items-center justify-center self-start rounded-full border-2 shadow-sm"
 									style={{
-										background: "white",
+										background: "var(--yee-surface-card)",
 										borderColor: "var(--yee-green-300, var(--yee-green-200))"
 									}}>
 									<step.icon
@@ -645,6 +664,8 @@ function HowItWorksSection() {
 
 type DomainCard = {
 	icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
+	/** That domain's own `fill` step — see `marketingDomains`. */
+	accent: string;
 	name: string;
 	description: string;
 };
@@ -653,32 +674,38 @@ function DomainsSection() {
 	const domains: DomainCard[] = [
 		{
 			icon: MapPin,
+			accent: marketingDomains[0].fill,
 			name: "Access",
 			description:
 				"How easily youth can reach and enter the space - pathways, entrances, and barriers to movement."
 		},
 		{
 			icon: Dumbbell,
+			accent: marketingDomains[1].fill,
 			name: "Activity Spaces",
 			description: "The range, condition, and appropriateness of active play and sport areas available to youth."
 		},
 		{
 			icon: Droplets,
+			accent: marketingDomains[2].fill,
 			name: "Amenities",
 			description: "Presence and condition of facilities: seating, water, washrooms, shade, and lighting."
 		},
 		{
 			icon: Heart,
+			accent: marketingDomains[3].fill,
 			name: "Experience",
 			description: "How welcoming, safe, and enjoyable youth find the space - sense of belonging and comfort."
 		},
 		{
 			icon: Sparkles,
+			accent: marketingDomains[4].fill,
 			name: "Aesthetics & Care",
 			description: "Visual quality, maintenance, and overall upkeep of the environment from a youth perspective."
 		},
 		{
 			icon: Activity,
+			accent: marketingDomains[5].fill,
 			name: "Use & Usability",
 			description: "How actively the space is used, perceived usability across age groups, and inclusion."
 		}
@@ -732,13 +759,12 @@ function DomainsSection() {
 								background: "oklch(1 0 0 / 0.04)"
 							}}>
 							<div
-								className="mb-4 flex size-10 items-center justify-center rounded-md"
-								style={{ background: "var(--yee-green-900)" }}>
-								<domain.icon
-									className="size-5"
-									style={{ color: "var(--yee-green-500)" }}
-									aria-hidden="true"
-								/>
+								className="mb-4 flex size-10 items-center justify-center rounded-md border"
+								style={{
+									background: "oklch(1 0 0 / 0.06)",
+									borderColor: `color-mix(in oklab, ${domain.accent} 45%, transparent)`
+								}}>
+								<domain.icon className="size-5" style={{ color: domain.accent }} aria-hidden="true" />
 							</div>
 							<h3 className="mb-2 text-sm font-semibold" style={{ color: "oklch(0.97 0.008 158)" }}>
 								{domain.name}
@@ -829,24 +855,32 @@ function ScoringSection() {
 }
 
 function ScoreComparisonMockup() {
+	// Raw vs Youth-Weighted is a two-SERIES comparison, so the bars carry the
+	// shared `--chart-series-*` colours (same assignment as the in-app charts and
+	// the exported trend chart); the domain's own hue stays on its label, which is
+	// where identity belongs.
 	const domains = [
-		{ label: "Access", raw: 80, weighted: 76 },
-		{ label: "Activity Spaces", raw: 65, weighted: 71 },
-		{ label: "Amenities", raw: 78, weighted: 74 },
-		{ label: "Experience", raw: 71, weighted: 79 },
-		{ label: "Aesthetics & Care", raw: 69, weighted: 64 },
-		{ label: "Use & Usability", raw: 73, weighted: 80 }
+		{ ...marketingDomains[0], raw: 80, weighted: 76 },
+		{ ...marketingDomains[1], raw: 65, weighted: 71 },
+		{ ...marketingDomains[2], raw: 78, weighted: 74 },
+		{ ...marketingDomains[3], raw: 71, weighted: 79 },
+		{ ...marketingDomains[4], raw: 69, weighted: 64 },
+		{ ...marketingDomains[5], raw: 73, weighted: 80 }
 	];
 
 	return (
 		<div
 			className="rounded-md border p-6"
-			style={{ borderColor: "var(--border)", boxShadow: "var(--shadow-elevated)", background: "white" }}>
+			style={{
+				borderColor: "var(--border)",
+				boxShadow: "var(--shadow-elevated)",
+				background: "var(--yee-surface-card)"
+			}}>
 			<div className="mb-5 flex items-center gap-6">
 				<div className="flex items-center gap-2">
 					<div
 						className="h-2 w-5 rounded-full"
-						style={{ background: "oklch(0.78 0.008 240)" }}
+						style={{ background: "var(--chart-series-1)" }}
 						aria-hidden="true"
 					/>
 					<span className="text-xs text-muted-foreground">Raw Score</span>
@@ -854,7 +888,7 @@ function ScoreComparisonMockup() {
 				<div className="flex items-center gap-2">
 					<div
 						className="h-2 w-5 rounded-full"
-						style={{ background: "var(--yee-green-600)" }}
+						style={{ background: "var(--chart-series-2)" }}
 						aria-hidden="true"
 					/>
 					<span className="text-xs text-muted-foreground">Youth-Weighted</span>
@@ -864,7 +898,7 @@ function ScoreComparisonMockup() {
 			<div className="space-y-4" role="list" aria-label="Domain score comparison">
 				{domains.map(domain => (
 					<div key={domain.label} role="listitem">
-						<span className="mb-1.5 block text-xs font-medium" style={{ color: "oklch(0.14 0.006 240)" }}>
+						<span className="mb-1.5 block text-xs font-semibold" style={{ color: domain.text }}>
 							{domain.label}
 						</span>
 						<div className="mb-1 flex items-center gap-2">
@@ -878,7 +912,7 @@ function ScoreComparisonMockup() {
 								aria-label={`${domain.label} raw score: ${domain.raw}`}>
 								<div
 									className="h-full rounded-full"
-									style={{ width: `${domain.raw}%`, background: "oklch(0.78 0.008 240)" }}
+									style={{ width: `${domain.raw}%`, background: "var(--chart-series-1)" }}
 								/>
 							</div>
 							<span className="w-6 text-right text-[11px] tabular-nums text-muted-foreground">
@@ -896,7 +930,7 @@ function ScoreComparisonMockup() {
 								aria-label={`${domain.label} youth-weighted score: ${domain.weighted}`}>
 								<div
 									className="h-full rounded-full"
-									style={{ width: `${domain.weighted}%`, background: "var(--yee-green-600)" }}
+									style={{ width: `${domain.weighted}%`, background: "var(--chart-series-2)" }}
 								/>
 							</div>
 							<span

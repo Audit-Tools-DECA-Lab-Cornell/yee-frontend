@@ -1,5 +1,6 @@
 "use client";
 
+import { getThemeByDomainKey } from "@/features/yee-audit/config/yee-domain-theme";
 import { EditableField, FieldGroup, IdTag, type UpdateDraft } from "../shared-components";
 import type { InstrumentWeighting, StructuredInstrumentContent } from "../types";
 
@@ -111,6 +112,7 @@ export function AuditCopyEditor({ content, update }: { content: StructuredInstru
 						<EditableField
 							key={domain.key}
 							label={domain.label || domain.key}
+							labelColor={getThemeByDomainKey(domain.key)?.textHex}
 							value={domain.prompt ?? ""}
 							multiline
 							className="min-h-[4.5rem]"

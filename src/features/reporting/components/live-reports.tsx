@@ -38,6 +38,7 @@ import { ExportMenuButton, type ExportMenuOption } from "@/features/reporting/co
 import { ChartDownloadButton } from "@/features/reporting/components/chart-download-button";
 import { BulkAuditZipButton } from "@/features/reporting/components/bulk-audit-zip-button";
 import { yeeDomainThemes } from "@/features/yee-audit/config/yee-domain-theme";
+import { DomainDot } from "@/components/ui/domain-badge";
 
 type CompareMode = "places" | "audits" | "individual";
 type DateRangeValue = "all" | "30" | "90" | "180" | "365";
@@ -65,9 +66,9 @@ function parseIsoDate(value: string | null | undefined) {
 }
 
 function colorBandClasses(value: number) {
-	if (value < 34) return "border-rose-300 text-rose-700 bg-rose-50";
-	if (value < 67) return "border-amber-300 text-amber-700 bg-amber-50";
-	return "border-emerald-300 text-emerald-700 bg-emerald-50";
+	if (value < 34) return "border-score-low/40 text-score-low bg-score-low-bg";
+	if (value < 67) return "border-score-mid/40 text-score-mid bg-score-mid-bg";
+	return "border-score-high/40 text-score-high bg-score-high-bg";
 }
 
 function compareModeLabel(mode: CompareMode) {
@@ -147,9 +148,14 @@ const comparePlacesColumns: ColumnDef<PlaceSummary>[] = [
 	{
 		id: "access",
 		accessorFn: row => row.rawPercentByDomain.access,
-		header: "Access",
+		header: () => (
+			<span className="flex items-center gap-2">
+				<DomainDot domain="access" />
+				Access
+			</span>
+		),
 		cell: ({ row }) => (
-			<span className="text-muted-foreground tabular-nums">
+			<span className="font-medium tabular-nums" style={{ color: yeeDomainThemes.access.textHex }}>
 				{row.original.rawPercentByDomain.access.toFixed(0)}%
 			</span>
 		)
@@ -157,9 +163,14 @@ const comparePlacesColumns: ColumnDef<PlaceSummary>[] = [
 	{
 		id: "amenities",
 		accessorFn: row => row.rawPercentByDomain.amenities,
-		header: "Amenities",
+		header: () => (
+			<span className="flex items-center gap-2">
+				<DomainDot domain="amenities" />
+				Amenities
+			</span>
+		),
 		cell: ({ row }) => (
-			<span className="text-muted-foreground tabular-nums">
+			<span className="font-medium tabular-nums" style={{ color: yeeDomainThemes.amenities.textHex }}>
 				{row.original.rawPercentByDomain.amenities.toFixed(0)}%
 			</span>
 		)
@@ -199,8 +210,20 @@ function ComparePlaceMobileCard({ summary }: { summary: PlaceSummary }) {
 				<span>
 					Youth weighted: {summary.avgWeightedScore.toFixed(2)} ({summary.avgWeightedPercent.toFixed(0)}%)
 				</span>
-				<span>Access: {summary.rawPercentByDomain.access.toFixed(0)}%</span>
-				<span>Amenities: {summary.rawPercentByDomain.amenities.toFixed(0)}%</span>
+				<span className="flex items-center gap-1.5">
+					<DomainDot domain="access" />
+					Access:{" "}
+					<span className="font-medium" style={{ color: yeeDomainThemes.access.textHex }}>
+						{summary.rawPercentByDomain.access.toFixed(0)}%
+					</span>
+				</span>
+				<span className="flex items-center gap-1.5">
+					<DomainDot domain="amenities" />
+					Amenities:{" "}
+					<span className="font-medium" style={{ color: yeeDomainThemes.amenities.textHex }}>
+						{summary.rawPercentByDomain.amenities.toFixed(0)}%
+					</span>
+				</span>
 			</div>
 			{summary.latestSubmissionId ? (
 				<Link
@@ -318,6 +341,7 @@ function RadarComparisonChart({ summaries }: { summaries: PlaceSummary[] }) {
 		const palette = getExportPalette();
 		return buildRadarSvg({
 			axisLabels: domainOrder.map(domain => domainLabels[domain]),
+			axisColors: domainOrder.map(domain => palette.domains[domain].text),
 			palette,
 			size: 380,
 			series: series.map((summary, index) => ({
@@ -376,7 +400,8 @@ function RadarComparisonChart({ summaries }: { summaries: PlaceSummary[] }) {
 									x={labelPoint.x}
 									y={labelPoint.y}
 									textAnchor="middle"
-									className="fill-chart-axis text-[8px] font-medium">
+									className="text-[8px] font-semibold"
+									fill={yeeDomainThemes[domain].textHex}>
 									{domainLabels[domain]}
 								</text>
 							</g>
@@ -405,7 +430,7 @@ function RadarComparisonChart({ summaries }: { summaries: PlaceSummary[] }) {
 								/>
 								<Link
 									href={`/manager/places/${summary.place_id}`}
-									className="font-medium text-slate-900 underline decoration-slate-300 underline-offset-4 hover:text-foreground">
+									className="font-medium text-foreground underline decoration-slate-300 underline-offset-4 hover:text-foreground">
 									{summary.place_name}
 								</Link>
 							</div>
@@ -480,21 +505,24 @@ function TrendLineChart({ records }: { records: PlaceComparisonAuditRecord[] }) 
 							</text>
 						</g>
 					))}
-					<polyline fill="none" className="stroke-chart-2" strokeWidth={3} points={rawPolyline} />
-					<polyline fill="none" className="stroke-chart-1" strokeWidth={3} points={weightedPolyline} />
+					{/* Series assignment is app-wide: slot 1 = raw, slot 2 = Youth-Weighted.
+					    Kept identical in the exported SVG (export/charts/trend.ts), mobile's
+					    section chart, and the landing mockup. */}
+					<polyline fill="none" className="stroke-chart-1" strokeWidth={3} points={rawPolyline} />
+					<polyline fill="none" className="stroke-chart-2" strokeWidth={3} points={weightedPolyline} />
 					{points.map(point => (
 						<g key={point.label}>
 							<circle
 								cx={pointX(point.index)}
 								cy={pointY(point.rawPercent)}
 								r={4}
-								className="fill-chart-2"
+								className="fill-chart-1"
 							/>
 							<circle
 								cx={pointX(point.index)}
 								cy={pointY(point.weightedPercent)}
 								r={4}
-								className="fill-chart-1"
+								className="fill-chart-2"
 							/>
 							<text
 								x={pointX(point.index)}
@@ -506,11 +534,17 @@ function TrendLineChart({ records }: { records: PlaceComparisonAuditRecord[] }) 
 						</g>
 					))}
 				</svg>
+				{/* Legend: the label wears text ink and a swatch carries the series colour.
+				    Painting the label itself in the series colour put it at 4.29:1 on the
+				    badge for series 2 — under the 4.5:1 AA floor for normal text; the
+				    swatch only needs 3:1 as a graphical object, which both series clear. */}
 				<div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-					<Badge className="rounded-full bg-blue-100 px-3 py-1 text-blue-700 hover:bg-blue-100">
+					<Badge className="rounded-full bg-muted px-3 py-1 text-foreground hover:bg-muted">
+						<span aria-hidden className="mr-1.5 inline-block h-2 w-2 rounded-full bg-chart-1" />
 						Raw Score trend
 					</Badge>
-					<Badge className="rounded-full bg-emerald-100 px-3 py-1 text-emerald-700 hover:bg-emerald-100">
+					<Badge className="rounded-full bg-muted px-3 py-1 text-foreground hover:bg-muted">
+						<span aria-hidden className="mr-1.5 inline-block h-2 w-2 rounded-full bg-chart-2" />
 						Youth Weighted Average trend
 					</Badge>
 				</div>
@@ -873,8 +907,8 @@ export function LiveReports() {
 
 	if (error) {
 		return (
-			<Card className="rounded-md border-rose-200 bg-rose-50 shadow-sm">
-				<CardContent className="p-6 text-sm text-rose-700">{error}</CardContent>
+			<Card className="rounded-md border-score-low/30 bg-score-low-bg shadow-sm">
+				<CardContent className="p-6 text-sm text-score-low">{error}</CardContent>
 			</Card>
 		);
 	}
@@ -892,7 +926,7 @@ export function LiveReports() {
 				title="Reports dashboard"
 				subtitle="Analyze performance across Places and time with project, Place, auditor, and date filters."
 				actions={
-					<Button asChild className="bg-white text-foreground hover:bg-emerald-50">
+					<Button asChild className="bg-white text-foreground hover:bg-score-high-bg">
 						<Link href="/auditor/places">View My Audits</Link>
 					</Button>
 				}
@@ -1052,12 +1086,12 @@ export function LiveReports() {
 										<div>
 											<Link
 												href={`/manager/places/${summary.place_id}`}
-												className="font-medium text-slate-900 underline decoration-slate-300 underline-offset-4 hover:text-foreground">
+												className="font-medium text-foreground underline decoration-slate-300 underline-offset-4 hover:text-foreground">
 												{summary.place_name}
 											</Link>
 											<p className="text-sm text-muted-foreground">{summary.project_name}</p>
 										</div>
-										<Badge className="rounded-full bg-white px-3 py-1 text-slate-700 hover:bg-white">
+										<Badge className="rounded-full bg-white px-3 py-1 text-foreground hover:bg-white">
 											{summary.auditCount} audits
 										</Badge>
 									</div>
@@ -1157,7 +1191,7 @@ export function LiveReports() {
 													</p>
 													<Link
 														href={`/yee/submissions/${record.audit_id}`}
-														className="text-sm font-medium text-slate-900 underline decoration-slate-300 underline-offset-4 hover:text-foreground">
+														className="text-sm font-medium text-foreground underline decoration-slate-300 underline-offset-4 hover:text-foreground">
 														Open report
 													</Link>
 												</CardContent>
@@ -1255,12 +1289,12 @@ export function LiveReports() {
 												key={domain}
 												className="rounded-md border p-4"
 												style={{
-													borderColor: yeeDomainThemes[domain].strongFillHex,
-													backgroundColor: "#ffffff"
+													borderColor: yeeDomainThemes[domain].strongHex,
+													backgroundColor: yeeDomainThemes[domain].lightHex
 												}}>
 												<p
 													className="text-sm font-medium"
-													style={{ color: yeeDomainThemes[domain].strongHex }}>
+													style={{ color: yeeDomainThemes[domain].textHex }}>
 													{domainLabels[domain]}
 												</p>
 												<p className="mt-2 text-sm text-muted-foreground">

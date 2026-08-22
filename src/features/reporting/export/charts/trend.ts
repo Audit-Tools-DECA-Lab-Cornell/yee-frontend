@@ -26,8 +26,10 @@ export function buildTrendSvg(options: {
 	const padding = 44;
 	const plotBottom = height - 52; // extra room for x labels
 	const scale = trendScale({ count: points.length, width, height: plotBottom + padding, padding });
-	const rawColor = palette.chartSeries[1];
-	const weightedColor = palette.chartSeries[0];
+	// Series assignment matches the rest of the app (mobile's section chart, the
+	// landing mockup): slot 1 is the raw score, slot 2 the Youth-Weighted average.
+	const rawColor = palette.chartSeries[0];
+	const weightedColor = palette.chartSeries[1];
 	const parts: string[] = [];
 
 	// Horizontal gridlines + y labels.

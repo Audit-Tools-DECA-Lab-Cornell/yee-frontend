@@ -50,32 +50,35 @@
 	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
 	--color-sidebar-ring: var(--sidebar-ring);
 
-	/* Data-viz palette → Tailwind utilities (fill-*, stroke-*, bg-*, text-*, border-*).
-	   Single source of truth for every domain color (charts, reports, audit wizard). */
+	/* >>> generated: domain palette → Tailwind (edit domain-palette.json) <<< */
+	/* Every `--domain-<slug>-<role>` as a Tailwind colour, so
+	   `bg-domain-access-light`, `text-domain-access-text`,
+	   `border-domain-access-strong` and friends all resolve from one source. */
+	--color-domain-access-text: var(--domain-access-text);
 	--color-domain-access-strong: var(--domain-access-strong);
 	--color-domain-access-fill: var(--domain-access-fill);
 	--color-domain-access-light: var(--domain-access-light);
-	--color-domain-access-text: var(--domain-access-text);
+	--color-domain-activity-text: var(--domain-activity-text);
 	--color-domain-activity-strong: var(--domain-activity-strong);
 	--color-domain-activity-fill: var(--domain-activity-fill);
 	--color-domain-activity-light: var(--domain-activity-light);
-	--color-domain-activity-text: var(--domain-activity-text);
+	--color-domain-amenities-text: var(--domain-amenities-text);
 	--color-domain-amenities-strong: var(--domain-amenities-strong);
 	--color-domain-amenities-fill: var(--domain-amenities-fill);
 	--color-domain-amenities-light: var(--domain-amenities-light);
-	--color-domain-amenities-text: var(--domain-amenities-text);
+	--color-domain-experience-text: var(--domain-experience-text);
 	--color-domain-experience-strong: var(--domain-experience-strong);
 	--color-domain-experience-fill: var(--domain-experience-fill);
 	--color-domain-experience-light: var(--domain-experience-light);
-	--color-domain-experience-text: var(--domain-experience-text);
+	--color-domain-aesthetics-text: var(--domain-aesthetics-text);
 	--color-domain-aesthetics-strong: var(--domain-aesthetics-strong);
 	--color-domain-aesthetics-fill: var(--domain-aesthetics-fill);
 	--color-domain-aesthetics-light: var(--domain-aesthetics-light);
-	--color-domain-aesthetics-text: var(--domain-aesthetics-text);
+	--color-domain-use-text: var(--domain-use-text);
 	--color-domain-use-strong: var(--domain-use-strong);
 	--color-domain-use-fill: var(--domain-use-fill);
 	--color-domain-use-light: var(--domain-use-light);
-	--color-domain-use-text: var(--domain-use-text);
+	/* <<< end generated: domain palette → Tailwind >>> */
 
 	--color-chart-1: var(--chart-series-1);
 	--color-chart-2: var(--chart-series-2);
@@ -140,36 +143,46 @@
 	--sidebar-border: oklch(1 0 0 / 0.08);
 	--sidebar-ring: var(--yee-green-600);
 
-	/* --- Data-viz: brand-harmonized DOMAIN palette (SINGLE SOURCE OF TRUTH) ---
-	   All six domains share one OKLCH lightness/chroma envelope anchored to the
-	   brand green, so they read as one coordinated family; only hue varies.
-	   Per domain: text = labels/headings (dark, AA on white) · strong = borders/dots/
-	   lines · fill = bars/areas · light = tint backgrounds. Adjust a domain HERE and
-	   it flows to charts, reports, and the audit wizard everywhere (via yeeDomainThemes). */
-	--domain-access-text: oklch(0.37 0.07 158); /* green (matches brand) */
-	--domain-access-strong: oklch(0.52 0.1 158);
-	--domain-access-fill: oklch(0.68 0.11 158);
-	--domain-access-light: oklch(0.95 0.025 158);
-	--domain-activity-text: oklch(0.37 0.07 250); /* indigo-blue */
-	--domain-activity-strong: oklch(0.52 0.1 250);
-	--domain-activity-fill: oklch(0.68 0.11 250);
-	--domain-activity-light: oklch(0.95 0.025 250);
-	--domain-amenities-text: oklch(0.4 0.07 80); /* muted gold/ochre */
-	--domain-amenities-strong: oklch(0.55 0.1 80);
-	--domain-amenities-fill: oklch(0.72 0.11 80);
-	--domain-amenities-light: oklch(0.95 0.03 80);
-	--domain-experience-text: oklch(0.37 0.06 195); /* teal */
-	--domain-experience-strong: oklch(0.52 0.09 195);
-	--domain-experience-fill: oklch(0.68 0.1 195);
-	--domain-experience-light: oklch(0.95 0.025 195);
-	--domain-aesthetics-text: oklch(0.4 0.08 10); /* rose/mauve */
-	--domain-aesthetics-strong: oklch(0.55 0.1 10);
-	--domain-aesthetics-fill: oklch(0.71 0.11 10);
-	--domain-aesthetics-light: oklch(0.95 0.03 10);
-	--domain-use-text: oklch(0.38 0.08 295); /* violet */
-	--domain-use-strong: oklch(0.53 0.1 295);
-	--domain-use-fill: oklch(0.69 0.11 295);
-	--domain-use-light: oklch(0.95 0.03 295);
+	/* >>> generated: domain palette values (edit domain-palette.json) <<< */
+	/* --- Data-viz: DOMAIN palette. Four roles per domain, each held to a WCAG
+	   floor by tests/unit/domain-palette.spec.ts:
+	     text   — labels/headings; >= 7:1 on the card, the app bg and its own tint
+	     strong — borders/dots/rails, and small text; >= 4.5:1 on the same three
+	     fill   — chart bars and score strips; >= 3:1 on the card (WCAG 1.4.11)
+	     light  — the tint background the two above are measured against
+	   The six fills also clear categorical colour-vision separation (OKLab ΔE >= 8
+	   under protanopia and deuteranopia) so adjacent domains stay distinguishable. --- */
+	/* Access — hue 162 */
+	--domain-access-text: #075d3f;
+	--domain-access-strong: #0d7d56;
+	--domain-access-fill: #129768;
+	--domain-access-light: #e0f6ea;
+	/* Activity Spaces — hue 242 */
+	--domain-activity-text: #065582;
+	--domain-activity-strong: #0c73ad;
+	--domain-activity-fill: #159be6;
+	--domain-activity-light: #e4f2fe;
+	/* Amenities — hue 78 */
+	--domain-amenities-text: #6c4a05;
+	--domain-amenities-strong: #91650b;
+	--domain-amenities-fill: #c28913;
+	--domain-amenities-light: #fbeedc;
+	/* Experience of the Space — hue 199 */
+	--domain-experience-text: #075a5d;
+	--domain-experience-strong: #0d7a7e;
+	--domain-experience-fill: #15a3a8;
+	--domain-experience-light: #dcf6f7;
+	/* Aesthetics & Care — hue 12 */
+	--domain-aesthetics-text: #893242;
+	--domain-aesthetics-strong: #bd415a;
+	--domain-aesthetics-fill: #e7677c;
+	--domain-aesthetics-light: #feebec;
+	/* Use & Usability — hue 293 */
+	--domain-use-text: #57438e;
+	--domain-use-strong: #775ac5;
+	--domain-use-fill: #9c81ef;
+	--domain-use-light: #f0eefe;
+	/* <<< end generated: domain palette values >>> */
 
 	/* Categorical SERIES palette — for comparing N places/audits (radar, trend lines).
 	   Brand green leads; the rest are harmonized to the same muted envelope. */

@@ -22,11 +22,18 @@ const RING_VALUES = [25, 50, 75, 100];
 export function buildRadarSvg(options: {
 	series: RadarSeries[];
 	axisLabels: string[];
+	/**
+	 * One colour per axis, in axis order. Each axis of this chart IS a domain, so
+	 * the labels wear their domain's `text` step rather than a neutral axis grey —
+	 * matching the on-screen radar. Falls back to `palette.axis` when the axes are
+	 * not domains (or a caller has not supplied colours).
+	 */
+	axisColors?: string[];
 	palette: ExportPalette;
 	size?: number;
 	title?: string;
 }): string {
-	const { series, axisLabels, palette, size = 420, title } = options;
+	const { series, axisLabels, axisColors, palette, size = 420, title } = options;
 	const center = size / 2;
 	// A smaller inner pad keeps the plotted polygon large; horizontal room for the
 	// axis labels comes from the side gutters below (which scale to the longest
@@ -83,9 +90,9 @@ export function buildRadarSvg(options: {
 				x: labelPoint.x,
 				y: labelPoint.y + 3,
 				text: label,
-				fill: palette.axis,
+				fill: axisColors?.[index] ?? palette.axis,
 				size: 11.5,
-				weight: 500,
+				weight: 600,
 				anchor
 			})
 		);

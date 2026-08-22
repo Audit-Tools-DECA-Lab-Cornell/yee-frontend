@@ -62,7 +62,10 @@ export function generatePlaceComparisonXlsx(input: PlaceComparisonReportInput, p
 
 	// Domain matrix sheet.
 	const matrix: StyledCell[][] = [
-		[cell("Place", styles.header), ...domainOrder.map(domain => cell(domainLabels[domain], styles.header))]
+		[
+			cell("Place", styles.header),
+			...domainOrder.map(domain => cell(domainLabels[domain], styles.domainHeader(palette.domains[domain])))
+		]
 	];
 	for (const row of input.summaries) {
 		matrix.push([
@@ -127,7 +130,7 @@ export function generateTrendXlsx(input: TrendReportInput, palette: ExportPalett
 	];
 	for (const delta of firstVsLatestDeltas(sorted)) {
 		change.push([
-			cell(delta.label, styles.label),
+			cell(delta.label, styles.domainLabel(palette.domains[delta.domainKey])),
 			cell(Math.round(delta.first), styles.body),
 			cell(Math.round(delta.latest), styles.body),
 			cell(deltaMark(delta.delta), styles.body)
@@ -158,7 +161,7 @@ export function generateAuditComparisonXlsx(input: AuditComparisonReportInput, p
 	const deltas: StyledCell[][] = [header];
 	for (const row of pairwiseDomainDeltas(input.records)) {
 		const line: StyledCell[] = [
-			cell(row.label, styles.label),
+			cell(row.label, styles.domainLabel(palette.domains[row.domainKey])),
 			...row.values.map(value => cell(Math.round(value), styles.body))
 		];
 		if (twoUp) line.push(cell(deltaMark(row.delta ?? 0), styles.body));

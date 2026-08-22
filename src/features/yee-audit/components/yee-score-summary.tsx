@@ -77,9 +77,9 @@ function TotalScorePanel({
 	footnote: string;
 	tone: "raw" | "weighted";
 }) {
-	const panelClasses = tone === "weighted" ? "border-emerald-200 bg-emerald-50/60" : "border-border bg-muted/30";
-	const labelClasses = tone === "weighted" ? "text-emerald-800" : "text-muted-foreground";
-	const footnoteClasses = tone === "weighted" ? "text-emerald-700/80" : "text-muted-foreground";
+	const panelClasses = tone === "weighted" ? "border-score-high/30 bg-score-high-bg/60" : "border-border bg-muted/30";
+	const labelClasses = tone === "weighted" ? "text-score-high" : "text-muted-foreground";
+	const footnoteClasses = tone === "weighted" ? "text-score-high/80" : "text-muted-foreground";
 
 	return (
 		<div className={`rounded-md border p-5 report-no-break ${panelClasses}`}>
@@ -318,27 +318,27 @@ export function YeeScoreSummary({
 							</div>
 						</dl>
 					</div>
-					<div className="rounded-md border border-emerald-200 bg-emerald-50/60 p-5 report-no-break">
-						<p className="text-xs font-medium uppercase tracking-[0.14em] text-emerald-800">
+					<div className="rounded-md border border-score-high/30 bg-score-high-bg/60 p-5 report-no-break">
+						<p className="text-xs font-medium uppercase tracking-[0.14em] text-score-high">
 							Youth-weighted range
 						</p>
 						<dl className="mt-3 space-y-2 text-sm">
 							<div className="flex items-center justify-between gap-3">
-								<dt className="text-emerald-800/80">Highest section</dt>
-								<dd className="flex items-center gap-2 font-medium text-emerald-950">
+								<dt className="text-score-high/80">Highest section</dt>
+								<dd className="flex items-center gap-2 font-medium text-foreground">
 									<DomainDot domain={weightedExtremes.highest.row.domain} />
 									{weightedExtremes.highest.row.label}
-									<span className="text-emerald-800/80 tabular-nums">
+									<span className="text-score-high/80 tabular-nums">
 										{weightedExtremes.highest.percentage.toFixed(0)}%
 									</span>
 								</dd>
 							</div>
 							<div className="flex items-center justify-between gap-3">
-								<dt className="text-emerald-800/80">Lowest section</dt>
-								<dd className="flex items-center gap-2 font-medium text-emerald-950">
+								<dt className="text-score-high/80">Lowest section</dt>
+								<dd className="flex items-center gap-2 font-medium text-foreground">
 									<DomainDot domain={weightedExtremes.lowest.row.domain} />
 									{weightedExtremes.lowest.row.label}
-									<span className="text-emerald-800/80 tabular-nums">
+									<span className="text-score-high/80 tabular-nums">
 										{weightedExtremes.lowest.percentage.toFixed(0)}%
 									</span>
 								</dd>

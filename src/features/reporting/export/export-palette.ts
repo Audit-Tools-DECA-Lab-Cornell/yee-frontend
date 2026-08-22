@@ -10,41 +10,23 @@
  * each through a 1x1 canvas to a hex; when there is no DOM (unit tests / SSR) or
  * resolution fails, it falls back to the literal table.
  */
-import { domainOrder, type ExportPalette, type YeeDomainKey } from "./types";
+import { lightDomainPalette, type DomainPaletteKey } from "@/styles/domain-palette";
+import { domainOrder, type ExportPalette } from "./types";
 
 /**
- * Fallback hex table — mirrors the `oklch()` tokens in `src/app/globals.css`.
- * KEEP IN SYNC: if you change a `--domain-*`, `--chart-series-*`, `--score-*`,
- * `--chart-grid/axis`, `--yee-green-*`, `--foreground`, `--muted-foreground`,
- * `--border`, or `--card` token there, recompute the hex here (see
- * `scripts`/the oklch→sRGB conversion in the export docs). Used only when the
- * browser cannot resolve the live token; a Playwright check compares the two.
+ * Fallback hex table for the NON-domain tokens — mirrors the `oklch()` values in
+ * `src/app/globals.css`. KEEP IN SYNC: if you change a `--chart-series-*`,
+ * `--score-*`, `--chart-grid/axis`, `--yee-green-*`, `--foreground`,
+ * `--muted-foreground`, `--border` or `--card` token there, recompute the hex
+ * here. Used only when the browser cannot resolve the live token; a Playwright
+ * check compares the two.
+ *
+ * Domain colours are deliberately NOT in this table: they come straight from
+ * `src/styles/domain-palette.json` (via `lightDomainPalette`), the same spec
+ * that generates the `--domain-*` tokens, so an export can never paint a domain
+ * differently from the screen.
  */
 const FALLBACK_HEX = {
-	"domain-access-text": "#184b31",
-	"domain-access-strong": "#2b7a52",
-	"domain-access-fill": "#56ad7e",
-	"domain-access-light": "#e1f4e8",
-	"domain-activity-text": "#204263",
-	"domain-activity-strong": "#386ca0",
-	"domain-activity-fill": "#619dda",
-	"domain-activity-light": "#e2f0ff",
-	"domain-amenities-text": "#5b4315",
-	"domain-amenities-strong": "#906a21",
-	"domain-amenities-fill": "#c99d4e",
-	"domain-amenities-light": "#f9edd9",
-	"domain-experience-text": "#084949",
-	"domain-experience-strong": "#007979",
-	"domain-experience-fill": "#39abab",
-	"domain-experience-light": "#dcf4f4",
-	"domain-aesthetics-text": "#6c343e",
-	"domain-aesthetics-strong": "#a35764",
-	"domain-aesthetics-fill": "#dc8492",
-	"domain-aesthetics-light": "#ffe7ea",
-	"domain-use-text": "#463968",
-	"domain-use-strong": "#705f9f",
-	"domain-use-fill": "#a08dd8",
-	"domain-use-light": "#efebff",
 	"chart-series-1": "#1a6444",
 	"chart-series-2": "#347a9f",
 	"chart-series-3": "#a67537",
@@ -69,16 +51,6 @@ const FALLBACK_HEX = {
 } as const;
 
 type TokenName = keyof typeof FALLBACK_HEX;
-
-/** YeeDomainKey → the `--domain-<slug>-*` prefix used in globals.css. */
-const DOMAIN_TOKEN_SLUG: Record<YeeDomainKey, string> = {
-	access: "access",
-	activitySpaces: "activity",
-	amenities: "amenities",
-	experienceOfSpace: "experience",
-	aestheticsAndCare: "aesthetics",
-	useAndUsability: "use"
-};
 
 const hexCache = new Map<string, string>();
 let sharedCanvasContext: CanvasRenderingContext2D | null | undefined;
@@ -143,6 +115,17 @@ function readToken(styles: CSSStyleDeclaration | null, token: TokenName): string
 }
 
 /**
+ * Domain colours skip the DOM round-trip entirely: the spec already stores plain
+ * hex, and it is the same file the `--domain-*` tokens are generated from, so
+ * reading it directly is both exact and available without a document.
+ */
+function readDomains(): ExportPalette["domains"] {
+	return Object.fromEntries(
+		domainOrder.map(domain => [domain, { ...lightDomainPalette[domain as DomainPaletteKey] }])
+	) as ExportPalette["domains"];
+}
+
+/**
  * Read every token the export layer needs off `document.documentElement`,
  * resolve each to hex, and return the typed palette. In a non-DOM context this
  * returns the full fallback table, so builders always get a complete palette.
@@ -153,23 +136,8 @@ export function getExportPalette(): ExportPalette {
 			? getComputedStyle(document.documentElement)
 			: null;
 
-	const domains = Object.fromEntries(
-		domainOrder.map(domain => {
-			const slug = DOMAIN_TOKEN_SLUG[domain];
-			return [
-				domain,
-				{
-					text: readToken(styles, `domain-${slug}-text` as TokenName),
-					strong: readToken(styles, `domain-${slug}-strong` as TokenName),
-					fill: readToken(styles, `domain-${slug}-fill` as TokenName),
-					light: readToken(styles, `domain-${slug}-light` as TokenName)
-				}
-			];
-		})
-	) as ExportPalette["domains"];
-
 	return {
-		domains,
+		domains: readDomains(),
 		chartSeries: [
 			readToken(styles, "chart-series-1"),
 			readToken(styles, "chart-series-2"),

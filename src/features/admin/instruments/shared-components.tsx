@@ -15,12 +15,15 @@ export type UpdateDraft = (mutator: (draft: StructuredInstrumentContent) => void
 /** Labelled text input/textarea used across the light editors. */
 export function EditableField({
 	label,
+	labelColor,
 	value,
 	multiline = false,
 	className,
 	onChange
 }: {
 	label: string;
+	/** CSS colour for the label — used to tint a field that belongs to one domain. */
+	labelColor?: string;
 	value: string;
 	multiline?: boolean;
 	className?: string;
@@ -29,7 +32,9 @@ export function EditableField({
 	const id = useId();
 	return (
 		<div className="space-y-2">
-			<Label htmlFor={id}>{label}</Label>
+			<Label htmlFor={id} style={labelColor ? { color: labelColor } : undefined}>
+				{label}
+			</Label>
 			{multiline ? (
 				<Textarea
 					id={id}

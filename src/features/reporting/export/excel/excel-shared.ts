@@ -32,6 +32,14 @@ export type ExcelStyles = {
 	body: XLSX.CellStyle;
 	bandHeader: (bandHex: string) => XLSX.CellStyle;
 	sectionBanner: (colorHex: string) => XLSX.CellStyle;
+	/**
+	 * Header cell for a column or row that IS a domain: the domain's own tint
+	 * behind its `text` step, which clears 7:1 — so the spreadsheet carries the
+	 * same identity cue as the screen and the PDF instead of one flat brand green.
+	 */
+	domainHeader: (colors: { text: string; light: string }) => XLSX.CellStyle;
+	/** Body label cell for a row that IS a domain. */
+	domainLabel: (colors: { text: string; light: string }) => XLSX.CellStyle;
 };
 
 export function makeStyles(palette: ExportPalette): ExcelStyles {
@@ -67,6 +75,18 @@ export function makeStyles(palette: ExportPalette): ExcelStyles {
 		sectionBanner: colorHex => ({
 			font: { bold: true, sz: 10, color: { rgb: "FFFFFF" } },
 			fill: { patternType: "solid", fgColor: { rgb: rgb(colorHex) } }
+		}),
+		domainHeader: colors => ({
+			font: { bold: true, sz: 10, color: { rgb: rgb(colors.text) } },
+			fill: { patternType: "solid", fgColor: { rgb: rgb(colors.light) } },
+			alignment: { vertical: "center", wrapText: true },
+			border
+		}),
+		domainLabel: colors => ({
+			font: { bold: true, sz: 10, color: { rgb: rgb(colors.text) } },
+			fill: { patternType: "solid", fgColor: { rgb: rgb(colors.light) } },
+			alignment: { vertical: "top" },
+			border
 		})
 	};
 }

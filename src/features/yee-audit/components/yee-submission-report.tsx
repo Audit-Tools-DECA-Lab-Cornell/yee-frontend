@@ -66,9 +66,7 @@ function WeightScale({ value }: { value: string }) {
 			{[1, 2, 3].map(segment => (
 				<span
 					key={segment}
-					className={`h-1.5 w-5 rounded-full ${
-						segment <= level ? "bg-[var(--yee-green-600)]" : "bg-slate-200"
-					}`}
+					className={`h-1.5 w-5 rounded-full ${segment <= level ? "bg-[var(--yee-green-600)]" : "bg-muted"}`}
 				/>
 			))}
 		</span>
@@ -308,14 +306,14 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 							<Button
 								type="button"
 								variant="outline"
-								className="rounded-sm bg-white text-foreground hover:bg-emerald-50"
+								className="rounded-sm bg-white text-foreground hover:bg-score-high-bg"
 								onClick={() => window.print()}>
 								<Printer className="h-4 w-4" aria-hidden />
 								Print
 							</Button>
 							<ExportMenuButton
 								label="Export"
-								className="rounded-sm bg-white text-foreground hover:bg-emerald-50"
+								className="rounded-sm bg-white text-foreground hover:bg-score-high-bg"
 								options={exportOptions}
 								onExport={handleExport}
 							/>

@@ -40,7 +40,7 @@ import {
 	type YeeScoreResult,
 	type YeeStepNumber
 } from "@/features/yee-audit/config/yee-audit-config";
-import { getThemeByStep } from "@/features/yee-audit/config/yee-domain-theme";
+import { getThemeByStep, yeeDomainThemes } from "@/features/yee-audit/config/yee-domain-theme";
 import {
 	fetchInstrument,
 	filterItemsForDomain,
@@ -402,70 +402,38 @@ function getSectionIntroCopy(domain: YeeDomainKey) {
 	}
 }
 
+/**
+ * Surface treatment for one wizard step.
+ *
+ * Domain steps (3-8) wear that domain's colours, straight from `yeeDomainThemes`
+ * — the only place a domain colour is ever chosen. Every other step (context,
+ * weighting, final comments) stays on the brand-neutral base, matching how
+ * yee-mobile's `getSurveyPalette()` treats its non-domain steps: the colour on
+ * screen means "which domain am I in", so spending hues on the steps that have
+ * no domain would make that signal meaningless.
+ */
+const neutralSurfacePalette = {
+	card: "border-border bg-muted/30",
+	inner: "border-border bg-background/50",
+	selected: "border-2 border-[var(--yee-green-600)] bg-[var(--yee-green-50)] text-[var(--yee-green-900)]",
+	idle: "border-border bg-background text-foreground hover:bg-muted",
+	instruction: "border-border bg-muted text-foreground",
+	progress: "border-border bg-muted/50",
+	condition: "border-border bg-muted"
+} as const;
+
 function getSurfacePalette(stepValue: YeeStepNumber) {
-	switch (stepValue) {
-		case 1:
-			return {
-				card: "border-sky-200/80 bg-[#f2f6fa]",
-				inner: "border-sky-100 bg-white",
-				selected:
-					"border-sky-500 bg-[#dce8f4] text-slate-950 ring-1 ring-sky-200 shadow-[0_10px_22px_-18px_rgba(70,97,129,0.3)]",
-				idle: "border-sky-200 bg-white text-slate-900 hover:border-sky-300 hover:bg-sky-50/70",
-				instruction: "border-[#b8d0e5] bg-[#7f9cb8] text-white",
-				progress: "border-sky-200/80 bg-sky-50/70",
-				condition: "border-sky-300 bg-sky-100/75"
-			};
-		case 2:
-			return {
-				card: "border-orange-200/80 bg-[#fff9f5]",
-				inner: "border-orange-100 bg-white",
-				selected:
-					"border-orange-500 bg-[#f4ddcd] text-[#6f3f1f] ring-1 ring-orange-200 shadow-[0_10px_22px_-18px_rgba(170,94,52,0.28)]",
-				idle: "border-orange-300 bg-[#fffdfb] text-[#6f3f1f] hover:border-orange-400 hover:bg-[#fff4ed]",
-				instruction: "border-[#efcfbb] bg-[#dea882] text-white",
-				progress: "border-orange-200/80 bg-[#fff6ef]",
-				condition: "border-orange-300 bg-[#fbe7da]"
-			};
-		case 9:
-			return {
-				card: "border-emerald-200/80 bg-[#eef7f1]",
-				inner: "border-emerald-100 bg-white/90",
-				selected:
-					"border-emerald-600 bg-emerald-200 text-emerald-950 ring-1 ring-emerald-300 shadow-[0_10px_22px_-18px_rgba(6,78,59,0.35)]",
-				idle: "border-emerald-200 bg-[#f4faf6] text-emerald-950 hover:border-emerald-300 hover:bg-emerald-100/90",
-				instruction: "border-[#7ed6ad] bg-[#57b894] text-white",
-				progress: "border-emerald-200/80 bg-emerald-50/80",
-				condition: "border-emerald-300 bg-emerald-100/80"
-			};
-		case 3:
-		case 4:
-		case 5:
-		case 6:
-		case 7:
-		case 8: {
-			const theme = getThemeByStep(stepValue);
-			if (theme) {
-				return {
-					card: theme.card,
-					inner: "border-border bg-background/50",
-					selected: `border-2 ${theme.selectedBorderClass} ${theme.selectedBgClass} ${theme.textClass}`,
-					idle: theme.idleClass,
-					instruction: theme.instruction,
-					progress: theme.progress,
-					condition: theme.condition
-				};
-			}
-			return {
-				card: "border-border bg-muted/30",
-				inner: "border-border bg-background/50",
-				selected: "border-2 border-[var(--yee-green-600)] bg-[var(--yee-green-50)] text-[var(--yee-green-900)]",
-				idle: "border-border bg-background text-muted-foreground hover:bg-muted",
-				instruction: "border-border bg-muted text-foreground",
-				progress: "border-border bg-muted/50",
-				condition: "border-border bg-muted"
-			};
-		}
-	}
+	const theme = getThemeByStep(stepValue);
+	if (!theme) return neutralSurfacePalette;
+	return {
+		card: theme.card,
+		inner: "border-border bg-background/50",
+		selected: `border-2 ${theme.selectedBorderClass} ${theme.selectedBgClass} ${theme.textClass}`,
+		idle: theme.idleClass,
+		instruction: theme.instruction,
+		progress: theme.progress,
+		condition: theme.condition
+	};
 }
 
 function getMatrixCardInstruction(domain: YeeDomainKey) {
@@ -885,7 +853,7 @@ function InstrumentQuestionCard({
 	if (choices.length === 0 && answers.length === 0) {
 		return (
 			<Card className={`rounded-md border shadow-[0_12px_35px_-24px_rgba(16,35,31,0.45)] ${palette.card}`}>
-				<CardContent className="py-6 text-sm leading-7 text-slate-600">
+				<CardContent className="py-6 text-sm leading-7 text-muted-foreground">
 					{normalizeText(item.question_text)}
 				</CardContent>
 			</Card>
@@ -910,7 +878,7 @@ function InstrumentQuestionCard({
 							<div
 								key={`${item.item_id}-${choiceId}`}
 								className={`space-y-3 rounded-[1.35rem] border p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] ${palette.inner}`}>
-								<p className="text-sm font-medium text-slate-900">
+								<p className="text-sm font-medium text-foreground">
 									{normalizeVisibleQuestion(getChoiceLabel(choice, choiceId))}
 								</p>
 								<OptionCards
@@ -1014,7 +982,7 @@ function InstrumentQuestionGroupCard({
 						<div
 							key={`${group.baseQuestionId}-${choiceId}`}
 							className={`space-y-3 rounded-[1.35rem] border p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] ${palette.inner}`}>
-							<p className="text-sm font-medium text-slate-900">
+							<p className="text-sm font-medium text-foreground">
 								{ensureQuestionMark(getChoiceLabel(choice, choiceId))}
 							</p>
 							<OptionCards
@@ -1029,7 +997,7 @@ function InstrumentQuestionGroupCard({
 							/>
 							{conditionItem && showCondition ? (
 								<div className={`space-y-2 rounded-md border p-4 ${palette.condition}`}>
-									<p className="text-sm font-medium text-slate-800">{conditionPrompt}</p>
+									<p className="text-sm font-medium text-foreground">{conditionPrompt}</p>
 									<OptionCards
 										name={`${conditionItem.item_id}-${choiceId}`}
 										value={selectedCondition}
@@ -1682,7 +1650,7 @@ export function YeeAuditWizard({
 							</div>
 							<div className="rounded-md border border-border bg-muted/40 p-4">
 								<p className="text-sm font-medium text-foreground">Audit overview</p>
-								<p className="mt-2 text-sm text-slate-600">
+								<p className="mt-2 text-sm text-muted-foreground">
 									Choose any section below to jump back into that part of the audit and edit it before
 									submission.
 								</p>
@@ -1976,73 +1944,56 @@ export function YeeAuditWizard({
 				{step === 2 ? (
 					<div className="space-y-4">
 						<Card className={`rounded-md border shadow-sm ${stepPalette.instruction}`}>
-							<CardContent className="py-5 text-sm leading-7 text-white">
-								<p className="text-base font-semibold text-white">{weightingTitle}</p>
-								<p className="mt-2 font-medium text-white">{formatExampleText(weightingDescription)}</p>
-								<p className="mt-2 text-white/90">
+							<CardContent className="py-5 text-sm leading-7">
+								<p className="text-base font-semibold">{weightingTitle}</p>
+								<p className="mt-2 font-medium">{formatExampleText(weightingDescription)}</p>
+								<p className="mt-2 opacity-90">
 									These answers are also used later to calculate Youth Weighted averages alongside the
 									raw section scores for {draft.placeName || "this place"}.
 								</p>
 							</CardContent>
 						</Card>
-						{Object.entries(yeeDomainLabels).map(([key, label]) => (
-							<Card
-								key={key}
-								className={`rounded-md shadow-sm ${
-									getSurfacePalette(
-										key === "access"
-											? 3
-											: key === "activitySpaces"
-												? 4
-												: key === "amenities"
-													? 5
-													: key === "experienceOfSpace"
-														? 6
-														: key === "aestheticsAndCare"
-															? 7
-															: 8
-									).card
-								}`}>
-								<CardHeader>
-									<CardTitle className="text-lg font-semibold">{label}</CardTitle>
-								</CardHeader>
-								<CardContent className="space-y-4">
-									<p className="text-sm font-medium text-slate-900">
-										{ensureQuestionMark(
-											formatExampleText(weightingDomainPrompts[key as YeeDomainKey])
-										)}
-									</p>
-									<OptionCards
-										name={`weight-${key}`}
-										value={draft.weights[key as keyof typeof draft.weights]}
-										onChange={value =>
-											setDraft(prev => ({
-												...prev,
-												weights: {
-													...prev.weights,
-													[key]: value
-												}
-											}))
-										}
-										options={weightingOptions}
-										palette={getSurfacePalette(
-											key === "access"
-												? 3
-												: key === "activitySpaces"
-													? 4
-													: key === "amenities"
-														? 5
-														: key === "experienceOfSpace"
-															? 6
-															: key === "aestheticsAndCare"
-																? 7
-																: 8
-										)}
-									/>
-								</CardContent>
-							</Card>
-						))}
-						<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
+						{Object.entries(yeeDomainLabels).map(([key, label]) => {
+							// The weighting step is not itself a domain, but each card in it IS
+							// one, so it wears the colours that domain will have on its own step.
+							const domainKey = key as YeeDomainKey;
+							const domainTheme = yeeDomainThemes[domainKey];
+							const domainPalette = getSurfacePalette(getStepForDomainKey(domainKey));
+							return (
+								<Card key={key} className={`rounded-md shadow-sm ${domainPalette.card}`}>
+									<CardHeader>
+										<CardTitle
+											className="text-lg font-semibold"
+											style={{ color: domainTheme.textHex }}>
+											{label}
+										</CardTitle>
+									</CardHeader>
+									<CardContent className="space-y-4">
+										<p className="text-sm font-medium text-foreground">
+											{ensureQuestionMark(
+												formatExampleText(weightingDomainPrompts[key as YeeDomainKey])
+											)}
+										</p>
+										<OptionCards
+											name={`weight-${key}`}
+											value={draft.weights[key as keyof typeof draft.weights]}
+											onChange={value =>
+												setDraft(prev => ({
+													...prev,
+													weights: {
+														...prev.weights,
+														[key]: value
+													}
+												}))
+											}
+											options={weightingOptions}
+											palette={domainPalette}
+										/>
+									</CardContent>
+								</Card>
+							);
+						})}
+						<Card className="rounded-md border-border bg-card shadow-sm">
 							<CardHeader>
 								<CardTitle>Optional comments for importance weighting</CardTitle>
 								<CardDescription>
@@ -2065,10 +2016,8 @@ export function YeeAuditWizard({
 					<div className="space-y-4">
 						{domainKey ? (
 							<Card className={`rounded-md border shadow-sm ${stepPalette.instruction}`}>
-								<CardContent className="py-5 text-sm leading-7 text-white">
-									<p className="text-lg font-semibold text-white">
-										{getSectionIntroCopy(domainKey).heading}
-									</p>
+								<CardContent className="py-5 text-sm leading-7">
+									<p className="text-lg font-semibold">{getSectionIntroCopy(domainKey).heading}</p>
 									<div className="mt-2">{getSectionIntroCopy(domainKey).body}</div>
 								</CardContent>
 							</Card>
@@ -2084,7 +2033,7 @@ export function YeeAuditWizard({
 							/>
 						))}
 						{domainKey ? (
-							<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
+							<Card className="rounded-md border-border bg-card shadow-sm">
 								<CardHeader>
 									<CardTitle>{yeeDomainLabels[domainKey]} comments</CardTitle>
 									<CardDescription>
@@ -2114,7 +2063,7 @@ export function YeeAuditWizard({
 							</Card>
 						) : null}
 						<Card className={`rounded-md border shadow-sm ${stepPalette.progress}`}>
-							<CardContent className="flex flex-wrap items-center justify-between gap-3 py-5 text-sm text-slate-600">
+							<CardContent className="flex flex-wrap items-center justify-between gap-3 py-5 text-sm text-muted-foreground">
 								<span>
 									Section progress: {answeredDomainItems} of {requiredDomainItems} questions answered
 								</span>
@@ -2131,7 +2080,7 @@ export function YeeAuditWizard({
 				) : null}
 
 				{step === 9 ? (
-					<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
+					<Card className="rounded-md border-border bg-card shadow-sm">
 						<CardHeader>
 							<CardTitle>{finalCommentsPrompt}</CardTitle>
 							<CardDescription>
@@ -2201,8 +2150,8 @@ export function YeeAuditWizard({
 						</Button>
 					)}
 				</div>
-				{!stepIsComplete ? <p className="text-sm text-amber-700">{getIncompleteStepMessage(step)}</p> : null}
-				{error ? <p className="text-sm text-red-700">{error}</p> : null}
+				{!stepIsComplete ? <p className="text-sm text-score-mid">{getIncompleteStepMessage(step)}</p> : null}
+				{error ? <p className="text-sm text-destructive">{error}</p> : null}
 			</main>
 			<ConfirmDialog
 				open={confirmState.open}
@@ -2264,21 +2213,21 @@ function SubmittedAuditConfirmation({
 
 	return (
 		<main className="mx-auto max-w-4xl space-y-6 p-6">
-			<Card className="rounded-md border-slate-200/80 bg-white shadow-sm">
+			<Card className="rounded-md border-border bg-card shadow-sm">
 				<CardHeader>
 					<CardTitle className="text-3xl">Audit submitted</CardTitle>
 					<CardDescription>
 						This audit is now locked. Use the read-only results page to review scores and metadata.
 					</CardDescription>
 				</CardHeader>
-				<CardContent className="space-y-4 text-sm leading-7 text-slate-600">
+				<CardContent className="space-y-4 text-sm leading-7 text-muted-foreground">
 					<p>Place: {submission?.place_name || placeId}</p>
 					<p>Auditor ID: {submission?.auditor_generated_id || fallbackDraft.auditorId}</p>
 					<p>
 						Submitted at:{" "}
 						{submittedAt ? new Date(submittedAt).toLocaleString() : "Submission timestamp unavailable"}
 					</p>
-					<div className="rounded-md bg-emerald-50 p-4 text-emerald-800">
+					<div className="rounded-md bg-score-high-bg p-4 text-score-high">
 						<p className="font-medium">
 							Submission ID: {submission?.id || fallbackDraft.lastResult?.id || "Unavailable"}
 						</p>
@@ -2295,7 +2244,7 @@ function SubmittedAuditConfirmation({
 						) : null}
 					</div>
 					{loading ? <FormSkeleton rows={4} /> : null}
-					{loadError ? <p className="text-red-700">{loadError}</p> : null}
+					{loadError ? <p className="text-destructive">{loadError}</p> : null}
 				</CardContent>
 			</Card>
 		</main>

@@ -1,6 +1,7 @@
 import { useId } from "react";
 
 import { Badge } from "@/components/ui/badge";
+import { getThemeByDomainKey } from "@/features/yee-audit/config/yee-domain-theme";
 
 import { DETAIL_TABS } from "./constants";
 import { QuestionPreview } from "./question-preview";
@@ -239,19 +240,30 @@ function AuditCopyPanel({ content }: { content: StructuredInstrumentContent | nu
 							<p className="text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
 								Domain prompts ({domains.length})
 							</p>
-							{domains.map(domain => (
-								<div key={domain.key} className="rounded-md border border-border bg-muted px-3 py-2">
-									<div className="flex flex-wrap items-center gap-2">
-										<p className="text-sm font-medium text-foreground">
-											{cleanInstrumentText(domain.label) || domain.key}
+							{domains.map(domain => {
+								// Each prompt belongs to one domain, so it wears that domain's
+								// colours — the same ones the auditor meets on that step.
+								const theme = getThemeByDomainKey(domain.key);
+								return (
+									<div
+										key={domain.key}
+										className="rounded-md border px-3 py-2"
+										style={{
+											borderColor: theme?.strongHex,
+											backgroundColor: theme?.lightHex
+										}}>
+										<div className="flex flex-wrap items-center gap-2">
+											<p className="text-sm font-semibold" style={{ color: theme?.textHex }}>
+												{cleanInstrumentText(domain.label) || domain.key}
+											</p>
+											<IdTag>{domain.key}</IdTag>
+										</div>
+										<p className="mt-1 whitespace-pre-wrap break-words text-sm text-muted-foreground">
+											{cleanInstrumentText(domain.prompt)}
 										</p>
-										<IdTag>{domain.key}</IdTag>
 									</div>
-									<p className="mt-1 whitespace-pre-wrap break-words text-sm text-muted-foreground">
-										{cleanInstrumentText(domain.prompt)}
-									</p>
-								</div>
-							))}
+								);
+							})}
 						</div>
 					) : null}
 				</div>
