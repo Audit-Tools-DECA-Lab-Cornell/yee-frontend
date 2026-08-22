@@ -1,4 +1,4 @@
-import { proxyPublicRequest } from "@/server/backend/proxy";
+import { proxyPublicRequest } from "@/server/proxy";
 
 export async function POST(request: Request) {
 	const frontendOrigin = new URL(request.url).origin;

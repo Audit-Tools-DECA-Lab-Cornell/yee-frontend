@@ -4,7 +4,7 @@ import {
 	normalizeAuditListPayload,
 	normalizePlaceComparisonGroupsPayload,
 	normalizePlaceDetailPayload
-} from "../../src/server/backend/yee-reporting-normalization";
+} from "../../src/server/yee-reporting-normalization";
 
 test("normalizeAuditListPayload fills in missing total maxima from YEE reporting rules", () => {
 	const payload = [

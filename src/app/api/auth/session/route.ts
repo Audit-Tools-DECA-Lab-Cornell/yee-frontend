@@ -3,8 +3,8 @@ import { NextResponse } from "next/server";
 
 import { getSessionToken } from "@/lib/auth/cookies";
 import type { SessionUser } from "@/types/auth";
-import { getApiBaseUrl } from "@/server/backend/config";
-import { errorResponse } from "@/server/backend/response";
+import { getApiBaseUrl } from "@/server/config";
+import { errorResponse } from "@/server/response";
 
 type BackendMeResponse = {
 	user: SessionUser;

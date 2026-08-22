@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
 
-import { proxyRequest } from "@/server/backend/proxy";
+import { proxyRequest } from "@/server/proxy";
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ managerId: string }> }) {
 	const { managerId } = await params;

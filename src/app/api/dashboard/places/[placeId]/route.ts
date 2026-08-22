@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { proxyRequest } from "@/server/backend/proxy";
-import { normalizePlaceDetailPayload } from "@/server/backend/yee-reporting-normalization";
+import { proxyRequest } from "@/server/proxy";
+import { normalizePlaceDetailPayload } from "@/server/yee-reporting-normalization";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ placeId: string }> }) {
 	const { placeId } = await params;

@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 
 import { setSessionCookie } from "@/lib/auth/cookies";
 import type { SessionUser } from "@/types/auth";
-import { getApiBaseUrl } from "@/server/backend/config";
-import { errorResponse, parseBackendJson } from "@/server/backend/response";
+import { getApiBaseUrl } from "@/server/config";
+import { errorResponse, parseBackendJson } from "@/server/response";
 import { getPostHogServerClient } from "@/lib/analytics/posthog-server";
 
 type BackendLoginResponse = {

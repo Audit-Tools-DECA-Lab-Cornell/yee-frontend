@@ -1,7 +1,7 @@
 import { revalidateTag } from "next/cache";
 import type { NextRequest } from "next/server";
 
-import { proxyRequest } from "@/server/backend/proxy";
+import { proxyRequest } from "@/server/proxy";
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ instrumentId: string }> }) {
 	const { instrumentId } = await params;

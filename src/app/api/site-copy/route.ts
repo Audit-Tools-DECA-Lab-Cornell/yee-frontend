@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { fetchPublicCached } from "@/server/backend/cached";
-import { proxyPublicRequest } from "@/server/backend/proxy";
+import { fetchPublicCached } from "@/server/cached";
+import { proxyPublicRequest } from "@/server/proxy";
 
 /**
  * Site copy is publicly readable — no auth required. Cached under the
