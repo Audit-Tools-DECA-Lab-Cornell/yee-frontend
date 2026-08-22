@@ -9,7 +9,8 @@
  *   2. Every role clears the WCAG contrast floor it is used at.
  *   3. The six chart fills stay distinguishable, in full colour and under the
  *      two common colour-vision deficiencies.
- *   4. The spec's contents match yee-mobile's copy (checksum), and no domain
+ *   4. The spec has not been edited without its checksum being refreshed (which
+ *      is the prompt to make the same paired edit in yee-mobile), and no domain
  *      hex is hardcoded anywhere else in src/.
  */
 import { expect, test } from "@playwright/test";
@@ -212,14 +213,29 @@ function canonical(value: unknown): unknown {
 	return value;
 }
 
-test("the spec's contents match yee-mobile's copy", () => {
+/**
+ * What this catches, precisely: the spec being edited without the checksum being
+ * updated. That is the careless case — a hand-tweaked hex here would fail the
+ * build until someone consciously refreshed the constant, at which point the
+ * failure message tells them the other repo needs the same two edits.
+ *
+ * What it CANNOT catch, on its own: this test reads only this repo's spec and
+ * this repo's constant, so updating both together passes here regardless of what
+ * yee-mobile holds. The pairing rests on `DOMAIN_PALETTE_CHECKSUM` being the same
+ * literal in both repos and on both PRs landing together. Genuinely proving it
+ * would need cross-repo CI that fetches yee-mobile's copy and compares — worth
+ * doing if these two ever drift in practice.
+ */
+test("the spec has not changed without its checksum being updated", () => {
 	const digest = createHash("sha256")
 		.update(JSON.stringify(canonical(JSON.parse(readFileSync(SPEC_PATH, "utf8")))))
 		.digest("hex");
 	expect(
 		digest,
-		"domain-palette.json changed. Copy its contents to yee-mobile/lib/domain-palette.json, " +
-			"update DOMAIN_PALETTE_CHECKSUM in BOTH repos, and re-run the guard tests on both sides."
+		"domain-palette.json changed. This must be a paired edit: copy its contents to " +
+			"yee-mobile/lib/domain-palette.json, set DOMAIN_PALETTE_CHECKSUM to the new digest in " +
+			"BOTH repos, regenerate the web's CSS tokens, and re-run the guard tests on both sides. " +
+			"Nothing here can see yee-mobile, so landing only one side will not fail this test."
 	).toBe(DOMAIN_PALETTE_CHECKSUM);
 });
 

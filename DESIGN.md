@@ -169,8 +169,9 @@ colour is never the *only* signal: every domain mark ships beside its name (WCAG
 **To change a domain colour:** edit the JSON in **both** repos, run `pnpm tokens:domains`, update
 `DOMAIN_PALETTE_CHECKSUM` in both, then run the guard tests on both sides.
 `tests/unit/domain-palette.spec.ts` re-runs the generator in `--check` mode, re-measures every
-contrast floor and separation gate, verifies the cross-repo checksum, and **fails if any domain hex
-appears anywhere in `src/` outside the spec**. Never hardcode a domain colour (no `emerald-*`,
+contrast floor and separation gate, and **fails if any domain hex appears anywhere in `src/` outside
+the spec**. Its checksum test catches the spec being edited without the checksum being refreshed —
+it cannot read yee-mobile, so keeping the two in step still relies on landing both PRs together. Never hardcode a domain colour (no `emerald-*`,
 `blue-*`, no raw hex) — go through the tokens.
 
 **Series palette** (`--chart-1 … --chart-5`): categorical colors for comparing N places/audits

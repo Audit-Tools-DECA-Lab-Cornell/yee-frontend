@@ -505,21 +505,24 @@ function TrendLineChart({ records }: { records: PlaceComparisonAuditRecord[] }) 
 							</text>
 						</g>
 					))}
-					<polyline fill="none" className="stroke-chart-2" strokeWidth={3} points={rawPolyline} />
-					<polyline fill="none" className="stroke-chart-1" strokeWidth={3} points={weightedPolyline} />
+					{/* Series assignment is app-wide: slot 1 = raw, slot 2 = Youth-Weighted.
+					    Kept identical in the exported SVG (export/charts/trend.ts), mobile's
+					    section chart, and the landing mockup. */}
+					<polyline fill="none" className="stroke-chart-1" strokeWidth={3} points={rawPolyline} />
+					<polyline fill="none" className="stroke-chart-2" strokeWidth={3} points={weightedPolyline} />
 					{points.map(point => (
 						<g key={point.label}>
 							<circle
 								cx={pointX(point.index)}
 								cy={pointY(point.rawPercent)}
 								r={4}
-								className="fill-chart-2"
+								className="fill-chart-1"
 							/>
 							<circle
 								cx={pointX(point.index)}
 								cy={pointY(point.weightedPercent)}
 								r={4}
-								className="fill-chart-1"
+								className="fill-chart-2"
 							/>
 							<text
 								x={pointX(point.index)}
@@ -531,11 +534,17 @@ function TrendLineChart({ records }: { records: PlaceComparisonAuditRecord[] }) 
 						</g>
 					))}
 				</svg>
+				{/* Legend: the label wears text ink and a swatch carries the series colour.
+				    Painting the label itself in the series colour put it at 4.29:1 on the
+				    badge for series 2 — under the 4.5:1 AA floor for normal text; the
+				    swatch only needs 3:1 as a graphical object, which both series clear. */}
 				<div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
-					<Badge className="rounded-full bg-muted px-3 py-1 text-chart-2 hover:bg-muted">
+					<Badge className="rounded-full bg-muted px-3 py-1 text-foreground hover:bg-muted">
+						<span aria-hidden className="mr-1.5 inline-block h-2 w-2 rounded-full bg-chart-1" />
 						Raw Score trend
 					</Badge>
-					<Badge className="rounded-full bg-score-high-bg px-3 py-1 text-score-high hover:bg-score-high-bg">
+					<Badge className="rounded-full bg-muted px-3 py-1 text-foreground hover:bg-muted">
+						<span aria-hidden className="mr-1.5 inline-block h-2 w-2 rounded-full bg-chart-2" />
 						Youth Weighted Average trend
 					</Badge>
 				</div>

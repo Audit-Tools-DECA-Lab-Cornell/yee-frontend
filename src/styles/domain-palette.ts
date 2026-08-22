@@ -4,9 +4,12 @@
  * `src/styles/domain-palette.json` is THE source of truth for every YEE domain
  * colour in this repo — the `--domain-*` CSS custom properties, the Tailwind
  * `domain-*` utilities built on them, and the hex values the PDF/Excel/SVG
- * export layer paints with. The same file is committed byte-for-byte in
- * yee-mobile (`lib/domain-palette.json`); `DOMAIN_PALETTE_CHECKSUM` below is
- * asserted in both repos so the two copies cannot drift apart unnoticed.
+ * export layer paints with. The same contents are committed in yee-mobile
+ * (`lib/domain-palette.json`), and `DOMAIN_PALETTE_CHECKSUM` below is the same
+ * literal in both repos: editing the spec without refreshing it fails the guard
+ * test, which is the prompt to make the matching edit on the other side. The
+ * test cannot read yee-mobile, so the two staying in step relies on the paired
+ * edit actually being made.
  *
  * Never hardcode a domain colour anywhere else. To change one:
  *   1. edit the JSON (in BOTH repos),
@@ -61,7 +64,7 @@ export const lightDomainPalette = domainPalette.light;
  * formatter run while the colours were still identical. What must never drift
  * is the values; this catches exactly that.
  */
-export const DOMAIN_PALETTE_CHECKSUM = "9adf1321e741a31b963b4ec71885950e6a99893140d90e2cf8c15ba7512a2553";
+export const DOMAIN_PALETTE_CHECKSUM = "4c3bcff2f2127c6ec65f3a2ee2991b27df3cbf6ed872da4f8799592d6f59088f";
 
 /**
  * The contrast floors every generated colour is held to, in the guard tests and
