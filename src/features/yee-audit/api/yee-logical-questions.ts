@@ -133,7 +133,10 @@ function authoringQuestions(instrument: InstrumentResponse): InstrumentLogicalQu
 					followUpOptions:
 						question.followUp?.options.map(option => ({ id: option.id, label: option.label })) ?? [],
 					conditionTriggerAnswerIds: question.followUp?.triggerOptionIds ?? [],
-					conditionRequiredWhenShown: question.followUp?.requiredWhenShown ?? true,
+					// No follow-up means there is nothing that can be required. The
+					// old `?? true` said the opposite, and only a second guard
+					// downstream kept it from marking such a question incomplete.
+					conditionRequiredWhenShown: question.followUp ? question.followUp.requiredWhenShown : false,
 					binding: {
 						mode: "matrix" as const,
 						presenceItemId: binding.presenceItemId,
@@ -150,16 +153,36 @@ export function normalizeLogicalQuestions(instrument: InstrumentResponse): Instr
 	return authoringQuestions(instrument) ?? legacyQuestions(instrument);
 }
 
+/**
+ * Reduce a section name to comparable letters and digits.
+ *
+ * The two vocabularies this has to reconcile were written by different people:
+ * an authoring section id (`experienceOfSpace`) and the block heading stored on
+ * a legacy scoring item (`"Experience of Space:"`), which is matched against a
+ * display label (`"Experience of the Space"`). Punctuation, spacing, casing, and
+ * a stray article are all that separate them, and none of those carry meaning
+ * here — so none of them should decide whether a question appears on screen.
+ */
+function sectionSlug(value: string): string {
+	return value
+		.toLowerCase()
+		.replace(/\bthe\b/g, "")
+		.replace(/[^a-z0-9]/g, "");
+}
+
 export function logicalQuestionsForSection(
 	instrument: InstrumentResponse,
 	sectionId: string,
 	legacyBlockLabel: string
 ): InstrumentLogicalQuestion[] {
-	const normalizedSection = sectionId.toLowerCase();
-	const normalizedLegacyLabel = legacyBlockLabel.toLowerCase();
+	const wanted = sectionSlug(sectionId);
+	const wantedLegacy = sectionSlug(legacyBlockLabel);
 	return normalizeLogicalQuestions(instrument).filter(question => {
-		const value = question.sectionId.toLowerCase();
-		return value === normalizedSection || value.includes(normalizedLegacyLabel);
+		const value = sectionSlug(question.sectionId);
+		// A legacy block heading carries a trailing description of the section
+		// ("Access: Presence, Condition, Provision"), so the label is a prefix of
+		// it rather than the whole of it.
+		return value === wanted || value.startsWith(wantedLegacy);
 	});
 }
 
