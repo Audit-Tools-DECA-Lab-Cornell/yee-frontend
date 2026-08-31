@@ -1,5 +1,5 @@
 import { dashboardChromeStates } from "./shared";
-import { openFilterDropdown, openInstrumentEditorTab } from "./steps";
+import { openFilterDropdown } from "./steps";
 import type { CaptureTarget } from "./types";
 
 export const adminTargets: readonly CaptureTarget[] = [
@@ -65,26 +65,16 @@ export const adminTargets: readonly CaptureTarget[] = [
 		segments: ["admin", "instruments"],
 		role: "admin",
 		route: "/admin/instruments",
-		readyText: /Instrument Management/i,
+		readyText: /YEE instrument/i,
 		states: [
 			{ name: "overview", label: "Admin instruments" },
 			{
-				name: "editor-sections-expanded",
-				label: "Instrument editor — Sections, expanded",
+				name: "active-survey-map",
+				label: "Instrument version — logical survey map",
 				optional: true,
-				setup: ({ page }) => openInstrumentEditorTab(page, /Sections/, { expandSection: /^Access/ })
-			},
-			{
-				name: "editor-sections-collapsed",
-				label: "Instrument editor — Sections, collapsed",
-				optional: true,
-				setup: ({ page }) => openInstrumentEditorTab(page, /Sections/, { collapseFirstSection: true })
-			},
-			{
-				name: "editor-audit-copy",
-				label: "Instrument editor — Audit Copy",
-				optional: true,
-				setup: ({ page }) => openInstrumentEditorTab(page, /Audit Copy/)
+				setup: async ({ page }) => {
+					await page.getByRole("button", { name: "View map" }).first().click();
+				}
 			}
 		]
 	},

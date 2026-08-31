@@ -7,8 +7,8 @@ import type { InstrumentWeighting, StructuredInstrumentContent } from "../types"
 /**
  * Audit Copy tab: the auditor-facing strings that live outside sections.
  *
- * These are published to every auditor (the weighting step, the shared
- * condition follow-up, and the final comments prompt) but had no editor — the
+ * These are published to every auditor (the weighting step, the legacy
+ * condition fallback, and the final comments prompt) but had no editor — the
  * only way to reach them was the raw JSON textarea, which is a poor place to
  * ask a non-engineer to work.
  *
@@ -31,7 +31,9 @@ export function AuditCopyEditor({ content, update }: { content: StructuredInstru
 
 	return (
 		<div className="space-y-4">
-			<FieldGroup label="Condition follow-up" hint="Shown under every question an auditor answers “yes” to.">
+			<FieldGroup
+				label="Legacy condition fallback"
+				hint="Used only when an older schema-v1 condition has no question-specific wording. Edit logical follow-ups on their question cards.">
 				<EditableField
 					label="Condition prompt"
 					value={content.condition_prompt ?? ""}

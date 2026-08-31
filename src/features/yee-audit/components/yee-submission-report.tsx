@@ -231,9 +231,16 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 	// out of the report bundle until an export is actually requested.
 	const submissionRecord = submission; // non-null past the guards above
 	async function handleExport(format: ReportDocumentFormat) {
+		const stamp =
+			submissionRecord.instrument_key && submissionRecord.instrument_version
+				? {
+						instrumentKey: submissionRecord.instrument_key,
+						instrumentVersion: submissionRecord.instrument_version
+					}
+				: null;
 		const [{ exportAudit }, instrument] = await Promise.all([
 			import("@/features/reporting/export"),
-			fetchInstrument().catch(() => null)
+			fetchInstrument(stamp).catch(() => null)
 		]);
 		await exportAudit({ submission: submissionRecord, instrument }, format);
 	}

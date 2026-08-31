@@ -14,6 +14,8 @@ export type YeeAuditState = {
 	participant_info: Record<string, unknown>;
 	responses: Record<string, string | Record<string, string>>;
 	score: YeeScoreResult | null;
+	instrument_key?: string | null;
+	instrument_version?: string | null;
 };
 
 export type YeeSubmissionRecord = {
@@ -26,6 +28,8 @@ export type YeeSubmissionRecord = {
 	participant_info: Record<string, unknown>;
 	responses: Record<string, string | Record<string, string>>;
 	score: YeeScoreResult;
+	instrument_key?: string | null;
+	instrument_version?: string | null;
 };
 
 export type ManagerAuditEditState = {
@@ -39,11 +43,15 @@ export type ManagerAuditEditState = {
 	participant_info: Record<string, unknown>;
 	responses: Record<string, string | Record<string, string>>;
 	score: YeeScoreResult;
+	instrument_key?: string | null;
+	instrument_version?: string | null;
 };
 
 type SaveDraftPayload = {
 	participant_info: Record<string, unknown>;
 	responses: Record<string, string | Record<string, string>>;
+	instrument_key?: string;
+	instrument_version?: string;
 };
 
 async function readJsonOrThrow<T>(response: Response): Promise<T> {

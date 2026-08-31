@@ -221,6 +221,9 @@ export function PlaceComparisonPanel({
 					<CardDescription>
 						Raw Score and Youth Weighted values for each selected audit, plus the average across the
 						selected audits for each domain.
+						{averages?.hasSharedMaximums === false
+							? " These audits were completed with different sets of questions, so averages are shown as a percentage of each audit's own highest possible score."
+							: null}
 					</CardDescription>
 				</CardHeader>
 				<CardContent className="overflow-x-auto">
@@ -261,7 +264,15 @@ export function PlaceComparisonPanel({
 										</td>
 									))}
 									<td className="py-4 pr-4 text-muted-foreground">
-										{averages?.avgRawByDomain[domain]} / {records[0].raw_domain_maximums[domain]}
+										{averages === null ? null : averages.sharedRawDomainMaximums[domain] ===
+										  null ? (
+											`${averages.avgRawPercentByDomain[domain]}%`
+										) : (
+											<>
+												{averages.avgRawByDomain[domain]} /{" "}
+												{averages.sharedRawDomainMaximums[domain]}
+											</>
+										)}
 									</td>
 									<td className="py-4 text-muted-foreground">
 										{averages?.avgWeightedByDomain[domain].toFixed(2)} average
@@ -280,11 +291,17 @@ export function PlaceComparisonPanel({
 							<CardTitle>Total score averages</CardTitle>
 							<CardDescription>
 								These totals are averaged across the selected audits for this place.
+								{averages.totalRawMaximum === null
+									? " The selected audits have different highest possible scores, so the raw average is shown as a percentage."
+									: null}
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="flex flex-wrap gap-3">
 							<Badge className="rounded-full bg-muted px-3 py-1 text-foreground hover:bg-muted">
-								Average raw: {averages.totalRawAverage}
+								Average raw:{" "}
+								{averages.totalRawMaximum === null
+									? `${averages.totalRawPercentAverage}%`
+									: `${averages.totalRawAverage} / ${averages.totalRawMaximum}`}
 							</Badge>
 							<Badge className="rounded-full bg-score-high-bg px-3 py-1 text-score-high hover:bg-score-high-bg">
 								Average youth weighted: {averages.totalWeightedAverage.toFixed(2)}

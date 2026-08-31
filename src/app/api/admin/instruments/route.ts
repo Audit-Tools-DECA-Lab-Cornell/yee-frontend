@@ -14,15 +14,14 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
 	const { searchParams } = new URL(request.url);
-	const activate = searchParams.get("activate") ?? "true";
+	const activate = searchParams.get("activate") ?? "false";
 	const response = await proxyRequest({
 		request,
 		path: `/yee/admin/instruments?activate=${encodeURIComponent(activate)}`,
 		method: "POST",
 		body: await request.json()
 	});
-	if (response.ok) {
-		// Expire the cached public instrument so a newly activated version ships immediately.
+	if (response.ok && activate === "true") {
 		revalidateTag("yee-instrument", { expire: 0 });
 	}
 	return response;

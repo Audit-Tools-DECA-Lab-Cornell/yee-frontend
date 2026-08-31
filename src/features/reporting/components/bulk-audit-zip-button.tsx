@@ -55,11 +55,19 @@ export function BulkAuditZipButton({
 				import("@/features/yee-audit/api/yee-audit-api"),
 				import("@/features/yee-audit/api/yee-instrument")
 			]);
-			const instrument = await fetchInstrument().catch(() => null);
 			const result = await exportAuditBatchZip({
 				auditIds,
 				fetchSubmission,
-				instrument,
+				fetchInstrumentForSubmission: submission => {
+					const stamp =
+						submission.instrument_key && submission.instrument_version
+							? {
+									instrumentKey: submission.instrument_key,
+									instrumentVersion: submission.instrument_version
+								}
+							: null;
+					return fetchInstrument(stamp).catch(() => null);
+				},
 				includeExcel,
 				onProgress: setProgress
 			});

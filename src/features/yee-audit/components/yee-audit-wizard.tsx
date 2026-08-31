@@ -43,31 +43,30 @@ import {
 import { getThemeByStep, yeeDomainThemes } from "@/features/yee-audit/config/yee-domain-theme";
 import {
 	fetchInstrument,
-	filterItemsForDomain,
 	findSectionMeta,
-	resolveConditionPrompt,
 	resolveFinalCommentsPrompt,
 	resolveWeightingDescription,
 	resolveWeightingDomainPrompt,
 	resolveWeightingOptions,
 	resolveWeightingTitle,
-	type InstrumentItem,
+	type InstrumentStamp,
 	type InstrumentResponse
 } from "@/features/yee-audit/api/yee-instrument";
+import {
+	getConditionAnswer,
+	getPrimaryAnswer,
+	isLogicalQuestionAnswered,
+	isLogicalQuestionComplete,
+	logicalQuestionsForSection,
+	shouldShowLogicalFollowUp,
+	type InstrumentLogicalQuestion
+} from "@/features/yee-audit/api/yee-logical-questions";
 import { fetchScorePreview } from "@/features/yee-audit/scoring/yee-scoring";
 import { useAutosaveQueue } from "@/features/yee-audit/state/autosave-queue";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { FormSkeleton } from "@/components/ui/skeletons";
 
 type ResponsesState = Record<string, string | Record<string, string>>;
-type QuestionGroup = {
-	baseQuestionId: string;
-	items: InstrumentItem[];
-};
-
-function getChoiceLabel(choice: { Display?: string } | undefined, fallback: string): string {
-	return choice?.Display || fallback;
-}
 
 function normalizeText(value: string) {
 	return value
@@ -90,55 +89,6 @@ function formatExampleText(value: string) {
 
 function normalizeVisibleQuestion(value: string) {
 	return ensureQuestionMark(formatExampleText(normalizeText(value)));
-}
-
-function isPlaceholderQuestionText(value: string) {
-	const normalized = normalizeText(value).toLowerCase();
-	return normalized === "" || normalized === "click to write the question text";
-}
-
-function hasAnsweredItem(item: InstrumentItem, responses: ResponsesState) {
-	const currentValue = responses[item.item_id];
-	const choices = Object.entries(item.choices || {});
-	const answers = Object.entries(item.answers || {});
-
-	if (choices.length === 0 && answers.length === 0) return true;
-	if (answers.length > 0) {
-		if (typeof currentValue !== "object" || !currentValue) return false;
-		return choices.every(([choiceId]) => Boolean(currentValue[choiceId]));
-	}
-
-	return typeof currentValue === "string" && currentValue.length > 0;
-}
-
-function answerLabels(item: InstrumentItem) {
-	return Object.values(item.answers || {}).map(answer => normalizeText(getChoiceLabel(answer, "")).toLowerCase());
-}
-
-function isConditionItem(item: InstrumentItem) {
-	if (item.item_kind) return item.item_kind === "condition";
-	const labels = answerLabels(item);
-	return (
-		normalizeText(item.question_text).toLowerCase().includes("if yes") ||
-		(labels.includes("poor") && labels.includes("acceptable") && labels.includes("great"))
-	);
-}
-
-function isPositiveAnswerLabel(label: string) {
-	const normalized = normalizeText(label).toLowerCase();
-	return normalized.startsWith("yes");
-}
-
-function getSelectedMatrixAnswer(itemId: string, choiceId: string, responses: ResponsesState) {
-	const currentValue = responses[itemId];
-	if (typeof currentValue !== "object" || !currentValue) return "";
-	return currentValue[choiceId] || "";
-}
-
-function isRowPositive(item: InstrumentItem, choiceId: string, responses: ResponsesState) {
-	const answerId = getSelectedMatrixAnswer(item.item_id, choiceId, responses);
-	if (!answerId) return false;
-	return isPositiveAnswerLabel(getChoiceLabel(item.answers?.[answerId], answerId));
 }
 
 function getOptionLabel(
@@ -170,65 +120,28 @@ function normalizeSectionComments(raw: unknown): YeeAuditDraft["sectionComments"
 	};
 }
 
-function getSelectedAnswerLabel(item: InstrumentItem, answerId: string | null | undefined) {
-	if (!answerId) return "";
-	return getChoiceLabel(item.answers?.[answerId], answerId);
+function logicalOptionLabel(options: { id: string; label: string }[], answerId: string): string {
+	return options.find(option => option.id === answerId)?.label ?? answerId;
 }
 
-function getReviewQuestionTitle(group: QuestionGroup) {
-	const presenceItem = group.items.find(item => !isConditionItem(item)) ?? group.items[0];
-	if (
-		presenceItem.choices &&
-		Object.keys(presenceItem.choices).length > 1 &&
-		isPlaceholderQuestionText(presenceItem.question_text)
-	) {
-		return "";
-	}
-	if (isPlaceholderQuestionText(presenceItem.question_text)) {
-		return "";
-	}
-	return normalizeVisibleQuestion(presenceItem.question_text || presenceItem.item_id);
+function getReviewAnswer(question: InstrumentLogicalQuestion, responses: ResponsesState) {
+	const primaryAnswerId = getPrimaryAnswer(question, responses);
+	if (!primaryAnswerId) return null;
+	const conditionAnswerId = getConditionAnswer(question, responses);
+	return {
+		prompt: normalizeVisibleQuestion(question.prompt),
+		response: logicalOptionLabel(question.primaryOptions, primaryAnswerId),
+		condition: conditionAnswerId ? logicalOptionLabel(question.followUpOptions, conditionAnswerId) : ""
+	};
 }
 
-function getReviewAnswerRows(group: QuestionGroup, responses: ResponsesState) {
-	const presenceItem = group.items.find(item => !isConditionItem(item)) ?? group.items[0];
-	const conditionItem = group.items.find(item => isConditionItem(item)) ?? null;
-	const choices = Object.entries(presenceItem.choices || {});
-	const presenceAnswers = Object.entries(presenceItem.answers || {});
-	const hasMatrixAnswers = presenceAnswers.length > 0;
-
-	if (hasMatrixAnswers) {
-		return choices
-			.map(([choiceId, choice]) => {
-				const presenceAnswerId = getSelectedMatrixAnswer(presenceItem.item_id, choiceId, responses);
-				if (!presenceAnswerId) return null;
-				const conditionAnswerId = conditionItem
-					? getSelectedMatrixAnswer(conditionItem.item_id, choiceId, responses)
-					: "";
-				return {
-					prompt: normalizeVisibleQuestion(getChoiceLabel(choice, choiceId)),
-					response: getSelectedAnswerLabel(presenceItem, presenceAnswerId),
-					condition:
-						conditionItem && conditionAnswerId
-							? getSelectedAnswerLabel(conditionItem, conditionAnswerId)
-							: ""
-				};
-			})
-			.filter((value): value is { prompt: string; response: string; condition: string } => Boolean(value));
-	}
-
-	const currentValue = responses[presenceItem.item_id];
-	const singleValue = typeof currentValue === "string" ? currentValue : "";
-	if (!singleValue) return [];
-	return [
-		{
-			prompt:
-				getReviewQuestionTitle(group) ||
-				normalizeVisibleQuestion(presenceItem.question_text || presenceItem.item_id),
-			response: getChoiceLabel(presenceItem.choices?.[singleValue], singleValue),
-			condition: ""
-		}
-	];
+function readInstrumentStamp(record: {
+	instrument_key?: string | null;
+	instrument_version?: string | null;
+}): InstrumentStamp | null {
+	return record.instrument_key && record.instrument_version
+		? { instrumentKey: record.instrument_key, instrumentVersion: record.instrument_version }
+		: null;
 }
 
 function getMultiOptionLabels(
@@ -259,23 +172,6 @@ function getStepForDomainKey(domain: YeeDomainKey): YeeStepNumber {
 		case "useAndUsability":
 			return 8;
 	}
-}
-
-function groupInstrumentItems(items: InstrumentItem[]): QuestionGroup[] {
-	const map = new Map<string, InstrumentItem[]>();
-	for (const item of items) {
-		const key = item.base_question_id || item.item_id;
-		const next = map.get(key) ?? [];
-		next.push(item);
-		map.set(key, next);
-	}
-	return Array.from(map.entries()).map(([baseQuestionId, groupItems]) => ({
-		baseQuestionId,
-		items: groupItems.sort((left, right) => {
-			if (isConditionItem(left) === isConditionItem(right)) return left.item_id.localeCompare(right.item_id);
-			return isConditionItem(left) ? 1 : -1;
-		})
-	}));
 }
 
 function normalizeWeights(raw: unknown): YeeAuditDraft["weights"] {
@@ -436,41 +332,6 @@ function getSurfacePalette(stepValue: YeeStepNumber) {
 	};
 }
 
-function getMatrixCardInstruction(domain: YeeDomainKey) {
-	if (domain === "access") {
-		return "Answer each item below. If the feature is present, the condition follow-up will appear right underneath it.";
-	}
-	return "Answer each item below. If the feature is present, the condition follow-up will appear right underneath it.";
-}
-
-function getSingleCardInstruction(domain: YeeDomainKey) {
-	switch (domain) {
-		case "access":
-			return "Choose the most appropriate answer for each access item below.";
-		case "activitySpaces":
-			return "Please answer the following questions about activity spaces.";
-		case "amenities":
-			return "Choose the most appropriate answer for each amenities item below.";
-		case "experienceOfSpace":
-			return "Choose the most appropriate answer for each statement below.";
-		case "aestheticsAndCare":
-			return "Choose the most appropriate answer for each aesthetics and care item below.";
-		case "useAndUsability":
-			return "Choose the most appropriate answer for each use and usability item below.";
-	}
-}
-
-function getDomainForBlock(block: string): YeeDomainKey | null {
-	const normalized = block.toLowerCase();
-	if (normalized.includes("access")) return "access";
-	if (normalized.includes("activity spaces")) return "activitySpaces";
-	if (normalized.includes("amenities")) return "amenities";
-	if (normalized.includes("experience")) return "experienceOfSpace";
-	if (normalized.includes("aesthetics")) return "aestheticsAndCare";
-	if (normalized.includes("use & usability")) return "useAndUsability";
-	return null;
-}
-
 /**
  * Wording used only when the instrument does not supply a prompt for this
  * domain. The instrument is the source of truth — see
@@ -531,26 +392,6 @@ function buildIncompleteSectionsMessage(
 		.join(", ")}.`;
 }
 
-function getPromptCountForItem(item: InstrumentItem) {
-	const choices = Object.keys(item.choices || {});
-	const answers = Object.keys(item.answers || {});
-	if (answers.length > 0) return Math.max(choices.length, 1);
-	return choices.length > 0 ? 1 : 0;
-}
-
-function getAnsweredPromptCountForItem(item: InstrumentItem, responses: ResponsesState) {
-	const currentValue = responses[item.item_id];
-	const choices = Object.entries(item.choices || {});
-	const answers = Object.entries(item.answers || {});
-
-	if (answers.length > 0) {
-		if (typeof currentValue !== "object" || !currentValue) return 0;
-		return choices.reduce((sum, [choiceId]) => (currentValue[choiceId] ? sum + 1 : sum), 0);
-	}
-
-	return typeof currentValue === "string" && currentValue.length > 0 ? 1 : 0;
-}
-
 function isStepCompleteForData(
 	stepValue: YeeStepNumber,
 	draft: YeeAuditDraft,
@@ -568,19 +409,8 @@ function isStepCompleteForData(
 	}
 	const domain = getDomainForStep(stepValue);
 	if (!domain) return false;
-	const groups = groupInstrumentItems(filterItemsForDomain(instrument.scoring_items, yeeDomainLabels[domain]));
-	return groups.every(group => {
-		if (group.items.length === 1) return hasAnsweredItem(group.items[0], responses);
-		const presenceItem = group.items.find(item => !isConditionItem(item)) ?? group.items[0];
-		const conditionItem = group.items.find(item => isConditionItem(item)) ?? null;
-		const choiceIds = Object.keys(presenceItem.choices || {});
-		return choiceIds.every(choiceId => {
-			const presenceValue = getSelectedMatrixAnswer(presenceItem.item_id, choiceId, responses);
-			if (!presenceValue) return false;
-			if (!conditionItem || !isRowPositive(presenceItem, choiceId, responses)) return true;
-			return Boolean(getSelectedMatrixAnswer(conditionItem.item_id, choiceId, responses));
-		});
-	});
+	const questions = logicalQuestionsForSection(instrument, domain, yeeDomainLabels[domain]);
+	return questions.every(question => isLogicalQuestionComplete(question, responses));
 }
 
 function areAllRequiredSectionsComplete(
@@ -822,197 +652,75 @@ function MultiSelectCards({
 	);
 }
 
-function InstrumentQuestionCard({
-	item,
+function InstrumentLogicalQuestionCard({
+	question,
 	responses,
 	setResponses,
 	palette
 }: {
-	item: InstrumentItem;
+	question: InstrumentLogicalQuestion;
 	responses: ResponsesState;
 	setResponses: React.Dispatch<React.SetStateAction<ResponsesState>>;
 	palette: ReturnType<typeof getSurfacePalette>;
 }) {
-	const choices = Object.entries(item.choices || {});
-	const answers = Object.entries(item.answers || {});
-	const currentValue = responses[item.item_id];
+	const selectedPrimary = getPrimaryAnswer(question, responses);
+	const selectedCondition = getConditionAnswer(question, responses);
+	const showFollowUp = shouldShowLogicalFollowUp(question, responses);
 
-	function updateSingleResponse(itemId: string, choiceId: string) {
-		setResponses(prev => ({ ...prev, [itemId]: choiceId }));
-	}
-
-	function updateMatrixResponse(itemId: string, rowId: string, answerId: string) {
+	function updatePrimary(answerId: string) {
 		setResponses(prev => {
-			const existing = prev[itemId];
+			if (question.binding.mode === "single") {
+				return { ...prev, [question.binding.presenceItemId]: answerId };
+			}
+			const existing = prev[question.binding.presenceItemId];
 			const matrix = typeof existing === "object" && existing ? { ...existing } : {};
-			matrix[rowId] = answerId;
-			return { ...prev, [itemId]: matrix };
+			matrix[question.binding.choiceId] = answerId;
+			return { ...prev, [question.binding.presenceItemId]: matrix };
 		});
 	}
 
-	if (choices.length === 0 && answers.length === 0) {
-		return (
-			<Card className={`rounded-md border shadow-[0_12px_35px_-24px_rgba(16,35,31,0.45)] ${palette.card}`}>
-				<CardContent className="py-6 text-sm leading-7 text-muted-foreground">
-					{normalizeText(item.question_text)}
-				</CardContent>
-			</Card>
-		);
-	}
-
-	if (answers.length > 0) {
-		const title = isPlaceholderQuestionText(item.question_text)
-			? getSingleCardInstruction(getDomainForBlock(item.block) ?? "access")
-			: normalizeVisibleQuestion(item.question_text || item.item_id);
-		return (
-			<Card className={`rounded-md border shadow-[0_18px_40px_-30px_rgba(16,35,31,0.55)] ${palette.card}`}>
-				<CardHeader className="pb-3">
-					<CardTitle className="text-base font-semibold">{title}</CardTitle>
-				</CardHeader>
-				<CardContent className="space-y-4">
-					{choices.map(([choiceId, choice]) => {
-						const selected =
-							typeof currentValue === "object" && currentValue ? currentValue[choiceId] || "" : "";
-
-						return (
-							<div
-								key={`${item.item_id}-${choiceId}`}
-								className={`space-y-3 rounded-[1.35rem] border p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] ${palette.inner}`}>
-								<p className="text-sm font-medium text-foreground">
-									{normalizeVisibleQuestion(getChoiceLabel(choice, choiceId))}
-								</p>
-								<OptionCards
-									name={`${item.item_id}-${choiceId}`}
-									value={selected}
-									onChange={value => updateMatrixResponse(item.item_id, choiceId, value)}
-									options={answers.map(([answerId, answer]) => ({
-										value: answerId,
-										label: getChoiceLabel(answer, answerId)
-									}))}
-									palette={palette}
-								/>
-							</div>
-						);
-					})}
-				</CardContent>
-			</Card>
-		);
-	}
-
-	const title = isPlaceholderQuestionText(item.question_text)
-		? getSingleCardInstruction(getDomainForBlock(item.block) ?? "access")
-		: normalizeVisibleQuestion(item.question_text || item.item_id);
-
-	return (
-		<Card className={`rounded-md border shadow-[0_18px_40px_-30px_rgba(16,35,31,0.55)] ${palette.card}`}>
-			<CardHeader className="pb-3">
-				<CardTitle className="text-base font-semibold">{title}</CardTitle>
-			</CardHeader>
-			<CardContent>
-				<OptionCards
-					name={item.item_id}
-					value={typeof currentValue === "string" ? currentValue : ""}
-					onChange={value => updateSingleResponse(item.item_id, value)}
-					options={choices.map(([choiceId, choice]) => ({
-						value: choiceId,
-						label: getChoiceLabel(choice, choiceId)
-					}))}
-					palette={palette}
-				/>
-			</CardContent>
-		</Card>
-	);
-}
-
-function InstrumentQuestionGroupCard({
-	group,
-	responses,
-	setResponses,
-	palette,
-	conditionPrompt
-}: {
-	group: QuestionGroup;
-	responses: ResponsesState;
-	setResponses: React.Dispatch<React.SetStateAction<ResponsesState>>;
-	palette: ReturnType<typeof getSurfacePalette>;
-	/** Instrument-supplied follow-up wording shown above the condition scale. */
-	conditionPrompt: string;
-}) {
-	if (group.items.length === 1) {
-		return (
-			<InstrumentQuestionCard
-				item={group.items[0]}
-				responses={responses}
-				setResponses={setResponses}
-				palette={palette}
-			/>
-		);
-	}
-
-	const presenceItem = group.items.find(item => !isConditionItem(item)) ?? group.items[0];
-	const conditionItem = group.items.find(item => isConditionItem(item)) ?? null;
-	const choices = Object.entries(presenceItem.choices || {});
-	const presenceAnswers = Object.entries(presenceItem.answers || {});
-	const conditionAnswers = Object.entries(conditionItem?.answers || {});
-
-	function updateMatrixResponse(itemId: string, rowId: string, answerId: string) {
+	function updateCondition(answerId: string) {
+		const binding = question.binding;
+		if (binding.mode !== "matrix" || binding.conditionItemId === null) return;
 		setResponses(prev => {
-			const existing = prev[itemId];
+			const existing = prev[binding.conditionItemId!];
 			const matrix = typeof existing === "object" && existing ? { ...existing } : {};
-			matrix[rowId] = answerId;
-			return { ...prev, [itemId]: matrix };
+			matrix[binding.choiceId] = answerId;
+			return { ...prev, [binding.conditionItemId!]: matrix };
 		});
 	}
 
 	return (
 		<Card className={`rounded-md border shadow-[0_18px_40px_-30px_rgba(16,35,31,0.55)] ${palette.card}`}>
 			<CardHeader className="pb-3">
-				<CardTitle className="text-base font-semibold">
-					{getMatrixCardInstruction(getDomainForBlock(presenceItem.block) ?? "access")}
-				</CardTitle>
+				<CardTitle className="text-base font-semibold">{normalizeVisibleQuestion(question.prompt)}</CardTitle>
 			</CardHeader>
 			<CardContent className="space-y-4">
-				{choices.map(([choiceId, choice]) => {
-					const selectedPresence = getSelectedMatrixAnswer(presenceItem.item_id, choiceId, responses);
-					const showCondition = conditionItem ? isRowPositive(presenceItem, choiceId, responses) : false;
-					const selectedCondition = conditionItem
-						? getSelectedMatrixAnswer(conditionItem.item_id, choiceId, responses)
-						: "";
-					return (
-						<div
-							key={`${group.baseQuestionId}-${choiceId}`}
-							className={`space-y-3 rounded-[1.35rem] border p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)] ${palette.inner}`}>
-							<p className="text-sm font-medium text-foreground">
-								{ensureQuestionMark(getChoiceLabel(choice, choiceId))}
-							</p>
-							<OptionCards
-								name={`${presenceItem.item_id}-${choiceId}`}
-								value={selectedPresence}
-								onChange={value => updateMatrixResponse(presenceItem.item_id, choiceId, value)}
-								options={presenceAnswers.map(([answerId, answer]) => ({
-									value: answerId,
-									label: getChoiceLabel(answer, answerId)
-								}))}
-								palette={palette}
-							/>
-							{conditionItem && showCondition ? (
-								<div className={`space-y-2 rounded-md border p-4 ${palette.condition}`}>
-									<p className="text-sm font-medium text-foreground">{conditionPrompt}</p>
-									<OptionCards
-										name={`${conditionItem.item_id}-${choiceId}`}
-										value={selectedCondition}
-										onChange={value => updateMatrixResponse(conditionItem.item_id, choiceId, value)}
-										options={conditionAnswers.map(([answerId, answer]) => ({
-											value: answerId,
-											label: getChoiceLabel(answer, answerId)
-										}))}
-										palette={palette}
-									/>
-								</div>
-							) : null}
-						</div>
-					);
-				})}
+				<OptionCards
+					name={question.key}
+					value={selectedPrimary}
+					onChange={updatePrimary}
+					options={question.primaryOptions.map(option => ({ value: option.id, label: option.label }))}
+					palette={palette}
+				/>
+				{showFollowUp && question.followUpPrompt ? (
+					<div className={`space-y-2 rounded-md border p-4 ${palette.condition}`}>
+						<p className="text-sm font-medium text-foreground">{question.followUpPrompt}</p>
+						{question.conditionRequiredWhenShown ? (
+							<p className="text-xs text-muted-foreground">Required when shown</p>
+						) : null}
+						<OptionCards
+							name={`${question.key}-condition`}
+							value={selectedCondition}
+							onChange={updateCondition}
+							options={question.followUpOptions.map(option => ({
+								value: option.id,
+								label: option.label
+							}))}
+							palette={palette}
+						/>
+					</div>
+				) : null}
 			</CardContent>
 		</Card>
 	);
@@ -1039,6 +747,7 @@ export function YeeAuditWizard({
 	const searchParams = useSearchParams();
 	const { session } = useAuth();
 	const [instrument, setInstrument] = React.useState<InstrumentResponse | null>(null);
+	const [instrumentStamp, setInstrumentStamp] = React.useState<InstrumentStamp | null | undefined>(undefined);
 	// Auditor-facing copy authored in the instrument and editable from the admin
 	// Audit Copy tab, with a fallback for instrument versions that predate each
 	// key. Resolve every string exactly once here and use these values at every
@@ -1057,7 +766,6 @@ export function YeeAuditWizard({
 		])
 	) as Record<YeeDomainKey, string>;
 	const finalCommentsPrompt = resolveFinalCommentsPrompt(instrument, "Final optional comments");
-	const conditionPrompt = resolveConditionPrompt(instrument, "Condition");
 	const [draft, setDraft] = React.useState<YeeAuditDraft>(() => createDefaultDraft(placeId));
 	const [responses, setResponses] = React.useState<ResponsesState>({});
 	const [loading, setLoading] = React.useState(true);
@@ -1065,6 +773,16 @@ export function YeeAuditWizard({
 	const [previewLoading, setPreviewLoading] = React.useState(false);
 	const [error, setError] = React.useState<string | null>(null);
 	const hydratedRef = React.useRef(false);
+	const instrumentStampFields = React.useMemo(
+		() =>
+			instrumentStamp
+				? {
+						instrument_key: instrumentStamp.instrumentKey,
+						instrument_version: instrumentStamp.instrumentVersion
+					}
+				: {},
+		[instrumentStamp]
+	);
 
 	// Confirm dialog state - replaces all window.confirm calls.
 	type ConfirmState = {
@@ -1096,6 +814,8 @@ export function YeeAuditWizard({
 	type DraftPayload = {
 		participant_info: Record<string, unknown>;
 		responses: ResponsesState;
+		instrument_key?: string;
+		instrument_version?: string;
 	};
 
 	const buildManagerEditHref = React.useCallback(
@@ -1108,8 +828,9 @@ export function YeeAuditWizard({
 
 	React.useEffect(() => {
 		async function loadInstrument() {
+			if (instrumentStamp === undefined) return;
 			try {
-				const data = await fetchInstrument();
+				const data = await fetchInstrument(instrumentStamp);
 				setInstrument(data);
 			} catch (err) {
 				setError(err instanceof Error ? err.message : "Failed to load instrument.");
@@ -1117,7 +838,7 @@ export function YeeAuditWizard({
 		}
 
 		void loadInstrument();
-	}, []);
+	}, [instrumentStamp]);
 
 	React.useEffect(() => {
 		if (!session) return;
@@ -1128,6 +849,7 @@ export function YeeAuditWizard({
 				setLoading(true);
 				setError(null);
 				let nextDraft: YeeAuditDraft;
+				let nextStamp: InstrumentStamp | null;
 				if (variant === "manager-edit") {
 					if (!auditId) {
 						throw new Error("Manager audit ID is missing.");
@@ -1135,6 +857,7 @@ export function YeeAuditWizard({
 					if (managerSubmissionId) {
 						const submission = await fetchSubmission(managerSubmissionId);
 						if (cancelled) return;
+						nextStamp = readInstrumentStamp(submission);
 						nextDraft = draftFromStoredRecord(placeId, {
 							...submission,
 							place_id: submission.place_id
@@ -1142,22 +865,28 @@ export function YeeAuditWizard({
 					} else {
 						const state = await fetchManagerAuditEditState(auditId);
 						if (cancelled) return;
+						nextStamp = readInstrumentStamp(state);
 						nextDraft = draftFromStoredRecord(placeId, state);
 					}
 				} else {
 					const state = await fetchAuditState(placeId);
 					if (cancelled) return;
+					nextStamp = readInstrumentStamp(state);
 					if (mode !== "submitted" && state.status === "SUBMITTED" && state.submission_id) {
 						router.replace(`/yee/submissions/${state.submission_id}`);
 						return;
 					}
 					nextDraft = draftFromAuditState(placeId, state);
 				}
+				setInstrumentStamp(nextStamp);
 				setDraft(nextDraft);
 				setResponses(nextDraft.responses);
 				lastPersistedSnapshot.current = JSON.stringify({
 					participant_info: buildParticipantInfo(nextDraft),
-					responses: nextDraft.responses
+					responses: nextDraft.responses,
+					...(nextStamp
+						? { instrument_key: nextStamp.instrumentKey, instrument_version: nextStamp.instrumentVersion }
+						: {})
 				});
 				hydratedRef.current = true;
 			} catch (err) {
@@ -1219,13 +948,14 @@ export function YeeAuditWizard({
 			if (!session || !hydratedRef.current || mode === "submitted") return;
 			const payload: DraftPayload = {
 				participant_info: buildParticipantInfo(currentDraft),
-				responses: currentResponses
+				responses: currentResponses,
+				...instrumentStampFields
 			};
 			const snapshot = JSON.stringify(payload);
 			if (snapshot === lastPersistedSnapshot.current) return;
 			enqueueSave(payload);
 		},
-		[enqueueSave, mode, session]
+		[enqueueSave, instrumentStampFields, mode, session]
 	);
 
 	// Debounced autosave: enqueue 350 ms after any draft/response change.
@@ -1234,7 +964,8 @@ export function YeeAuditWizard({
 		const timer = window.setTimeout(() => {
 			const payload: DraftPayload = {
 				participant_info: buildParticipantInfo(draft),
-				responses
+				responses,
+				...instrumentStampFields
 			};
 			const snapshot = JSON.stringify(payload);
 			if (snapshot !== lastPersistedSnapshot.current) {
@@ -1242,7 +973,7 @@ export function YeeAuditWizard({
 			}
 		}, 350);
 		return () => window.clearTimeout(timer);
-	}, [draft, enqueueSave, mode, responses, session]);
+	}, [draft, enqueueSave, instrumentStampFields, mode, responses, session]);
 
 	// Surface autosave errors to the existing error state. Applied during
 	// render (not in an effect) to avoid a cascading re-render.
@@ -1258,39 +989,30 @@ export function YeeAuditWizard({
 
 	const stepDetails = step ? yeeSteps.find(item => item.step === step) : null;
 	const domainKey = step ? getDomainForStep(step) : null;
-	const domainItems = React.useMemo(
+	const domainQuestions = React.useMemo(
 		() =>
-			instrument && domainKey ? filterItemsForDomain(instrument.scoring_items, yeeDomainLabels[domainKey]) : [],
+			instrument && domainKey
+				? logicalQuestionsForSection(instrument, domainKey, yeeDomainLabels[domainKey])
+				: [],
 		[domainKey, instrument]
 	);
 	const sectionMeta = React.useMemo(
 		() => (instrument && domainKey ? findSectionMeta(instrument, yeeDomainLabels[domainKey]) : null),
 		[domainKey, instrument]
 	);
-	const domainGroups = React.useMemo(() => groupInstrumentItems(domainItems), [domainItems]);
 	const weatherSelections = React.useMemo(() => draft.weather.split("|").filter(Boolean), [draft.weather]);
 	const stepPalette = getSurfacePalette(step ?? 1);
 
-	const answeredDomainItems = domainGroups.reduce((sum, group) => {
-		if (group.items.length === 1) return sum + getAnsweredPromptCountForItem(group.items[0], responses);
-		const presenceItem = group.items.find(item => !isConditionItem(item)) ?? group.items[0];
-		const conditionItem = group.items.find(item => isConditionItem(item)) ?? null;
-		const choices = Object.keys(presenceItem.choices || {});
-		return (
-			sum +
-			choices.reduce((rowSum, choiceId) => {
-				const presenceValue = getSelectedMatrixAnswer(presenceItem.item_id, choiceId, responses);
-				if (!presenceValue) return rowSum;
-				if (!conditionItem || !isRowPositive(presenceItem, choiceId, responses)) return rowSum + 1;
-				return getSelectedMatrixAnswer(conditionItem.item_id, choiceId, responses) ? rowSum + 1 : rowSum;
-			}, 0)
-		);
-	}, 0);
-	const requiredDomainItems = domainGroups.reduce((sum, group) => {
-		if (group.items.length === 1) return sum + getPromptCountForItem(group.items[0]);
-		const presenceItem = group.items.find(item => !isConditionItem(item)) ?? group.items[0];
-		return sum + Math.max(Object.keys(presenceItem.choices || {}).length, 1);
-	}, 0);
+	const answeredDomainItems = domainQuestions.filter(question =>
+		isLogicalQuestionAnswered(question, responses)
+	).length;
+	const requiredDomainItems = domainQuestions.length;
+	const requiredFollowUpsRemaining = domainQuestions.filter(
+		question =>
+			shouldShowLogicalFollowUp(question, responses) &&
+			question.conditionRequiredWhenShown &&
+			!getConditionAnswer(question, responses)
+	).length;
 
 	const stepIsComplete = step && instrument ? isStepCompleteForData(step, draft, responses, instrument) : false;
 
@@ -1382,14 +1104,19 @@ export function YeeAuditWizard({
 		try {
 			setPreviewLoading(true);
 			setError(null);
-			const preview = await fetchScorePreview(draft.placeId, buildParticipantInfo(draft), responses);
+			const preview = await fetchScorePreview(
+				draft.placeId,
+				buildParticipantInfo(draft),
+				responses,
+				instrumentStamp ?? null
+			);
 			setDraft(prev => ({ ...prev, scorePreview: preview }));
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Failed to generate score preview.");
 		} finally {
 			setPreviewLoading(false);
 		}
-	}, [draft, responses, setPreviewLoading, setError, setDraft]);
+	}, [draft, instrumentStamp, responses, setPreviewLoading, setError, setDraft]);
 
 	React.useEffect(() => {
 		if (mode !== "review") return;
@@ -1476,7 +1203,8 @@ export function YeeAuditWizard({
 			const payload = {
 				place_id: draft.placeId,
 				participant_info: participantInfo,
-				responses
+				responses,
+				...instrumentStampFields
 			};
 			const response = await fetch("/api/yee/audits", {
 				method: "POST",
@@ -1573,13 +1301,16 @@ export function YeeAuditWizard({
 			label: yeeDomainLabels[domain],
 			step: getStepForDomainKey(domain),
 			theme: getThemeByStep(getStepForDomainKey(domain)),
-			groups: groupInstrumentItems(filterItemsForDomain(instrument.scoring_items, yeeDomainLabels[domain]))
-				.map(group => ({
-					group,
-					title: getReviewQuestionTitle(group),
-					rows: getReviewAnswerRows(group, responses)
-				}))
-				.filter(entry => entry.rows.length > 0)
+			questions: logicalQuestionsForSection(instrument, domain, yeeDomainLabels[domain])
+				.map(question => ({ question, answer: getReviewAnswer(question, responses) }))
+				.filter(
+					(
+						entry
+					): entry is {
+						question: InstrumentLogicalQuestion;
+						answer: NonNullable<ReturnType<typeof getReviewAnswer>>;
+					} => entry.answer !== null
+				)
 		}));
 
 		return (
@@ -1666,8 +1397,8 @@ export function YeeAuditWizard({
 												{section.label}
 											</p>
 											<p className="mt-1.5 text-xs text-muted-foreground">
-												{section.groups.length} answered question group
-												{section.groups.length === 1 ? "" : "s"}
+												{section.questions.length} answered question
+												{section.questions.length === 1 ? "" : "s"}
 											</p>
 										</button>
 									))}
@@ -1682,47 +1413,33 @@ export function YeeAuditWizard({
 												{section.label}
 											</CardTitle>
 											<CardDescription>
-												{section.groups.length > 0
-													? `${section.groups.length} answered question group${section.groups.length === 1 ? "" : "s"} saved for review.`
+												{section.questions.length > 0
+													? `${section.questions.length} answered question${section.questions.length === 1 ? "" : "s"} saved for review.`
 													: "No saved answers yet for this section."}
 											</CardDescription>
 										</CardHeader>
 										<CardContent className="space-y-4">
-											{section.groups.map(({ group, title, rows }) => (
+											{section.questions.map(({ question, answer }) => (
 												<div
-													key={group.baseQuestionId}
+													key={question.key}
 													className="rounded-md border border-border bg-card p-4">
-													{title ? (
-														<p className="text-sm font-semibold text-foreground">{title}</p>
-													) : null}
-													<div
-														className={`space-y-4 text-sm text-muted-foreground ${title ? "mt-3" : ""}`}>
-														{rows.map((row, index) => (
-															<div
-																key={`${group.baseQuestionId}-${index}`}
-																className="space-y-2">
-																<p className="font-medium text-foreground">
-																	{row.prompt}
+													<p className="font-medium text-foreground">{answer.prompt}</p>
+													<div className="pl-4">
+														<span
+															className={`inline-flex rounded-full border px-3 py-0.5 text-xs font-semibold ${section.theme?.condition ?? "border-border bg-muted text-foreground"}`}>
+															{answer.response}
+														</span>
+														{answer.condition ? (
+															<div className="mt-2 pl-4">
+																<p className="text-xs font-medium text-muted-foreground">
+																	{question.followUpPrompt}
 																</p>
-																<div className="pl-4">
-																	<span
-																		className={`inline-flex rounded-full border px-3 py-0.5 text-xs font-semibold ${section.theme?.condition ?? "border-border bg-muted text-foreground"}`}>
-																		{row.response}
-																	</span>
-																	{row.condition ? (
-																		<div className="mt-2 pl-4">
-																			<p className="text-xs font-medium text-muted-foreground">
-																				{conditionPrompt}
-																			</p>
-																			<span
-																				className={`mt-1.5 inline-flex rounded-full border px-3 py-0.5 text-xs font-semibold ${section.theme?.condition ?? "border-border bg-muted text-foreground"}`}>
-																				{row.condition}
-																			</span>
-																		</div>
-																	) : null}
-																</div>
+																<span
+																	className={`mt-1.5 inline-flex rounded-full border px-3 py-0.5 text-xs font-semibold ${section.theme?.condition ?? "border-border bg-muted text-foreground"}`}>
+																	{answer.condition}
+																</span>
 															</div>
-														))}
+														) : null}
 													</div>
 												</div>
 											))}
@@ -2022,14 +1739,13 @@ export function YeeAuditWizard({
 								</CardContent>
 							</Card>
 						) : null}
-						{domainGroups.map(group => (
-							<InstrumentQuestionGroupCard
-								key={group.baseQuestionId}
-								group={group}
+						{domainQuestions.map(question => (
+							<InstrumentLogicalQuestionCard
+								key={question.key}
+								question={question}
 								responses={responses}
 								setResponses={setResponses}
 								palette={stepPalette}
-								conditionPrompt={conditionPrompt}
 							/>
 						))}
 						{domainKey ? (
@@ -2067,6 +1783,12 @@ export function YeeAuditWizard({
 								<span>
 									Section progress: {answeredDomainItems} of {requiredDomainItems} questions answered
 								</span>
+								{requiredFollowUpsRemaining > 0 ? (
+									<span>
+										{requiredFollowUpsRemaining} required follow-up
+										{requiredFollowUpsRemaining === 1 ? "" : "s"} still needed
+									</span>
+								) : null}
 								<span>
 									{requiredDomainItems === 0
 										? "Informational section"

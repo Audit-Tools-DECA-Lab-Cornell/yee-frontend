@@ -24,8 +24,7 @@ const wizardSource = readFileSync(
 const auditCopyFallbacks = [
 	{ field: "weighting.title", fallback: "Youth-Weighted Importance" },
 	{ field: "weighting.description", fallback: "Please start by telling us how important" },
-	{ field: "final_comments_prompt", fallback: "Final optional comments" },
-	{ field: "condition_prompt", fallback: '"Condition"' }
+	{ field: "final_comments_prompt", fallback: "Final optional comments" }
 ];
 
 function countOccurrences(haystack: string, needle: string) {
@@ -48,5 +47,6 @@ test("headings that used to hardcode published copy are gone", () => {
 	expect(wizardSource).not.toContain(">Overall comments<");
 	expect(wizardSource).toContain("{finalCommentsPrompt}");
 	expect(wizardSource).toContain("{weightingTitle}");
-	expect(wizardSource).toContain("{conditionPrompt}");
+	expect(countOccurrences(wizardSource, "{question.followUpPrompt}")).toBe(2);
+	expect(wizardSource).not.toContain('"Condition"');
 });

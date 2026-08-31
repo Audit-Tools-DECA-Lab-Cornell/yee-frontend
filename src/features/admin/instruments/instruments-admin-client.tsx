@@ -1,39 +1,31 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import * as React from "react";
+import { CopyPlus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
 
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/features/auth/components/auth-provider";
 import type { FrontendSession } from "@/features/auth/session";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
-	createInstrumentVersion,
 	deleteInstrumentVersion,
 	fetchInstrumentVersions,
-	updateInstrumentStatus
+	forkInstrumentVersion
 } from "@/features/workspaces/api/live-api";
 
+import {
+	instrumentVersionDetailSchema,
+	instrumentVersionListSchema,
+	type InstrumentVersionSummary
+} from "./authoring/schema";
 import { INSTRUMENT_KEY, INSTRUMENTS_LIST_QUERY_KEY } from "./constants";
 import { InstrumentsAdminOverview } from "./instruments-admin-overview";
-import { InstrumentEditor } from "./instrument-editor";
-import type { InstrumentVersionRecord } from "./types";
+import { toUniqueDraftLabel } from "./utils";
 import { VersionHistory } from "./version-history";
-import {
-	describeInstrumentSaveError,
-	fetchCanonicalInstrument,
-	isThrowawayVersion,
-	summarizeInstrument,
-	toUniqueDraftLabel
-} from "./utils";
-
-type EditingState = {
-	initialJson: string;
-	version: string;
-};
 
 function requireSession(session: FrontendSession | null): FrontendSession {
 	if (!session) throw new Error("An admin session is required.");
@@ -42,204 +34,106 @@ function requireSession(session: FrontendSession | null): FrontendSession {
 
 export function InstrumentsAdminClient() {
 	const { session } = useAuth();
+	const router = useRouter();
 	const queryClient = useQueryClient();
-	const editorRef = React.useRef<HTMLDivElement | null>(null);
-
-	const [editing, setEditing] = React.useState<EditingState | null>(null);
-	const [deletingId, setDeletingId] = React.useState<string | null>(null);
-
+	const [deletingId, setDeletingId] = useState<string | null>(null);
 	const versionsQuery = useQuery({
 		queryKey: INSTRUMENTS_LIST_QUERY_KEY,
-		queryFn: () => fetchInstrumentVersions(requireSession(session), INSTRUMENT_KEY),
+		queryFn: async () =>
+			instrumentVersionListSchema.parse(await fetchInstrumentVersions(requireSession(session), INSTRUMENT_KEY)),
 		enabled: Boolean(session),
-		select: rows => rows.filter(row => !isThrowawayVersion(row))
+		select: rows => rows.filter(row => !row.instrument_version.toLowerCase().includes("smoke-test"))
 	});
-
-	const canonicalQuery = useQuery({
-		queryKey: ["yee", "instrument", "canonical"],
-		queryFn: fetchCanonicalInstrument,
-		enabled: Boolean(session)
-	});
-
 	const versions = versionsQuery.data ?? [];
-	const canonicalInstrument = canonicalQuery.data ?? null;
-	const activeVersion = versions.find(version => version.is_active) ?? null;
-	const activeSummary = summarizeInstrument(activeVersion?.content ?? canonicalInstrument);
+	const activeVersion = versions.find(version => version.lifecycle === "active") ?? null;
 
-	async function refreshVersions() {
-		await queryClient.invalidateQueries({ queryKey: INSTRUMENTS_LIST_QUERY_KEY });
-	}
-
-	function scrollToEditor() {
-		requestAnimationFrame(() => {
-			editorRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-		});
-	}
-
-	const createMutation = useMutation({
-		mutationFn: (vars: { version: string; content: Record<string, unknown>; activate: boolean }) =>
-			createInstrumentVersion(
-				requireSession(session),
-				{ instrument_key: INSTRUMENT_KEY, instrument_version: vars.version, content: vars.content },
-				vars.activate
-			),
-		onSuccess: async (created, vars) => {
-			toast.success(vars.activate ? "Version published" : "Draft saved", {
-				description: vars.activate
-					? `Created and activated instrument version ${created.instrument_version}.`
-					: `Created draft instrument version ${created.instrument_version}.`
+	const forkMutation = useMutation({
+		mutationFn: async ({ source, label }: { source: InstrumentVersionSummary; label: string }) =>
+			instrumentVersionDetailSchema.parse(await forkInstrumentVersion(requireSession(session), source.id, label)),
+		onSuccess: async draft => {
+			await queryClient.invalidateQueries({ queryKey: INSTRUMENTS_LIST_QUERY_KEY });
+			toast.success("Private draft created", {
+				description: `Editing ${draft.instrument_version}. The live instrument is unchanged.`
 			});
-			setEditing(null);
-			await refreshVersions();
+			router.push(`/admin/instruments/${draft.id}/edit`);
 		},
-		onError: (error: Error) => {
-			// The publish 409 carries `scoring_compatibility`, which names the
-			// scored questions this version is missing. Show those IDs — "could
-			// not save" alone leaves the admin with nowhere to go.
-			const { title, description } = describeInstrumentSaveError(error);
-			toast.error(title, { description });
-		}
-	});
-
-	const activateMutation = useMutation({
-		mutationFn: (instrumentId: string) =>
-			updateInstrumentStatus(requireSession(session), instrumentId, { is_active: true }),
-		onSuccess: async updated => {
-			toast.success("Version activated", {
-				description: `Activated instrument version ${updated.instrument_version}.`
-			});
-			await refreshVersions();
-		},
-		onError: (error: Error) => {
-			toast.error("Could not activate version", { description: error.message });
-		}
+		onError: error =>
+			toast.error("Draft could not be created", {
+				description: error instanceof Error ? error.message : "Try again."
+			})
 	});
 
 	const deleteMutation = useMutation({
-		mutationFn: (instrumentId: string) => deleteInstrumentVersion(requireSession(session), instrumentId),
-		onMutate: (instrumentId: string) => {
-			setDeletingId(instrumentId);
-		},
+		mutationFn: (id: string) => deleteInstrumentVersion(requireSession(session), id),
+		onMutate: setDeletingId,
 		onSuccess: async () => {
-			toast.success("Version deleted", { description: "Removed the instrument version." });
-			await refreshVersions();
+			await queryClient.invalidateQueries({ queryKey: INSTRUMENTS_LIST_QUERY_KEY });
+			toast.success("Draft deleted");
 		},
-		onError: (error: Error) => {
-			toast.error("Could not delete version", { description: error.message });
-		},
-		onSettled: () => {
-			setDeletingId(null);
-		}
+		onError: error =>
+			toast.error("Draft could not be deleted", {
+				description: error instanceof Error ? error.message : "Try again."
+			}),
+		onSettled: () => setDeletingId(null)
 	});
 
-	function openEditor(content: Record<string, unknown>, versionLabel: string) {
-		setEditing({ initialJson: JSON.stringify(content, null, 2), version: versionLabel });
-		scrollToEditor();
-	}
-
-	/** Labels already in use, so a new draft never collides with an existing row. */
-	const existingLabels = versions.map(version => version.instrument_version);
-
-	function handleCreateNewDraft() {
-		const source = activeVersion?.content ?? canonicalInstrument;
-		if (!source) return;
-		const base = activeVersion
-			? activeVersion.instrument_version
-			: summarizeInstrument(canonicalInstrument).version;
-		openEditor(source, toUniqueDraftLabel(base, existingLabels));
-	}
-
-	function handleEditVersion(version: InstrumentVersionRecord) {
-		// Editing the live version forks a draft; editing a draft keeps its own
-		// label so repeated edits update one line of history, not many.
-		openEditor(
-			version.content,
-			version.is_active
-				? toUniqueDraftLabel(version.instrument_version, existingLabels)
-				: version.instrument_version
+	function fork(source: InstrumentVersionSummary) {
+		const label = toUniqueDraftLabel(
+			source.instrument_version,
+			versions.map(version => version.instrument_version)
 		);
+		forkMutation.mutate({ source, label });
 	}
 
 	if (!session) return null;
-	const loadError = versionsQuery.error ?? canonicalQuery.error;
+	if (versionsQuery.isPending) {
+		return (
+			<div className="space-y-6">
+				<Skeleton className="h-72 rounded-md" />
+				<Skeleton className="h-64 rounded-md" />
+			</div>
+		);
+	}
+	if (versionsQuery.error) {
+		return (
+			<Card className="border-destructive/30">
+				<CardHeader>
+					<CardTitle>Instrument versions could not be loaded</CardTitle>
+				</CardHeader>
+				<CardContent className="text-sm text-muted-foreground">
+					{versionsQuery.error instanceof Error ? versionsQuery.error.message : "Try again."}
+				</CardContent>
+			</Card>
+		);
+	}
 
 	return (
 		<div className="space-y-6">
-			<InstrumentsAdminOverview activeVersion={activeVersion} summary={activeSummary} />
-			{loadError ? (
-				<Card className="border-destructive/30 bg-destructive/10">
-					<CardHeader>
-						<CardTitle className="text-destructive">Instrument tool needs attention</CardTitle>
-						<CardDescription className="text-destructive">
-							{loadError instanceof Error ? loadError.message : "Could not load instrument data."}
-						</CardDescription>
-					</CardHeader>
-				</Card>
-			) : versionsQuery.isPending || canonicalQuery.isPending ? (
-				<Card>
-					<CardContent className="space-y-4">
-						<div className="space-y-2">
-							<Skeleton className="h-4 w-28" />
-							<Skeleton className="h-6 w-44" />
-						</div>
-						<div className="grid gap-3 md:grid-cols-4">
-							{[0, 1, 2, 3].map(index => (
-								<Skeleton key={index} className="h-20 rounded-md" />
-							))}
-						</div>
-					</CardContent>
-				</Card>
-			) : (
-				!activeVersion &&
-				!canonicalInstrument && (
-					<div className="rounded-md border border-dashed border-border">
-						<EmptyState
-							title="No published version yet"
-							description="Create and publish a draft to make an instrument version live for the website."
-						/>
+			<InstrumentsAdminOverview activeVersion={activeVersion} versions={versions} />
+			<Card className="border-primary/20 bg-primary/5">
+				<CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+					<div>
+						<h2 className="font-semibold text-foreground">Start from the live instrument</h2>
+						<p className="mt-1 text-sm text-muted-foreground">
+							A private authoring-v2 draft is created. Nothing changes for auditors until it passes
+							validation and is published.
+						</p>
 					</div>
-				)
-			)}
-
-			<div className="space-y-2">
-				<Button type="button" onClick={handleCreateNewDraft} disabled={!activeVersion && !canonicalInstrument}>
-					Create new draft
-				</Button>
-				<p className="text-sm text-muted-foreground">
-					Creating a new draft copies the live version so you can edit safely — nothing changes on the site
-					until you publish it. To revisit a saved draft, use Edit in the version history below.
-				</p>
-			</div>
-
+					<Button
+						type="button"
+						onClick={() => activeVersion && fork(activeVersion)}
+						disabled={!activeVersion || forkMutation.isPending}>
+						<CopyPlus aria-hidden="true" /> {forkMutation.isPending ? "Creating…" : "Create draft"}
+					</Button>
+				</CardContent>
+			</Card>
 			<VersionHistory
 				versions={versions}
-				loading={versionsQuery.isPending}
-				saving={activateMutation.isPending}
+				session={session}
 				deletingId={deletingId}
-				onEditVersion={handleEditVersion}
-				onActivate={id => activateMutation.mutate(id)}
+				onFork={fork}
 				onDelete={id => deleteMutation.mutate(id)}
 			/>
-
-			<div ref={editorRef}>
-				{editing ? (
-					<InstrumentEditor
-						initialJson={editing.initialJson}
-						version={editing.version}
-						instrumentKey={INSTRUMENT_KEY}
-						isPending={createMutation.isPending}
-						onSave={(version, content, activate) => createMutation.mutate({ version, content, activate })}
-						onCancel={() => setEditing(null)}
-					/>
-				) : (
-					<div className="rounded-md border border-dashed border-border">
-						<EmptyState
-							title="No draft open"
-							description="Open the current version or one of the saved versions above to start editing a draft."
-						/>
-					</div>
-				)}
-			</div>
 		</div>
 	);
 }

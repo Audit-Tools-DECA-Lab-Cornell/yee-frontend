@@ -1,44 +1,44 @@
 import { Badge } from "@/components/ui/badge";
 import { DashboardHero } from "@/components/ui/dashboard-hero";
 
-import type { InstrumentSummary, InstrumentVersionRecord } from "./types";
+import type { InstrumentVersionSummary } from "./authoring/schema";
 import { formatCreatedAt } from "./utils";
 
 export function InstrumentsAdminOverview({
 	activeVersion,
-	summary
+	versions
 }: {
-	activeVersion: InstrumentVersionRecord | null;
-	summary: InstrumentSummary;
+	activeVersion: InstrumentVersionSummary | null;
+	versions: InstrumentVersionSummary[];
 }) {
 	const stats = [
 		{
-			label: "Sections",
-			value: summary.sections,
-			helper: "The number of sections in the instrument."
+			label: "Saved versions",
+			value: versions.length,
+			helper: "Every retained version of the YEE instrument."
 		},
 		{
-			label: "Questions",
-			value: summary.items,
-			helper: "The number of questions in the instrument."
+			label: "Editable drafts",
+			value: versions.filter(version => version.lifecycle === "draft").length,
+			helper: "Private versions that can still be changed."
 		},
 		{
-			label: "Pre-Audit",
-			value: summary.preAuditQuestions,
-			helper: "The number of pre-audit questions in the instrument."
+			label: "Archived",
+			value: versions.filter(version => version.lifecycle === "archived").length,
+			helper: "Historical versions protected by audit data."
 		},
 		{
-			label: "Legal Documents",
-			value: summary.legalDocuments,
-			helper: "The number of legal documents in the instrument."
+			label: "Migration drafts",
+			value: versions.filter(version => version.compatibility_status === "migration_required").length,
+			helper: "Drafts whose structural changes cannot publish yet."
 		}
 	];
 
 	return (
 		<DashboardHero
 			size="compact"
-			title="Instrument management"
-			subtitle="Manage the YEE audit instrument — edit drafts, publish a version, and review version history."
+			title="YEE instrument"
+			subtitle="Author questions the way auditors experience them, then validate and publish a complete version."
 			stats={activeVersion ? stats : undefined}
 			statsLabel={
 				<div className="space-y-1 text-shadow pb-4 pt-3">
@@ -52,8 +52,7 @@ export function InstrumentsAdminOverview({
 						</Badge>
 					</div>
 					<p className="text-sm text-shadow-secondary">
-						Published {formatCreatedAt(activeVersion?.created_at ?? "")} - this is the version the public
-						site uses right now.
+						Published {formatCreatedAt(activeVersion?.created_at ?? "")} · new audits use this version.
 					</p>
 				</div>
 			}

@@ -139,7 +139,8 @@ export async function exportRawData(
 export async function exportAuditBatchZip(options: {
 	auditIds: string[];
 	fetchSubmission: (auditId: string) => Promise<YeeSubmissionRecord>;
-	instrument: InstrumentResponse | null;
+	instrument?: InstrumentResponse | null;
+	fetchInstrumentForSubmission?: (submission: YeeSubmissionRecord) => Promise<InstrumentResponse | null>;
 	includeExcel?: boolean;
 	onProgress?: (progress: BatchProgress) => void;
 }): Promise<BatchResult> {

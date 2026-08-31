@@ -1,3 +1,12 @@
+import type { AuthoringInstrument } from "@/features/admin/instruments/authoring/schema";
+
+export interface InstrumentScoreEntry {
+	item_id: string;
+	choice_id: string;
+	answer_id: string;
+	scores_by_category_id: Record<string, number>;
+}
+
 export interface InstrumentItem {
 	item_id: string;
 	base_question_id: string;
@@ -7,6 +16,7 @@ export interface InstrumentItem {
 	item_kind?: "presence" | "condition";
 	choices: Record<string, { Display?: string }>;
 	answers: Record<string, { Display?: string }>;
+	score_entries?: InstrumentScoreEntry[];
 }
 
 export interface InstrumentSectionMeta {
@@ -41,6 +51,8 @@ export interface InstrumentWeighting {
 export interface InstrumentResponse {
 	survey_name: string;
 	version: string;
+	instrument_key?: string;
+	instrument_version?: string;
 	sections?: InstrumentSectionMeta[];
 	scoring_items: InstrumentItem[];
 	/** Weighting step copy. Absent on older instrument versions. */
@@ -49,10 +61,19 @@ export interface InstrumentResponse {
 	condition_prompt?: string;
 	/** Prompt for the overall/final comments field before review & submit. */
 	final_comments_prompt?: string;
+	authoring?: AuthoringInstrument | null;
 }
 
-export async function fetchInstrument(): Promise<InstrumentResponse> {
-	const response = await fetch("/api/yee/instrument", { cache: "no-store" });
+export type InstrumentStamp = {
+	instrumentKey: string;
+	instrumentVersion: string;
+};
+
+export async function fetchInstrument(stamp?: InstrumentStamp | null): Promise<InstrumentResponse> {
+	const query = stamp
+		? `?instrument_key=${encodeURIComponent(stamp.instrumentKey)}&instrument_version=${encodeURIComponent(stamp.instrumentVersion)}`
+		: "";
+	const response = await fetch(`/api/yee/instrument${query}`, { cache: "no-store" });
 	if (!response.ok) {
 		const body = await response.json().catch(() => null);
 		const message =

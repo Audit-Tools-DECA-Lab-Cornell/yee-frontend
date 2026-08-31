@@ -128,14 +128,26 @@ export type UserRecord = {
 	project_assignments: string;
 };
 
-export type InstrumentVersionRecord = {
+export type InstrumentLifecycle = "active" | "draft" | "archived";
+export type InstrumentSchemaGeneration = "legacy" | "authoring_v2";
+export type InstrumentCompatibilityStatus = "legacy" | "copy_only" | "migration_required" | "invalid";
+
+export type InstrumentVersionSummary = {
 	id: string;
 	instrument_key: string;
 	instrument_version: string;
+	parent_instrument_id: string | null;
 	is_active: boolean;
-	content: Record<string, unknown>;
+	lifecycle: InstrumentLifecycle;
+	usage_count: number;
+	schema_generation: InstrumentSchemaGeneration;
+	compatibility_status: InstrumentCompatibilityStatus;
 	created_at: string;
 	updated_at: string;
+};
+
+export type InstrumentVersionRecord = InstrumentVersionSummary & {
+	content: Record<string, unknown>;
 };
 
 export type InstrumentCreatePayload = {
@@ -425,9 +437,64 @@ export function fetchUsers(session: FrontendSession) {
 }
 
 export function fetchInstrumentVersions(session: FrontendSession, instrumentKey = "yee") {
-	return authedFetch<InstrumentVersionRecord[]>(
+	return authedFetch<InstrumentVersionSummary[]>(
 		`/api/admin/instruments?instrument_key=${encodeURIComponent(instrumentKey)}`,
 		session
+	);
+}
+
+export function fetchInstrumentVersion(session: FrontendSession, instrumentId: string) {
+	return authedFetch<InstrumentVersionRecord>(`/api/admin/instruments/${encodeURIComponent(instrumentId)}`, session);
+}
+
+export function forkInstrumentVersion(session: FrontendSession, instrumentId: string, instrumentVersion: string) {
+	return authedFetch<InstrumentVersionRecord>(
+		`/api/admin/instruments/${encodeURIComponent(instrumentId)}/fork`,
+		session,
+		{ method: "POST", body: { instrument_version: instrumentVersion } }
+	);
+}
+
+export function updateInstrumentDraft(
+	session: FrontendSession,
+	instrumentId: string,
+	payload: { expected_updated_at: string; instrument_version: string; content: Record<string, unknown> }
+) {
+	return authedFetch<InstrumentVersionRecord>(
+		`/api/admin/instruments/${encodeURIComponent(instrumentId)}/draft`,
+		session,
+		{ method: "PUT", body: payload }
+	);
+}
+
+export type InstrumentDraftValidation = {
+	valid: boolean;
+	activation_ready: boolean;
+	schema_generation: InstrumentSchemaGeneration;
+	scoring_compatibility: {
+		ok: boolean;
+		scoring_version: string;
+		required_item_count: number;
+		present_item_count: number;
+		missing_items: string[];
+		missing_choices: string[];
+	};
+	reasons: { code: string; message: string; question_id?: string | null; item_id?: string | null }[];
+};
+
+export function validateInstrumentDraft(session: FrontendSession, instrumentId: string) {
+	return authedFetch<InstrumentDraftValidation>(
+		`/api/admin/instruments/${encodeURIComponent(instrumentId)}/validate`,
+		session,
+		{ method: "POST" }
+	);
+}
+
+export function publishInstrumentDraft(session: FrontendSession, instrumentId: string, expectedUpdatedAt: string) {
+	return authedFetch<InstrumentVersionRecord>(
+		`/api/admin/instruments/${encodeURIComponent(instrumentId)}/publish`,
+		session,
+		{ method: "POST", body: { expected_updated_at: expectedUpdatedAt } }
 	);
 }
 

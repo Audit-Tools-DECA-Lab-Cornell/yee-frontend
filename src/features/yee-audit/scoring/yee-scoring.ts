@@ -13,12 +13,18 @@ import {
 export async function fetchScorePreview(
 	placeId: string,
 	participantInfo: Record<string, unknown>,
-	responses: YeeAuditDraft["responses"]
+	responses: YeeAuditDraft["responses"],
+	stamp?: { instrumentKey: string; instrumentVersion: string } | null
 ): Promise<YeeScoreResult> {
 	const response = await fetch("/api/yee/audits/score", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({ place_id: placeId, participant_info: participantInfo, responses })
+		body: JSON.stringify({
+			place_id: placeId,
+			participant_info: participantInfo,
+			responses,
+			...(stamp ? { instrument_key: stamp.instrumentKey, instrument_version: stamp.instrumentVersion } : {})
+		})
 	});
 
 	if (!response.ok) {

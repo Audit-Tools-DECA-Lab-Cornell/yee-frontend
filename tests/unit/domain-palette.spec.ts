@@ -16,7 +16,7 @@
 import { expect, test } from "@playwright/test";
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import {
@@ -250,7 +250,7 @@ test("no domain colour is hardcoded outside the spec", () => {
 	const generated = ["src/styles/domain-palette.json", "src/app/globals.css"];
 	const tracked = execFileSync("git", ["ls-files", "src", "scripts"], { cwd: ROOT, encoding: "utf8" })
 		.split("\n")
-		.filter(file => file && !generated.includes(file));
+		.filter(file => file && !generated.includes(file) && existsSync(resolve(ROOT, file)));
 
 	const offenders: string[] = [];
 	for (const file of tracked) {

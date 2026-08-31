@@ -47,7 +47,8 @@ async function blobToBytes(blob: Blob): Promise<Uint8Array> {
 export async function generateAuditBatchZip(options: {
 	auditIds: string[];
 	fetchSubmission: (auditId: string) => Promise<YeeSubmissionRecord>;
-	instrument: InstrumentResponse | null;
+	instrument?: InstrumentResponse | null;
+	fetchInstrumentForSubmission?: (submission: YeeSubmissionRecord) => Promise<InstrumentResponse | null>;
 	palette: ExportPalette;
 	includeExcel?: boolean;
 	concurrency?: number;
@@ -57,7 +58,8 @@ export async function generateAuditBatchZip(options: {
 	const {
 		auditIds,
 		fetchSubmission,
-		instrument,
+		instrument = null,
+		fetchInstrumentForSubmission,
 		palette,
 		includeExcel = false,
 		concurrency = 4,
@@ -73,8 +75,11 @@ export async function generateAuditBatchZip(options: {
 	await mapWithConcurrency(auditIds, concurrency, async auditId => {
 		try {
 			const submission = await fetchSubmission(auditId);
+			const resolvedInstrument = fetchInstrumentForSubmission
+				? await fetchInstrumentForSubmission(submission)
+				: instrument;
 			const placeName = submission.place_name || submission.place_id;
-			const input = { submission, instrument };
+			const input = { submission, instrument: resolvedInstrument };
 			const suffix = auditId.slice(0, 8);
 			const entries: ZipEntry[] = [];
 			const pdfBlob = await generateAuditPdf(input, palette, generatedDate);
