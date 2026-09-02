@@ -633,13 +633,13 @@ function AuditSummaryMobileCard({ audit }: { audit: AuditRecord }) {
 /** Stacked mobile card for the full audits table — carries selection + row actions. */
 function AuditRowMobileCard({
 	audit,
-	showOrganization = false,
+	showOrganization,
 	isSelected,
 	onToggle
 }: {
 	audit: AuditRecord;
 	/** Names the owning organization above the place, for the cross-org admin view. */
-	showOrganization?: boolean;
+	showOrganization: boolean;
 	isSelected: boolean;
 	onToggle: (submissionId: string) => void;
 }) {
@@ -1345,7 +1345,6 @@ export function LiveAuditsTable() {
 	const paramProjectId = searchParams.get("projectId");
 	const paramPlaceId = searchParams.get("placeId");
 	const [audits, setAudits] = React.useState<AuditRecord[]>([]);
-	const [projects, setProjects] = React.useState<ProjectRecord[]>([]);
 	const [rawData, setRawData] = React.useState<RawDataRecord[]>([]);
 	const [comparisons, setComparisons] = React.useState<PlaceComparisonGroupRecord[]>([]);
 	const [loading, setLoading] = React.useState(true);
@@ -1381,15 +1380,13 @@ export function LiveAuditsTable() {
 			setLoading(true);
 			setError(null);
 			try {
-				const [auditRows, projectRows, rawRows, comparisonRows] = await Promise.all([
+				const [auditList, rawRows, comparisonRows] = await Promise.all([
 					fetchAudits(session),
-					fetchProjects(session),
 					fetchRawData(session),
 					fetchPlaceComparisons(session)
 				]);
 				if (!cancelled) {
-					setAudits(auditRows);
-					setProjects(projectRows);
+					setAudits(auditList);
 					setRawData(rawRows);
 					setComparisons(comparisonRows);
 				}
@@ -1405,25 +1402,9 @@ export function LiveAuditsTable() {
 		};
 	}, [session]);
 
-	// An audit inherits its organization from the project that owns it. The
-	// backend sends it directly; the project list is the fallback so this page
-	// still shows the owner against a backend that predates that field.
-	const organizationByProjectId = React.useMemo(
-		() => new Map(projects.map(project => [project.id, project.organization ?? ""])),
-		[projects]
-	);
-	const auditRows = React.useMemo(
-		() =>
-			audits.map(audit => ({
-				...audit,
-				organization: audit.organization || organizationByProjectId.get(audit.project_id) || ""
-			})),
-		[audits, organizationByProjectId]
-	);
-
 	const organizationOptions = React.useMemo(
-		() => uniqueFilterOptions(auditRows.map(audit => audit.organization)),
-		[auditRows]
+		() => uniqueFilterOptions(audits.map(audit => audit.organization)),
+		[audits]
 	);
 	// A manager only ever sees their own organization, and a single-tenant
 	// platform has nothing to compare — in both cases the column, the filter and
@@ -1435,32 +1416,32 @@ export function LiveAuditsTable() {
 		() =>
 			Array.from(
 				new Map(
-					auditRows
+					audits
 						.filter(audit => includesSelected(selectedOrganizations, audit.organization))
 						.map(audit => [audit.project_id, { value: audit.project_id, label: audit.project_name }])
 				).values()
 			),
-		[auditRows, selectedOrganizations]
+		[audits, selectedOrganizations]
 	);
 	const placeOptions = React.useMemo(() => {
-		const matching = auditRows.filter(audit => {
+		const matching = audits.filter(audit => {
 			if (!includesSelected(selectedOrganizations, audit.organization)) return false;
 			return selectedProjectIds.length === 0 || selectedProjectIds.includes(audit.project_id);
 		});
 		return Array.from(
 			new Map(matching.map(audit => [audit.place_id, { value: audit.place_id, label: audit.place }])).values()
 		);
-	}, [auditRows, selectedOrganizations, selectedProjectIds]);
+	}, [audits, selectedOrganizations, selectedProjectIds]);
 
 	const filteredAudits = React.useMemo(
 		() =>
-			auditRows.filter(audit => {
+			audits.filter(audit => {
 				if (!includesSelected(selectedOrganizations, audit.organization)) return false;
 				if (selectedProjectIds.length > 0 && !selectedProjectIds.includes(audit.project_id)) return false;
 				if (selectedPlaceIds.length > 0 && !selectedPlaceIds.includes(audit.place_id)) return false;
 				return true;
 			}),
-		[auditRows, selectedOrganizations, selectedPlaceIds, selectedProjectIds]
+		[audits, selectedOrganizations, selectedPlaceIds, selectedProjectIds]
 	);
 
 	const filteredRawData = React.useMemo(() => {
@@ -1707,7 +1688,7 @@ export function LiveAuditsTable() {
 						emptyState={
 							// Only when nothing has ever been submitted. An over-filtered
 							// view is a different message, handled by `noResults`.
-							auditRows.length === 0 ? (
+							audits.length === 0 ? (
 								<EmptyState
 									title="No audits yet"
 									description={
@@ -1742,10 +1723,8 @@ export function LiveAuditsTable() {
 												// Narrowing the owner has to narrow everything
 												// below it, or the project and place chips keep
 												// claiming a scope the table no longer shows.
-												const scoped = auditRows.filter(
-													audit =>
-														values.length === 0 ||
-														values.includes(audit.organization)
+												const scoped = audits.filter(audit =>
+													includesSelected(values, audit.organization)
 												);
 												const allowedProjectIds = new Set(
 													scoped.map(audit => audit.project_id)
@@ -1768,7 +1747,7 @@ export function LiveAuditsTable() {
 										onChange={values => {
 											setSelectedProjectIds(values);
 											const allowedPlaceIds = new Set(
-												auditRows
+												audits
 													.filter(audit => values.includes(audit.project_id))
 													.map(audit => audit.place_id)
 											);
@@ -1840,8 +1819,8 @@ export function LiveAuditsTable() {
 								    it you are looking at. */}
 								<p className="text-sm text-muted-foreground tabular-nums">
 									{filtersActive
-										? `Showing ${filteredAudits.length} of ${auditRows.length} audits`
-										: `${auditRows.length} ${auditRows.length === 1 ? "audit" : "audits"}`}
+										? `Showing ${filteredAudits.length} of ${audits.length} audits`
+										: `${audits.length} ${audits.length === 1 ? "audit" : "audits"}`}
 									{selectedAuditIds.length > 0 ? ` · ${selectedAuditIds.length} selected` : ""}
 								</p>
 							</div>

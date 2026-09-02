@@ -14,7 +14,7 @@ export type AuditRecord = {
 	id: string;
 	submission_id?: string | null;
 	/** Owning organization, inherited from the project. */
-	organization?: string | null;
+	organization: string | null;
 	project_id: string;
 	project_name: string;
 	place_id: string;
