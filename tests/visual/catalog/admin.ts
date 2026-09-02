@@ -35,14 +35,26 @@ export const adminTargets: readonly CaptureTarget[] = [
 		segments: ["admin", "audits"],
 		role: "admin",
 		route: "/admin/audits",
-		readyText: /Filter by project or place, compare selected audits/i,
+		readyText: /Every audit submitted across every organization/i,
 		states: [
 			{ name: "overview", label: "Admin audits" },
+			{
+				name: "organization-filter-open",
+				label: "Admin audits - organization filter",
+				optional: true,
+				setup: ({ page }) => openFilterDropdown(page, /^Organization/)
+			},
 			{
 				name: "project-filter-open",
 				label: "Admin audits - project filter",
 				optional: true,
-				setup: ({ page }) => openFilterDropdown(page, "Projects")
+				setup: ({ page }) => openFilterDropdown(page, /^Project/)
+			},
+			{
+				name: "group-by-open",
+				label: "Admin audits - group by",
+				optional: true,
+				setup: ({ page }) => openFilterDropdown(page, /^Group by$/)
 			}
 		]
 	},

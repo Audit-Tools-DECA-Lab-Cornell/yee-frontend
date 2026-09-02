@@ -8,6 +8,8 @@ import {
 	DropdownMenu,
 	DropdownMenuCheckboxItem,
 	DropdownMenuContent,
+	DropdownMenuRadioGroup,
+	DropdownMenuRadioItem,
 	DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -143,14 +145,18 @@ export function ClearFiltersButton({ disabled, onClick }: { disabled: boolean; o
 	);
 }
 
-/** Shared "Group by project" / "Ungroup" toggle for any groupable table. */
+/** Shared "Group by <dimension>" / "Ungroup" toggle for a table with exactly one
+ * sensible grouping. Use `GroupBySelect` when there is more than one. */
 export function GroupByToggle({
 	grouped,
 	onToggle,
+	dimension = "project",
 	className
 }: {
 	grouped: boolean;
 	onToggle: () => void;
+	/** Lowercase noun completing "Group by …", e.g. "organization". */
+	dimension?: string;
 	className?: string;
 }) {
 	return (
@@ -160,8 +166,64 @@ export function GroupByToggle({
 			size="sm"
 			className={className}
 			onClick={onToggle}>
-			<Layers className="size-4" />
-			{grouped ? "Ungroup" : "Group by project"}
+			<Layers className="size-4" aria-hidden />
+			{grouped ? "Ungroup" : `Group by ${dimension}`}
 		</Button>
+	);
+}
+
+export type GroupByOption = {
+	/** Column id, or `["outer", "inner"]` to nest. Empty string means no grouping. */
+	value: string;
+	label: string;
+	columns: string[];
+};
+
+/**
+ * Grouping picker for tables that can be stacked more than one way. Unlike a
+ * toggle, the trigger names the grouping that is currently applied, so a reader
+ * arriving at a stacked table can tell what they are looking at without
+ * un-stacking it to find out.
+ */
+export function GroupBySelect({
+	options,
+	value,
+	onChange,
+	className
+}: {
+	options: GroupByOption[];
+	value: string;
+	onChange: (value: string) => void;
+	className?: string;
+}) {
+	const active = options.find(option => option.value === value && option.value !== "");
+	return (
+		<DropdownMenu>
+			<DropdownMenuTrigger asChild>
+				<Button
+					type="button"
+					variant={active ? "secondary" : "outline"}
+					size="sm"
+					className={cn("justify-between font-normal", className)}>
+					<span className="inline-flex min-w-0 items-center gap-2">
+						<Layers className="size-4 shrink-0" aria-hidden />
+						<span className="truncate">{active ? `Grouped by ${active.label.toLowerCase()}` : "Group by"}</span>
+					</span>
+					<ChevronDown className="ml-2 size-4 shrink-0 text-slate-400" aria-hidden />
+				</Button>
+			</DropdownMenuTrigger>
+			<DropdownMenuContent align="end" className="w-60 border-slate-300 p-1.5 shadow-xl">
+				<DropdownMenuRadioGroup value={value} onValueChange={onChange}>
+					{options.map(option => (
+						<DropdownMenuRadioItem
+							key={option.value || "none"}
+							value={option.value}
+							className="rounded-sm py-2 text-sm text-slate-700 focus:bg-slate-50 focus:text-slate-950">
+							{option.label}
+						</DropdownMenuRadioItem>
+					))}
+				</DropdownMenuRadioGroup>
+			</DropdownMenuContent>
+		</DropdownMenu>
 	);
 }

@@ -9,8 +9,10 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { useAuth } from "@/features/auth/components/auth-provider";
 import {
 	ClearFiltersButton,
+	GroupBySelect,
 	GroupByToggle,
-	SearchableMultiSelectFilter
+	SearchableMultiSelectFilter,
+	type GroupByOption
 } from "@/features/workspaces/components/table-filters";
 import { PlaceComparisonPanel } from "@/features/reporting/components/place-comparison-panel";
 import { domainLabels, domainOrder } from "@/features/reporting/reporting";
@@ -631,10 +633,13 @@ function AuditSummaryMobileCard({ audit }: { audit: AuditRecord }) {
 /** Stacked mobile card for the full audits table — carries selection + row actions. */
 function AuditRowMobileCard({
 	audit,
+	showOrganization = false,
 	isSelected,
 	onToggle
 }: {
 	audit: AuditRecord;
+	/** Names the owning organization above the place, for the cross-org admin view. */
+	showOrganization?: boolean;
 	isSelected: boolean;
 	onToggle: (submissionId: string) => void;
 }) {
@@ -658,6 +663,12 @@ function AuditRowMobileCard({
 						<p className="font-medium text-foreground">{audit.place}</p>
 						<StatusBadge label={audit.status} tone="secondary" />
 					</div>
+					{/* Place names repeat across organizations, so the card has to say
+					    whose place this is before anything is read off it. */}
+					<p className="text-sm text-muted-foreground">
+						{showOrganization && audit.organization ? `${audit.organization} · ` : ""}
+						{audit.project_name}
+					</p>
 					<p className="text-sm text-muted-foreground">
 						{audit.auditor}
 						{audit.participant_id ? ` · Participant ${audit.participant_id}` : ""}
@@ -1036,6 +1047,7 @@ export function LivePlacesTable() {
 						getRowId={row => row.id}
 						groupBy={groupByProject ? "project" : undefined}
 						groupLabel="Project"
+						groupUnit="place"
 						toolbar={toolbar}
 						noResults="No places match the selected filters."
 						mobileCard={place => <PlaceMobileCard place={place} variant="manager" />}
@@ -1049,7 +1061,7 @@ export function LivePlacesTable() {
 export function AdminProjectsTable() {
 	const { data, loading, error } = useTableData(fetchProjects);
 	const [selectedOrganizations, setSelectedOrganizations] = React.useState<string[]>([]);
-	const [selectedProjects, setSelectedProjects] = React.useState<string[]>([]);
+	const [groupByOrganization, setGroupByOrganization] = React.useState(false);
 	const columns = React.useMemo(() => buildProjectColumns("admin"), []);
 
 	if (loading) return <LoadingCard label="projects" />;
@@ -1057,40 +1069,32 @@ export function AdminProjectsTable() {
 	if (!data?.length)
 		return <EmptyState title="No projects yet" description="Projects created by managers will appear here." />;
 
+	// Organization only. A project filter on the project list would offer the
+	// reader the very rows already in front of them — sorting the name column
+	// and reading it is the shorter path to any single project.
 	const organizationOptions = uniqueFilterOptions(data.map(project => project.organization ?? null));
-	const projectOptions = uniqueFilterOptions(
-		data
-			.filter(project => includesSelected(selectedOrganizations, project.organization ?? null))
-			.map(project => project.name)
+	const filteredProjects = data.filter(project =>
+		includesSelected(selectedOrganizations, project.organization ?? null)
 	);
-	const filteredProjects = data.filter(project => {
-		if (!includesSelected(selectedOrganizations, project.organization ?? null)) return false;
-		if (!includesSelected(selectedProjects, project.name)) return false;
-		return true;
-	});
-	const filtersActive = selectedOrganizations.length > 0 || selectedProjects.length > 0;
+	const filtersActive = selectedOrganizations.length > 0;
 
 	const toolbar = (
-		<div className="flex flex-wrap gap-3">
+		<div className="flex flex-wrap items-center gap-3">
 			<SearchableMultiSelectFilter
 				label="Organization"
 				options={organizationOptions}
 				selectedValues={selectedOrganizations}
 				onChange={setSelectedOrganizations}
 			/>
-			<SearchableMultiSelectFilter
-				label="Project"
-				options={projectOptions}
-				selectedValues={selectedProjects}
-				onChange={setSelectedProjects}
-			/>
-			<ClearFiltersButton
-				disabled={!filtersActive}
-				onClick={() => {
-					setSelectedOrganizations([]);
-					setSelectedProjects([]);
-				}}
-			/>
+			<ClearFiltersButton disabled={!filtersActive} onClick={() => setSelectedOrganizations([])} />
+			{organizationOptions.length > 1 ? (
+				<GroupByToggle
+					grouped={groupByOrganization}
+					onToggle={() => setGroupByOrganization(value => !value)}
+					dimension="organization"
+					className="ml-auto"
+				/>
+			) : null}
 		</div>
 	);
 
@@ -1099,7 +1103,7 @@ export function AdminProjectsTable() {
 			<DashboardHero
 				size="compact"
 				title="Projects"
-				subtitle="Projects across every organization. Filter by organization and project to narrow the list."
+				subtitle="Every project across every organization, with its place count, audit activity, and status."
 			/>
 			<Card className="rounded-md">
 				<CardContent>
@@ -1107,8 +1111,11 @@ export function AdminProjectsTable() {
 						columns={columns}
 						data={filteredProjects}
 						getRowId={row => row.id}
+						groupBy={groupByOrganization ? "organization" : undefined}
+						groupLabel="Organization"
+						groupUnit="project"
 						toolbar={toolbar}
-						noResults="No projects match the selected filters."
+						noResults="No projects match the selected organizations."
 						mobileCard={project => <ProjectMobileCard project={project} variant="admin" />}
 					/>
 				</CardContent>
@@ -1329,6 +1336,7 @@ export function LiveAuditorsTable() {
 
 export function LiveAuditsTable() {
 	const { session } = useAuth();
+	const isAdmin = session?.user.account_type === "ADMIN";
 	// Deep links from place/project detail pages pass ?projectId=&placeId= so
 	// the table opens pre-filtered to that context.
 	const searchParams = useSearchParams();
@@ -1337,10 +1345,12 @@ export function LiveAuditsTable() {
 	const paramProjectId = searchParams.get("projectId");
 	const paramPlaceId = searchParams.get("placeId");
 	const [audits, setAudits] = React.useState<AuditRecord[]>([]);
+	const [projects, setProjects] = React.useState<ProjectRecord[]>([]);
 	const [rawData, setRawData] = React.useState<RawDataRecord[]>([]);
 	const [comparisons, setComparisons] = React.useState<PlaceComparisonGroupRecord[]>([]);
 	const [loading, setLoading] = React.useState(true);
 	const [error, setError] = React.useState<string | null>(null);
+	const [selectedOrganizations, setSelectedOrganizations] = React.useState<string[]>([]);
 	const [selectedProjectIds, setSelectedProjectIds] = React.useState<string[]>(
 		paramProjectId ? [paramProjectId] : []
 	);
@@ -1348,7 +1358,7 @@ export function LiveAuditsTable() {
 	const [selectedAuditIds, setSelectedAuditIds] = React.useState<string[]>([]);
 	const [syncedParams, setSyncedParams] = React.useState<string>(`${paramProjectId ?? ""}|${paramPlaceId ?? ""}`);
 	const [compareError, setCompareError] = React.useState<string | null>(null);
-	const [groupByProject, setGroupByProject] = React.useState(false);
+	const [grouping, setGrouping] = React.useState<string>("");
 
 	// Keep the filters in sync with the URL so a soft navigation that changes the
 	// deep-link params (e.g. the sidebar link back to the bare /manager/audits
@@ -1358,6 +1368,7 @@ export function LiveAuditsTable() {
 	const currentParams = `${paramProjectId ?? ""}|${paramPlaceId ?? ""}`;
 	if (currentParams !== syncedParams) {
 		setSyncedParams(currentParams);
+		setSelectedOrganizations([]);
 		setSelectedProjectIds(paramProjectId ? [paramProjectId] : []);
 		setSelectedPlaceIds(paramPlaceId ? [paramPlaceId] : []);
 		setSelectedAuditIds([]);
@@ -1370,13 +1381,15 @@ export function LiveAuditsTable() {
 			setLoading(true);
 			setError(null);
 			try {
-				const [auditRows, rawRows, comparisonRows] = await Promise.all([
+				const [auditRows, projectRows, rawRows, comparisonRows] = await Promise.all([
 					fetchAudits(session),
+					fetchProjects(session),
 					fetchRawData(session),
 					fetchPlaceComparisons(session)
 				]);
 				if (!cancelled) {
 					setAudits(auditRows);
+					setProjects(projectRows);
 					setRawData(rawRows);
 					setComparisons(comparisonRows);
 				}
@@ -1392,32 +1405,62 @@ export function LiveAuditsTable() {
 		};
 	}, [session]);
 
+	// An audit inherits its organization from the project that owns it. The
+	// backend sends it directly; the project list is the fallback so this page
+	// still shows the owner against a backend that predates that field.
+	const organizationByProjectId = React.useMemo(
+		() => new Map(projects.map(project => [project.id, project.organization ?? ""])),
+		[projects]
+	);
+	const auditRows = React.useMemo(
+		() =>
+			audits.map(audit => ({
+				...audit,
+				organization: audit.organization || organizationByProjectId.get(audit.project_id) || ""
+			})),
+		[audits, organizationByProjectId]
+	);
+
+	const organizationOptions = React.useMemo(
+		() => uniqueFilterOptions(auditRows.map(audit => audit.organization)),
+		[auditRows]
+	);
+	// A manager only ever sees their own organization, and a single-tenant
+	// platform has nothing to compare — in both cases the column, the filter and
+	// the grouping would be a control that cannot change anything, so they stay
+	// out of the way until the data actually spans more than one owner.
+	const showOrganization = organizationOptions.length > 1;
+
 	const projectOptions = React.useMemo(
 		() =>
 			Array.from(
 				new Map(
-					audits.map(audit => [audit.project_id, { value: audit.project_id, label: audit.project_name }])
+					auditRows
+						.filter(audit => includesSelected(selectedOrganizations, audit.organization))
+						.map(audit => [audit.project_id, { value: audit.project_id, label: audit.project_name }])
 				).values()
 			),
-		[audits]
+		[auditRows, selectedOrganizations]
 	);
 	const placeOptions = React.useMemo(() => {
-		const matching = audits.filter(
-			audit => selectedProjectIds.length === 0 || selectedProjectIds.includes(audit.project_id)
-		);
+		const matching = auditRows.filter(audit => {
+			if (!includesSelected(selectedOrganizations, audit.organization)) return false;
+			return selectedProjectIds.length === 0 || selectedProjectIds.includes(audit.project_id);
+		});
 		return Array.from(
 			new Map(matching.map(audit => [audit.place_id, { value: audit.place_id, label: audit.place }])).values()
 		);
-	}, [audits, selectedProjectIds]);
+	}, [auditRows, selectedOrganizations, selectedProjectIds]);
 
 	const filteredAudits = React.useMemo(
 		() =>
-			audits.filter(audit => {
+			auditRows.filter(audit => {
+				if (!includesSelected(selectedOrganizations, audit.organization)) return false;
 				if (selectedProjectIds.length > 0 && !selectedProjectIds.includes(audit.project_id)) return false;
 				if (selectedPlaceIds.length > 0 && !selectedPlaceIds.includes(audit.place_id)) return false;
 				return true;
 			}),
-		[audits, selectedPlaceIds, selectedProjectIds]
+		[auditRows, selectedOrganizations, selectedPlaceIds, selectedProjectIds]
 	);
 
 	const filteredRawData = React.useMemo(() => {
@@ -1471,8 +1514,24 @@ export function LiveAuditsTable() {
 		setCompareError(null);
 	}
 
-	const auditColumns = React.useMemo<ColumnDef<AuditRecord>[]>(
-		() => [
+	const auditColumns = React.useMemo<ColumnDef<AuditRecord>[]>(() => {
+		const organizationColumn: ColumnDef<AuditRecord> = {
+			id: "organization",
+			accessorFn: row => row.organization || "—",
+			header: "Organization",
+			cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
+		};
+		const projectNameColumn: ColumnDef<AuditRecord> = {
+			accessorKey: "project_name",
+			header: "Project",
+			cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue() ?? "—")}</span>
+		};
+		const placeColumn: ColumnDef<AuditRecord> = {
+			accessorKey: "place",
+			header: "Place",
+			cell: ({ getValue }) => <span className="font-medium text-foreground">{String(getValue())}</span>
+		};
+		return [
 			{
 				id: "select",
 				enableSorting: false,
@@ -1526,16 +1585,12 @@ export function LiveAuditsTable() {
 					);
 				}
 			},
-			{
-				accessorKey: "place",
-				header: "Place",
-				cell: ({ getValue }) => <span className="font-medium text-foreground">{String(getValue())}</span>
-			},
-			{
-				accessorKey: "project_name",
-				header: "Project",
-				cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue() ?? "—")}</span>
-			},
+			// Cross-org, the row leads with the hierarchy an audit hangs off —
+			// organization, then project, then place. Within a single organization
+			// that context is redundant, so the place stays out front.
+			...(showOrganization
+				? [organizationColumn, projectNameColumn, placeColumn]
+				: [placeColumn, projectNameColumn]),
 			{
 				accessorKey: "auditor",
 				header: "Auditor ID",
@@ -1601,20 +1656,43 @@ export function LiveAuditsTable() {
 					);
 				}
 			}
-		],
-		[filteredAudits, selectedAuditIds, rawData]
-	);
+		];
+	}, [filteredAudits, selectedAuditIds, rawData, showOrganization]);
 
 	if (loading) return <LoadingCard label="audits" />;
 	if (error) return <ErrorCard message={error} />;
-	const filtersActive = selectedProjectIds.length > 0 || selectedPlaceIds.length > 0;
+	const filtersActive =
+		selectedOrganizations.length > 0 || selectedProjectIds.length > 0 || selectedPlaceIds.length > 0;
+
+	// Offered outermost-first, so the list itself teaches the hierarchy an audit
+	// sits in: an organization owns projects, a project owns places.
+	const groupingOptions: GroupByOption[] = [
+		{ value: "", label: "No grouping", columns: [] },
+		...(showOrganization
+			? [
+					{ value: "organization", label: "Organization", columns: ["organization"] },
+					{
+						value: "organization+project",
+						label: "Organization, then project",
+						columns: ["organization", "project_name"]
+					}
+				]
+			: []),
+		{ value: "project", label: "Project", columns: ["project_name"] },
+		{ value: "place", label: "Place", columns: ["place"] }
+	];
+	const groupingColumns = groupingOptions.find(option => option.value === grouping)?.columns ?? [];
 
 	return (
 		<div className="space-y-6">
 			<DashboardHero
 				size="compact"
 				title="Audits"
-				subtitle="Filter by project or place, compare selected audits, and export all, filtered, or selected raw data."
+				subtitle={
+					isAdmin
+						? "Every audit submitted across every organization, project, and place."
+						: "Filter by project or place, compare selected audits, and export all, filtered, or selected raw data."
+				}
 			/>
 			<Card className="rounded-md">
 				<CardContent className="space-y-4 overflow-x-auto">
@@ -1623,12 +1701,28 @@ export function LiveAuditsTable() {
 						columns={auditColumns}
 						data={filteredAudits}
 						getRowId={row => row.id}
-						groupBy={groupByProject ? "project_name" : undefined}
-						groupLabel="Project"
+						groupBy={groupingColumns}
+						groupLabel={{ organization: "Organization", project_name: "Project", place: "Place" }}
+						groupUnit="audit"
+						emptyState={
+							// Only when nothing has ever been submitted. An over-filtered
+							// view is a different message, handled by `noResults`.
+							auditRows.length === 0 ? (
+								<EmptyState
+									title="No audits yet"
+									description={
+										isAdmin
+											? "Audits appear here as soon as any organization starts submitting them."
+											: "Audits appear here as soon as your auditors start submitting them."
+									}
+								/>
+							) : undefined
+						}
 						noResults="No audits match the selected filters."
 						mobileCard={audit => (
 							<AuditRowMobileCard
 								audit={audit}
+								showOrganization={showOrganization}
 								isSelected={
 									audit.submission_id ? selectedAuditIds.includes(audit.submission_id) : false
 								}
@@ -1638,6 +1732,35 @@ export function LiveAuditsTable() {
 						toolbar={
 							<div className="flex flex-col flex-wrap items-start gap-3">
 								<div className="flex flex-wrap justify-start items-start w-full gap-3">
+									{showOrganization ? (
+										<SearchableMultiSelectFilter
+											label="Organization"
+											options={organizationOptions}
+											selectedValues={selectedOrganizations}
+											onChange={values => {
+												setSelectedOrganizations(values);
+												// Narrowing the owner has to narrow everything
+												// below it, or the project and place chips keep
+												// claiming a scope the table no longer shows.
+												const scoped = auditRows.filter(
+													audit =>
+														values.length === 0 ||
+														values.includes(audit.organization)
+												);
+												const allowedProjectIds = new Set(
+													scoped.map(audit => audit.project_id)
+												);
+												const allowedPlaceIds = new Set(scoped.map(audit => audit.place_id));
+												setSelectedProjectIds(current =>
+													current.filter(projectId => allowedProjectIds.has(projectId))
+												);
+												setSelectedPlaceIds(current =>
+													current.filter(placeId => allowedPlaceIds.has(placeId))
+												);
+												setSelectedAuditIds([]);
+											}}
+										/>
+									) : null}
 									<SearchableMultiSelectFilter
 										label="Project"
 										options={projectOptions}
@@ -1645,7 +1768,7 @@ export function LiveAuditsTable() {
 										onChange={values => {
 											setSelectedProjectIds(values);
 											const allowedPlaceIds = new Set(
-												audits
+												auditRows
 													.filter(audit => values.includes(audit.project_id))
 													.map(audit => audit.place_id)
 											);
@@ -1667,6 +1790,7 @@ export function LiveAuditsTable() {
 									<ClearFiltersButton
 										disabled={!filtersActive}
 										onClick={() => {
+											setSelectedOrganizations([]);
 											setSelectedProjectIds([]);
 											setSelectedPlaceIds([]);
 											setSelectedAuditIds([]);
@@ -1677,9 +1801,10 @@ export function LiveAuditsTable() {
 											}
 										}}
 									/>
-									<GroupByToggle
-										grouped={groupByProject}
-										onToggle={() => setGroupByProject(value => !value)}
+									<GroupBySelect
+										options={groupingOptions}
+										value={grouping}
+										onChange={setGrouping}
 										className="ml-auto"
 									/>
 								</div>
@@ -1711,6 +1836,14 @@ export function LiveAuditsTable() {
 										Compare Selected
 									</Button>
 								</div>
+								{/* A global list is only trustworthy if it says how much of
+								    it you are looking at. */}
+								<p className="text-sm text-muted-foreground tabular-nums">
+									{filtersActive
+										? `Showing ${filteredAudits.length} of ${auditRows.length} audits`
+										: `${auditRows.length} ${auditRows.length === 1 ? "audit" : "audits"}`}
+									{selectedAuditIds.length > 0 ? ` · ${selectedAuditIds.length} selected` : ""}
+								</p>
 							</div>
 						}
 					/>

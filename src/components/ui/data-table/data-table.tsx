@@ -13,6 +13,7 @@ import {
 	type ColumnSizingState,
 	type ExpandedState,
 	type GroupingState,
+	type Row,
 	type SortingState,
 	type Table as TableInstance,
 	type VisibilityState
@@ -43,10 +44,14 @@ type DataTableProps<TData, TValue> = {
 	noResults?: React.ReactNode;
 	getRowId?: (row: TData, index: number) => string;
 	enableSorting?: boolean;
-	/** Column id to group rows by, with a collapsible header per group. */
-	groupBy?: string;
-	/** Human label for a group header, e.g. "project". */
-	groupLabel?: string;
+	/** Column id(s) to group rows by, with a collapsible header per group. Pass an
+	 * array to nest, outermost first (e.g. `["organization", "project_name"]`). */
+	groupBy?: string | string[];
+	/** Human label for a group header. Pass a record keyed by column id to label
+	 * each level of a nested grouping separately. */
+	groupLabel?: string | Record<string, string>;
+	/** Singular noun for what a group counts, e.g. "audit" -> "4 audits". */
+	groupUnit?: string;
 	stickyFirstColumn?: boolean;
 	/** Optional per-row renderer for the stacked mobile (<md) layout. */
 	mobileCard?: (row: TData) => React.ReactNode;
@@ -66,6 +71,21 @@ function isDataColumn(columnDef: { header?: unknown }) {
 	return typeof columnDef.header === "string";
 }
 
+/** Rows, not sub-groups: a nested group header has to count the records a reader
+ * can actually open at the bottom of the tree, never the buckets in between. */
+function countLeafRows<TData>(row: Row<TData>): number {
+	if (!row.subRows.length) return 1;
+	return row.subRows.reduce((total, subRow) => total + countLeafRows(subRow), 0);
+}
+
+/** Per-level group header label — a string applies to every level, a record
+ * labels each grouped column on its own. */
+function resolveGroupLabel(groupLabel: string | Record<string, string> | undefined, columnId: string | undefined) {
+	if (!groupLabel) return undefined;
+	if (typeof groupLabel === "string") return groupLabel;
+	return columnId ? groupLabel[columnId] : undefined;
+}
+
 function SortIndicator({ direction }: { direction: false | "asc" | "desc" }) {
 	if (direction === "asc") return <ArrowUp className="size-3.5" aria-hidden />;
 	if (direction === "desc") return <ArrowDown className="size-3.5" aria-hidden />;
@@ -76,8 +96,12 @@ type DataTableBodyProps<TData> = {
 	table: TableInstance<TData>;
 	sized: boolean;
 	showBodyDividers: boolean;
-	groupBy?: string;
-	groupLabel?: string;
+	/** Joined grouping key — stable across renders, so the memo below can use it. */
+	groupKey: string;
+	groupLabel?: string | Record<string, string>;
+	/** Serialized `groupLabel`, for the same reason. */
+	groupLabelKey: string;
+	groupUnit: string;
 	columnCount: number;
 	hasNoMatches: boolean;
 	noResults?: React.ReactNode;
@@ -94,8 +118,8 @@ function DataTableBodyInner<TData>({
 	table,
 	sized,
 	showBodyDividers,
-	groupBy,
 	groupLabel,
+	groupUnit,
 	columnCount,
 	hasNoMatches,
 	noResults,
@@ -112,13 +136,26 @@ function DataTableBodyInner<TData>({
 			) : null}
 			{table.getRowModel().rows.map(row => {
 				if (row.getIsGrouped()) {
+					// Nested levels step in and lighten, so the eye reads org → project
+					// as a hierarchy instead of two identical bands stacked together.
+					const isTopLevel = row.depth === 0;
+					const levelColumnId = row.groupingColumnId ?? "";
+					const levelLabel = resolveGroupLabel(groupLabel, levelColumnId);
+					const rowCount = countLeafRows(row);
 					return (
-						<TableRow key={row.id} className="bg-muted/40 hover:bg-muted/50">
+						<TableRow
+							key={row.id}
+							className={cn(isTopLevel ? "bg-muted/50 hover:bg-muted/60" : "bg-muted/20 hover:bg-muted/30")}>
 							<TableCell colSpan={columnCount} className="py-2.5">
 								<button
 									type="button"
 									onClick={row.getToggleExpandedHandler()}
-									className="inline-flex items-center gap-2 text-sm font-semibold text-foreground">
+									aria-expanded={row.getIsExpanded()}
+									style={{ marginLeft: row.depth * 22 }}
+									className={cn(
+										"inline-flex items-center gap-2 text-sm text-foreground",
+										isTopLevel ? "font-semibold" : "font-medium"
+									)}>
 									<ChevronRight
 										className={cn(
 											"size-4 text-muted-foreground transition-transform",
@@ -126,9 +163,11 @@ function DataTableBodyInner<TData>({
 										)}
 										aria-hidden
 									/>
-									{groupLabel ? <span className="text-muted-foreground">{groupLabel}:</span> : null}
-									{String(row.getGroupingValue(groupBy as string) ?? "—")}
-									<span className="font-normal text-muted-foreground">({row.subRows.length})</span>
+									{levelLabel ? <span className="text-muted-foreground">{levelLabel}:</span> : null}
+									{String(row.getGroupingValue(levelColumnId) ?? "—")}
+									<span className="font-normal text-muted-foreground tabular-nums">
+										· {rowCount} {rowCount === 1 ? groupUnit : `${groupUnit}s`}
+									</span>
 								</button>
 							</TableCell>
 						</TableRow>
@@ -164,7 +203,9 @@ const MemoizedDataTableBody = React.memo(
 		prev.table.options.data === next.table.options.data &&
 		prev.sized === next.sized &&
 		prev.showBodyDividers === next.showBodyDividers &&
-		prev.groupBy === next.groupBy &&
+		prev.groupKey === next.groupKey &&
+		prev.groupLabelKey === next.groupLabelKey &&
+		prev.groupUnit === next.groupUnit &&
 		prev.columnCount === next.columnCount &&
 		prev.lastColumnId === next.lastColumnId &&
 		prev.hasNoMatches === next.hasNoMatches &&
@@ -188,6 +229,7 @@ function DataTable<TData, TValue>({
 	enableSorting = true,
 	groupBy,
 	groupLabel,
+	groupUnit = "row",
 	stickyFirstColumn = false,
 	mobileCard,
 	toolbar,
@@ -205,7 +247,14 @@ function DataTable<TData, TValue>({
 	const desktopRef = React.useRef<HTMLDivElement>(null);
 	const initialSizesRef = React.useRef<ColumnSizingState>({});
 
-	const grouping = React.useMemo<GroupingState>(() => (groupBy ? [groupBy] : []), [groupBy]);
+	// Joined into a primitive first so an inline `groupBy={["a", "b"]}` from a
+	// caller cannot re-create the table (and blow away sizing) on every render.
+	const groupKey = React.useMemo(
+		() => (Array.isArray(groupBy) ? groupBy.filter(Boolean).join("\u0000") : (groupBy ?? "")),
+		[groupBy]
+	);
+	const groupLabelKey = typeof groupLabel === "string" ? groupLabel : JSON.stringify(groupLabel ?? null);
+	const grouping = React.useMemo<GroupingState>(() => (groupKey ? groupKey.split("\u0000") : []), [groupKey]);
 
 	// React Compiler intentionally skips memoizing this component: TanStack Table
 	// returns fresh functions each render, and that is the supported usage.
@@ -236,10 +285,14 @@ function DataTable<TData, TValue>({
 	// others never leaves the table looking cut off short of the container).
 	const lastColumnId = leafColumns[leafColumns.length - 1]?.id;
 	const isEmpty = data.length === 0;
-	const hasNoMatches = !isEmpty && rows.length === 0;
+	// Zero rows always says so. Filtering everything out also empties `data`, so
+	// keying purely off `!isEmpty` left over-filtered tables rendering a headed
+	// but silent body — the reader could not tell a filter from a dead page.
+	// The one case that stays quiet is the dedicated empty state below.
+	const hasNoMatches = rows.length === 0 && !(isEmpty && emptyState);
 	// Group rows are full-width bands; keeping body dividers off when grouped
 	// stops any vertical line from cutting through a group header row.
-	const showBodyDividers = !groupBy;
+	const showBodyDividers = grouping.length === 0;
 	const isResizing = Boolean(table.getState().columnSizingInfo.isResizingColumn);
 
 	// Measure the natural column widths once (from the content-fit auto layout)
@@ -370,8 +423,10 @@ function DataTable<TData, TValue>({
 		table,
 		sized,
 		showBodyDividers,
-		groupBy,
+		groupKey,
 		groupLabel,
+		groupLabelKey,
+		groupUnit,
 		columnCount,
 		hasNoMatches,
 		noResults,
@@ -458,8 +513,13 @@ function DataTable<TData, TValue>({
 						row.getIsGrouped() ? (
 							<p
 								key={row.id}
-								className="px-1 pt-2 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
-								{String(row.getGroupingValue(groupBy as string) ?? "—")} ({row.subRows.length})
+								style={{ paddingLeft: row.depth * 12 }}
+								className={cn(
+									"px-1 pt-2 text-xs tracking-wide text-muted-foreground uppercase",
+									row.depth === 0 ? "font-semibold" : "font-medium"
+								)}>
+								{String(row.getGroupingValue(row.groupingColumnId ?? "") ?? "—")} ·{" "}
+								{countLeafRows(row)} {countLeafRows(row) === 1 ? groupUnit : `${groupUnit}s`}
 							</p>
 						) : (
 							<div key={row.id}>{mobileCard(row.original)}</div>

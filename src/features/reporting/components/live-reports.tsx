@@ -1063,6 +1063,7 @@ export function LiveReports() {
 								getRowId={row => row.place_id}
 								groupBy={groupByProject ? "project_name" : undefined}
 								groupLabel="Project"
+								groupUnit="place"
 								toolbar={groupToggle}
 								mobileCard={summary => <ComparePlaceMobileCard summary={summary} />}
 							/>
@@ -1246,6 +1247,7 @@ export function LiveReports() {
 								getRowId={row => row.audit_id}
 								groupBy={groupByProject ? "project_name" : undefined}
 								groupLabel="Project"
+								groupUnit="audit"
 								toolbar={groupToggle}
 								mobileCard={individualAuditMobileCard}
 							/>
