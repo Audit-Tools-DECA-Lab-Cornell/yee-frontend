@@ -352,7 +352,7 @@ function RadarComparisonChart({ summaries }: { summaries: PlaceSummary[] }) {
 			<CardContent className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
 				<svg
 					viewBox="0 0 220 220"
-					className="mx-auto h-[220px] w-[220px]"
+					className="mx-auto h-55 w-55"
 					role="img"
 					aria-label="Radar chart comparing domain scores across places">
 					{rings.map(ring => (
@@ -471,7 +471,7 @@ function TrendLineChart({ records }: { records: PlaceComparisonAuditRecord[] }) 
 				/>
 			</CardHeader>
 			<CardContent className="space-y-4">
-				<svg viewBox={`0 0 ${width} ${height}`} className="h-[260px] w-full rounded-md bg-muted/40">
+				<svg viewBox={`0 0 ${width} ${height}`} className="h-65 w-full rounded-md bg-muted/40">
 					{[0, 25, 50, 75, 100].map(value => (
 						<g key={value}>
 							<line

@@ -1564,7 +1564,7 @@ export function YeeAuditWizard({
 							aria-current={step === entry.step ? "step" : undefined}
 							className={`rounded-md border px-3 py-2.5 text-left text-xs font-medium transition-colors ${
 								step === entry.step
-									? "border-[var(--yee-green-600)] bg-[var(--yee-green-100)] text-[var(--yee-green-900)]"
+									? "border-(--yee-green-600) bg-(--yee-green-100) text-(--yee-green-900)"
 									: "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground"
 							}`}>
 							<span className="block font-semibold">{getShortStepLabel(entry.step)}</span>

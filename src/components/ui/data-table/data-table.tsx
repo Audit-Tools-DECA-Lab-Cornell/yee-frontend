@@ -485,7 +485,7 @@ function DataTable<TData, TValue>({
 														onTouchStart={header.getResizeHandler()}
 														onDoubleClick={() => resetColumnSize(header.column.id)}
 														className={cn(
-															"absolute top-0 -right-[3px] z-10 h-full w-1.5 cursor-col-resize touch-none select-none",
+															"absolute top-0 -right-0.75 z-10 h-full w-1.5 cursor-col-resize touch-none select-none",
 															"hover:bg-primary/30",
 															header.column.getIsResizing() && "bg-primary/50"
 														)}

@@ -88,7 +88,7 @@ export function SearchableMultiSelectFilter({
 					</div>
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="start" className="w-[290px] border-slate-300 p-3 shadow-xl">
+			<DropdownMenuContent align="start" className="w-72.5 border-slate-300 p-3 shadow-xl">
 				<div className="space-y-3">
 					<div className="flex items-center justify-between gap-3">
 						<p className="text-sm font-semibold text-slate-900">{label}</p>
