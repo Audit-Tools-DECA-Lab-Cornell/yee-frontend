@@ -145,7 +145,9 @@ function DataTableBodyInner<TData>({
 					return (
 						<TableRow
 							key={row.id}
-							className={cn(isTopLevel ? "bg-muted/50 hover:bg-muted/60" : "bg-muted/20 hover:bg-muted/30")}>
+							className={cn(
+								isTopLevel ? "bg-muted/50 hover:bg-muted/60" : "bg-muted/20 hover:bg-muted/30"
+							)}>
 							<TableCell colSpan={columnCount} className="py-2.5">
 								<button
 									type="button"
@@ -518,8 +520,8 @@ function DataTable<TData, TValue>({
 									"px-1 pt-2 text-xs tracking-wide text-muted-foreground uppercase",
 									row.depth === 0 ? "font-semibold" : "font-medium"
 								)}>
-								{String(row.getGroupingValue(row.groupingColumnId ?? "") ?? "—")} ·{" "}
-								{countLeafRows(row)} {countLeafRows(row) === 1 ? groupUnit : `${groupUnit}s`}
+								{String(row.getGroupingValue(row.groupingColumnId ?? "") ?? "—")} · {countLeafRows(row)}{" "}
+								{countLeafRows(row) === 1 ? groupUnit : `${groupUnit}s`}
 							</p>
 						) : (
 							<div key={row.id}>{mobileCard(row.original)}</div>

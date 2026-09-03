@@ -1353,9 +1353,7 @@ export function YeeAuditWizard({
 														backgroundColor: theme.lightHex,
 														borderColor: theme.strongHex
 													}}>
-													<p
-														className="font-semibold"
-														style={{ color: theme.textHex }}>
+													<p className="font-semibold" style={{ color: theme.textHex }}>
 														{yeeDomainLabels[key]}
 													</p>
 													<span
