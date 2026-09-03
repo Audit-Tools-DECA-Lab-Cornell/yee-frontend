@@ -145,36 +145,23 @@ const comparePlacesColumns: ColumnDef<PlaceSummary>[] = [
 			</span>
 		)
 	},
-	{
-		id: "access",
-		accessorFn: row => row.rawPercentByDomain.access,
-		header: () => (
-			<span className="flex items-center gap-2">
-				<DomainDot domain="access" />
-				Access
-			</span>
-		),
-		cell: ({ row }) => (
-			<span className="font-medium tabular-nums" style={{ color: yeeDomainThemes.access.textHex }}>
-				{row.original.rawPercentByDomain.access.toFixed(0)}%
-			</span>
-		)
-	},
-	{
-		id: "amenities",
-		accessorFn: row => row.rawPercentByDomain.amenities,
-		header: () => (
-			<span className="flex items-center gap-2">
-				<DomainDot domain="amenities" />
-				Amenities
-			</span>
-		),
-		cell: ({ row }) => (
-			<span className="font-medium tabular-nums" style={{ color: yeeDomainThemes.amenities.textHex }}>
-				{row.original.rawPercentByDomain.amenities.toFixed(0)}%
-			</span>
-		)
-	},
+	...domainOrder.map(
+		(domain): ColumnDef<PlaceSummary> => ({
+			id: domain,
+			accessorFn: row => row.rawPercentByDomain[domain],
+			header: () => (
+				<span className="flex items-center gap-2">
+					<DomainDot domain={domain} />
+					{domainLabels[domain]}
+				</span>
+			),
+			cell: ({ row }) => (
+				<span className="font-medium tabular-nums" style={{ color: yeeDomainThemes[domain].textHex }}>
+					{row.original.rawPercentByDomain[domain].toFixed(0)}%
+				</span>
+			)
+		})
+	),
 	{
 		id: "report",
 		header: "Detailed report",
@@ -210,20 +197,15 @@ function ComparePlaceMobileCard({ summary }: { summary: PlaceSummary }) {
 				<span>
 					Youth weighted: {summary.avgWeightedScore.toFixed(2)} ({summary.avgWeightedPercent.toFixed(0)}%)
 				</span>
-				<span className="flex items-center gap-1.5">
-					<DomainDot domain="access" />
-					Access:{" "}
-					<span className="font-medium" style={{ color: yeeDomainThemes.access.textHex }}>
-						{summary.rawPercentByDomain.access.toFixed(0)}%
+				{domainOrder.map(domain => (
+					<span key={domain} className="flex items-center gap-1.5">
+						<DomainDot domain={domain} />
+						{domainLabels[domain]}:{" "}
+						<span className="font-medium" style={{ color: yeeDomainThemes[domain].textHex }}>
+							{summary.rawPercentByDomain[domain].toFixed(0)}%
+						</span>
 					</span>
-				</span>
-				<span className="flex items-center gap-1.5">
-					<DomainDot domain="amenities" />
-					Amenities:{" "}
-					<span className="font-medium" style={{ color: yeeDomainThemes.amenities.textHex }}>
-						{summary.rawPercentByDomain.amenities.toFixed(0)}%
-					</span>
-				</span>
+				))}
 			</div>
 			{summary.latestSubmissionId ? (
 				<Link

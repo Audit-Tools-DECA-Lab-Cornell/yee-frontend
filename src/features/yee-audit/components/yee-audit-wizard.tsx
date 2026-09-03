@@ -1344,26 +1344,26 @@ export function YeeAuditWizard({
 									<p className="font-medium text-foreground">{weightingTitle}</p>
 									<div className="mt-3 space-y-3">
 										{(Object.keys(yeeDomainLabels) as YeeDomainKey[]).map(key => {
-											const theme = getThemeByStep(getStepForDomainKey(key));
+											const theme = yeeDomainThemes[key];
 											return (
 												<div
 													key={key}
 													className="flex flex-col gap-2 rounded-md border px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
 													style={{
-														backgroundColor: theme?.lightHex ?? "#f8fafc",
-														borderColor: theme?.strongFillHex ?? "#cbd5e1"
+														backgroundColor: theme.lightHex,
+														borderColor: theme.strongHex
 													}}>
 													<p
 														className="font-semibold"
-														style={{ color: theme?.strongHex ?? "#0f172a" }}>
+														style={{ color: theme.textHex }}>
 														{yeeDomainLabels[key]}
 													</p>
 													<span
 														className="inline-flex max-w-full rounded-full border px-3 py-1 text-sm font-semibold"
 														style={{
-															backgroundColor: theme?.strongFillHex ?? "#e2e8f0",
-															borderColor: theme?.strongHex ?? "#94a3b8",
-															color: theme?.strongHex ?? "#0f172a"
+															backgroundColor: theme.lightHex,
+															borderColor: theme.strongHex,
+															color: theme.textHex
 														}}>
 														{getOptionLabel(weightingOptions, draft.weights[key])}
 													</span>
