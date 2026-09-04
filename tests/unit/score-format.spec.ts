@@ -107,6 +107,39 @@ test("aggregateScoreEntries exposes a fraction denominator only for one shared p
 	});
 });
 
+test("aggregateScoreEntries requires every selected row to support a shared denominator", () => {
+	const zeroMaximum = aggregateScoreEntries([
+		{ value: 61, maximum: 122 },
+		{ value: 0, maximum: 0 }
+	]);
+	const nullMaximum = aggregateScoreEntries([
+		{ value: 61, maximum: 122 },
+		{ value: 0, maximum: null }
+	]);
+	const mixedValidMaximums = aggregateScoreEntries([
+		{ value: 61, maximum: 122 },
+		{ value: 61, maximum: 123 }
+	]);
+	const allValidSharedMaximums = aggregateScoreEntries([
+		{ value: 61, maximum: 122 },
+		{ value: 30.5, maximum: 122 }
+	]);
+
+	// Invalid rows remain excluded from the percentage mean but invalidate the
+	// denominator for the full selection.
+	expect(zeroMaximum).toEqual({
+		meanValue: 61,
+		meanPercentage: 50,
+		sharedMaximum: null,
+		validCount: 1
+	});
+	expect(nullMaximum).toEqual(zeroMaximum);
+	expect(mixedValidMaximums.validCount).toBe(2);
+	expect(mixedValidMaximums.sharedMaximum).toBeNull();
+	expect(allValidSharedMaximums.validCount).toBe(2);
+	expect(allValidSharedMaximums.sharedMaximum).toBe(122);
+});
+
 test("a non-finite percent bands as low, not reassuring green", () => {
 	expect(scoreBandKey(Number.NaN)).toBe("low");
 	expect(scoreBandKey(Number.POSITIVE_INFINITY)).toBe("low");

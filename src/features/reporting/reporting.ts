@@ -106,6 +106,12 @@ export function getComparisonAverages<
 	const sharedWeightedDomainMaximums = Object.fromEntries(
 		domainOrder.map(domain => [domain, weightedDomainAggregates[domain].sharedMaximum])
 	) as Record<(typeof domainOrder)[number], number | null>;
+	const rawDomainValidCounts = Object.fromEntries(
+		domainOrder.map(domain => [domain, rawDomainAggregates[domain].validCount])
+	) as Record<(typeof domainOrder)[number], number>;
+	const weightedDomainValidCounts = Object.fromEntries(
+		domainOrder.map(domain => [domain, weightedDomainAggregates[domain].validCount])
+	) as Record<(typeof domainOrder)[number], number>;
 
 	return {
 		totalRawAverage: roundNullable(rawTotalAggregate.meanValue, 1),
@@ -118,6 +124,10 @@ export function getComparisonAverages<
 		avgRawPercentByDomain,
 		avgWeightedByDomain,
 		avgWeightedPercentByDomain,
+		/** Per-domain count used by the raw means after excluding invalid rows. */
+		rawDomainValidCounts,
+		/** Per-domain count used by the youth-weighted means after excluding invalid rows. */
+		weightedDomainValidCounts,
 		/** Per-domain raw maximum every selected audit shares, or `null` if they differ. */
 		sharedRawDomainMaximums,
 		/** Total raw maximum every selected audit shares, or `null` if they differ. */

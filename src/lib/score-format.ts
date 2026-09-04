@@ -88,7 +88,7 @@ export type ScoreAggregate = {
 	meanValue: number | null;
 	/** Mean of each included record's own precise percentage. */
 	meanPercentage: number | null;
-	/** Shared positive maximum across included records, otherwise `null`. */
+	/** Shared positive maximum across every selected record, otherwise `null`. */
 	sharedMaximum: number | null;
 	/** Number of records included after score/maximum validation. */
 	validCount: number;
@@ -96,8 +96,9 @@ export type ScoreAggregate = {
 
 /**
  * Aggregate scores without borrowing a denominator or treating unavailable
- * records as 0%. A fraction is safe only when every included record shares the
- * same positive maximum.
+ * records as 0%. Invalid records are excluded from the percentage mean, but a
+ * fraction is safe only when every selected record is valid and shares the same
+ * positive maximum.
  */
 export function aggregateScoreEntries(entries: readonly ScoreEntry[]): ScoreAggregate {
 	const valid = entries.flatMap(entry => {
@@ -111,7 +112,8 @@ export function aggregateScoreEntries(entries: readonly ScoreEntry[]): ScoreAggr
 	}
 
 	const firstMaximum = valid[0].maximum;
-	const sharedMaximum = valid.every(entry => entry.maximum === firstMaximum) ? firstMaximum : null;
+	const sharedMaximum =
+		valid.length === entries.length && valid.every(entry => entry.maximum === firstMaximum) ? firstMaximum : null;
 
 	return {
 		meanValue: valid.reduce((sum, entry) => sum + entry.value, 0) / valid.length,

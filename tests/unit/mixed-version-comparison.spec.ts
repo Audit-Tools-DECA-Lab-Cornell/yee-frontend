@@ -91,11 +91,14 @@ test("an unavailable maximum is excluded from percentage means instead of contri
 		5
 	);
 	expect(averages?.totalRawValidCount).toBe(1);
+	expect(averages?.totalRawMaximum).toBeNull();
 	for (const domain of domainOrder) {
 		expect(averages?.avgRawPercentByDomain[domain]).toBeCloseTo(
 			Number(((100 * baseline.raw_domain_scores[domain]) / baseline.raw_domain_maximums[domain]).toFixed(1)),
 			5
 		);
+		expect(averages?.rawDomainValidCounts[domain]).toBe(1);
+		expect(averages?.sharedRawDomainMaximums[domain]).toBeNull();
 	}
 });
 

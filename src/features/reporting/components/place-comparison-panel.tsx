@@ -50,12 +50,16 @@ function AverageScore({
 	percent,
 	average,
 	sharedMaximum,
+	validCount,
+	totalCount,
 	fractionDigits = 0,
 	percentClassName = "font-semibold text-foreground"
 }: {
 	percent: number | null;
 	average: number | null;
 	sharedMaximum: number | null;
+	validCount: number;
+	totalCount: number;
 	fractionDigits?: number;
 	percentClassName?: string;
 }) {
@@ -63,6 +67,7 @@ function AverageScore({
 		average === null || sharedMaximum === null
 			? SCORE_UNAVAILABLE
 			: formatScoreFraction(average, sharedMaximum, fractionDigits);
+	const validCountDetail = validCount === totalCount ? null : `${validCount} of ${totalCount} valid`;
 	return (
 		<span className="flex flex-col gap-0.5 tabular-nums">
 			<span className={`leading-none ${percentClassName}`}>
@@ -70,6 +75,9 @@ function AverageScore({
 			</span>
 			{fraction === SCORE_UNAVAILABLE ? null : (
 				<span className="text-xs leading-tight text-muted-foreground">{fraction}</span>
+			)}
+			{validCountDetail === null ? null : (
+				<span className="text-xs leading-tight text-muted-foreground">{validCountDetail}</span>
 			)}
 		</span>
 	);
@@ -351,6 +359,8 @@ export function PlaceComparisonPanel({
 												percent={averages.avgRawPercentByDomain[domain]}
 												average={averages.avgRawByDomain[domain]}
 												sharedMaximum={averages.sharedRawDomainMaximums[domain]}
+												validCount={averages.rawDomainValidCounts[domain]}
+												totalCount={records.length}
 											/>
 										)}
 									</td>
@@ -360,6 +370,8 @@ export function PlaceComparisonPanel({
 												percent={averages.avgWeightedPercentByDomain[domain]}
 												average={averages.avgWeightedByDomain[domain]}
 												sharedMaximum={averages.sharedWeightedDomainMaximums[domain]}
+												validCount={averages.weightedDomainValidCounts[domain]}
+												totalCount={records.length}
 												fractionDigits={2}
 											/>
 										)}
@@ -379,7 +391,7 @@ export function PlaceComparisonPanel({
 							<CardDescription>
 								These totals are averaged across the selected audits for this place.
 								{averages.totalRawMaximum === null || averages.totalWeightedMaximum === null
-									? " The selected audits have different highest possible scores, so these averages are shown as percentages only."
+									? " Fractions are hidden unless every selected audit has a valid matching maximum."
 									: null}
 							</CardDescription>
 						</CardHeader>
@@ -390,6 +402,8 @@ export function PlaceComparisonPanel({
 									percent={averages.totalRawPercentAverage}
 									average={averages.totalRawAverage}
 									sharedMaximum={averages.totalRawMaximum}
+									validCount={averages.totalRawValidCount}
+									totalCount={records.length}
 									percentClassName="font-semibold"
 								/>
 							</Badge>
@@ -399,6 +413,8 @@ export function PlaceComparisonPanel({
 									percent={averages.totalWeightedPercentAverage}
 									average={averages.totalWeightedAverage}
 									sharedMaximum={averages.totalWeightedMaximum}
+									validCount={averages.totalWeightedValidCount}
+									totalCount={records.length}
 									fractionDigits={2}
 									percentClassName="font-semibold"
 								/>

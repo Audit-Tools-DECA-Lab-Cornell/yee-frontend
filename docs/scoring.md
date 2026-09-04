@@ -83,8 +83,10 @@ as unavailable (`—`), never as a fabricated `0%`.
 For a group of audits:
 
 - average each valid audit's own percentage
-- show an average fraction only when every included audit shares the same positive maximum
 - exclude audits with unavailable maxima from the percentage mean
+- show an average fraction only when every selected audit has a finite score,
+  a finite positive maximum, and all selected maxima match
+- disclose the valid-audit count when a percentage mean excludes selected audits
 
 This keeps comparisons honest when selected audits use different instrument
 versions.
