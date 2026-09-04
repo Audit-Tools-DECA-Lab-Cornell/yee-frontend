@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { DashboardHeader } from "@/components/layouts/dashboard/dashboard-header";
 import { DashboardSidebar } from "@/components/layouts/dashboard/dashboard-sidebar";
+import { SidebarCollapseProvider, SidebarCollapseScript } from "@/components/layouts/dashboard/sidebar-collapse";
 import { SiteCopyProvider } from "@/components/layouts/dashboard/site-copy-provider";
 import type { WorkspaceVariant } from "@/components/layouts/dashboard/workspace-config";
 import { cn } from "@/lib/utils";
@@ -24,20 +25,38 @@ export function DashboardShell({
 }) {
 	return (
 		<SiteCopyProvider>
-			<div className="min-h-dvh bg-background text-foreground">
-				<div className="relative min-h-dvh lg:grid lg:grid-cols-[292px_minmax(0,1fr)]">
-					<aside className="hidden border-r border-border lg:sticky lg:top-0 lg:block lg:h-screen">
-						<DashboardSidebar variant={variant} />
-					</aside>
+			<SidebarCollapseProvider>
+				{/* Applies the saved rail width before the aside below is painted. */}
+				<SidebarCollapseScript />
+				<div className="min-h-dvh bg-background text-foreground">
+					{/* One track width, one token. Collapsing swaps the value of
+					    --dashboard-sidebar-width and the grid animates to it; the main
+					    column is minmax(0,1fr) throughout, so nothing inside it can be
+					    pushed off-screen while the rail moves. */}
+					<div
+						className={cn(
+							"relative min-h-dvh",
+							"lg:grid lg:grid-cols-[var(--dashboard-sidebar-width)_minmax(0,1fr)]",
+							"lg:transition-[grid-template-columns] lg:duration-200 lg:ease-emphasized"
+						)}>
+						{/* data-dashboard-rail scopes every `rail-collapsed:` style to this
+						    aside, so the mobile sheet renders the same sidebar expanded. */}
+						<aside
+							id="dashboard-sidebar"
+							data-dashboard-rail=""
+							className="hidden overflow-hidden border-r border-border lg:sticky lg:top-0 lg:block lg:h-screen">
+							<DashboardSidebar variant={variant} collapsible />
+						</aside>
 
-					<div className="min-w-0">
-						<DashboardHeader variant={variant} />
-						<main id="main-content" className="px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
-							<div className={cn("mx-auto", CONTENT_WIDTH[contentWidth])}>{children}</div>
-						</main>
+						<div className="min-w-0">
+							<DashboardHeader variant={variant} />
+							<main id="main-content" className="px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+								<div className={cn("mx-auto", CONTENT_WIDTH[contentWidth])}>{children}</div>
+							</main>
+						</div>
 					</div>
 				</div>
-			</div>
+			</SidebarCollapseProvider>
 		</SiteCopyProvider>
 	);
 }
