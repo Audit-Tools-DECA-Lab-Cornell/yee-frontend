@@ -1,9 +1,9 @@
 /**
  * Single source of truth for score-band coloring across the app.
  *
- * Replaces the scattered rose-400 / amber-400 / emerald-500 logic that used to
- * live in each chart/progress component with one brand-tuned scale (deep green
- * high, muted gold mid, restrained clay low — see `--score-*` in globals.css).
+ * Replaces scattered component-level color logic with one shared scale. Vivid
+ * traffic-light fills are paired with darker text colors for readable labels
+ * (see `--score-*` in globals.css).
  *
  * Thresholds preserve the prior behavior: <34 low, <67 mid, otherwise high.
  */
@@ -17,7 +17,7 @@ export function scoreBandKey(percent: number): ScoreBand {
 }
 
 type ScoreBandClasses = {
-	/** Solid fill (bars, dots) — e.g. `bg-score-high`. */
+	/** Vivid solid fill (bars, dots) — e.g. `bg-score-high-fill`. */
 	fill: string;
 	/** Foreground text — e.g. `text-score-high`. */
 	text: string;
@@ -28,15 +28,20 @@ type ScoreBandClasses = {
 };
 
 const BAND_CLASSES: Record<ScoreBand, ScoreBandClasses> = {
-	low: { fill: "bg-score-low", text: "text-score-low", bg: "bg-score-low-bg", border: "border-score-low" },
-	mid: { fill: "bg-score-mid", text: "text-score-mid", bg: "bg-score-mid-bg", border: "border-score-mid" },
-	high: { fill: "bg-score-high", text: "text-score-high", bg: "bg-score-high-bg", border: "border-score-high" }
+	low: { fill: "bg-score-low-fill", text: "text-score-low", bg: "bg-score-low-bg", border: "border-score-low" },
+	mid: { fill: "bg-score-mid-fill", text: "text-score-mid", bg: "bg-score-mid-bg", border: "border-score-mid" },
+	high: {
+		fill: "bg-score-high-fill",
+		text: "text-score-high",
+		bg: "bg-score-high-bg",
+		border: "border-score-high"
+	}
 };
 
 const BAND_VAR: Record<ScoreBand, string> = {
-	low: "var(--score-low)",
-	mid: "var(--score-mid)",
-	high: "var(--score-high)"
+	low: "var(--score-low-fill)",
+	mid: "var(--score-mid-fill)",
+	high: "var(--score-high-fill)"
 };
 
 /** Tailwind class set for a percentage (0–100). */

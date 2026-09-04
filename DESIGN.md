@@ -177,9 +177,10 @@ it cannot read yee-mobile, so keeping the two in step still relies on landing bo
 **Series palette** (`--chart-1 … --chart-5`): categorical colors for comparing N places/audits
 (radar, trend lines). Brand green leads; the rest are harmonized to the same muted envelope.
 
-**Score bands** (`--score-{high,mid,low}` + `-bg`): brand-tuned — deep green (high), muted gold (mid),
-restrained clay (low, not alarm-red). Use the single `scoreBand()` helper (`lib/score-band.ts`);
-never re-derive rose/amber/emerald inline.
+**Score bands** (`--score-{high,mid,low}` + `-fill` / `-bg`): vivid traffic-light green (high),
+yellow (mid), and red (low). Solid fills are intentionally brighter than the paired text colors so
+bars and dots stand out without reducing label contrast. Use the single `scoreBand()` helper
+(`lib/score-band.ts`); never re-derive red/yellow/green inline.
 
 **Chart neutrals** (`--chart-grid`, `--chart-axis`): hairline grid rules and axis text.
 

@@ -105,10 +105,13 @@
 	--color-chart-axis: var(--chart-axis);
 
 	--color-score-high: var(--score-high);
+	--color-score-high-fill: var(--score-high-fill);
 	--color-score-high-bg: var(--score-high-bg);
 	--color-score-mid: var(--score-mid);
+	--color-score-mid-fill: var(--score-mid-fill);
 	--color-score-mid-bg: var(--score-mid-bg);
 	--color-score-low: var(--score-low);
+	--color-score-low-fill: var(--score-low-fill);
 	--color-score-low-bg: var(--score-low-bg);
 }
 
@@ -216,14 +219,17 @@
 	--chart-series-4: oklch(0.55 0.1 300); /* harmonized violet */
 	--chart-series-5: oklch(0.55 0.09 20); /* harmonized clay */
 
-	/* Score bands — brand-tuned (replaces default rose-400/amber-400/emerald-500).
-	   high = deep brand green, mid = muted gold, low = restrained clay (not alarm-red). */
-	--score-high: oklch(0.5 0.09 160);
-	--score-high-bg: oklch(0.95 0.03 160);
-	--score-mid: oklch(0.66 0.11 85);
-	--score-mid-bg: oklch(0.95 0.035 85);
-	--score-low: oklch(0.58 0.11 35);
-	--score-low-bg: oklch(0.95 0.03 35);
+	/* Score bands — vivid traffic-light fills with darker, accessible text.
+	   Keep fill and text roles separate so small labels remain readable. */
+	--score-high: #166534;
+	--score-high-fill: #22c55e;
+	--score-high-bg: #dcfce7;
+	--score-mid: #854d0e;
+	--score-mid-fill: #facc15;
+	--score-mid-bg: #fef9c3;
+	--score-low: #991b1b;
+	--score-low-fill: #ef4444;
+	--score-low-bg: #fee2e2;
 
 	/* Chart neutrals — grid rules and axis text (replaces #d6dfe6 / slate-500) */
 	--chart-grid: oklch(0.9 0.005 240);

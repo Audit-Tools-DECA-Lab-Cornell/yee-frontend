@@ -23,9 +23,9 @@ type StatCardTone = "default" | "sky" | "amber" | "emerald" | "violet";
  */
 const toneAccent: Record<StatCardTone, { tick: string; chip: string }> = {
 	default: { tick: "bg-primary", chip: "bg-accent text-primary" },
-	emerald: { tick: "bg-score-high", chip: "bg-score-high-bg text-score-high" },
+	emerald: { tick: "bg-score-high-fill", chip: "bg-score-high-bg text-score-high" },
 	sky: { tick: "bg-chart-2", chip: "bg-muted text-foreground" },
-	amber: { tick: "bg-score-mid", chip: "bg-score-mid-bg text-score-mid" },
+	amber: { tick: "bg-score-mid-fill", chip: "bg-score-mid-bg text-score-mid" },
 	violet: { tick: "bg-chart-4", chip: "bg-muted text-foreground" }
 };
 

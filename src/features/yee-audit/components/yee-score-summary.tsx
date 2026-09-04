@@ -5,9 +5,9 @@ import { getScoreRows } from "@/features/yee-audit/scoring/yee-scoring";
 import { scoreBand } from "@/lib/score-band";
 
 const rangeBands = [
-	{ label: "Lower range", range: "0–33%", dot: "bg-score-low" },
-	{ label: "Middle range", range: "34–66%", dot: "bg-score-mid" },
-	{ label: "Upper range", range: "67–100%", dot: "bg-score-high" }
+	{ label: "Lower range", range: "0–33%", dot: "bg-score-low-fill" },
+	{ label: "Middle range", range: "34–66%", dot: "bg-score-mid-fill" },
+	{ label: "Upper range", range: "67–100%", dot: "bg-score-high-fill" }
 ];
 
 function clampPercentage(value: number) {

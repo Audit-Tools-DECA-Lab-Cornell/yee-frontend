@@ -131,9 +131,21 @@ export function PlaceComparisonPanel({
 				<CardContent className="space-y-6">
 					<div className="grid gap-3 md:grid-cols-3">
 						{[
-							{ label: "Lower range", tone: "bg-score-low", text: "0% to 33% of the available score" },
-							{ label: "Middle range", tone: "bg-score-mid", text: "34% to 66% of the available score" },
-							{ label: "Upper range", tone: "bg-score-high", text: "67% to 100% of the available score" }
+							{
+								label: "Lower range",
+								tone: "bg-score-low-fill",
+								text: "0% to 33% of the available score"
+							},
+							{
+								label: "Middle range",
+								tone: "bg-score-mid-fill",
+								text: "34% to 66% of the available score"
+							},
+							{
+								label: "Upper range",
+								tone: "bg-score-high-fill",
+								text: "67% to 100% of the available score"
+							}
 						].map(entry => (
 							<div key={entry.label} className="rounded-md border border-border bg-muted/30 p-3">
 								<div className="flex items-center gap-2">
