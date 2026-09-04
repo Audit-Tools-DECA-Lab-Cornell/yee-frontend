@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowLeftRight, Bell, LogOut, Menu, Search } from "lucide-react";
+import { ArrowLeftRight, Bell, LogOut, Menu, PanelLeftClose, PanelLeftOpen, Search } from "lucide-react";
 
 import { BrandLogo } from "@/components/brand/brand-logo";
 import { useAuth } from "@/features/auth/components/auth-provider";
@@ -16,7 +16,9 @@ import {
 	DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetDescription, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { DashboardSidebar } from "@/components/layouts/dashboard/dashboard-sidebar";
+import { useShortcutModifierLabel, useSidebarCollapse } from "@/components/layouts/dashboard/sidebar-collapse";
 import { useWorkspaceConfig } from "@/components/layouts/dashboard/site-copy-provider";
 import { getUserDisplayName, getUserInitials, getUserRoleLabel } from "@/features/auth/user-display";
 import type { WorkspaceVariant } from "@/components/layouts/dashboard/workspace-config";
@@ -32,6 +34,10 @@ import type { WorkspaceVariant } from "@/components/layouts/dashboard/workspace-
  *
  * Never dropped at any width: the navigation menu, the primary action, and the
  * account menu — which is why the role switch moved into it.
+ *
+ * The leading slot is always the navigation control, and it is the same slot at
+ * every width: the sheet trigger below lg, the sidebar collapse toggle at lg and
+ * up. One position to learn, whatever the viewport.
  */
 
 /**
@@ -45,6 +51,8 @@ export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 	const config = useWorkspaceConfig(variant);
 	const { session, logout } = useAuth();
 	const router = useRouter();
+	const { collapsed, toggle } = useSidebarCollapse();
+	const shortcutModifier = useShortcutModifierLabel();
 
 	const showPrimaryAction = variant !== "auditor";
 
@@ -94,6 +102,33 @@ export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 						<DashboardSidebar variant={variant} />
 					</SheetContent>
 				</Sheet>
+
+				{/* Desktop counterpart to the sheet trigger, in the same slot. The
+				    icon is swapped in CSS off the same <html> flag that sizes the
+				    rail, so it is already correct on the first paint — before this
+				    component has hydrated and learned the state. */}
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Button
+							variant="outline"
+							size="icon"
+							className={`${TOUCH_CONTROL} hidden shrink-0 lg:inline-flex`}
+							aria-controls="dashboard-sidebar"
+							aria-expanded={!collapsed}
+							aria-keyshortcuts="Control+B Meta+B"
+							aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+							onClick={toggle}>
+							<PanelLeftClose className="size-4 sidebar-collapsed:hidden" aria-hidden="true" />
+							<PanelLeftOpen className="hidden size-4 sidebar-collapsed:block" aria-hidden="true" />
+						</Button>
+					</TooltipTrigger>
+					<TooltipContent side="bottom">
+						<span className="flex items-center gap-2">
+							{collapsed ? "Expand sidebar" : "Collapse sidebar"}
+							<kbd className="font-mono text-[10px] opacity-70">{shortcutModifier}+B</kbd>
+						</span>
+					</TooltipContent>
+				</Tooltip>
 
 				{/* Bare mark, no chrome: it must not read as a second button sitting
 				    next to the menu one. */}

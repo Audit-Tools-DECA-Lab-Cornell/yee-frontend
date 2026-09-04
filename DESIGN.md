@@ -131,7 +131,7 @@ Three elevations:
 
 ## Motion
 
-- All animations use exponential ease-out curves (`cubic-bezier(0.16, 1, 0.3, 1)`)
+- All animations use exponential ease-out curves — `--ease-emphasized`, i.e. `cubic-bezier(0.16, 1, 0.3, 1)`
 - Every animation has a `prefers-reduced-motion: reduce` alternative in `globals.css`
 - Keep transitions under 300ms for state changes; 500ms max for page entrances
 
@@ -218,9 +218,45 @@ one accent per chart. Reusable primitives live in `components/ui/charts/`.
 
 **Sidebar:**
 - Background: `var(--sidebar)` (deep green)
-- Nav links: `rounded-lg`, solid `bg-sidebar-accent` for selected state (no gradient)
-- Section labels: `text-xs text-sidebar-foreground/50 font-medium` at normal tracking
+- Nav links: `rounded-md`, 44px tall, solid `bg-sidebar-accent` for selected state (no gradient)
+- Selected state also gets a 3px `--sidebar-primary` marker on its left edge. `--sidebar-accent`
+  sits only 0.05L above `--sidebar`, so the tint alone is not a sufficient "you are here" —
+  and once collapsed there is no label weight left to carry it either.
+- Icons: `size-4.5` (18px) expanded, `size-5` (20px) collapsed — an icon with no label beside it
+  has to carry the row on its own.
+- Section labels: `text-xs text-sidebar-foreground/45 font-medium` at normal tracking
 - CTA card: `border-sidebar-border bg-sidebar-accent`, no glassmorphism
+- Focus rings on the dark panel use `ring-sidebar-ring` on `ring-offset-sidebar`. The global
+  `*:focus-visible` offset is the app background, which reads as a white halo here.
+
+**Collapsible rail (lg and up):**
+
+| | Expanded | Collapsed |
+|---|---|---|
+| Width token | `--dashboard-sidebar-width-expanded` (292px) | `--dashboard-sidebar-width-collapsed` (72px) |
+| Row | icon + label, 44px tall | 44×44 square, icon centred |
+| Label | visible | `sr-only` + tooltip on the right |
+| Brand | wordmark + workspace blurb | mark only, in a 57px block that lines up with the header rule |
+| CTA card | full card | its action alone, as a rail button |
+
+- **State lives on `<html>`, not in React.** `SidebarCollapseScript` writes
+  `data-sidebar-collapsed` before first paint and every collapsed style is a CSS descendant of
+  it (`rail-collapsed:` / `sidebar-collapsed:` variants in `globals.css`). Server and client
+  render identical markup, so there is no hydration mismatch and no wide-then-narrow flash.
+  React reads the attribute through `useSyncExternalStore` for the parts CSS cannot do —
+  `aria-expanded` and whether the rail's tooltips are live.
+- **`rail-collapsed:` is scoped to `[data-dashboard-rail]`**, the persistent desktop aside. The
+  mobile sheet renders the same `DashboardSidebar` and must always be full width with visible
+  labels; `tests/unit/dashboard-sidebar-collapse.spec.ts` guards that scope, and `collapsible`
+  (opt-in, rail only) gates the tooltips the same way.
+- **Labels collapse to `sr-only`, never `hidden`.** An icon-only link whose label is
+  `display: none` has no accessible name at all.
+- Toggle: header, leading slot — the same position the sheet trigger holds below `lg`. Bound to
+  ⌘/Ctrl+B, ignored while the user is typing.
+- Preference persists in `localStorage` under `yee:sidebar-collapsed`; blocked storage degrades
+  to session-only, never to a broken toggle.
+- The grid animates `grid-template-columns` for 200ms on `--ease-emphasized`; the global
+  `prefers-reduced-motion` rule removes it.
 
 **Header:**
 - Sticky top, `bg-background/90 backdrop-blur`
