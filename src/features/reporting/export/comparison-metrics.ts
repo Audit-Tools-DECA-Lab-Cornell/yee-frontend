@@ -6,6 +6,7 @@
  * (logistics §6).
  */
 import type { PlaceComparisonAuditRecord } from "@/features/workspaces/api/live-api";
+import { aggregateScoreEntries, scorePercentage } from "@/lib/score-format";
 
 import { domainLabels, domainOrder, type PlaceComparisonSummary, type YeeDomainKey } from "./types";
 
@@ -13,27 +14,30 @@ export function clampPercentage(value: number): number {
 	return Math.max(0, Math.min(100, value));
 }
 
-export function percentage(numerator: number, denominator: number): number {
-	if (!denominator) return 0;
-	return clampPercentage((numerator / denominator) * 100);
+export function percentage(numerator: number, denominator: number): number | null {
+	return scorePercentage(numerator, denominator);
 }
 
-export function auditRawPercent(record: PlaceComparisonAuditRecord): number {
+export function auditRawPercent(record: PlaceComparisonAuditRecord): number | null {
 	return percentage(record.total_raw_score, record.total_raw_maximum);
 }
 
-export function auditWeightedPercent(record: PlaceComparisonAuditRecord): number {
+export function auditWeightedPercent(record: PlaceComparisonAuditRecord): number | null {
 	return percentage(record.total_weighted_score, record.total_weighted_maximum);
 }
 
 /** Per-domain raw percentages for one audit, in domain order. */
-export function auditDomainRawPercents(record: PlaceComparisonAuditRecord): Record<YeeDomainKey, number> {
+export function auditDomainRawPercents(record: PlaceComparisonAuditRecord): Record<YeeDomainKey, number | null> {
 	return Object.fromEntries(
 		domainOrder.map(domain => [
 			domain,
 			percentage(record.raw_domain_scores[domain], record.raw_domain_maximums[domain])
 		])
-	) as Record<YeeDomainKey, number>;
+	) as Record<YeeDomainKey, number | null>;
+}
+
+function rounded(value: number | null, fractionDigits: number): number | null {
+	return value === null ? null : Number(value.toFixed(fractionDigits));
 }
 
 /**
@@ -52,62 +56,63 @@ export function buildPlaceComparisonSummaries(records: PlaceComparisonAuditRecor
 	return Array.from(grouped.values())
 		.map(placeRecords => {
 			const [first] = placeRecords;
-			const rawPercentByDomain = Object.fromEntries(domainOrder.map(domain => [domain, 0])) as Record<
-				YeeDomainKey,
-				number
-			>;
-			const weightedPercentByDomain = Object.fromEntries(domainOrder.map(domain => [domain, 0])) as Record<
-				YeeDomainKey,
-				number
-			>;
-			for (const record of placeRecords) {
-				for (const domain of domainOrder) {
-					rawPercentByDomain[domain] += percentage(
-						record.raw_domain_scores[domain],
-						record.raw_domain_maximums[domain]
+			const rawTotal = aggregateScoreEntries(
+				placeRecords.map(record => ({ value: record.total_raw_score, maximum: record.total_raw_maximum }))
+			);
+			const weightedTotal = aggregateScoreEntries(
+				placeRecords.map(record => ({
+					value: record.total_weighted_score,
+					maximum: record.total_weighted_maximum
+				}))
+			);
+			const rawPercentByDomain = Object.fromEntries(
+				domainOrder.map(domain => {
+					const aggregate = aggregateScoreEntries(
+						placeRecords.map(record => ({
+							value: record.raw_domain_scores[domain],
+							maximum: record.raw_domain_maximums[domain]
+						}))
 					);
-					weightedPercentByDomain[domain] += percentage(
-						record.weighted_domain_scores[domain],
-						record.weighted_domain_maximums[domain]
+					return [domain, rounded(aggregate.meanPercentage, 1)];
+				})
+			) as Record<YeeDomainKey, number | null>;
+			const weightedPercentByDomain = Object.fromEntries(
+				domainOrder.map(domain => {
+					const aggregate = aggregateScoreEntries(
+						placeRecords.map(record => ({
+							value: record.weighted_domain_scores[domain],
+							maximum: record.weighted_domain_maximums[domain]
+						}))
 					);
-				}
-			}
-			for (const domain of domainOrder) {
-				rawPercentByDomain[domain] = Number((rawPercentByDomain[domain] / placeRecords.length).toFixed(1));
-				weightedPercentByDomain[domain] = Number(
-					(weightedPercentByDomain[domain] / placeRecords.length).toFixed(1)
-				);
-			}
+					return [domain, rounded(aggregate.meanPercentage, 1)];
+				})
+			) as Record<YeeDomainKey, number | null>;
 			return {
 				placeId: first.place_id,
 				placeName: first.place_name,
 				projectName: first.project_name,
 				auditCount: placeRecords.length,
-				avgRawScore: Number(
-					(placeRecords.reduce((sum, r) => sum + r.total_raw_score, 0) / placeRecords.length).toFixed(1)
-				),
-				avgWeightedScore: Number(
-					(placeRecords.reduce((sum, r) => sum + r.total_weighted_score, 0) / placeRecords.length).toFixed(2)
-				),
-				avgRawPercent: Number(
-					(placeRecords.reduce((sum, r) => sum + auditRawPercent(r), 0) / placeRecords.length).toFixed(1)
-				),
-				avgWeightedPercent: Number(
-					(placeRecords.reduce((sum, r) => sum + auditWeightedPercent(r), 0) / placeRecords.length).toFixed(1)
-				),
+				avgRawScore: rounded(rawTotal.meanValue, 1),
+				avgWeightedScore: rounded(weightedTotal.meanValue, 2),
+				avgRawPercent: rounded(rawTotal.meanPercentage, 1),
+				avgWeightedPercent: rounded(weightedTotal.meanPercentage, 1),
 				rawPercentByDomain,
 				weightedPercentByDomain
 			};
 		})
-		.sort((left, right) => right.avgWeightedScore - left.avgWeightedScore);
+		.sort(
+			(left, right) =>
+				(right.avgWeightedPercent ?? Number.NEGATIVE_INFINITY) -
+				(left.avgWeightedPercent ?? Number.NEGATIVE_INFINITY)
+		);
 }
 
 export type DomainDelta = {
 	domainKey: YeeDomainKey;
 	label: string;
-	first: number;
-	latest: number;
-	delta: number;
+	first: number | null;
+	latest: number | null;
+	delta: number | null;
 };
 
 /**
@@ -119,9 +124,9 @@ export function firstVsLatestDeltas(records: PlaceComparisonAuditRecord[]): Doma
 		return domainOrder.map(domain => ({
 			domainKey: domain,
 			label: domainLabels[domain],
-			first: 0,
-			latest: 0,
-			delta: 0
+			first: null,
+			latest: null,
+			delta: null
 		}));
 	}
 	const sorted = [...records].sort((a, b) => timeOf(a.date) - timeOf(b.date));
@@ -130,14 +135,14 @@ export function firstVsLatestDeltas(records: PlaceComparisonAuditRecord[]): Doma
 	const firstPercents = auditDomainRawPercents(firstRecord);
 	const latestPercents = auditDomainRawPercents(latestRecord);
 	return domainOrder.map(domain => {
-		const first = Number(firstPercents[domain].toFixed(1));
-		const latest = Number(latestPercents[domain].toFixed(1));
+		const first = rounded(firstPercents[domain], 1);
+		const latest = rounded(latestPercents[domain], 1);
 		return {
 			domainKey: domain,
 			label: domainLabels[domain],
 			first,
 			latest,
-			delta: Number((latest - first).toFixed(1))
+			delta: first === null || latest === null ? null : Number((latest - first).toFixed(1))
 		};
 	});
 }
@@ -145,9 +150,9 @@ export function firstVsLatestDeltas(records: PlaceComparisonAuditRecord[]): Doma
 export type PairwiseDelta = {
 	domainKey: YeeDomainKey;
 	label: string;
-	values: number[];
+	values: Array<number | null>;
 	/** Present only when exactly two audits are compared. */
-	delta?: number;
+	delta?: number | null;
 };
 
 /**
@@ -157,9 +162,11 @@ export type PairwiseDelta = {
 export function pairwiseDomainDeltas(records: PlaceComparisonAuditRecord[]): PairwiseDelta[] {
 	const perAudit = records.map(record => auditDomainRawPercents(record));
 	return domainOrder.map(domain => {
-		const values = perAudit.map(percents => Number(percents[domain].toFixed(1)));
+		const values = perAudit.map(percents => rounded(percents[domain], 1));
 		const row: PairwiseDelta = { domainKey: domain, label: domainLabels[domain], values };
-		if (values.length === 2) row.delta = Number((values[1] - values[0]).toFixed(1));
+		if (values.length === 2) {
+			row.delta = values[0] === null || values[1] === null ? null : Number((values[1] - values[0]).toFixed(1));
+		}
 		return row;
 	});
 }

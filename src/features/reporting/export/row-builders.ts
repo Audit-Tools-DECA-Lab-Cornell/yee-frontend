@@ -8,17 +8,13 @@ import type { InstrumentResponse } from "@/features/yee-audit/api/yee-instrument
 import type { YeeSubmissionRecord } from "@/features/yee-audit/api/yee-audit-api";
 import { yeeDomainLabels, type YeeDomainKey } from "@/features/yee-audit/config/yee-audit-config";
 import { getScoreRows } from "@/features/yee-audit/scoring/yee-scoring";
+import { scorePercentage } from "@/lib/score-format";
 
 import type { DomainBarRow } from "./charts/domain-bars";
 import { bandForPercent } from "./export-palette";
 import { resolveAuditorId } from "./identity";
 import { walkDomainResponses, type ResponseWalkGroup } from "./response-walk";
 import { domainOrder, type ScoreBandKey } from "./types";
-
-function toPercent(value: number, maximum: number): number {
-	if (!maximum) return 0;
-	return Math.max(0, Math.min(100, (value / maximum) * 100));
-}
 
 function formatWeightLabel(value: string): string {
 	switch (value) {
@@ -44,8 +40,8 @@ export type HeadlineMeasure = {
 	label: string;
 	value: string;
 	max: string;
-	percent: number;
-	band: ScoreBandKey;
+	percent: number | null;
+	band: ScoreBandKey | null;
 };
 
 export type AuditOverview = {
@@ -65,8 +61,8 @@ function participantString(participantInfo: Record<string, unknown>, key: string
 export function buildAuditOverview(submission: YeeSubmissionRecord): AuditOverview {
 	const participantInfo: Record<string, unknown> = submission.participant_info ?? {};
 	const score = submission.score;
-	const rawPercent = toPercent(score.total_raw_score, score.total_raw_maximum);
-	const weightedPercent = toPercent(score.total_weighted_score, score.total_weighted_maximum);
+	const rawPercent = scorePercentage(score.total_raw_score, score.total_raw_maximum);
+	const weightedPercent = scorePercentage(score.total_weighted_score, score.total_weighted_maximum);
 
 	return {
 		placeName: submission.place_name || submission.place_id,
@@ -87,14 +83,14 @@ export function buildAuditOverview(submission: YeeSubmissionRecord): AuditOvervi
 			value: String(score.total_raw_score),
 			max: String(score.total_raw_maximum),
 			percent: rawPercent,
-			band: bandForPercent(rawPercent)
+			band: rawPercent === null ? null : bandForPercent(rawPercent)
 		},
 		weighted: {
 			label: "Youth Weighted Average",
 			value: score.total_weighted_score.toFixed(2),
 			max: score.total_weighted_maximum.toFixed(2),
 			percent: weightedPercent,
-			band: bandForPercent(weightedPercent)
+			band: weightedPercent === null ? null : bandForPercent(weightedPercent)
 		}
 	};
 }
@@ -104,10 +100,10 @@ export type ScoreTableRow = {
 	label: string;
 	rawScore: number;
 	rawMax: number;
-	rawPercent: number;
+	rawPercent: number | null;
 	weightedScore: number;
 	weightedMax: number;
-	weightedPercent: number;
+	weightedPercent: number | null;
 };
 
 export function buildScoreTableRows(submission: YeeSubmissionRecord): ScoreTableRow[] {
@@ -116,10 +112,10 @@ export function buildScoreTableRows(submission: YeeSubmissionRecord): ScoreTable
 		label: row.label,
 		rawScore: row.rawScore,
 		rawMax: row.rawMaximum,
-		rawPercent: toPercent(row.rawScore, row.rawMaximum),
+		rawPercent: scorePercentage(row.rawScore, row.rawMaximum),
 		weightedScore: row.weightedScore,
 		weightedMax: row.weightedMaximum,
-		weightedPercent: toPercent(row.weightedScore, row.weightedMaximum)
+		weightedPercent: scorePercentage(row.weightedScore, row.weightedMaximum)
 	}));
 }
 
@@ -177,16 +173,22 @@ export function buildCommentRows(submission: YeeSubmissionRecord): CommentRow[] 
 
 /** Per-domain raw-vs-weighted percentages for the R1 domain-bars chart. */
 export function buildDomainBarRows(submission: YeeSubmissionRecord): DomainBarRow[] {
-	return buildScoreTableRows(submission).map(row => ({
-		domainKey: row.domainKey,
-		label: row.label,
-		rawPercent: row.rawPercent,
-		weightedPercent: row.weightedPercent
-	}));
+	return buildScoreTableRows(submission).flatMap(row => {
+		if (row.rawPercent === null || row.weightedPercent === null) return [];
+		return [
+			{
+				domainKey: row.domainKey,
+				label: row.label,
+				rawPercent: row.rawPercent,
+				weightedPercent: row.weightedPercent
+			}
+		];
+	});
 }
 
 /** Per-domain raw percentages (in domain order) for the R1 radar profile. */
 export function buildRadarValues(submission: YeeSubmissionRecord): number[] {
 	const byDomain = new Map(buildScoreTableRows(submission).map(row => [row.domainKey, row.rawPercent]));
-	return domainOrder.map(domain => byDomain.get(domain) ?? 0);
+	const values = domainOrder.map(domain => byDomain.get(domain) ?? null);
+	return values.every((value): value is number => value !== null) ? values : [];
 }

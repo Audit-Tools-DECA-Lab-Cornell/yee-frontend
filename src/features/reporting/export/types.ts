@@ -98,12 +98,12 @@ export type PlaceComparisonSummary = {
 	placeName: string;
 	projectName: string;
 	auditCount: number;
-	avgRawScore: number;
-	avgWeightedScore: number;
-	avgRawPercent: number;
-	avgWeightedPercent: number;
-	rawPercentByDomain: Record<YeeDomainKey, number>;
-	weightedPercentByDomain: Record<YeeDomainKey, number>;
+	avgRawScore: number | null;
+	avgWeightedScore: number | null;
+	avgRawPercent: number | null;
+	avgWeightedPercent: number | null;
+	rawPercentByDomain: Record<YeeDomainKey, number | null>;
+	weightedPercentByDomain: Record<YeeDomainKey, number | null>;
 };
 
 /** R2 — Compare Places. */

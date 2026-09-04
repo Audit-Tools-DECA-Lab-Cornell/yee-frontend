@@ -17,6 +17,7 @@ import { DashboardHero } from "@/components/ui/dashboard-hero";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/ui/status-badge";
 import type { StatusTone } from "@/lib/status";
+import { ScoreStack } from "@/components/ui/score-stack";
 import { TableSkeleton } from "@/components/ui/skeletons";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import {
@@ -62,6 +63,23 @@ function statusTone(status: string): StatusTone {
 	if (/(active|submitted|complete|up to date|assigned|ready|locked)/.test(value)) return "success";
 	if (/(draft|progress|pending|await|invite)/.test(value)) return "warning";
 	return "secondary";
+}
+
+/**
+ * Percentage-first score text: the percent is the headline and the raw fraction
+ * sits beneath it, small and muted. A missing maximum renders an em dash —
+ * never a fabricated 0%.
+ */
+function ScoreValue({
+	value,
+	max,
+	fractionDigits = 0
+}: {
+	value?: number | null;
+	max?: number | null;
+	fractionDigits?: number;
+}) {
+	return <ScoreStack value={value} max={max} fractionDigits={fractionDigits} size="sm" />;
 }
 
 function DetailMetric({ label, value, description }: { label: string; value: string; description: string }) {
@@ -179,7 +197,8 @@ const latestAuditColumns: ColumnDef<AuditRecord>[] = [
 	{
 		accessorKey: "score",
 		header: "Score",
-		cell: ({ getValue }) => <span className="text-muted-foreground tabular-nums">{String(getValue() || "—")}</span>
+		// Sorting stays on the `score` accessor; only `row.original` carries the denominator.
+		cell: ({ row }) => <ScoreValue value={row.original.score} max={row.original.total_raw_maximum} />
 	},
 	{
 		accessorKey: "status",
@@ -199,7 +218,10 @@ function AuditMobileCard({ audit }: { audit: AuditRecord }) {
 				{audit.auditor} · {audit.date}
 				{audit.participant_id ? ` · Participant ${audit.participant_id}` : ""}
 			</p>
-			<p className="text-sm tabular-nums text-muted-foreground">Score: {audit.score || "—"}</p>
+			<div className="flex items-baseline gap-2 text-sm text-muted-foreground">
+				<span>Score</span>
+				<ScoreValue value={audit.score} max={audit.total_raw_maximum} />
+			</div>
 		</div>
 	);
 }
@@ -546,19 +568,17 @@ const submittedReportColumns: ColumnDef<PlaceComparisonAuditRecord>[] = [
 	{
 		id: "raw",
 		header: "Total Raw Score",
-		cell: ({ row }) => (
-			<span className="text-muted-foreground tabular-nums">
-				{row.original.total_raw_score} / {row.original.total_raw_maximum}
-			</span>
-		)
+		cell: ({ row }) => <ScoreValue value={row.original.total_raw_score} max={row.original.total_raw_maximum} />
 	},
 	{
 		id: "weighted",
 		header: "Total Youth Weighted Average",
 		cell: ({ row }) => (
-			<span className="text-muted-foreground tabular-nums">
-				{row.original.total_weighted_score.toFixed(2)} / {row.original.total_weighted_maximum.toFixed(2)}
-			</span>
+			<ScoreValue
+				value={row.original.total_weighted_score}
+				max={row.original.total_weighted_maximum}
+				fractionDigits={2}
+			/>
 		)
 	},
 	{
@@ -587,9 +607,13 @@ function SubmittedReportMobileCard({ record }: { record: PlaceComparisonAuditRec
 			{record.participant_id ? (
 				<p className="text-sm text-muted-foreground">Participant {record.participant_id}</p>
 			) : null}
-			<p className="text-sm tabular-nums text-muted-foreground">
-				Raw {record.total_raw_score} / {record.total_raw_maximum} · Youth{" "}
-				{record.total_weighted_score.toFixed(2)} / {record.total_weighted_maximum.toFixed(2)}
+			<p className="text-sm text-muted-foreground">
+				Raw <ScoreValue value={record.total_raw_score} max={record.total_raw_maximum} /> · Youth{" "}
+				<ScoreValue
+					value={record.total_weighted_score}
+					max={record.total_weighted_maximum}
+					fractionDigits={2}
+				/>
 			</p>
 			<p className="text-sm font-medium text-primary">Open report →</p>
 		</Link>

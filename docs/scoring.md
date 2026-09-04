@@ -51,46 +51,43 @@ The backend computes and stores:
 
 Submitted results are fetched by submission id and rendered on the locked results page.
 
-## Current score payload shape
+## Current score payload
 
-The backend returns:
+The backend returns raw and youth-weighted totals, domain values, and their
+canonical maxima. It also returns the stored canonical snapshot used to derive
+those flattened fields.
 
-```json
-{
-  "total_score": 8,
-  "section_scores": {
-    "Access: Presence, Condition, Quantity": 4,
-    "Amenities: Presence, Condition Quantity": 4
-  },
-  "category_scores": {
-    "Score": 8,
-    "Access": 3,
-    "Activity": 0,
-    "Amenities": 3,
-    "Experience": 0,
-    "Aesthetics & Care": 0,
-    "Use & Usability": 0
-  },
-  "matched_scored_answers": 4
-}
-```
+Important flattened fields include:
 
-## Weighted score handling
+- `total_raw_score` and `total_raw_maximum`
+- `raw_domain_scores` and `raw_domain_maximums`
+- `total_weighted_score` and `total_weighted_maximum`
+- `weighted_domain_scores` and `weighted_domain_maximums`
 
-The backend returns the raw scoring payload.
+The maxima belong to the audit's stamped scoring contract. The frontend must
+not substitute a fixed denominator or recompute a historical maximum from the
+currently active instrument.
 
-The frontend computes display-oriented weighted score summaries using the saved domain weight answers.
+## Percentage-first display
 
-Current frontend helper:
+Human-readable score surfaces use the percentage as the primary value and the
+raw fraction as secondary context:
 
-- [`src/features/yee-audit/scoring/yee-scoring.ts`](yee-frontend/src/features/yee-audit/scoring/yee-scoring.ts)
+- `74%`
+- `90 / 122`
 
-That helper:
+`src/lib/score-format.ts` owns percentage validation, clamping, rounding, and
+plain-text formatting. A missing, non-finite, zero, or negative maximum renders
+as unavailable (`—`), never as a fabricated `0%`.
 
-- maps section names into YEE domains
-- builds raw domain totals
-- multiplies them by saved domain weights
-- builds total raw and total weighted score summaries for UI
+For a group of audits:
+
+- average each valid audit's own percentage
+- show an average fraction only when every included audit shares the same positive maximum
+- exclude audits with unavailable maxima from the percentage mean
+
+This keeps comparisons honest when selected audits use different instrument
+versions.
 
 ## YEE domain order in the frontend
 
@@ -128,16 +125,18 @@ Authoritative:
 - backend response from score preview
 - backend response from final submission
 - backend response from submitted audit fetch
+- backend canonical maxima returned by dashboard, comparison, and auditor-list endpoints
 
 Not authoritative on its own:
 
 - stale browser draft state
 - manually computed score guesses without backend input
+- fixed client-side maximum constants
+- maxima derived from the currently active instrument for a historical audit
 
 ## Future work
 
 Potential future improvements:
 
 - document exact reverse-coded mappings from the backend scoring source
-- expose more typed scoring metadata in the frontend
 - add richer per-domain explanation UI on the read-only results page

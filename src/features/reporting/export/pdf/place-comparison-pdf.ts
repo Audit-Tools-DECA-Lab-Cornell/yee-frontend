@@ -4,6 +4,7 @@
  * domain matrix + top-3 radar overlay (same limit as the dashboard).
  */
 import autoTable from "jspdf-autotable";
+import { SCORE_UNAVAILABLE } from "@/lib/score-format";
 
 import { buildRadarSvg } from "../charts/radar";
 import { rasterizeSvg } from "../charts/raster";
@@ -41,15 +42,15 @@ export async function generatePlaceComparisonPdf(
 		startY: y,
 		margin: { top: PAGE.continuationTop, bottom: PAGE.marginBottom, left: PAGE.marginX, right: PAGE.marginX },
 		theme: "grid",
-		head: [["Place", "Project", "Audits", "Avg raw", "Raw %", "Avg youth-weighted", "YW %"]],
+		head: [["Place", "Project", "Audits", "Avg raw", "Avg youth-weighted"]],
+		// Percentage leads. A point average is not shown as a fraction because these
+		// summaries do not carry proof of one shared canonical denominator.
 		body: summaries.map(summary => [
 			summary.placeName,
 			summary.projectName,
 			String(summary.auditCount),
-			summary.avgRawScore.toFixed(1),
-			`${summary.avgRawPercent.toFixed(0)}%`,
-			summary.avgWeightedScore.toFixed(2),
-			`${summary.avgWeightedPercent.toFixed(0)}%`
+			formatPercent(summary.avgRawPercent),
+			formatPercent(summary.avgWeightedPercent)
 		]),
 		styles: {
 			font: "helvetica",
@@ -63,9 +64,7 @@ export async function generatePlaceComparisonPdf(
 		columnStyles: {
 			2: { halign: "right" },
 			3: { halign: "right" },
-			4: { halign: "right" },
-			5: { halign: "right" },
-			6: { halign: "right" }
+			4: { halign: "right" }
 		}
 	});
 	y = lastTableY(doc) + 12;
@@ -75,7 +74,7 @@ export async function generatePlaceComparisonPdf(
 	const matrixHead = ["Place", ...domainOrder.map(domain => domainLabels[domain])];
 	const matrixBody = summaries.map(summary => [
 		summary.placeName,
-		...domainOrder.map(domain => `${summary.rawPercentByDomain[domain].toFixed(0)}%`)
+		...domainOrder.map(domain => formatPercent(summary.rawPercentByDomain[domain]))
 	]);
 	autoTable(doc, {
 		startY: y,
@@ -112,7 +111,9 @@ export async function generatePlaceComparisonPdf(
 			if (data.section === "body" && data.column.index > 0) {
 				const summary = summaries[data.row.index];
 				const domain = domainOrder[data.column.index - 1];
-				const band = bandForPercent(summary.rawPercentByDomain[domain]);
+				const percentage = summary.rawPercentByDomain[domain];
+				if (percentage === null) return;
+				const band = bandForPercent(percentage);
 				data.cell.styles.fillColor = hexToRgb(palette.bands[band].bg);
 				data.cell.styles.textColor = hexToRgb(palette.bands[band].fg);
 			}
@@ -121,7 +122,9 @@ export async function generatePlaceComparisonPdf(
 	y = lastTableY(doc) + 12;
 
 	// Radar overlay — top 3 places.
-	const topPlaces = summaries.slice(0, 3);
+	const topPlaces = summaries
+		.filter(summary => domainOrder.every(domain => summary.rawPercentByDomain[domain] !== null))
+		.slice(0, 3);
 	if (topPlaces.length > 0) {
 		y = drawSectionTitle(doc, palette, `Domain profile — top ${topPlaces.length} places`, y);
 		const radarSvg = buildRadarSvg({
@@ -131,7 +134,7 @@ export async function generatePlaceComparisonPdf(
 			series: topPlaces.map((summary, index) => ({
 				label: summary.placeName,
 				color: palette.chartSeries[index % palette.chartSeries.length],
-				values: domainOrder.map(domain => summary.rawPercentByDomain[domain])
+				values: domainOrder.map(domain => summary.rawPercentByDomain[domain] ?? 0)
 			}))
 		});
 		const radar = await rasterizeSvg(radarSvg, 2).catch(() => null);
@@ -145,4 +148,8 @@ export async function generatePlaceComparisonPdf(
 
 	await finalizeChrome(doc, palette, generatedDate);
 	return doc.output("blob");
+}
+
+function formatPercent(value: number | null): string {
+	return value === null ? SCORE_UNAVAILABLE : `${value.toFixed(0)}%`;
 }

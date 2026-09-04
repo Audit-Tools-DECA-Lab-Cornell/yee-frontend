@@ -75,7 +75,7 @@ test("borrowing the first audit's maximum would misreport the average", () => {
 	expect(averages?.avgRawPercentByDomain[domain]).toBeLessThan(borrowed);
 });
 
-test("a zero maximum contributes zero rather than a division by zero", () => {
+test("an unavailable maximum is excluded from percentage means instead of contributing 0%", () => {
 	const zeroed: PlaceComparisonAuditRecord = {
 		...baseline,
 		audit_id: "audit-zero",
@@ -84,10 +84,35 @@ test("a zero maximum contributes zero rather than a division by zero", () => {
 			domainOrder.map(domain => [domain, 0])
 		) as PlaceComparisonAuditRecord["raw_domain_maximums"]
 	};
-	const averages = getComparisonAverages([zeroed]);
+	const averages = getComparisonAverages([baseline, zeroed]);
 
-	expect(averages?.totalRawPercentAverage).toBe(0);
+	expect(averages?.totalRawPercentAverage).toBeCloseTo(
+		Number(((100 * baseline.total_raw_score) / baseline.total_raw_maximum).toFixed(1)),
+		5
+	);
+	expect(averages?.totalRawValidCount).toBe(1);
 	for (const domain of domainOrder) {
-		expect(averages?.avgRawPercentByDomain[domain]).toBe(0);
+		expect(averages?.avgRawPercentByDomain[domain]).toBeCloseTo(
+			Number(((100 * baseline.raw_domain_scores[domain]) / baseline.raw_domain_maximums[domain]).toFixed(1)),
+			5
+		);
+	}
+});
+
+test("all unavailable maxima produce unavailable aggregate percentages", () => {
+	const invalid: PlaceComparisonAuditRecord = {
+		...baseline,
+		audit_id: "audit-invalid",
+		total_raw_maximum: Number.NaN,
+		raw_domain_maximums: Object.fromEntries(
+			domainOrder.map(domain => [domain, Number.NEGATIVE_INFINITY])
+		) as PlaceComparisonAuditRecord["raw_domain_maximums"]
+	};
+	const averages = getComparisonAverages([invalid]);
+
+	expect(averages?.totalRawPercentAverage).toBeNull();
+	expect(averages?.totalRawAverage).toBeNull();
+	for (const domain of domainOrder) {
+		expect(averages?.avgRawPercentByDomain[domain]).toBeNull();
 	}
 });

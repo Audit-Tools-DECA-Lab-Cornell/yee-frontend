@@ -18,6 +18,7 @@ import {
 	type PlaceComparisonReportInput,
 	type TrendReportInput
 } from "../types";
+import { SCORE_UNAVAILABLE, scorePercentage } from "@/lib/score-format";
 import {
 	appendSheet,
 	buildStyledSheet,
@@ -52,10 +53,10 @@ export function generatePlaceComparisonXlsx(input: PlaceComparisonReportInput, p
 			cell(row.placeName, styles.body),
 			cell(row.projectName, styles.body),
 			cell(row.auditCount, styles.body),
-			cell(row.avgRawScore, styles.body),
-			cell(Math.round(row.avgRawPercent), styles.body),
-			cell(row.avgWeightedScore, styles.body),
-			cell(Math.round(row.avgWeightedPercent), styles.body)
+			cell(row.avgRawScore ?? SCORE_UNAVAILABLE, styles.body),
+			cell(percentCell(row.avgRawPercent), styles.body),
+			cell(row.avgWeightedScore ?? SCORE_UNAVAILABLE, styles.body),
+			cell(percentCell(row.avgWeightedPercent), styles.body)
 		]);
 	}
 	appendSheet(wb, buildStyledSheet(summary, { colWidths: [28, 24, 8, 10, 8, 18, 8] }), "Summary");
@@ -70,7 +71,7 @@ export function generatePlaceComparisonXlsx(input: PlaceComparisonReportInput, p
 	for (const row of input.summaries) {
 		matrix.push([
 			cell(row.placeName, styles.label),
-			...domainOrder.map(domain => cell(Math.round(row.rawPercentByDomain[domain]), styles.body))
+			...domainOrder.map(domain => cell(percentCell(row.rawPercentByDomain[domain]), styles.body))
 		]);
 	}
 	appendSheet(wb, buildStyledSheet(matrix, { colWidths: [28, 12, 12, 12, 16, 14, 12] }), "Domain matrix");
@@ -112,9 +113,9 @@ export function generateTrendXlsx(input: TrendReportInput, palette: ExportPalett
 			cell(record.participant_id || "—", styles.body),
 			cell(record.total_raw_score, styles.body),
 			cell(record.total_raw_maximum, styles.body),
-			cell(Math.round(auditRawPercent(record)), styles.body),
+			cell(percentCell(auditRawPercent(record)), styles.body),
 			cell(Number(record.total_weighted_score.toFixed(2)), styles.body),
-			cell(Math.round(auditWeightedPercent(record)), styles.body)
+			cell(percentCell(auditWeightedPercent(record)), styles.body)
 		]);
 	}
 	appendSheet(wb, buildStyledSheet(timeline, { colWidths: [14, 12, 14, 12, 10, 8, 18, 8] }), "Timeline");
@@ -131,8 +132,8 @@ export function generateTrendXlsx(input: TrendReportInput, palette: ExportPalett
 	for (const delta of firstVsLatestDeltas(sorted)) {
 		change.push([
 			cell(delta.label, styles.domainLabel(palette.domains[delta.domainKey])),
-			cell(Math.round(delta.first), styles.body),
-			cell(Math.round(delta.latest), styles.body),
+			cell(percentCell(delta.first), styles.body),
+			cell(percentCell(delta.latest), styles.body),
 			cell(deltaMark(delta.delta), styles.body)
 		]);
 	}
@@ -162,9 +163,9 @@ export function generateAuditComparisonXlsx(input: AuditComparisonReportInput, p
 	for (const row of pairwiseDomainDeltas(input.records)) {
 		const line: StyledCell[] = [
 			cell(row.label, styles.domainLabel(palette.domains[row.domainKey])),
-			...row.values.map(value => cell(Math.round(value), styles.body))
+			...row.values.map(value => cell(percentCell(value), styles.body))
 		];
-		if (twoUp) line.push(cell(deltaMark(row.delta ?? 0), styles.body));
+		if (twoUp) line.push(cell(deltaMark(row.delta), styles.body));
 		deltas.push(line);
 	}
 	appendSheet(wb, buildStyledSheet(deltas, { colWidths: [26, 18, 18, 10] }), "Domain deltas");
@@ -195,16 +196,27 @@ function auditRowsGrid(
 			cell(resolveAuditorId(record.auditor_id), styles.body),
 			cell(record.participant_id || "—", styles.body),
 			cell(record.date, styles.body),
-			cell(`${record.total_raw_score}/${record.total_raw_maximum}`, styles.body),
-			cell(Math.round(auditRawPercent(record)), styles.body),
-			cell(`${record.total_weighted_score.toFixed(2)}/${record.total_weighted_maximum.toFixed(2)}`, styles.body),
-			cell(Math.round(auditWeightedPercent(record)), styles.body)
+			cell(machineFraction(record.total_raw_score, record.total_raw_maximum), styles.body),
+			cell(percentCell(auditRawPercent(record)), styles.body),
+			cell(machineFraction(record.total_weighted_score, record.total_weighted_maximum, 2), styles.body),
+			cell(percentCell(auditWeightedPercent(record)), styles.body)
 		]);
 	}
 	return grid;
 }
 
-function deltaMark(delta: number): string {
+function percentCell(value: number | null): number | string {
+	return value === null ? SCORE_UNAVAILABLE : Math.round(value);
+}
+
+function machineFraction(value: number, maximum: number, fractionDigits = 0): string {
+	if (scorePercentage(value, maximum) === null) return SCORE_UNAVAILABLE;
+	if (fractionDigits > 0) return `${value.toFixed(fractionDigits)}/${maximum.toFixed(fractionDigits)}`;
+	return `${value}/${maximum}`;
+}
+
+function deltaMark(delta?: number | null): string {
+	if (delta === null || delta === undefined) return SCORE_UNAVAILABLE;
 	if (delta > 0) return `▲ +${delta.toFixed(1)}`;
 	if (delta < 0) return `▼ ${delta.toFixed(1)}`;
 	return "– 0.0";

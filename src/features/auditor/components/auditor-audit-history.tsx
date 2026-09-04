@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
 import { EmptyState } from "@/components/ui/empty-state";
+import { ScoreCell } from "@/components/ui/score-cell";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { TableSkeleton } from "@/components/ui/skeletons";
 import type { StatusTone } from "@/lib/status";
@@ -28,24 +29,17 @@ function participantIdLabel(state: AuditState | undefined): string {
 	return typeof value === "string" && value.trim() ? value : "—";
 }
 
-function ScoreCellContent({ state }: { state: AuditState | undefined }) {
+/** Score cell for an assigned place — the shared null-safe ScoreCell once a score exists. */
+function AuditScoreCell({ state }: { state: AuditState | undefined }) {
 	const score = state?.score ?? null;
 	if (!score) return <span className="text-muted-foreground">—</span>;
-	const rawMax = score.total_raw_maximum ?? 0;
-	const youthMax = score.total_weighted_maximum ?? 0;
-	const rawPct = rawMax ? (score.total_raw_score / rawMax) * 100 : 0;
-	const youthPct = youthMax ? (score.total_weighted_score / youthMax) * 100 : 0;
 	return (
-		<div className="space-y-1 text-xs leading-5 tabular-nums">
-			<p>
-				<span className="font-medium text-foreground">Raw:</span> {score.total_raw_score} / {rawMax} (
-				{rawPct.toFixed(0)}%)
-			</p>
-			<p>
-				<span className="font-medium text-foreground">Youth Weighted:</span>{" "}
-				{score.total_weighted_score.toFixed(2)} / {youthMax.toFixed(2)} ({youthPct.toFixed(0)}%)
-			</p>
-		</div>
+		<ScoreCell
+			raw={score.total_raw_score}
+			rawMax={score.total_raw_maximum}
+			weighted={score.total_weighted_score}
+			weightedMax={score.total_weighted_maximum}
+		/>
 	);
 }
 
@@ -82,7 +76,7 @@ function AuditHistoryMobileCard({ place, state }: { place: AssignedPlace; state:
 			{participantIdLabel(state) !== "—" ? (
 				<p className="text-sm text-muted-foreground">Participant {participantIdLabel(state)}</p>
 			) : null}
-			<ScoreCellContent state={state} />
+			<AuditScoreCell state={state} />
 			<AuditActionButton place={place} state={state} />
 		</div>
 	);
@@ -173,7 +167,7 @@ export function AuditorAuditHistory({
 				id: "score",
 				header: "Score",
 				enableSorting: false,
-				cell: ({ row }) => <ScoreCellContent state={auditStates[row.original.id]} />
+				cell: ({ row }) => <AuditScoreCell state={auditStates[row.original.id]} />
 			},
 			{
 				id: "action",

@@ -6,7 +6,9 @@
  */
 import autoTable from "jspdf-autotable";
 
-import { auditRawPercent, auditWeightedPercent, pairwiseDomainDeltas } from "../comparison-metrics";
+import { SCORE_UNAVAILABLE, formatScoreSummary, scorePercent, scorePercentage } from "@/lib/score-format";
+
+import { pairwiseDomainDeltas } from "../comparison-metrics";
 import { buildGroupedBarsSvg } from "../charts/grouped-bars";
 import { buildRadarSvg } from "../charts/radar";
 import { rasterizeSvg } from "../charts/raster";
@@ -46,16 +48,14 @@ export async function generateAuditComparisonPdf(
 		startY: y,
 		margin: { top: PAGE.continuationTop, bottom: PAGE.marginBottom, left: PAGE.marginX, right: PAGE.marginX },
 		theme: "grid",
-		head: [["Place", "Auditor", "Participant", "Date", "Raw", "Raw %", "Youth-weighted", "YW %"]],
+		head: [["Place", "Auditor", "Participant", "Date", "Raw", "Youth-weighted"]],
 		body: records.map(record => [
 			record.place_name,
 			resolveAuditorId(record.auditor_id),
 			record.participant_id || "—",
 			record.date,
-			`${record.total_raw_score}/${record.total_raw_maximum}`,
-			`${auditRawPercent(record).toFixed(0)}%`,
-			`${record.total_weighted_score.toFixed(2)}/${record.total_weighted_maximum.toFixed(2)}`,
-			`${auditWeightedPercent(record).toFixed(0)}%`
+			formatScoreSummary(record.total_raw_score, record.total_raw_maximum),
+			formatScoreSummary(record.total_weighted_score, record.total_weighted_maximum, 2)
 		]),
 		styles: {
 			font: "helvetica",
@@ -66,16 +66,17 @@ export async function generateAuditComparisonPdf(
 			textColor: hexToRgb(palette.brand.foreground)
 		},
 		headStyles: { fillColor: hexToRgb(palette.brand.green900), textColor: [255, 255, 255], fontStyle: "bold" },
-		columnStyles: {
-			4: { halign: "right" },
-			5: { halign: "right" },
-			6: { halign: "right" },
-			7: { halign: "right" }
-		},
+		columnStyles: { 4: { halign: "right" }, 5: { halign: "right" } },
 		didParseCell: data => {
-			if (data.section === "body" && (data.column.index === 5 || data.column.index === 7)) {
+			if (data.section === "body" && (data.column.index === 4 || data.column.index === 5)) {
 				const record = records[data.row.index];
-				const percent = data.column.index === 5 ? auditRawPercent(record) : auditWeightedPercent(record);
+				const percent =
+					data.column.index === 4
+						? scorePercent(record.total_raw_score, record.total_raw_maximum)
+						: scorePercent(record.total_weighted_score, record.total_weighted_maximum);
+				// An unavailable score has no band — tinting it would paint the same
+				// "low" red as a genuine 0%.
+				if (percent === null) return;
 				const band = bandForPercent(percent);
 				data.cell.styles.fillColor = hexToRgb(palette.bands[band].bg);
 				data.cell.styles.textColor = hexToRgb(palette.bands[band].fg);
@@ -96,8 +97,8 @@ export async function generateAuditComparisonPdf(
 		head: [deltaHead],
 		body: deltas.map(row => [
 			row.label,
-			...row.values.map(value => `${value.toFixed(0)}%`),
-			...(twoUp ? [formatDelta(row.delta ?? 0)] : [])
+			...row.values.map(value => (value === null ? SCORE_UNAVAILABLE : `${value.toFixed(0)}%`)),
+			...(twoUp ? [formatDelta(row.delta)] : [])
 		]),
 		styles: {
 			font: "helvetica",
@@ -123,7 +124,8 @@ export async function generateAuditComparisonPdf(
 				data.cell.styles.textColor = hexToRgb(colors.text);
 			}
 			if (twoUp && data.section === "body" && data.column.index === deltaHead.length - 1) {
-				const delta = deltas[data.row.index].delta ?? 0;
+				const delta = deltas[data.row.index].delta;
+				if (delta === null || delta === undefined) return;
 				const key = delta > 0 ? "high" : delta < 0 ? "low" : "mid";
 				data.cell.styles.textColor = hexToRgb(palette.bands[key].fg);
 				data.cell.styles.fontStyle = "bold";
@@ -133,27 +135,29 @@ export async function generateAuditComparisonPdf(
 	y = lastTableY(doc) + 12;
 
 	// Radar overlay + grouped bars.
+	const chartRecords = records.filter(record => domainOrder.every(domain => percentFor(record, domain) !== null));
+	const chartSeriesLabels = chartRecords.map(record => `${record.place_name} (${record.date})`);
 	const radarSvg = buildRadarSvg({
 		axisLabels: domainOrder.map(domain => domainLabels[domain]),
 		axisColors: domainOrder.map(domain => palette.domains[domain].text),
 		palette,
-		series: records.map((record, index) => ({
-			label: seriesLabels[index],
+		series: chartRecords.map((record, index) => ({
+			label: chartSeriesLabels[index],
 			color: palette.chartSeries[index % palette.chartSeries.length],
-			values: domainOrder.map(domain => percentFor(record, domain))
+			values: domainOrder.map(domain => percentFor(record, domain) ?? 0)
 		}))
 	});
 	const groupedSvg = buildGroupedBarsSvg({
 		palette,
 		width: 720,
-		series: records.map((_, index) => ({
-			label: seriesLabels[index],
+		series: chartRecords.map((_, index) => ({
+			label: chartSeriesLabels[index],
 			color: palette.chartSeries[index % palette.chartSeries.length]
 		})),
 		groups: domainOrder.map(domain => ({
 			label: domainLabels[domain],
 			labelColor: palette.domains[domain].text,
-			values: records.map(record => percentFor(record, domain))
+			values: chartRecords.map(record => percentFor(record, domain) ?? 0)
 		}))
 	});
 	const [radar, grouped] = await Promise.all([
@@ -179,12 +183,13 @@ export async function generateAuditComparisonPdf(
 function percentFor(
 	record: AuditComparisonReportInput["records"][number],
 	domain: (typeof domainOrder)[number]
-): number {
+): number | null {
 	const score = record.raw_domain_scores[domain];
 	const max = record.raw_domain_maximums[domain];
-	return max ? Math.max(0, Math.min(100, (score / max) * 100)) : 0;
+	return scorePercentage(score, max);
 }
-function formatDelta(delta: number): string {
+function formatDelta(delta?: number | null): string {
+	if (delta === null || delta === undefined) return SCORE_UNAVAILABLE;
 	if (delta > 0) return `+${delta.toFixed(0)}`;
 	if (delta < 0) return `${delta.toFixed(0)}`;
 	return "0";

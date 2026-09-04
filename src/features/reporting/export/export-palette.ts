@@ -11,6 +11,7 @@
  * resolution fails, it falls back to the literal table.
  */
 import { lightDomainPalette, type DomainPaletteKey } from "@/styles/domain-palette";
+import { scoreBandKey } from "@/lib/score-band";
 import { domainOrder, type ExportPalette } from "./types";
 
 /**
@@ -168,9 +169,11 @@ export function getExportPalette(): ExportPalette {
 /** Exposed for the Playwright fallback-drift check (plan risk table). */
 export const FALLBACK_HEX_TABLE: Readonly<Record<string, string>> = FALLBACK_HEX;
 
-/** Score-band selector shared with the app's `scoreBandKey` thresholds. */
+/**
+ * Score-band selector for the export pipeline. Delegates to the app's
+ * `scoreBandKey` so the exported PDF/XLSX bands can never drift from the
+ * on-screen ones — the 34/67 cutoffs live in `@/lib/score-band` only.
+ */
 export function bandForPercent(percent: number): "low" | "mid" | "high" {
-	if (percent < 34) return "low";
-	if (percent < 67) return "mid";
-	return "high";
+	return scoreBandKey(percent);
 }

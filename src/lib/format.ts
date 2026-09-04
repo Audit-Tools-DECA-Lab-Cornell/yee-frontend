@@ -1,9 +1,13 @@
 /**
  * Shared formatting utilities using Intl APIs for consistent
- * date, number, and score display across the platform.
+ * date, number, and duration display across the platform.
  *
  * All functions accept raw values from the API and return
  * user-facing strings ready for display.
+ *
+ * Scores and percentages are NOT formatted here: they need the missing/zero-max
+ * guards that only `@/lib/score-format` applies (a missing maximum must render
+ * `SCORE_UNAVAILABLE`, never a fabricated 0%).
  */
 
 /** Format an ISO date string (or Date) into a short human-readable date. */
@@ -26,23 +30,6 @@ export function formatDateTime(dateString: string | Date): string {
 		hour: "numeric",
 		minute: "2-digit"
 	}).format(date);
-}
-
-/** Format a score as "value / max" with tabular-nums styling assumption. */
-export function formatScore(value: number, max: number): string {
-	return `${value} / ${max}`;
-}
-
-/**
- * Format a decimal ratio (0–1) or raw percentage (0–100) as a percentage string.
- * Pass the value as-is from the API; specify `isRatio` if it's already 0–1.
- */
-export function formatPercent(value: number, isRatio = false): string {
-	const ratio = isRatio ? value : value / 100;
-	return new Intl.NumberFormat("en-CA", {
-		style: "percent",
-		maximumFractionDigits: 1
-	}).format(ratio);
 }
 
 /** Format a number with thousands separators. */

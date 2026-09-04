@@ -5,6 +5,8 @@
  */
 import autoTable from "jspdf-autotable";
 
+import { formatScoreFraction, formatScorePercent, formatScoreSummary, SCORE_UNAVAILABLE } from "@/lib/score-format";
+
 import { buildDomainBarsSvg } from "../charts/domain-bars";
 import { buildRadarSvg } from "../charts/radar";
 import { rasterizeSvg } from "../charts/raster";
@@ -41,6 +43,9 @@ export async function generateAuditPdf(
 	const doc = createReportDoc();
 	const overview = buildAuditOverview(submission);
 	const submittedLabel = formatDateTime(submission.submitted_at);
+	const score = submission.score;
+	const rawPercentLabel = formatScorePercent(score.total_raw_score, score.total_raw_maximum);
+	const weightedPercentLabel = formatScorePercent(score.total_weighted_score, score.total_weighted_maximum);
 
 	// Cover.
 	let y = await drawCover(doc, palette, {
@@ -49,14 +54,14 @@ export async function generateAuditPdf(
 		measures: [
 			{
 				label: overview.raw.label,
-				value: `${overview.raw.value}/${overview.raw.max}`,
-				sub: `${overview.raw.percent.toFixed(0)}% of available`,
+				value: rawPercentLabel ?? SCORE_UNAVAILABLE,
+				sub: formatScoreFraction(score.total_raw_score, score.total_raw_maximum),
 				band: overview.raw.band
 			},
 			{
 				label: overview.weighted.label,
-				value: `${overview.weighted.value}/${overview.weighted.max}`,
-				sub: `${overview.weighted.percent.toFixed(0)}% of available`,
+				value: weightedPercentLabel ?? SCORE_UNAVAILABLE,
+				sub: formatScoreFraction(score.total_weighted_score, score.total_weighted_maximum, 2),
 				band: overview.weighted.band
 			}
 		]
@@ -86,13 +91,11 @@ export async function generateAuditPdf(
 		startY: y,
 		margin: { top: PAGE.continuationTop, bottom: PAGE.marginBottom, left: PAGE.marginX, right: PAGE.marginX },
 		theme: "grid",
-		head: [["Section", "Raw score", "Raw %", "Youth-weighted", "YW %"]],
+		head: [["Section", "Raw", "Youth-weighted"]],
 		body: scoreRows.map(row => [
 			row.label,
-			`${round1(row.rawScore)} / ${round1(row.rawMax)}`,
-			`${row.rawPercent.toFixed(0)}%`,
-			`${round2(row.weightedScore)} / ${round2(row.weightedMax)}`,
-			`${row.weightedPercent.toFixed(0)}%`
+			formatScoreSummary(round1(row.rawScore), round1(row.rawMax)),
+			formatScoreSummary(round2(row.weightedScore), round2(row.weightedMax), 2)
 		]),
 		styles: {
 			font: "helvetica",
@@ -103,12 +106,7 @@ export async function generateAuditPdf(
 			textColor: hexToRgb(palette.brand.foreground)
 		},
 		headStyles: { fillColor: hexToRgb(palette.brand.green900), textColor: [255, 255, 255], fontStyle: "bold" },
-		columnStyles: {
-			1: { halign: "right" },
-			2: { halign: "right" },
-			3: { halign: "right" },
-			4: { halign: "right" }
-		},
+		columnStyles: { 1: { halign: "right" }, 2: { halign: "right" } },
 		didParseCell: data => {
 			if (data.section === "body" && data.column.index === 0) {
 				data.cell.styles.fillColor = hexToRgb(palette.domains[scoreRows[data.row.index].domainKey].light);
@@ -120,17 +118,26 @@ export async function generateAuditPdf(
 	y = lastTableY(doc) + 12;
 
 	// Charts (rasterized standalone SVG).
-	const radarSvg = buildRadarSvg({
-		axisLabels: domainOrder.map(domain => domainLabels[domain]),
-		axisColors: domainOrder.map(domain => palette.domains[domain].text),
-		palette,
-		series: [{ label: overview.placeName, color: palette.chartSeries[0], values: buildRadarValues(submission) }]
-	});
-	const barsSvg = buildDomainBarsSvg({ rows: buildDomainBarRows(submission), palette, width: 720 });
+	const radarValues = buildRadarValues(submission);
+	const domainBars = buildDomainBarRows(submission);
+	const radarSvg =
+		radarValues.length === domainOrder.length
+			? buildRadarSvg({
+					axisLabels: domainOrder.map(domain => domainLabels[domain]),
+					axisColors: domainOrder.map(domain => palette.domains[domain].text),
+					palette,
+					series: [{ label: overview.placeName, color: palette.chartSeries[0], values: radarValues }]
+				})
+			: null;
+	const barsSvg =
+		domainBars.length === domainOrder.length ? buildDomainBarsSvg({ rows: domainBars, palette, width: 720 }) : null;
 	// Rasterization needs a browser canvas; if it's unavailable (or fails) the
 	// PDF still renders — the tables carry the same numbers, so we skip the
 	// chart rather than abort the document.
-	const [radar, bars] = await Promise.all([tryRasterize(radarSvg), tryRasterize(barsSvg)]);
+	const [radar, bars] = await Promise.all([
+		radarSvg === null ? null : tryRasterize(radarSvg),
+		barsSvg === null ? null : tryRasterize(barsSvg)
+	]);
 	if (radar) {
 		y = drawChartImage(doc, radar.dataUrl, radar.width, radar.height, y, {
 			maxWidth: contentWidth(doc) * 0.92,

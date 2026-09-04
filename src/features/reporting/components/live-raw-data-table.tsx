@@ -14,7 +14,8 @@ import { DashboardHero } from "@/components/ui/dashboard-hero";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fetchRawData, type RawDataRecord } from "@/features/workspaces/api/live-api";
-import { formatNumber } from "@/lib/format";
+import { SCORE_UNAVAILABLE, formatScoreFraction, formatScorePercent, scorePercent } from "@/lib/score-format";
+import { cn } from "@/lib/utils";
 
 type RawDataFormat = "csv" | "xlsx";
 
@@ -29,9 +30,32 @@ async function exportScope(rows: RawDataRecord[], format: RawDataFormat, scope: 
 	await exportRawData(rows, format, scope);
 }
 
-/** Two-decimal youth-weighted average, or an em dash while scores roll out. */
-function formatWeightedAverage(value?: number | null): string {
-	return value == null ? "—" : value.toFixed(2);
+/**
+ * Percent-first score: the percentage is the headline and the raw fraction sits
+ * under it, muted. A missing score or maximum renders an em dash — never a
+ * fabricated 0% — while a known fraction is still shown beneath it.
+ */
+function ScoreValue({
+	value,
+	max,
+	fractionDigits = 0,
+	className
+}: {
+	value?: number | null;
+	max?: number | null;
+	fractionDigits?: number;
+	className?: string;
+}) {
+	const percent = formatScorePercent(value, max);
+	const fraction = formatScoreFraction(value, max, fractionDigits);
+	return (
+		<span className={cn("flex flex-col leading-tight tabular-nums", className)}>
+			<span className={cn("font-semibold", percent === null ? "text-muted-foreground" : "text-foreground")}>
+				{percent ?? SCORE_UNAVAILABLE}
+			</span>
+			{fraction === SCORE_UNAVAILABLE ? null : <span className="text-xs text-muted-foreground">{fraction}</span>}
+		</span>
+	);
 }
 
 export function LiveRawDataTable({
@@ -217,19 +241,21 @@ export function LiveRawDataTable({
 			cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
 		},
 		{
-			accessorKey: "total_raw_score",
+			id: "total_raw_score",
+			accessorFn: row => scorePercent(row.total_raw_score, row.total_raw_maximum),
 			header: "Raw score",
-			cell: ({ row }) => (
-				<span className="tabular-nums text-foreground">{formatNumber(row.original.total_raw_score)}</span>
-			)
+			cell: ({ row }) => <ScoreValue value={row.original.total_raw_score} max={row.original.total_raw_maximum} />
 		},
 		{
-			accessorKey: "total_weighted_score",
+			id: "total_weighted_score",
+			accessorFn: row => scorePercent(row.total_weighted_score, row.total_weighted_maximum),
 			header: "Youth weighted avg",
 			cell: ({ row }) => (
-				<span className="tabular-nums text-foreground">
-					{formatWeightedAverage(row.original.total_weighted_score)}
-				</span>
+				<ScoreValue
+					value={row.original.total_weighted_score}
+					max={row.original.total_weighted_maximum}
+					fractionDigits={2}
+				/>
 			)
 		}
 	];
@@ -255,9 +281,20 @@ export function LiveRawDataTable({
 					) : null}
 				</div>
 			</div>
-			<div className="flex justify-between text-sm tabular-nums text-foreground">
-				<span>Raw: {formatNumber(row.total_raw_score)}</span>
-				<span>Youth weighted: {formatWeightedAverage(row.total_weighted_score)}</span>
+			<div className="flex justify-between gap-3 text-sm">
+				<div>
+					<p className="text-xs text-muted-foreground">Raw</p>
+					<ScoreValue value={row.total_raw_score} max={row.total_raw_maximum} />
+				</div>
+				<div className="text-right">
+					<p className="text-xs text-muted-foreground">Youth weighted</p>
+					<ScoreValue
+						value={row.total_weighted_score}
+						max={row.total_weighted_maximum}
+						fractionDigits={2}
+						className="items-end"
+					/>
+				</div>
 			</div>
 		</div>
 	);

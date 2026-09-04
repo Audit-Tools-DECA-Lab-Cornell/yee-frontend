@@ -9,8 +9,10 @@ import {
 	generateAuditComparisonXlsx
 } from "../../src/features/reporting/export/excel/comparison-xlsx";
 import { buildPlaceComparisonSummaries } from "../../src/features/reporting/export/comparison-metrics";
+import { buildTrendCsv } from "../../src/features/reporting/export/csv-builders";
 import { getExportPalette } from "../../src/features/reporting/export/export-palette";
 import { comparisonRecords } from "../fixtures/export-comparison";
+import type { PlaceComparisonAuditRecord } from "../../src/features/workspaces/api/live-api";
 
 const palette = getExportPalette();
 const scope = {
@@ -55,4 +57,31 @@ test("R4 audit comparison PDF + XLSX generate with two selected audits", async (
 	expectXlsx(xlsx);
 	// The two-audit case emits an explicit delta column.
 	expect(xlsx.toString("latin1")).toContain("Domain deltas");
+});
+
+test("comparison exports exclude unavailable maxima from means and emit unavailable markers", () => {
+	const baseline = comparisonRecords[0];
+	const unavailable: PlaceComparisonAuditRecord = {
+		...baseline,
+		audit_id: "audit-unavailable",
+		total_raw_maximum: 0,
+		total_weighted_maximum: Number.NaN,
+		raw_domain_maximums: {
+			...baseline.raw_domain_maximums,
+			access: Number.POSITIVE_INFINITY
+		}
+	};
+	const summaries = buildPlaceComparisonSummaries([baseline, unavailable]);
+	const summary = summaries[0];
+
+	expect(summary.avgRawPercent).toBeCloseTo((baseline.total_raw_score / baseline.total_raw_maximum) * 100, 1);
+	expect(summary.rawPercentByDomain.access).toBeCloseTo(
+		(baseline.raw_domain_scores.access / baseline.raw_domain_maximums.access) * 100,
+		1
+	);
+
+	const csv = buildTrendCsv([unavailable]);
+	expect(csv).toContain("raw_percent,youth_weighted_score,youth_weighted_percent");
+	expect(csv).toContain("—");
+	expect(csv).not.toContain("0.0%");
 });

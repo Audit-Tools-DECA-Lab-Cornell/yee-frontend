@@ -8,6 +8,8 @@ import type { PlaceComparisonAuditRecord, PlaceComparisonGroupRecord } from "@/f
 import { domainLabels, domainOrder, getComparisonAverages } from "@/features/reporting/reporting";
 import { DomainBadge } from "@/components/ui/domain-badge";
 import { scoreBand } from "@/lib/score-band";
+import { ScoreStack } from "@/components/ui/score-stack";
+import { formatScoreFraction, SCORE_UNAVAILABLE, scorePercent } from "@/lib/score-format";
 
 function clampPercentage(value: number) {
 	return Math.max(0, Math.min(100, value));
@@ -19,6 +21,58 @@ function colorBand(percentage: number) {
 
 function barHeight(value: number) {
 	return `${Math.max(12, clampPercentage(value))}%`;
+}
+
+/**
+ * Percent-first score display: the percentage leads (bold), the raw fraction
+ * follows in parentheses (small, muted). A missing maximum renders
+ * SCORE_UNAVAILABLE rather than a fabricated 0%.
+ */
+function ScoreLine({
+	value,
+	maximum,
+	fractionDigits = 0
+}: {
+	value: number;
+	maximum: number;
+	fractionDigits?: number;
+}) {
+	return <ScoreStack value={value} max={maximum} fractionDigits={fractionDigits} size="sm" />;
+}
+
+/**
+ * Percent-first average across the selected audits. The mean percentage always
+ * leads; the mean fraction follows only when `sharedMaximum` is non-null, i.e.
+ * every selected audit was scored out of that same maximum. Labelling a mean
+ * with one audit's maximum would report a fraction no audit ever produced.
+ */
+function AverageScore({
+	percent,
+	average,
+	sharedMaximum,
+	fractionDigits = 0,
+	percentClassName = "font-semibold text-foreground"
+}: {
+	percent: number | null;
+	average: number | null;
+	sharedMaximum: number | null;
+	fractionDigits?: number;
+	percentClassName?: string;
+}) {
+	const fraction =
+		average === null || sharedMaximum === null
+			? SCORE_UNAVAILABLE
+			: formatScoreFraction(average, sharedMaximum, fractionDigits);
+	return (
+		<span className="flex flex-col gap-0.5 tabular-nums">
+			<span className={`leading-none ${percentClassName}`}>
+				{percent === null ? SCORE_UNAVAILABLE : `${percent}%`}
+			</span>
+			{fraction === SCORE_UNAVAILABLE ? null : (
+				<span className="text-xs leading-tight text-muted-foreground">{fraction}</span>
+			)}
+		</span>
+	);
 }
 
 const auditComparisonColumns: ColumnDef<PlaceComparisonAuditRecord>[] = [
@@ -37,7 +91,7 @@ const auditComparisonColumns: ColumnDef<PlaceComparisonAuditRecord>[] = [
 		header: "Total Raw Score",
 		cell: ({ row }) => (
 			<span className="text-muted-foreground tabular-nums">
-				{row.original.total_raw_score} / {row.original.total_raw_maximum}
+				<ScoreLine value={row.original.total_raw_score} maximum={row.original.total_raw_maximum} />
 			</span>
 		)
 	},
@@ -46,7 +100,11 @@ const auditComparisonColumns: ColumnDef<PlaceComparisonAuditRecord>[] = [
 		header: "Total Youth Weighted Average",
 		cell: ({ row }) => (
 			<span className="text-muted-foreground tabular-nums">
-				{row.original.total_weighted_score.toFixed(2)} / {row.original.total_weighted_maximum.toFixed(2)}
+				<ScoreLine
+					value={row.original.total_weighted_score}
+					maximum={row.original.total_weighted_maximum}
+					fractionDigits={2}
+				/>
 			</span>
 		)
 	}
@@ -60,8 +118,12 @@ function AuditComparisonMobileCard({ record }: { record: PlaceComparisonAuditRec
 				<span className="text-xs text-muted-foreground">{record.date}</span>
 			</div>
 			<p className="text-sm tabular-nums text-muted-foreground">
-				Raw {record.total_raw_score} / {record.total_raw_maximum} · Youth{" "}
-				{record.total_weighted_score.toFixed(2)} / {record.total_weighted_maximum.toFixed(2)}
+				Raw <ScoreLine value={record.total_raw_score} maximum={record.total_raw_maximum} /> · Youth{" "}
+				<ScoreLine
+					value={record.total_weighted_score}
+					maximum={record.total_weighted_maximum}
+					fractionDigits={2}
+				/>
 			</p>
 		</div>
 	);
@@ -158,11 +220,11 @@ export function PlaceComparisonPanel({
 					</div>
 					<div className="grid gap-4 lg:grid-cols-2">
 						{records.map(record => {
-							const rawPercent = record.total_raw_maximum
-								? (record.total_raw_score / record.total_raw_maximum) * 100
-								: 0;
+							const rawPercent = scorePercent(record.total_raw_score, record.total_raw_maximum);
+							const rawFraction = formatScoreFraction(record.total_raw_score, record.total_raw_maximum);
 							const youthMax = record.total_weighted_maximum;
-							const youthPercent = youthMax ? (record.total_weighted_score / youthMax) * 100 : 0;
+							const youthPercent = scorePercent(record.total_weighted_score, youthMax);
+							const youthFraction = formatScoreFraction(record.total_weighted_score, youthMax, 2);
 							return (
 								<div key={record.audit_id} className="rounded-lg border border-border bg-card p-4">
 									<div className="flex items-center justify-between gap-3">
@@ -181,19 +243,20 @@ export function PlaceComparisonPanel({
 											</p>
 											<div className="mt-3 flex items-end gap-4">
 												<div className="flex h-36 w-14 items-end rounded-full border border-border bg-muted/50 p-1">
-													<div
-														className={`${colorBand(rawPercent)} w-full rounded-full`}
-														style={{ height: barHeight(rawPercent) }}
-													/>
+													{rawPercent === null ? null : (
+														<div
+															className={`${colorBand(rawPercent)} w-full rounded-full`}
+															style={{ height: barHeight(rawPercent) }}
+														/>
+													)}
 												</div>
-												<div className="space-y-1 text-xs text-muted-foreground">
-													<p className="font-medium text-foreground">
-														{record.total_raw_score} / {record.total_raw_maximum}
+												<div className="space-y-1 text-muted-foreground">
+													<p className="text-2xl font-semibold leading-none text-foreground">
+														{rawPercent === null ? SCORE_UNAVAILABLE : `${rawPercent}%`}
 													</p>
-													<p>
-														{rawPercent.toFixed(0)}% ({record.total_raw_score}/
-														{record.total_raw_maximum})
-													</p>
+													{rawPercent === null ? null : (
+														<p className="text-xs">({rawFraction})</p>
+													)}
 												</div>
 											</div>
 										</div>
@@ -203,19 +266,20 @@ export function PlaceComparisonPanel({
 											</p>
 											<div className="mt-3 flex items-end gap-4">
 												<div className="flex h-36 w-14 items-end rounded-full border border-score-high/30 bg-card p-1">
-													<div
-														className={`${colorBand(youthPercent)} w-full rounded-full`}
-														style={{ height: barHeight(youthPercent) }}
-													/>
+													{youthPercent === null ? null : (
+														<div
+															className={`${colorBand(youthPercent)} w-full rounded-full`}
+															style={{ height: barHeight(youthPercent) }}
+														/>
+													)}
 												</div>
-												<div className="space-y-1 text-xs text-score-high">
-													<p className="font-medium text-score-high">
-														{record.total_weighted_score.toFixed(2)} / {youthMax.toFixed(2)}
+												<div className="space-y-1 text-score-high">
+													<p className="text-2xl font-semibold leading-none text-score-high">
+														{youthPercent === null ? SCORE_UNAVAILABLE : `${youthPercent}%`}
 													</p>
-													<p>
-														{youthPercent.toFixed(0)}% (
-														{record.total_weighted_score.toFixed(2)}/{youthMax.toFixed(2)})
-													</p>
+													{youthPercent === null ? null : (
+														<p className="text-xs">({youthFraction})</p>
+													)}
 												</div>
 											</div>
 										</div>
@@ -233,7 +297,7 @@ export function PlaceComparisonPanel({
 					<CardDescription>
 						Raw Score and Youth Weighted values for each selected audit, plus the average across the
 						selected audits for each domain.
-						{averages?.hasSharedMaximums === false
+						{averages?.hasSharedMaximums === false || averages?.hasSharedWeightedMaximums === false
 							? " These audits were completed with different sets of questions, so averages are shown as a percentage of each audit's own highest possible score."
 							: null}
 					</CardDescription>
@@ -265,29 +329,40 @@ export function PlaceComparisonPanel({
 											key={`${record.audit_id}-${domain}`}
 											className="py-4 pr-4 text-muted-foreground">
 											<div>
-												{record.raw_domain_scores[domain]} /{" "}
-												{record.raw_domain_maximums[domain]} raw score
+												<ScoreLine
+													value={record.raw_domain_scores[domain]}
+													maximum={record.raw_domain_maximums[domain]}
+												/>{" "}
+												raw score
 											</div>
 											<div className="text-xs text-muted-foreground">
-												{record.weighted_domain_scores[domain].toFixed(2)} /{" "}
-												{record.weighted_domain_maximums[domain].toFixed(2)} Youth Weighted
-												average
+												<ScoreLine
+													value={record.weighted_domain_scores[domain]}
+													maximum={record.weighted_domain_maximums[domain]}
+													fractionDigits={2}
+												/>{" "}
+												Youth Weighted average
 											</div>
 										</td>
 									))}
 									<td className="py-4 pr-4 text-muted-foreground">
-										{averages === null ? null : averages.sharedRawDomainMaximums[domain] ===
-										  null ? (
-											`${averages.avgRawPercentByDomain[domain]}%`
-										) : (
-											<>
-												{averages.avgRawByDomain[domain]} /{" "}
-												{averages.sharedRawDomainMaximums[domain]}
-											</>
+										{averages === null ? null : (
+											<AverageScore
+												percent={averages.avgRawPercentByDomain[domain]}
+												average={averages.avgRawByDomain[domain]}
+												sharedMaximum={averages.sharedRawDomainMaximums[domain]}
+											/>
 										)}
 									</td>
 									<td className="py-4 text-muted-foreground">
-										{averages?.avgWeightedByDomain[domain].toFixed(2)} average
+										{averages === null ? null : (
+											<AverageScore
+												percent={averages.avgWeightedPercentByDomain[domain]}
+												average={averages.avgWeightedByDomain[domain]}
+												sharedMaximum={averages.sharedWeightedDomainMaximums[domain]}
+												fractionDigits={2}
+											/>
+										)}
 									</td>
 								</tr>
 							))}
@@ -303,20 +378,30 @@ export function PlaceComparisonPanel({
 							<CardTitle>Total score averages</CardTitle>
 							<CardDescription>
 								These totals are averaged across the selected audits for this place.
-								{averages.totalRawMaximum === null
-									? " The selected audits have different highest possible scores, so the raw average is shown as a percentage."
+								{averages.totalRawMaximum === null || averages.totalWeightedMaximum === null
+									? " The selected audits have different highest possible scores, so these averages are shown as percentages only."
 									: null}
 							</CardDescription>
 						</CardHeader>
 						<CardContent className="flex flex-wrap gap-3">
 							<Badge className="rounded-full bg-muted px-3 py-1 text-foreground hover:bg-muted">
 								Average raw:{" "}
-								{averages.totalRawMaximum === null
-									? `${averages.totalRawPercentAverage}%`
-									: `${averages.totalRawAverage} / ${averages.totalRawMaximum}`}
+								<AverageScore
+									percent={averages.totalRawPercentAverage}
+									average={averages.totalRawAverage}
+									sharedMaximum={averages.totalRawMaximum}
+									percentClassName="font-semibold"
+								/>
 							</Badge>
 							<Badge className="rounded-full bg-score-high-bg px-3 py-1 text-score-high hover:bg-score-high-bg">
-								Average youth weighted: {averages.totalWeightedAverage.toFixed(2)}
+								Average youth weighted:{" "}
+								<AverageScore
+									percent={averages.totalWeightedPercentAverage}
+									average={averages.totalWeightedAverage}
+									sharedMaximum={averages.totalWeightedMaximum}
+									fractionDigits={2}
+									percentClassName="font-semibold"
+								/>
 							</Badge>
 						</CardContent>
 					</Card>

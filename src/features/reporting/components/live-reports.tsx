@@ -17,6 +17,15 @@ import { DataTable } from "@/components/ui/data-table";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { TableSkeleton } from "@/components/ui/skeletons";
 import { DashboardHero } from "@/components/ui/dashboard-hero";
+import { type ScoreBand, scoreBandKey } from "@/lib/score-band";
+import {
+	SCORE_UNAVAILABLE,
+	aggregateScoreEntries,
+	formatScoreFraction,
+	formatScorePercent,
+	scorePercent,
+	type ScoreAggregate
+} from "@/lib/score-format";
 import {
 	fetchPlaceComparisons,
 	type PlaceComparisonAuditRecord,
@@ -27,10 +36,10 @@ import { radarPolygonPoints, radarRadialPoint, trendScale } from "@/features/rep
 import {
 	auditRawPercent as getAuditRawPercent,
 	auditWeightedPercent as getAuditWeightedPercent,
+	buildPlaceComparisonSummaries as buildExportPlaceComparisonSummaries,
 	buildRadarSvg,
 	buildTrendSvg,
 	getExportPalette,
-	percentage,
 	type PlaceComparisonSummary,
 	type ReportDocumentFormat
 } from "@/features/reporting/export/dashboard-charts";
@@ -49,12 +58,12 @@ type PlaceSummary = {
 	project_id: string;
 	project_name: string;
 	auditCount: number;
-	avgRawScore: number;
-	avgWeightedScore: number;
-	avgRawPercent: number;
-	avgWeightedPercent: number;
-	rawPercentByDomain: Record<(typeof domainOrder)[number], number>;
-	weightedPercentByDomain: Record<(typeof domainOrder)[number], number>;
+	avgRawScore: number | null;
+	avgWeightedScore: number | null;
+	avgRawPercent: number | null;
+	avgWeightedPercent: number | null;
+	rawPercentByDomain: Record<(typeof domainOrder)[number], number | null>;
+	weightedPercentByDomain: Record<(typeof domainOrder)[number], number | null>;
 	latestAuditId: string | null;
 	latestSubmissionId: string | null;
 };
@@ -65,10 +74,116 @@ function parseIsoDate(value: string | null | undefined) {
 	return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
+const BAND_TILE_CLASSES: Record<ScoreBand, string> = {
+	low: "border-score-low/40 text-score-low bg-score-low-bg",
+	mid: "border-score-mid/40 text-score-mid bg-score-mid-bg",
+	high: "border-score-high/40 text-score-high bg-score-high-bg"
+};
+
+/** Tinted tile for a percentage, keyed off the shared band thresholds. */
 function colorBandClasses(value: number) {
-	if (value < 34) return "border-score-low/40 text-score-low bg-score-low-bg";
-	if (value < 67) return "border-score-mid/40 text-score-mid bg-score-mid-bg";
-	return "border-score-high/40 text-score-high bg-score-high-bg";
+	return BAND_TILE_CLASSES[scoreBandKey(value)];
+}
+
+/**
+ * Percent-first score text: the percentage is the headline and the raw figure
+ * sits beneath it, small and muted. An unavailable percent renders an em dash
+ * on its own — never a fabricated 0% dressed up with a believable fraction.
+ */
+function ScoreText({ percent, secondary }: { percent: string | null; secondary?: string }) {
+	if (percent === null) return <span className="tabular-nums text-muted-foreground">{SCORE_UNAVAILABLE}</span>;
+	return (
+		<span className="flex flex-col gap-0.5 tabular-nums">
+			<span className="font-semibold leading-none text-foreground">{percent}</span>
+			{secondary ? <span className="text-xs leading-tight text-muted-foreground">{secondary}</span> : null}
+		</span>
+	);
+}
+
+function formatNullablePercent(value: number | null): string | null {
+	return value === null ? null : `${value.toFixed(0)}%`;
+}
+
+/** {@link ScoreText} for a score that still carries its own value/maximum pair. */
+function ScoreFractionText({
+	value,
+	max,
+	fractionDigits = 0
+}: {
+	value?: number | null;
+	max?: number | null;
+	fractionDigits?: number;
+}) {
+	const fraction = formatScoreFraction(value, max, fractionDigits);
+	return (
+		<ScoreText
+			percent={formatScorePercent(value, max)}
+			secondary={fraction === SCORE_UNAVAILABLE ? undefined : fraction}
+		/>
+	);
+}
+
+/**
+ * One headline score tile on a selected-audit card: percentage large, fraction
+ * small underneath. The band classes tint the whole tile, so the fraction dims
+ * with opacity instead of a muted ink token that would fight the band — and a
+ * missing maximum stays neutral rather than painting a red "0%" band.
+ */
+function SelectedAuditScoreTile({
+	label,
+	value,
+	max,
+	fractionDigits = 0
+}: {
+	label: string;
+	value: number;
+	max: number;
+	fractionDigits?: number;
+}) {
+	const percent = scorePercent(value, max);
+	const bandClasses =
+		percent === null ? "border-border bg-muted/40 text-muted-foreground" : colorBandClasses(percent);
+	const headline = percent === null ? SCORE_UNAVAILABLE : `${percent}%`;
+	return (
+		<div className={`rounded-md border p-4 ${bandClasses}`}>
+			<p className="text-xs font-medium uppercase tracking-[0.16em]">{label}</p>
+			<p className="mt-2 text-lg font-semibold tabular-nums">{headline}</p>
+			{percent === null ? null : (
+				<p className="text-sm tabular-nums opacity-80">{formatScoreFraction(value, max, fractionDigits)}</p>
+			)}
+		</div>
+	);
+}
+
+/**
+ * Percent-first hero figure for an average score. A shared maximum gives the
+ * tile a real fraction to show; when the maximums differ it falls back to the
+ * mean of each audit's own percentage and says so, rather than inventing a
+ * denominator that never existed.
+ */
+function averageScoreDisplay(aggregate: ScoreAggregate, totalCount: number, fractionDigits = 0) {
+	if (aggregate.meanPercentage === null) return { percent: SCORE_UNAVAILABLE, detail: "" };
+	const percent = `${Math.round(aggregate.meanPercentage)}%`;
+	if (aggregate.sharedMaximum !== null && aggregate.meanValue !== null) {
+		return {
+			percent,
+			detail: formatScoreFraction(aggregate.meanValue, aggregate.sharedMaximum, fractionDigits)
+		};
+	}
+	const exclusion = aggregate.validCount === totalCount ? "" : ` from ${aggregate.validCount} valid audits`;
+	return { percent, detail: `mean of per-audit percentages${exclusion}` };
+}
+
+/** Hero stat value: the percentage large, its fraction or scope note beneath it. */
+function HeroScoreValue({ display }: { display: { percent: string; detail: string } }) {
+	return (
+		<span className="flex flex-col gap-1">
+			{display.percent}
+			{display.detail ? (
+				<span className="text-sm font-normal leading-tight text-emerald-50/70">{display.detail}</span>
+			) : null}
+		</span>
+	);
 }
 
 function compareModeLabel(mode: CompareMode) {
@@ -128,22 +243,18 @@ const comparePlacesColumns: ColumnDef<PlaceSummary>[] = [
 		cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
 	},
 	{
-		accessorKey: "avgRawScore",
+		// Sorted on the percentage, so the sort follows the headline the cell leads with.
+		id: "avgRawScore",
+		accessorFn: row => row.avgRawPercent,
 		header: "Raw score",
-		cell: ({ row }) => (
-			<span className="text-muted-foreground tabular-nums">
-				{row.original.avgRawScore} ({row.original.avgRawPercent.toFixed(0)}%)
-			</span>
-		)
+		cell: ({ row }) => <ScoreText percent={formatNullablePercent(row.original.avgRawPercent)} />
 	},
 	{
-		accessorKey: "avgWeightedScore",
+		// Sorted on the percentage, so the sort follows the headline the cell leads with.
+		id: "avgWeightedScore",
+		accessorFn: row => row.avgWeightedPercent,
 		header: "Youth weighted average",
-		cell: ({ row }) => (
-			<span className="text-muted-foreground tabular-nums">
-				{row.original.avgWeightedScore.toFixed(2)} ({row.original.avgWeightedPercent.toFixed(0)}%)
-			</span>
-		)
+		cell: ({ row }) => <ScoreText percent={formatNullablePercent(row.original.avgWeightedPercent)} />
 	},
 	...domainOrder.map(
 		(domain): ColumnDef<PlaceSummary> => ({
@@ -157,7 +268,7 @@ const comparePlacesColumns: ColumnDef<PlaceSummary>[] = [
 			),
 			cell: ({ row }) => (
 				<span className="font-medium tabular-nums" style={{ color: yeeDomainThemes[domain].textHex }}>
-					{row.original.rawPercentByDomain[domain].toFixed(0)}%
+					{formatNullablePercent(row.original.rawPercentByDomain[domain]) ?? SCORE_UNAVAILABLE}
 				</span>
 			)
 		})
@@ -192,17 +303,17 @@ function ComparePlaceMobileCard({ summary }: { summary: PlaceSummary }) {
 			</div>
 			<div className="flex flex-wrap gap-x-4 gap-y-1 text-sm tabular-nums text-muted-foreground">
 				<span>
-					Raw: {summary.avgRawScore} ({summary.avgRawPercent.toFixed(0)}%)
+					Raw: <ScoreText percent={formatNullablePercent(summary.avgRawPercent)} />
 				</span>
 				<span>
-					Youth weighted: {summary.avgWeightedScore.toFixed(2)} ({summary.avgWeightedPercent.toFixed(0)}%)
+					Youth weighted: <ScoreText percent={formatNullablePercent(summary.avgWeightedPercent)} />
 				</span>
 				{domainOrder.map(domain => (
 					<span key={domain} className="flex items-center gap-1.5">
 						<DomainDot domain={domain} />
 						{domainLabels[domain]}:{" "}
 						<span className="font-medium" style={{ color: yeeDomainThemes[domain].textHex }}>
-							{summary.rawPercentByDomain[domain].toFixed(0)}%
+							{formatNullablePercent(summary.rawPercentByDomain[domain]) ?? SCORE_UNAVAILABLE}
 						</span>
 					</span>
 				))}
@@ -228,79 +339,36 @@ function buildPlaceSummaries(records: PlaceComparisonAuditRecord[]): PlaceSummar
 		grouped.set(record.place_id, next);
 	}
 
-	return Array.from(grouped.values())
-		.map(placeRecords => {
-			const [first] = placeRecords;
-			const rawPercentByDomain = Object.fromEntries(domainOrder.map(domain => [domain, 0])) as Record<
-				(typeof domainOrder)[number],
-				number
-			>;
-			const weightedPercentByDomain = Object.fromEntries(domainOrder.map(domain => [domain, 0])) as Record<
-				(typeof domainOrder)[number],
-				number
-			>;
-
-			for (const record of placeRecords) {
-				for (const domain of domainOrder) {
-					rawPercentByDomain[domain] += percentage(
-						record.raw_domain_scores[domain],
-						record.raw_domain_maximums[domain]
-					);
-					weightedPercentByDomain[domain] += percentage(
-						record.weighted_domain_scores[domain],
-						record.weighted_domain_maximums[domain]
-					);
-				}
-			}
-
-			for (const domain of domainOrder) {
-				rawPercentByDomain[domain] = Number((rawPercentByDomain[domain] / placeRecords.length).toFixed(1));
-				weightedPercentByDomain[domain] = Number(
-					(weightedPercentByDomain[domain] / placeRecords.length).toFixed(1)
-				);
-			}
-
-			const sortedByDate = [...placeRecords].sort((left, right) => {
+	const latestByPlace = new Map(
+		Array.from(grouped.entries()).map(([placeId, placeRecords]) => {
+			const latest = [...placeRecords].sort((left, right) => {
 				const leftDate = parseIsoDate(left.date)?.getTime() ?? 0;
 				const rightDate = parseIsoDate(right.date)?.getTime() ?? 0;
 				return rightDate - leftDate;
-			});
-			const latest = sortedByDate[0];
-
-			return {
-				place_id: first.place_id,
-				place_name: first.place_name,
-				project_id: first.project_id,
-				project_name: first.project_name,
-				auditCount: placeRecords.length,
-				avgRawScore: Number(
-					(
-						placeRecords.reduce((sum, record) => sum + record.total_raw_score, 0) / placeRecords.length
-					).toFixed(1)
-				),
-				avgWeightedScore: Number(
-					(
-						placeRecords.reduce((sum, record) => sum + record.total_weighted_score, 0) / placeRecords.length
-					).toFixed(2)
-				),
-				avgRawPercent: Number(
-					(
-						placeRecords.reduce((sum, record) => sum + getAuditRawPercent(record), 0) / placeRecords.length
-					).toFixed(1)
-				),
-				avgWeightedPercent: Number(
-					(
-						placeRecords.reduce((sum, record) => sum + getAuditWeightedPercent(record), 0) /
-						placeRecords.length
-					).toFixed(1)
-				),
-				rawPercentByDomain,
-				weightedPercentByDomain,
-				latestAuditId: latest?.audit_id ?? null,
-				latestSubmissionId: latest?.audit_id ?? null
-			};
+			})[0];
+			return [placeId, latest] as const;
 		})
-		.sort((left, right) => right.avgWeightedScore - left.avgWeightedScore);
+	);
+
+	return buildExportPlaceComparisonSummaries(records).map(summary => {
+		const first = grouped.get(summary.placeId)?.[0];
+		const latest = latestByPlace.get(summary.placeId);
+		return {
+			place_id: summary.placeId,
+			place_name: summary.placeName,
+			project_id: first?.project_id ?? "",
+			project_name: summary.projectName,
+			auditCount: summary.auditCount,
+			avgRawScore: summary.avgRawScore,
+			avgWeightedScore: summary.avgWeightedScore,
+			avgRawPercent: summary.avgRawPercent,
+			avgWeightedPercent: summary.avgWeightedPercent,
+			rawPercentByDomain: summary.rawPercentByDomain,
+			weightedPercentByDomain: summary.weightedPercentByDomain,
+			latestAuditId: latest?.audit_id ?? null,
+			latestSubmissionId: latest?.audit_id ?? null
+		};
+	});
 }
 
 // Radar/trend geometry is imported from the export layer's shared helpers
@@ -308,7 +376,11 @@ function buildPlaceSummaries(records: PlaceComparisonAuditRecord[]): PlaceSummar
 // compute identical points and can never drift (implementation-plan D3/M1).
 
 function RadarComparisonChart({ summaries }: { summaries: PlaceSummary[] }) {
-	const series = summaries.slice(0, 3);
+	// A partial radar polygon would imply unavailable domains are 0%, so only
+	// complete summaries are charted. Their table rows still show em dashes.
+	const series = summaries
+		.filter(summary => domainOrder.every(domain => summary.rawPercentByDomain[domain] !== null))
+		.slice(0, 3);
 	const radius = 72;
 	const center = 110;
 	const rings = [25, 50, 75, 100];
@@ -329,7 +401,7 @@ function RadarComparisonChart({ summaries }: { summaries: PlaceSummary[] }) {
 			series: series.map((summary, index) => ({
 				label: summary.place_name,
 				color: palette.chartSeries[index % palette.chartSeries.length],
-				values: domainOrder.map(domain => summary.rawPercentByDomain[domain])
+				values: domainOrder.map(domain => summary.rawPercentByDomain[domain] ?? 0)
 			}))
 		});
 	};
@@ -393,7 +465,7 @@ function RadarComparisonChart({ summaries }: { summaries: PlaceSummary[] }) {
 						<polygon
 							key={summary.place_id}
 							points={radarPolygonPoints(
-								domainOrder.map(domain => summary.rawPercentByDomain[domain]),
+								domainOrder.map(domain => summary.rawPercentByDomain[domain] ?? 0),
 								radius,
 								center
 							)}
@@ -417,9 +489,21 @@ function RadarComparisonChart({ summaries }: { summaries: PlaceSummary[] }) {
 								</Link>
 							</div>
 							<p className="mt-2 text-sm text-muted-foreground">
-								Average Raw Score {summary.avgRawScore} ({summary.avgRawPercent.toFixed(0)}%) and
-								Average Youth Weighted Average {summary.avgWeightedScore.toFixed(2)} (
-								{summary.avgWeightedPercent.toFixed(0)}%).
+								Average Raw Score{" "}
+								<ScoreText
+									percent={
+										summary.avgRawPercent === null ? null : `${summary.avgRawPercent.toFixed(0)}%`
+									}
+								/>{" "}
+								and Average Youth Weighted Average{" "}
+								<ScoreText
+									percent={
+										summary.avgWeightedPercent === null
+											? null
+											: `${summary.avgWeightedPercent.toFixed(0)}%`
+									}
+								/>
+								.
 							</p>
 						</div>
 					))}
@@ -430,29 +514,27 @@ function RadarComparisonChart({ summaries }: { summaries: PlaceSummary[] }) {
 }
 
 function TrendLineChart({ records }: { records: PlaceComparisonAuditRecord[] }) {
-	const points = records.map((record, index) => ({
-		label: record.date,
-		rawPercent: getAuditRawPercent(record),
-		weightedPercent: getAuditWeightedPercent(record),
-		index
-	}));
+	const points = records.flatMap(record => {
+		const rawPercent = getAuditRawPercent(record);
+		const weightedPercent = getAuditWeightedPercent(record);
+		if (rawPercent === null || weightedPercent === null) return [];
+		return [{ label: record.date, rawPercent, weightedPercent }];
+	});
 	const width = 720;
 	const height = 260;
 	const padding = 28;
 	// Shared scale helper — identical math to the exported trend chart (D3/M1).
 	const { pointX, pointY } = trendScale({ count: points.length, width, height, padding });
-	const rawPolyline = points.map(point => `${pointX(point.index)},${pointY(point.rawPercent)}`).join(" ");
-	const weightedPolyline = points.map(point => `${pointX(point.index)},${pointY(point.weightedPercent)}`).join(" ");
+	const rawPolyline = points.map((point, index) => `${pointX(index)},${pointY(point.rawPercent)}`).join(" ");
+	const weightedPolyline = points
+		.map((point, index) => `${pointX(index)},${pointY(point.weightedPercent)}`)
+		.join(" ");
 
 	// Builds the exportable standalone SVG from the same records on demand.
 	const buildTrendDownloadSvg = () =>
 		buildTrendSvg({
 			palette: getExportPalette(),
-			points: records.map(record => ({
-				label: record.date,
-				rawPercent: getAuditRawPercent(record),
-				weightedPercent: getAuditWeightedPercent(record)
-			}))
+			points
 		});
 
 	return (
@@ -492,22 +574,17 @@ function TrendLineChart({ records }: { records: PlaceComparisonAuditRecord[] }) 
 					    section chart, and the landing mockup. */}
 					<polyline fill="none" className="stroke-chart-1" strokeWidth={3} points={rawPolyline} />
 					<polyline fill="none" className="stroke-chart-2" strokeWidth={3} points={weightedPolyline} />
-					{points.map(point => (
+					{points.map((point, index) => (
 						<g key={point.label}>
+							<circle cx={pointX(index)} cy={pointY(point.rawPercent)} r={4} className="fill-chart-1" />
 							<circle
-								cx={pointX(point.index)}
-								cy={pointY(point.rawPercent)}
-								r={4}
-								className="fill-chart-1"
-							/>
-							<circle
-								cx={pointX(point.index)}
+								cx={pointX(index)}
 								cy={pointY(point.weightedPercent)}
 								r={4}
 								className="fill-chart-2"
 							/>
 							<text
-								x={pointX(point.index)}
+								x={pointX(index)}
 								y={height - 8}
 								textAnchor="middle"
 								className="fill-chart-axis text-[10px]">
@@ -663,23 +740,22 @@ export function LiveReports() {
 		[filteredAudits, timelinePlaceId]
 	);
 
-	const averageRawScore =
-		filteredAudits.length > 0
-			? Number(
-					(
-						filteredAudits.reduce((sum, record) => sum + record.total_raw_score, 0) / filteredAudits.length
-					).toFixed(1)
-				)
-			: 0;
-	const averageWeightedScore =
-		filteredAudits.length > 0
-			? Number(
-					(
-						filteredAudits.reduce((sum, record) => sum + record.total_weighted_score, 0) /
-						filteredAudits.length
-					).toFixed(2)
-				)
-			: 0;
+	const rawScoreAggregate = aggregateScoreEntries(
+		filteredAudits.map(record => ({ value: record.total_raw_score, maximum: record.total_raw_maximum }))
+	);
+	const weightedScoreAggregate = aggregateScoreEntries(
+		filteredAudits.map(record => ({
+			value: record.total_weighted_score,
+			maximum: record.total_weighted_maximum
+		}))
+	);
+
+	// Hero tiles lead with the percentage. When every audit in scope was scored
+	// against the same maximum there is an honest denominator to show beside it;
+	// otherwise `averageScoreDisplay` falls back to the mean of the per-audit
+	// percentages and labels it, rather than inventing a shared total.
+	const averageRawDisplay = averageScoreDisplay(rawScoreAggregate, filteredAudits.length);
+	const averageWeightedDisplay = averageScoreDisplay(weightedScoreAggregate, filteredAudits.length, 2);
 
 	// Built fresh each render so the selection checkboxes stay in sync with state.
 	const individualAuditColumns: ColumnDef<PlaceComparisonAuditRecord>[] = [
@@ -743,10 +819,7 @@ export function LiveReports() {
 			accessorFn: row => getAuditRawPercent(row),
 			header: "Raw score",
 			cell: ({ row }) => (
-				<span className="text-muted-foreground tabular-nums">
-					{row.original.total_raw_score}/{row.original.total_raw_maximum} (
-					{getAuditRawPercent(row.original).toFixed(0)}%)
-				</span>
+				<ScoreFractionText value={row.original.total_raw_score} max={row.original.total_raw_maximum} />
 			)
 		},
 		{
@@ -754,10 +827,11 @@ export function LiveReports() {
 			accessorFn: row => getAuditWeightedPercent(row),
 			header: "Youth weighted average",
 			cell: ({ row }) => (
-				<span className="text-muted-foreground tabular-nums">
-					{row.original.total_weighted_score.toFixed(2)}/{row.original.total_weighted_maximum.toFixed(2)} (
-					{getAuditWeightedPercent(row.original).toFixed(0)}%)
-				</span>
+				<ScoreFractionText
+					value={row.original.total_weighted_score}
+					max={row.original.total_weighted_maximum}
+					fractionDigits={2}
+				/>
 			)
 		},
 		{
@@ -804,12 +878,15 @@ export function LiveReports() {
 				</div>
 				<div className="flex flex-wrap gap-x-4 gap-y-1 text-sm tabular-nums text-muted-foreground">
 					<span>
-						Raw: {record.total_raw_score}/{record.total_raw_maximum} (
-						{getAuditRawPercent(record).toFixed(0)}%)
+						Raw: <ScoreFractionText value={record.total_raw_score} max={record.total_raw_maximum} />
 					</span>
 					<span>
-						Youth weighted: {record.total_weighted_score.toFixed(2)}/
-						{record.total_weighted_maximum.toFixed(2)} ({getAuditWeightedPercent(record).toFixed(0)}%)
+						Youth weighted:{" "}
+						<ScoreFractionText
+							value={record.total_weighted_score}
+							max={record.total_weighted_maximum}
+							fractionDigits={2}
+						/>
 					</span>
 				</div>
 				<Link
@@ -915,12 +992,12 @@ export function LiveReports() {
 				stats={[
 					{
 						label: "Average Raw Score",
-						value: averageRawScore.toFixed(1),
+						value: <HeroScoreValue display={averageRawDisplay} />,
 						helper: `${filteredAudits.length} audits in the current view`
 					},
 					{
 						label: "Average Youth Weighted Average",
-						value: averageWeightedScore.toFixed(1),
+						value: <HeroScoreValue display={averageWeightedDisplay} />,
 						helper: "Across the currently filtered audits"
 					},
 					{
@@ -1092,7 +1169,8 @@ export function LiveReports() {
 															width: `${100 / domainOrder.length}%`,
 															backgroundColor: yeeDomainThemes[domain].lightHex
 														}}>
-														{summary.rawPercentByDomain[domain].toFixed(0)}%
+														{formatNullablePercent(summary.rawPercentByDomain[domain]) ??
+															SCORE_UNAVAILABLE}
 													</div>
 												))}
 											</div>
@@ -1110,7 +1188,9 @@ export function LiveReports() {
 															width: `${100 / domainOrder.length}%`,
 															backgroundColor: yeeDomainThemes[domain].strongFillHex
 														}}>
-														{summary.weightedPercentByDomain[domain].toFixed(0)}%
+														{formatNullablePercent(
+															summary.weightedPercentByDomain[domain]
+														) ?? SCORE_UNAVAILABLE}
 													</div>
 												))}
 											</div>
@@ -1165,12 +1245,19 @@ export function LiveReports() {
 														</p>
 													) : null}
 													<p className="text-sm text-muted-foreground">
-														Raw Score {record.total_raw_score} (
-														{getAuditRawPercent(record).toFixed(0)}%)
+														Raw Score{" "}
+														<ScoreFractionText
+															value={record.total_raw_score}
+															max={record.total_raw_maximum}
+														/>
 													</p>
 													<p className="text-sm text-muted-foreground">
-														Youth Weighted Average {record.total_weighted_score.toFixed(2)}{" "}
-														({getAuditWeightedPercent(record).toFixed(0)}%)
+														Youth Weighted Average{" "}
+														<ScoreFractionText
+															value={record.total_weighted_score}
+															max={record.total_weighted_maximum}
+															fractionDigits={2}
+														/>
 													</p>
 													<Link
 														href={`/yee/submissions/${record.audit_id}`}
@@ -1247,25 +1334,17 @@ export function LiveReports() {
 								</CardHeader>
 								<CardContent className="space-y-4">
 									<div className="grid gap-3 md:grid-cols-2">
-										<div
-											className={`rounded-md border p-4 ${colorBandClasses(getAuditRawPercent(record))}`}>
-											<p className="text-xs font-medium uppercase tracking-[0.16em]">Raw Score</p>
-											<p className="mt-2 text-lg font-semibold">
-												{record.total_raw_score}/{record.total_raw_maximum}
-											</p>
-											<p className="text-sm">{getAuditRawPercent(record).toFixed(0)}%</p>
-										</div>
-										<div
-											className={`rounded-md border p-4 ${colorBandClasses(getAuditWeightedPercent(record))}`}>
-											<p className="text-xs font-medium uppercase tracking-[0.16em]">
-												Youth Weighted Average
-											</p>
-											<p className="mt-2 text-lg font-semibold">
-												{record.total_weighted_score.toFixed(2)}/
-												{record.total_weighted_maximum.toFixed(2)}
-											</p>
-											<p className="text-sm">{getAuditWeightedPercent(record).toFixed(0)}%</p>
-										</div>
+										<SelectedAuditScoreTile
+											label="Raw Score"
+											value={record.total_raw_score}
+											max={record.total_raw_maximum}
+										/>
+										<SelectedAuditScoreTile
+											label="Youth Weighted Average"
+											value={record.total_weighted_score}
+											max={record.total_weighted_maximum}
+											fractionDigits={2}
+										/>
 									</div>
 									<div className="grid gap-3 sm:grid-cols-2">
 										{domainOrder.map(domain => (
@@ -1282,13 +1361,19 @@ export function LiveReports() {
 													{domainLabels[domain]}
 												</p>
 												<p className="mt-2 text-sm text-muted-foreground">
-													Raw Score {record.raw_domain_scores[domain]}/
-													{record.raw_domain_maximums[domain]}
+													Raw Score{" "}
+													<ScoreFractionText
+														value={record.raw_domain_scores[domain]}
+														max={record.raw_domain_maximums[domain]}
+													/>
 												</p>
 												<p className="text-sm text-muted-foreground">
 													Youth Weighted Average{" "}
-													{record.weighted_domain_scores[domain].toFixed(2)}/
-													{record.weighted_domain_maximums[domain].toFixed(2)}
+													<ScoreFractionText
+														value={record.weighted_domain_scores[domain]}
+														max={record.weighted_domain_maximums[domain]}
+														fractionDigits={2}
+													/>
 												</p>
 											</div>
 										))}

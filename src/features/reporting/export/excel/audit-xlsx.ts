@@ -11,6 +11,7 @@ import {
 	buildWeightingRows
 } from "../row-builders";
 import type { AuditReportInput, ExportPalette } from "../types";
+import { SCORE_UNAVAILABLE, formatScoreFraction } from "@/lib/score-format";
 import {
 	appendSheet,
 	buildStyledSheet,
@@ -41,13 +42,22 @@ export function generateAuditXlsx(input: AuditReportInput, palette: ExportPalett
 	overviewRows.push([cell("Measure", styles.header), cell("Value", styles.header), cell("%", styles.header)]);
 	overviewRows.push([
 		cell(overview.raw.label, styles.label),
-		cell(`${overview.raw.value} / ${overview.raw.max}`, styles.body),
-		cell(`${overview.raw.percent.toFixed(0)}%`, styles.bandHeader(palette.bands[overview.raw.band].fg))
+		cell(formatScoreFraction(submission.score.total_raw_score, submission.score.total_raw_maximum), styles.body),
+		cell(
+			formatPercent(overview.raw.percent),
+			overview.raw.band === null ? styles.body : styles.bandHeader(palette.bands[overview.raw.band].fg)
+		)
 	]);
 	overviewRows.push([
 		cell(overview.weighted.label, styles.label),
-		cell(`${overview.weighted.value} / ${overview.weighted.max}`, styles.body),
-		cell(`${overview.weighted.percent.toFixed(0)}%`, styles.bandHeader(palette.bands[overview.weighted.band].fg))
+		cell(
+			formatScoreFraction(submission.score.total_weighted_score, submission.score.total_weighted_maximum, 2),
+			styles.body
+		),
+		cell(
+			formatPercent(overview.weighted.percent),
+			overview.weighted.band === null ? styles.body : styles.bandHeader(palette.bands[overview.weighted.band].fg)
+		)
 	]);
 	appendSheet(wb, buildStyledSheet(overviewRows, { colWidths: [26, 34, 10] }), "Overview");
 
@@ -75,10 +85,10 @@ export function generateAuditXlsx(input: AuditReportInput, palette: ExportPalett
 			}),
 			cell(round1(row.rawScore), styles.body),
 			cell(round1(row.rawMax), styles.body),
-			cell(Math.round(row.rawPercent), styles.body),
+			cell(percentCell(row.rawPercent), styles.body),
 			cell(round2(row.weightedScore), styles.body),
 			cell(round2(row.weightedMax), styles.body),
-			cell(Math.round(row.weightedPercent), styles.body)
+			cell(percentCell(row.weightedPercent), styles.body)
 		]);
 	}
 	// Weighting appended below the score table on the same analysis sheet.
@@ -136,4 +146,12 @@ function round1(value: number): number {
 }
 function round2(value: number): number {
 	return Math.round(value * 100) / 100;
+}
+
+function percentCell(value: number | null): number | string {
+	return value === null ? SCORE_UNAVAILABLE : Math.round(value);
+}
+
+function formatPercent(value: number | null): string {
+	return value === null ? SCORE_UNAVAILABLE : `${value.toFixed(0)}%`;
 }

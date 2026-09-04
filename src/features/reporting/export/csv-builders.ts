@@ -16,6 +16,7 @@ import type { PlaceComparisonAuditRecord } from "@/features/workspaces/api/live-
 import type { RawDataRecord } from "@/features/workspaces/api/live-api";
 
 import { sanitizeCsvCell } from "@/lib/csv/sanitize-cell";
+import { SCORE_UNAVAILABLE, scorePercentage } from "@/lib/score-format";
 
 import { auditRawPercent, auditWeightedPercent } from "./comparison-metrics";
 import { resolveAuditorId } from "./identity";
@@ -23,6 +24,16 @@ import { rawDataExportRows } from "./raw-data-columns";
 import { normalizeText, walkDomainResponses } from "./response-walk";
 import { toCsv } from "../reporting";
 import type { PlaceComparisonSummary } from "./types";
+
+function csvPercent(value: number | null): string {
+	return value === null ? SCORE_UNAVAILABLE : `${value.toFixed(1)}%`;
+}
+
+function csvScoreFraction(value: number, maximum: number, fractionDigits = 0): string {
+	if (scorePercentage(value, maximum) === null) return SCORE_UNAVAILABLE;
+	if (fractionDigits > 0) return `${value.toFixed(fractionDigits)}/${maximum.toFixed(fractionDigits)}`;
+	return `${value}/${maximum}`;
+}
 
 /**
  * R1 single-submission CSV — layout-compatible with the legacy
@@ -84,10 +95,10 @@ export function buildPlaceComparisonCsv(summaries: PlaceComparisonSummary[]): st
 		summaries.map(summary => ({
 			project: summary.projectName,
 			place: summary.placeName,
-			raw_score: summary.avgRawScore,
-			raw_percent: `${summary.avgRawPercent.toFixed(1)}%`,
-			youth_weighted_score: summary.avgWeightedScore,
-			youth_weighted_percent: `${summary.avgWeightedPercent.toFixed(1)}%`,
+			raw_score: summary.avgRawScore ?? SCORE_UNAVAILABLE,
+			raw_percent: csvPercent(summary.avgRawPercent),
+			youth_weighted_score: summary.avgWeightedScore ?? SCORE_UNAVAILABLE,
+			youth_weighted_percent: csvPercent(summary.avgWeightedPercent),
 			total_audits: summary.auditCount
 		}))
 	);
@@ -102,10 +113,10 @@ function auditRowsCsv(records: PlaceComparisonAuditRecord[]): string {
 			auditor_id: record.auditor_id,
 			participant_id: record.participant_id || "",
 			date: record.date,
-			raw_score: `${record.total_raw_score}/${record.total_raw_maximum}`,
-			raw_percent: `${auditRawPercent(record).toFixed(1)}%`,
-			youth_weighted_score: `${record.total_weighted_score.toFixed(2)}/${record.total_weighted_maximum.toFixed(2)}`,
-			youth_weighted_percent: `${auditWeightedPercent(record).toFixed(1)}%`
+			raw_score: csvScoreFraction(record.total_raw_score, record.total_raw_maximum),
+			raw_percent: csvPercent(auditRawPercent(record)),
+			youth_weighted_score: csvScoreFraction(record.total_weighted_score, record.total_weighted_maximum, 2),
+			youth_weighted_percent: csvPercent(auditWeightedPercent(record))
 		}))
 	);
 }

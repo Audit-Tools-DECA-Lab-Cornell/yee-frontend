@@ -10,7 +10,16 @@
 
 export type ScoreBand = "low" | "mid" | "high";
 
+/**
+ * Band for a percentage (0–100).
+ *
+ * A non-finite percent maps to "low" explicitly: without the guard `NaN < 34`
+ * and `NaN < 67` are both false, so a broken percentage fell through to "high"
+ * and rendered reassuring green. Callers with no percentage at all should skip
+ * the band entirely and render `SCORE_UNAVAILABLE` (see `@/lib/score-format`).
+ */
 export function scoreBandKey(percent: number): ScoreBand {
+	if (!Number.isFinite(percent)) return "low";
 	if (percent < 34) return "low";
 	if (percent < 67) return "mid";
 	return "high";

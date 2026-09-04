@@ -1,14 +1,21 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScoreStack } from "@/components/ui/score-stack";
 import type { YeeScoreResult, YeeDomainKey } from "@/features/yee-audit/config/yee-audit-config";
 import { yeeDomainThemes } from "@/features/yee-audit/config/yee-domain-theme";
 import { getScoreRows } from "@/features/yee-audit/scoring/yee-scoring";
 import { scoreBand } from "@/lib/score-band";
+import { SCORE_UNAVAILABLE, scorePercent } from "@/lib/score-format";
 
 const rangeBands = [
 	{ label: "Lower range", range: "0–33%", dot: "bg-score-low-fill" },
 	{ label: "Middle range", range: "34–66%", dot: "bg-score-mid-fill" },
 	{ label: "Upper range", range: "67–100%", dot: "bg-score-high-fill" }
 ];
+
+type ScoreRow = ReturnType<typeof getScoreRows>[number];
+
+/** A section that has a usable percentage — sections without one are never ranked. */
+type ScoreExtreme = { row: ScoreRow; percentage: number };
 
 function clampPercentage(value: number) {
 	return Math.max(0, Math.min(100, value));
@@ -18,17 +25,17 @@ function bandFillClass(percentage: number) {
 	return scoreBand(percentage).fill;
 }
 
-function bandTextClass(percentage: number) {
-	return scoreBand(percentage).text;
-}
-
-function findScoreExtremes(rows: ReturnType<typeof getScoreRows>, mode: "raw" | "weighted") {
-	const scoredRows = rows.map(row => {
-		const maximum = mode === "raw" ? row.rawMaximum : row.weightedMaximum;
-		const value = mode === "raw" ? row.rawScore : row.weightedScore;
-		const percentage = maximum > 0 ? (value / maximum) * 100 : 0;
-		return { row, value, maximum, percentage };
-	});
+function findScoreExtremes(rows: ScoreRow[], mode: "raw" | "weighted") {
+	const scoredRows = rows
+		.map(row => ({
+			row,
+			percentage: scorePercent(
+				mode === "raw" ? row.rawScore : row.weightedScore,
+				mode === "raw" ? row.rawMaximum : row.weightedMaximum
+			)
+		}))
+		.filter((entry): entry is ScoreExtreme => entry.percentage !== null);
+	if (scoredRows.length === 0) return { highest: null, lowest: null };
 	const highest = scoredRows.reduce(
 		(best, current) => (current.percentage > best.percentage ? current : best),
 		scoredRows[0]
@@ -66,38 +73,79 @@ function TotalScorePanel({
 	label,
 	value,
 	maximum,
-	percentage,
+	fractionDigits = 0,
 	footnote,
 	tone
 }: {
 	label: string;
-	value: string;
-	maximum: string;
-	percentage: number;
+	value?: number | null;
+	maximum?: number | null;
+	fractionDigits?: number;
 	footnote: string;
 	tone: "raw" | "weighted";
 }) {
+	// The maximum is absent at runtime while the backend scoring rollout lands
+	// (see YeeScoreResult) — show that the score is unknown instead of 0%.
+	const percentage = scorePercent(value, maximum);
 	const panelClasses = tone === "weighted" ? "border-score-high/30 bg-score-high-bg/60" : "border-border bg-muted/30";
 	const labelClasses = tone === "weighted" ? "text-score-high" : "text-muted-foreground";
 	const footnoteClasses = tone === "weighted" ? "text-score-high/80" : "text-muted-foreground";
 
 	return (
 		<div className={`rounded-md border p-5 report-no-break ${panelClasses}`}>
-			<div className="flex items-center justify-between gap-3">
-				<p className={`text-xs font-medium uppercase tracking-[0.14em] ${labelClasses}`}>{label}</p>
-				<span
-					className={`rounded-full bg-white/80 px-2.5 py-0.5 text-xs font-semibold tabular-nums ${bandTextClass(percentage)}`}>
-					{percentage.toFixed(0)}%
-				</span>
-			</div>
-			<p className="mt-3 text-3xl font-semibold tracking-tight text-foreground tabular-nums">
-				{value}
-				<span className="ml-1.5 text-base font-normal text-muted-foreground tabular-nums">/ {maximum}</span>
-			</p>
+			<p className={`text-xs font-medium uppercase tracking-[0.14em] ${labelClasses}`}>{label}</p>
+			<ScoreStack value={value} max={maximum} fractionDigits={fractionDigits} size="xl" banded className="mt-3" />
 			<div className="mt-4">
-				<ProgressBar percentage={percentage} />
+				{percentage === null ? (
+					<div className="h-2 w-full rounded-full bg-muted" />
+				) : (
+					<ProgressBar percentage={percentage} />
+				)}
 			</div>
 			<p className={`mt-3 text-xs leading-5 ${footnoteClasses}`}>{footnote}</p>
+		</div>
+	);
+}
+
+/** Percentage-first section score: bold percent, muted fraction, band-coloured bar. */
+function SectionScoreCell({
+	value,
+	maximum,
+	fractionDigits = 0
+}: {
+	value: number;
+	maximum: number;
+	fractionDigits?: number;
+}) {
+	const percentage = scorePercent(value, maximum);
+	if (percentage === null) {
+		return <span className="block text-right text-muted-foreground tabular-nums">{SCORE_UNAVAILABLE}</span>;
+	}
+	return (
+		<span className="flex items-center justify-end gap-2.5">
+			<ScoreStack value={value} max={maximum} fractionDigits={fractionDigits} size="sm" align="end" />
+			<span className="hidden w-16 sm:block">
+				<ProgressBar percentage={percentage} className="h-1.5" />
+			</span>
+		</span>
+	);
+}
+
+function ExtremeRow({ label, entry, mutedClass }: { label: string; entry: ScoreExtreme | null; mutedClass: string }) {
+	return (
+		<div className="flex items-center justify-between gap-3">
+			<dt className={mutedClass}>{label}</dt>
+			<dd className="flex items-center gap-2 font-medium text-foreground">
+				{entry ? (
+					<>
+						<DomainDot domain={entry.row.domain} />
+						{entry.row.label}
+						<span className={`${mutedClass} tabular-nums`}>{entry.percentage}%</span>
+					</>
+				) : (
+					<span className={`${mutedClass} tabular-nums`}>{SCORE_UNAVAILABLE}</span>
+				)}
+			</dd>
 		</div>
 	);
 }
@@ -114,8 +162,6 @@ export function YeeScoreSummary({
 	const rows = getScoreRows(score);
 	const totalRawScoreMaximum = score.total_raw_maximum;
 	const youthWeightedMax = score.total_weighted_maximum;
-	const totalRawPercentage = totalRawScoreMaximum ? (score.total_raw_score / totalRawScoreMaximum) * 100 : 0;
-	const totalYouthPercentage = youthWeightedMax ? (score.total_weighted_score / youthWeightedMax) * 100 : 0;
 	const rawExtremes = findScoreExtremes(rows, "raw");
 	const weightedExtremes = findScoreExtremes(rows, "weighted");
 
@@ -130,17 +176,16 @@ export function YeeScoreSummary({
 				<div className="grid gap-4 md:grid-cols-2 report-no-break report-print-stack">
 					<TotalScorePanel
 						label="Total Raw Score"
-						value={String(score.total_raw_score)}
-						maximum={String(totalRawScoreMaximum)}
-						percentage={totalRawPercentage}
+						value={score.total_raw_score}
+						maximum={totalRawScoreMaximum}
 						footnote="Share of the available raw score achieved across the full audit."
 						tone="raw"
 					/>
 					<TotalScorePanel
 						label="Total Youth-Weighted Average"
-						value={String(score.total_weighted_score)}
-						maximum={String(youthWeightedMax)}
-						percentage={totalYouthPercentage}
+						value={score.total_weighted_score}
+						maximum={youthWeightedMax}
+						fractionDigits={2}
 						footnote="Maximum reflects the normalized domain weights and each domain's maximum average value."
 						tone="weighted"
 					/>
@@ -170,124 +215,37 @@ export function YeeScoreSummary({
 							<thead>
 								<tr className="border-b border-border bg-muted/40 text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
 									<th className="px-4 py-3 text-left font-medium">Section</th>
-									<th className="px-4 py-3 text-right font-medium">Raw score</th>
-									<th className="px-4 py-3 text-right font-medium">Raw %</th>
+									<th className="px-4 py-3 text-right font-medium">Raw</th>
 									<th className="px-4 py-3 text-right font-medium">Youth-weighted</th>
-									<th className="px-4 py-3 text-right font-medium">Youth-weighted %</th>
 								</tr>
 							</thead>
 							<tbody>
-								{rows.map(row => {
-									const rawMax = row.rawMaximum;
-									const weightedMax = row.weightedMaximum;
-									const rawPercentage = rawMax ? (row.rawScore / rawMax) * 100 : 0;
-									const weightedPercentage = weightedMax
-										? (row.weightedScore / weightedMax) * 100
-										: 0;
-									return (
-										<tr
-											key={row.domain}
-											className="border-b border-border/60 transition-colors last:border-0 hover:bg-muted/30">
-											<td className="px-4 py-3.5">
-												<span className="flex items-center gap-2.5 font-medium text-foreground">
-													<DomainDot domain={row.domain} />
-													{row.label}
-												</span>
-											</td>
-											<td className="px-4 py-3.5 text-right text-muted-foreground tabular-nums">
-												{row.rawScore} / {rawMax}
-											</td>
-											<td className="px-4 py-3.5">
-												<span className="flex items-center justify-end gap-2.5">
-													<span className="font-medium text-foreground tabular-nums">
-														{rawPercentage.toFixed(0)}%
-													</span>
-													<span className="hidden w-16 sm:block">
-														<ProgressBar percentage={rawPercentage} className="h-1.5" />
-													</span>
-												</span>
-											</td>
-											<td className="px-4 py-3.5 text-right text-muted-foreground tabular-nums">
-												{row.weightedScore} / {weightedMax}
-											</td>
-											<td className="px-4 py-3.5">
-												<span className="flex items-center justify-end gap-2.5">
-													<span className="font-medium text-foreground tabular-nums">
-														{weightedPercentage.toFixed(0)}%
-													</span>
-													<span className="hidden w-16 sm:block">
-														<ProgressBar
-															percentage={weightedPercentage}
-															className="h-1.5"
-														/>
-													</span>
-												</span>
-											</td>
-										</tr>
-									);
-								})}
+								{rows.map(row => (
+									<tr
+										key={row.domain}
+										className="border-b border-border/60 transition-colors last:border-0 hover:bg-muted/30">
+										<td className="px-4 py-3.5">
+											<span className="flex items-center gap-2.5 font-medium text-foreground">
+												<DomainDot domain={row.domain} />
+												{row.label}
+											</span>
+										</td>
+										<td className="px-4 py-3.5">
+											<SectionScoreCell value={row.rawScore} maximum={row.rawMaximum} />
+										</td>
+										<td className="px-4 py-3.5">
+											<SectionScoreCell
+												value={row.weightedScore}
+												maximum={row.weightedMaximum}
+												fractionDigits={2}
+											/>
+										</td>
+									</tr>
+								))}
 							</tbody>
 						</table>
 					</div>
 				</div>
-
-				{/* Section performance bars
-				<div className="rounded-md border border-border bg-muted/20 p-5 report-no-break">
-					<div className="flex flex-wrap items-center justify-between gap-3">
-						<div>
-							<h3 className="text-sm font-semibold text-foreground">Section performance</h3>
-							<p className="mt-1 text-xs leading-5 text-muted-foreground">
-								Each bar spans 100% of that section&apos;s available score. Fill color indicates the
-								range reached.
-							</p>
-						</div>
-						<div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-							{rangeBands.map(band => (
-								<span
-									key={band.label}
-									className="flex items-center gap-1.5 text-xs text-muted-foreground">
-									<span className={`h-2 w-2 rounded-full ${band.dot}`} />
-									{band.label}
-									<span className="text-muted-foreground/70 tabular-nums">{band.range}</span>
-								</span>
-							))}
-						</div>
-					</div>
-					<div className="mt-5 space-y-5">
-						{rows.map(row => {
-							const rawMax = row.rawMaximum;
-							const weightedMax = row.weightedMaximum;
-							const rawPercentage = rawMax ? (row.rawScore / rawMax) * 100 : 0;
-							const weightedPercentage = weightedMax ? (row.weightedScore / weightedMax) * 100 : 0;
-							return (
-								<div key={row.domain} className="report-no-break">
-									<p className="flex items-center gap-2.5 text-sm font-medium text-foreground">
-										<DomainDot domain={row.domain} />
-										{row.label}
-									</p>
-									<div className="mt-2 grid gap-x-8 gap-y-2 pl-5 sm:grid-cols-2">
-										<div className="flex items-center gap-3">
-											<span className="w-28 shrink-0 text-xs text-muted-foreground">Raw</span>
-											<ProgressBar percentage={rawPercentage} className="h-2" />
-											<span className="w-24 shrink-0 text-right text-xs font-medium text-foreground tabular-nums">
-												{row.rawScore}/{rawMax} · {rawPercentage.toFixed(0)}%
-											</span>
-										</div>
-										<div className="flex items-center gap-3">
-											<span className="w-28 shrink-0 text-xs text-muted-foreground">
-												Youth-weighted
-											</span>
-											<ProgressBar percentage={weightedPercentage} className="h-2" />
-											<span className="w-24 shrink-0 text-right text-xs font-medium text-foreground tabular-nums">
-												{row.weightedScore}/{weightedMax} · {weightedPercentage.toFixed(0)}%
-											</span>
-										</div>
-									</div>
-								</div>
-							);
-						})}
-					</div>
-				</div> */}
 
 				{/* Highlights */}
 				<div className="grid gap-4 md:grid-cols-2 report-no-break report-print-stack">
@@ -296,26 +254,16 @@ export function YeeScoreSummary({
 							Raw score range
 						</p>
 						<dl className="mt-3 space-y-2 text-sm">
-							<div className="flex items-center justify-between gap-3">
-								<dt className="text-muted-foreground">Highest section</dt>
-								<dd className="flex items-center gap-2 font-medium text-foreground">
-									<DomainDot domain={rawExtremes.highest.row.domain} />
-									{rawExtremes.highest.row.label}
-									<span className="text-muted-foreground tabular-nums">
-										{rawExtremes.highest.percentage.toFixed(0)}%
-									</span>
-								</dd>
-							</div>
-							<div className="flex items-center justify-between gap-3">
-								<dt className="text-muted-foreground">Lowest section</dt>
-								<dd className="flex items-center gap-2 font-medium text-foreground">
-									<DomainDot domain={rawExtremes.lowest.row.domain} />
-									{rawExtremes.lowest.row.label}
-									<span className="text-muted-foreground tabular-nums">
-										{rawExtremes.lowest.percentage.toFixed(0)}%
-									</span>
-								</dd>
-							</div>
+							<ExtremeRow
+								label="Highest section"
+								entry={rawExtremes.highest}
+								mutedClass="text-muted-foreground"
+							/>
+							<ExtremeRow
+								label="Lowest section"
+								entry={rawExtremes.lowest}
+								mutedClass="text-muted-foreground"
+							/>
 						</dl>
 					</div>
 					<div className="rounded-md border border-score-high/30 bg-score-high-bg/60 p-5 report-no-break">
@@ -323,26 +271,16 @@ export function YeeScoreSummary({
 							Youth-weighted range
 						</p>
 						<dl className="mt-3 space-y-2 text-sm">
-							<div className="flex items-center justify-between gap-3">
-								<dt className="text-score-high/80">Highest section</dt>
-								<dd className="flex items-center gap-2 font-medium text-foreground">
-									<DomainDot domain={weightedExtremes.highest.row.domain} />
-									{weightedExtremes.highest.row.label}
-									<span className="text-score-high/80 tabular-nums">
-										{weightedExtremes.highest.percentage.toFixed(0)}%
-									</span>
-								</dd>
-							</div>
-							<div className="flex items-center justify-between gap-3">
-								<dt className="text-score-high/80">Lowest section</dt>
-								<dd className="flex items-center gap-2 font-medium text-foreground">
-									<DomainDot domain={weightedExtremes.lowest.row.domain} />
-									{weightedExtremes.lowest.row.label}
-									<span className="text-score-high/80 tabular-nums">
-										{weightedExtremes.lowest.percentage.toFixed(0)}%
-									</span>
-								</dd>
-							</div>
+							<ExtremeRow
+								label="Highest section"
+								entry={weightedExtremes.highest}
+								mutedClass="text-score-high/80"
+							/>
+							<ExtremeRow
+								label="Lowest section"
+								entry={weightedExtremes.lowest}
+								mutedClass="text-score-high/80"
+							/>
 						</dl>
 					</div>
 				</div>

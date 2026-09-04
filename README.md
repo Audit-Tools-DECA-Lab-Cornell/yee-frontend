@@ -152,7 +152,10 @@ The current reporting experience includes:
 - shared score legends that explain lower / middle / upper score ranges
 - manager comparison cards that show percentage bars for each audit's total raw and total youth-weighted score
 
-Cap score percentage and final max-score presentation are intentionally left extensible until the final cap logic is confirmed.
+Human-readable score surfaces show a backend-authoritative percentage first and
+the score fraction second. Maxima come from each audit's stamped scoring
+contract; missing or non-positive maxima render as unavailable instead of `0%`.
+Cap score logic remains intentionally separate and pending.
 
 ### Auditor dashboard behavior
 
@@ -382,7 +385,7 @@ Project and place editing now use real patch flows:
 
 ### What is still intentionally pending
 
-- final cap-score denominator/percentage logic
+- final cap-score logic
 - any future mobile/offline app work
 - broader spreadsheet-by-spreadsheet copy polishing beyond the QSF-backed metadata already exposed
 - `/api/dashboard/users`

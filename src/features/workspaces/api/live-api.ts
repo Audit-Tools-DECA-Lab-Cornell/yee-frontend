@@ -25,9 +25,11 @@ export type AuditRecord = {
 	submitted_at?: string | null;
 	score: number;
 	total_raw_score: number;
-	total_raw_maximum: number;
+	/** Null when the backend cannot resolve an old or corrupt score snapshot. */
+	total_raw_maximum: number | null;
 	total_weighted_score: number;
-	total_weighted_maximum: number;
+	/** Null when the backend cannot resolve an old or corrupt score snapshot. */
+	total_weighted_maximum: number | null;
 	domain_weights: Record<string, number>;
 	status: string;
 };

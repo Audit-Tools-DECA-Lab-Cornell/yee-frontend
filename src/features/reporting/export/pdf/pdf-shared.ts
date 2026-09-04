@@ -119,7 +119,7 @@ export type CoverOptions = {
 	/** Optional scope/filter line printed under the subtitle (self-describing). */
 	scopeLine?: string;
 	/** Optional headline measures (raw + weighted) with colored band chips. */
-	measures?: { label: string; value: string; sub: string; band: ScoreBandKey }[];
+	measures?: { label: string; value: string; sub: string; band: ScoreBandKey | null }[];
 };
 
 /** Run `draw` with a temporary global alpha (jsPDF GState), then restore it. */
@@ -228,8 +228,9 @@ export async function drawCover(doc: jsPDF, palette: ExportPalette, options: Cov
 		const cardWidth = (contentWidth(doc) - gap * (options.measures.length - 1)) / options.measures.length;
 		options.measures.forEach((measure, index) => {
 			const x = PAGE.marginX + index * (cardWidth + gap);
-			setFill(doc, palette.bands[measure.band].bg);
-			setDraw(doc, palette.bands[measure.band].fg);
+			const bandColors = measure.band === null ? null : palette.bands[measure.band];
+			setFill(doc, bandColors?.bg ?? palette.brand.surface);
+			setDraw(doc, bandColors?.fg ?? palette.brand.border);
 			doc.setLineWidth(0.75);
 			doc.roundedRect(x, y, cardWidth, 58, 5, 5, "FD");
 			setText(doc, palette.brand.muted);
@@ -240,7 +241,7 @@ export async function drawCover(doc: jsPDF, palette: ExportPalette, options: Cov
 			doc.setFont("helvetica", "bold");
 			doc.setFontSize(19);
 			doc.text(measure.value, x + 12, y + 40);
-			setText(doc, palette.bands[measure.band].fg);
+			setText(doc, bandColors?.fg ?? palette.brand.muted);
 			doc.setFont("helvetica", "normal");
 			doc.setFontSize(9);
 			doc.text(measure.sub, x + 12, y + 52);

@@ -6,6 +6,8 @@
  */
 import autoTable from "jspdf-autotable";
 
+import { SCORE_UNAVAILABLE, formatScoreSummary } from "@/lib/score-format";
+
 import { auditRawPercent, auditWeightedPercent, firstVsLatestDeltas } from "../comparison-metrics";
 import { buildTrendSvg } from "../charts/trend";
 import { rasterizeSvg } from "../charts/raster";
@@ -39,14 +41,16 @@ export async function generateTrendPdf(
 	});
 
 	// Trend chart.
+	const trendPoints = sorted.flatMap(record => {
+		const rawPercent = auditRawPercent(record);
+		const weightedPercent = auditWeightedPercent(record);
+		if (rawPercent === null || weightedPercent === null) return [];
+		return [{ label: record.date, rawPercent, weightedPercent }];
+	});
 	const trendSvg = buildTrendSvg({
 		palette,
 		width: 760,
-		points: sorted.map(record => ({
-			label: record.date,
-			rawPercent: auditRawPercent(record),
-			weightedPercent: auditWeightedPercent(record)
-		}))
+		points: trendPoints
 	});
 	const trend = await rasterizeSvg(trendSvg, 2).catch(() => null);
 	if (trend) {
@@ -63,15 +67,13 @@ export async function generateTrendPdf(
 		startY: y,
 		margin: { top: PAGE.continuationTop, bottom: PAGE.marginBottom, left: PAGE.marginX, right: PAGE.marginX },
 		theme: "grid",
-		head: [["Date", "Auditor", "Participant", "Raw score", "Raw %", "Youth-weighted", "YW %"]],
+		head: [["Date", "Auditor", "Participant", "Raw", "Youth-weighted"]],
 		body: sorted.map(record => [
 			record.date,
 			resolveAuditorId(record.auditor_id),
 			record.participant_id || "—",
-			`${record.total_raw_score}/${record.total_raw_maximum}`,
-			`${auditRawPercent(record).toFixed(0)}%`,
-			`${record.total_weighted_score.toFixed(2)}/${record.total_weighted_maximum.toFixed(2)}`,
-			`${auditWeightedPercent(record).toFixed(0)}%`
+			formatScoreSummary(record.total_raw_score, record.total_raw_maximum),
+			formatScoreSummary(record.total_weighted_score, record.total_weighted_maximum, 2)
 		]),
 		styles: {
 			font: "helvetica",
@@ -82,7 +84,7 @@ export async function generateTrendPdf(
 			textColor: hexToRgb(palette.brand.foreground)
 		},
 		headStyles: { fillColor: hexToRgb(palette.brand.green900), textColor: [255, 255, 255], fontStyle: "bold" },
-		columnStyles: { 3: { halign: "right" }, 4: { halign: "right" }, 5: { halign: "right" }, 6: { halign: "right" } }
+		columnStyles: { 3: { halign: "right" }, 4: { halign: "right" } }
 	});
 	y = lastTableY(doc) + 12;
 
@@ -97,8 +99,8 @@ export async function generateTrendPdf(
 			head: [["Section", "First", "Latest", "Change"]],
 			body: deltas.map(delta => [
 				delta.label,
-				`${delta.first.toFixed(0)}%`,
-				`${delta.latest.toFixed(0)}%`,
+				formatPercent(delta.first),
+				formatPercent(delta.latest),
 				formatDelta(delta.delta)
 			]),
 			styles: {
@@ -120,6 +122,7 @@ export async function generateTrendPdf(
 				}
 				if (data.section === "body" && data.column.index === 3) {
 					const delta = deltas[data.row.index].delta;
+					if (delta === null) return;
 					const key = delta > 0 ? "high" : delta < 0 ? "low" : "mid";
 					data.cell.styles.textColor = hexToRgb(palette.bands[key].fg);
 					data.cell.styles.fontStyle = "bold";
@@ -132,7 +135,12 @@ export async function generateTrendPdf(
 	return doc.output("blob");
 }
 
-function formatDelta(delta: number): string {
+function formatPercent(value: number | null): string {
+	return value === null ? SCORE_UNAVAILABLE : `${value.toFixed(0)}%`;
+}
+
+function formatDelta(delta: number | null): string {
+	if (delta === null) return SCORE_UNAVAILABLE;
 	if (delta > 0) return `+${delta.toFixed(1)} pts`;
 	if (delta < 0) return `${delta.toFixed(1)} pts`;
 	return "no change";

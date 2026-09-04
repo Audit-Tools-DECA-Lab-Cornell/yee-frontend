@@ -26,6 +26,7 @@ import { DashboardHero } from "@/components/ui/dashboard-hero";
 import { DataTable, DataTableRowActions } from "@/components/ui/data-table";
 import { ScoreCell } from "@/components/ui/score-cell";
 import { StatusBadge, StatusBadgeFor } from "@/components/ui/status-badge";
+import { SCORE_UNAVAILABLE, aggregateScoreEntries, formatScoreFraction, scorePercent } from "@/lib/score-format";
 import { getPlaceStatus } from "@/lib/status";
 import {
 	approveUser,
@@ -259,15 +260,8 @@ function getMetricValue(metrics: DashboardMetric[], keyword: string) {
 	return metrics.find(metric => metric.title.toLowerCase().includes(keyword.toLowerCase()))?.value ?? "0";
 }
 
-function formatScoreValue(value: number | null) {
-	if (value === null || Number.isNaN(value)) return "Pending";
-	return Number.isInteger(value) ? String(value) : value.toFixed(2);
-}
-
-function formatPercent(value: number | null) {
-	if (value === null || Number.isNaN(value)) return "Pending";
-	return `${value.toFixed(2)}%`;
-}
+/** Every domain weight is answered on the same 0–3 importance scale. */
+const DOMAIN_WEIGHT_MAXIMUM = 3;
 
 function averageDomainWeights(rows: RawDataRecord[]) {
 	if (rows.length === 0) return [];
@@ -276,13 +270,15 @@ function averageDomainWeights(rows: RawDataRecord[]) {
 	return domainOrder.map(domain => {
 		const total = rows.reduce((sum, row) => sum + Number(row.domain_weights[domain] ?? 0), 0);
 		const average = total / rows.length;
-		const percent = average > 0 ? (average / 3) * 100 : 0;
+		// The percent leads the tile, so it comes from the shared helper: a weight
+		// we cannot divide stays null rather than collapsing into a believable 0%.
+		const fraction = formatScoreFraction(average, DOMAIN_WEIGHT_MAXIMUM, 1);
 		return {
 			domain,
 			label: domainLabels[domain],
 			theme: yeeDomainThemes[domain],
-			average,
-			percent
+			percent: scorePercent(average, DOMAIN_WEIGHT_MAXIMUM),
+			fraction: fraction === SCORE_UNAVAILABLE ? null : fraction
 		};
 	});
 }
@@ -318,22 +314,12 @@ export function LiveManagerOverview() {
 		);
 
 	const submittedRows = (rawData.data ?? []).filter(row => Boolean(row.submitted_at));
-	const averageRawScore =
-		submittedRows.length > 0
-			? submittedRows.reduce((sum, row) => sum + row.total_raw_score, 0) / submittedRows.length
-			: null;
-	const averageWeightedScore =
-		submittedRows.length > 0
-			? submittedRows.reduce((sum, row) => sum + row.total_weighted_score, 0) / submittedRows.length
-			: null;
-	const averageCapPercentage =
-		submittedRows.length > 0
-			? submittedRows.reduce((sum, row) => {
-					const denominator = row.total_weighted_maximum;
-					if (!denominator || denominator <= 0) return sum;
-					return sum + (row.total_weighted_score / denominator) * 100;
-				}, 0) / submittedRows.length
-			: null;
+	const rawScoreAggregate = aggregateScoreEntries(
+		submittedRows.map(row => ({ value: row.total_raw_score, maximum: row.total_raw_maximum }))
+	);
+	const weightedScoreAggregate = aggregateScoreEntries(
+		submittedRows.map(row => ({ value: row.total_weighted_score, maximum: row.total_weighted_maximum }))
+	);
 	const activePlaces = getMetricValue(data.metrics, "place");
 	const auditsLogged = getMetricValue(data.metrics, "audit");
 	const completedAudits = submittedRows.length;
@@ -367,26 +353,38 @@ export function LiveManagerOverview() {
 			href: "/manager/audits"
 		}
 	];
-	const scoreSummaryItems = [
+	// Percent-first: each headline is the mean of valid per-audit percentages.
+	// A raw fraction appears only when those same audits share one denominator.
+	const scoreSummaryItems: { label: string; value: string; secondary?: string; helper: string }[] = [
 		{
 			label: "Average raw score",
-			value: formatScoreValue(averageRawScore),
-			helper: "The average raw score across your submitted audits."
+			value:
+				rawScoreAggregate.meanPercentage === null
+					? SCORE_UNAVAILABLE
+					: `${Math.round(rawScoreAggregate.meanPercentage)}%`,
+			secondary:
+				rawScoreAggregate.sharedMaximum === null || rawScoreAggregate.meanValue === null
+					? undefined
+					: formatScoreFraction(rawScoreAggregate.meanValue, rawScoreAggregate.sharedMaximum, 1),
+			helper:
+				rawScoreAggregate.validCount === submittedRows.length
+					? "Mean of each submitted audit's own raw percentage."
+					: `Mean of ${rawScoreAggregate.validCount} submitted audits with an available raw maximum.`
 		},
 		{
 			label: "Average youth-weighted score",
-			value: formatScoreValue(averageWeightedScore),
-			helper: "The average youth-weighted score across your submitted audits."
-		},
-		{
-			label: "Youth-weighted %",
-			value: formatPercent(averageCapPercentage),
-			helper: "How close your youth-weighted scores are to the maximum possible, averaged across audits."
-		},
-		{
-			label: "Maximum raw score",
-			value: `${submittedRows[0]?.total_raw_maximum ?? "—"}`,
-			helper: "The most a raw score can reach. Youth-weighted maximums vary with each audit's weighting."
+			value:
+				weightedScoreAggregate.meanPercentage === null
+					? SCORE_UNAVAILABLE
+					: `${Math.round(weightedScoreAggregate.meanPercentage)}%`,
+			secondary:
+				weightedScoreAggregate.sharedMaximum === null || weightedScoreAggregate.meanValue === null
+					? undefined
+					: formatScoreFraction(weightedScoreAggregate.meanValue, weightedScoreAggregate.sharedMaximum, 2),
+			helper:
+				weightedScoreAggregate.validCount === submittedRows.length
+					? "Mean of each submitted audit's own youth-weighted percentage."
+					: `Mean of ${weightedScoreAggregate.validCount} submitted audits with an available youth-weighted maximum.`
 		}
 	];
 	const domainWeightBreakdown = averageDomainWeights(submittedRows);
@@ -416,7 +414,7 @@ export function LiveManagerOverview() {
 				}
 			/>
 
-			<section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+			<section className="grid gap-4 md:grid-cols-2">
 				{scoreSummaryItems.map(item => (
 					<Card key={item.label} className="rounded-md ">
 						<CardHeader className="gap-3">
@@ -425,6 +423,11 @@ export function LiveManagerOverview() {
 							</CardDescription>
 							<CardTitle className="text-3xl font-semibold tracking-tight text-foreground">
 								{item.value}
+								{item.secondary ? (
+									<span className="ml-2 text-sm font-normal tabular-nums text-muted-foreground">
+										({item.secondary})
+									</span>
+								) : null}
 							</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-3">
@@ -459,10 +462,13 @@ export function LiveManagerOverview() {
 							<p className="mt-1 text-xs text-muted-foreground">
 								Average weighting across submitted audits
 							</p>
-							<p
-								className="mt-2 text-sm font-semibold tabular-nums"
-								style={{ color: item.theme.textHex }}>
-								{item.average?.toFixed(1)} / 3 ({item.percent?.toFixed(0)}%)
+							<p className="mt-2 flex items-baseline gap-1.5 tabular-nums">
+								<span className="text-lg font-semibold" style={{ color: item.theme.textHex }}>
+									{item.percent === null ? "Pending" : `${item.percent}%`}
+								</span>
+								{item.fraction ? (
+									<span className="text-xs text-muted-foreground">({item.fraction})</span>
+								) : null}
 							</p>
 						</div>
 					))}
