@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactElement } from "react";
+import { useState, type ReactElement } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -47,12 +47,11 @@ const NAV_LABEL = "truncate rail-collapsed:sr-only";
 const NAV_ACTIVE_MARKER =
 	"before:absolute before:top-1/2 before:left-0 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-r-full before:bg-sidebar-primary before:content-['']";
 
-/** Wraps a rail control in its label tooltip — only while the rail is collapsed. */
 function RailTooltip({ label, enabled, children }: { label: string; enabled: boolean; children: ReactElement }) {
-	if (!enabled) return children;
+	const [open, setOpen] = useState(false);
 
 	return (
-		<Tooltip>
+		<Tooltip open={enabled && open} onOpenChange={nextOpen => setOpen(enabled && nextOpen)}>
 			<TooltipTrigger asChild>{children}</TooltipTrigger>
 			<TooltipContent side="right" sideOffset={10}>
 				{label}

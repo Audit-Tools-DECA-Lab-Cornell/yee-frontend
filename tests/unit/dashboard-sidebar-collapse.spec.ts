@@ -69,6 +69,18 @@ test("the sidebar toggle is wired to the sidebar it controls", () => {
 	}
 });
 
+test("rail controls keep the same tooltip trigger mounted across collapse toggles", () => {
+	const railTooltipSource = sidebarSource.match(/function RailTooltip[\s\S]*?\n}\n\nexport function/)?.[0];
+
+	expect(railTooltipSource, "RailTooltip must remain a dedicated wrapper around every rail control.").toBeTruthy();
+	expect(
+		railTooltipSource,
+		"RailTooltip must not return the control directly while expanded. Changing its root from the control to <Tooltip> remounts the focused link or button when Ctrl/Cmd+B toggles the rail."
+	).not.toContain("return children");
+	expect(railTooltipSource).toContain("<Tooltip");
+	expect(railTooltipSource).toContain("<TooltipTrigger asChild>");
+});
+
 test("the collapse preference is applied before first paint", () => {
 	expect(
 		shellSource,
