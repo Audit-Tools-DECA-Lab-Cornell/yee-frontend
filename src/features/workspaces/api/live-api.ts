@@ -379,7 +379,7 @@ export type RawDataRecord = {
 
 /**
  * Authenticated fetch for Next.js route handlers.
- * The HttpOnly session cookie is sent automatically by the browser — no
+ * The HttpOnly session cookie is sent automatically by the browser - no
  * Authorization header is needed or emitted from client-side code.
  *
  * The `_session` parameter is kept as an authenticated-user guard so callers
@@ -399,7 +399,7 @@ async function authedFetch<T>(
 	const text = await response.text();
 	const data: unknown = text ? JSON.parse(text) : {};
 	if (!response.ok) {
-		// ApiError (not Error) so structured bodies survive to the caller —
+		// ApiError (not Error) so structured bodies survive to the caller -
 		// a flat throw would collapse object-shaped `detail` into a generic
 		// message, discarding payloads such as the publish 409's
 		// `scoring_compatibility` before any handler could read them.

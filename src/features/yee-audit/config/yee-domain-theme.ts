@@ -2,15 +2,15 @@ import { getBlockMatch } from "@/features/yee-audit/api/yee-instrument";
 import type { YeeDomainKey, YeeStepNumber } from "@/features/yee-audit/config/yee-audit-config";
 
 /**
- * Domain color theme — the ONE place the app maps YEE domains to colors.
+ * Domain color theme - the ONE place the app maps YEE domains to colors.
  *
  * The actual color VALUES live entirely in `--domain-<name>-{text,strong,fill,light}`,
- * generated into `src/app/globals.css` from `src/styles/domain-palette.json` — THE
+ * generated into `src/app/globals.css` from `src/styles/domain-palette.json` - THE
  * single source of truth, shared byte-for-byte with yee-mobile. This file only references
  * those tokens: the `*Hex` fields as raw `var(--domain-*)` (for inline styles / SVG
- * in charts, reports, and the individual report) — one per role, so `textHex`,
- * `strongHex`, `strongFillHex` and `lightHex` cover all four — and the `*Class` fields as Tailwind
- * utilities generated from the same tokens (`domain-*` color namespace — used by the
+ * in charts, reports, and the individual report) - one per role, so `textHex`,
+ * `strongHex`, `strongFillHex` and `lightHex` cover all four - and the `*Class` fields as Tailwind
+ * utilities generated from the same tokens (`domain-*` color namespace - used by the
  * audit wizard). Adjust a color in domain-palette.json (in BOTH repos), regenerate, and it updates everywhere.
  *
  * NOTE: the `*Class` strings are written out literally per domain (not generated) so
@@ -19,13 +19,13 @@ import type { YeeDomainKey, YeeStepNumber } from "@/features/yee-audit/config/ye
 export type DomainTheme = {
 	label: string;
 	step: YeeStepNumber;
-	/** Raw CSS color (`var(--domain-*)`) — labels/headings; 7:1 on the tint and on a card. */
+	/** Raw CSS color (`var(--domain-*)`) - labels/headings; 7:1 on the tint and on a card. */
 	textHex: string;
-	/** Raw CSS color (`var(--domain-*)`) — tint background for inline styles/SVG. */
+	/** Raw CSS color (`var(--domain-*)`) - tint background for inline styles/SVG. */
 	lightHex: string;
-	/** Raw CSS color — borders/dots/lines for inline styles/SVG. */
+	/** Raw CSS color - borders/dots/lines for inline styles/SVG. */
 	strongHex: string;
-	/** Raw CSS color — bar/area fills for inline styles/SVG. */
+	/** Raw CSS color - bar/area fills for inline styles/SVG. */
 	strongFillHex: string;
 
 	/** Active/focused step-nav or card border. */
@@ -190,7 +190,7 @@ export const yeeDomainThemes: Record<YeeDomainKey, DomainTheme> = {
  * Resolve a raw domain key string (as it arrives from the instrument JSON) to its
  * theme. Returns `null` for anything that is not one of the six scored domains,
  * so an unrecognised key renders neutral rather than borrowing another domain's
- * colour — the same fallback rule the audit copy already follows.
+ * colour - the same fallback rule the audit copy already follows.
  */
 export function getThemeByDomainKey(key: string | null | undefined): DomainTheme | null {
 	if (!key) return null;
@@ -206,7 +206,7 @@ export function getThemeByStep(step: YeeStepNumber) {
  *
  * Instrument blocks carry the full authoring label ("Access: Presence,
  * Condition, Provision"), so match on the domain's block substring using the
- * same `getBlockMatch()` semantics the audit wizard already relies on — that is
+ * same `getBlockMatch()` semantics the audit wizard already relies on - that is
  * the single place that knows "Experience of the Space" is stored as
  * "Experience of Space". Sections with no scored domain (for example "Youth
  * Participant Info") return `null` and render neutral.

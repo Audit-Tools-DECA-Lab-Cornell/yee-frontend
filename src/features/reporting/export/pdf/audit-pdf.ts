@@ -1,5 +1,5 @@
 /**
- * R1 — Individual Audit Report PDF. One submitted audit, self-contained: cover
+ * R1 - Individual Audit Report PDF. One submitted audit, self-contained: cover
  * with headline measures, score summary (table + radar + domain bars), section
  * weighting, domain-grouped responses with colored banners, and comments.
  */
@@ -49,7 +49,7 @@ export async function generateAuditPdf(
 
 	// Cover.
 	let y = await drawCover(doc, palette, {
-		title: `${overview.placeName} — YEE Audit Report`,
+		title: `${overview.placeName} – YEE Audit Report`,
 		subtitle: `Submitted by ${overview.auditorId} on ${submittedLabel}. Scores and comments are locked as recorded.`,
 		measures: [
 			{
@@ -132,7 +132,7 @@ export async function generateAuditPdf(
 	const barsSvg =
 		domainBars.length === domainOrder.length ? buildDomainBarsSvg({ rows: domainBars, palette, width: 720 }) : null;
 	// Rasterization needs a browser canvas; if it's unavailable (or fails) the
-	// PDF still renders — the tables carry the same numbers, so we skip the
+	// PDF still renders - the tables carry the same numbers, so we skip the
 	// chart rather than abort the document.
 	const [radar, bars] = await Promise.all([
 		radarSvg === null ? null : tryRasterize(radarSvg),

@@ -37,7 +37,7 @@ export function clearSessionCookie(response: NextResponse): void {
  * Works in both middleware (NextRequest.cookies) and route handlers.
  */
 export function getSessionToken(request: NextRequest | Request): string | null {
-	// NextRequest exposes a typed .cookies API — use it when available.
+	// NextRequest exposes a typed .cookies API - use it when available.
 	if ("cookies" in request && typeof (request as NextRequest).cookies?.get === "function") {
 		return (request as NextRequest).cookies.get(SESSION_COOKIE_NAME)?.value ?? null;
 	}

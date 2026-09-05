@@ -33,7 +33,7 @@ import type { WorkspaceVariant } from "@/components/layouts/dashboard/workspace-
  *   readers (< sm) -> account name and role, still in the menu (< lg).
  *
  * Never dropped at any width: the navigation menu, the primary action, and the
- * account menu — which is why the role switch moved into it.
+ * account menu - which is why the role switch moved into it.
  *
  * The leading slot is always the navigation control, and it is the same slot at
  * every width: the sheet trigger below lg, the sidebar collapse toggle at lg and
@@ -79,7 +79,7 @@ export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 	return (
 		<header className="sticky top-0 z-20 border-b border-border bg-background/90 backdrop-blur">
 			<div className="flex h-14 items-center gap-3 px-4 sm:px-6 lg:px-8">
-				{/* Nav control first, brand second — the near-universal order, and it
+				{/* Nav control first, brand second - the near-universal order, and it
 				    puts the more consequential control first in the tab order too. */}
 				<Sheet>
 					<SheetTrigger asChild>
@@ -105,7 +105,7 @@ export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 
 				{/* Desktop counterpart to the sheet trigger, in the same slot. The
 				    icon is swapped in CSS off the same <html> flag that sizes the
-				    rail, so it is already correct on the first paint — before this
+				    rail, so it is already correct on the first paint - before this
 				    component has hydrated and learned the state. */}
 				<Tooltip>
 					<TooltipTrigger asChild>
@@ -201,7 +201,7 @@ export function DashboardHeader({ variant }: { variant: WorkspaceVariant }) {
 					) : null}
 
 					{/* Identity is the lowest-priority thing in the bar, so it is an
-					    avatar until there is width to spare — and it is now a real menu,
+					    avatar until there is width to spare - and it is now a real menu,
 					    which is where the role switch and logout belong. */}
 					<DropdownMenu>
 						<DropdownMenuTrigger asChild>

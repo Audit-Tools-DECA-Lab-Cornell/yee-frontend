@@ -82,7 +82,7 @@ export const adminTargets: readonly CaptureTarget[] = [
 			{ name: "overview", label: "Admin instruments" },
 			{
 				name: "active-survey-map",
-				label: "Instrument version — logical survey map",
+				label: "Instrument version - logical survey map",
 				optional: true,
 				setup: async ({ page }) => {
 					await page.getByRole("button", { name: "View map" }).first().click();

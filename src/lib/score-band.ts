@@ -26,13 +26,13 @@ export function scoreBandKey(percent: number): ScoreBand {
 }
 
 type ScoreBandClasses = {
-	/** Vivid solid fill (bars, dots) — e.g. `bg-score-high-fill`. */
+	/** Vivid solid fill (bars, dots) - e.g. `bg-score-high-fill`. */
 	fill: string;
-	/** Foreground text — e.g. `text-score-high`. */
+	/** Foreground text - e.g. `text-score-high`. */
 	text: string;
-	/** Tinted background — e.g. `bg-score-high-bg`. */
+	/** Tinted background - e.g. `bg-score-high-bg`. */
 	bg: string;
-	/** Border — e.g. `border-score-high`. */
+	/** Border - e.g. `border-score-high`. */
 	border: string;
 };
 
@@ -58,7 +58,7 @@ export function scoreBand(percent: number): ScoreBandClasses {
 	return BAND_CLASSES[scoreBandKey(percent)];
 }
 
-/** Raw CSS color value for a percentage — for inline SVG `fill`/`stroke`. */
+/** Raw CSS color value for a percentage - for inline SVG `fill`/`stroke`. */
 export function scoreBandColor(percent: number): string {
 	return BAND_VAR[scoreBandKey(percent)];
 }

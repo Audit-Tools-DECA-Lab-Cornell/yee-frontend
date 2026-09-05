@@ -1,7 +1,7 @@
 /**
  * Public re-exports for auth types and routing logic.
  *
- * localStorage storage has been removed — the access token now lives
+ * localStorage storage has been removed - the access token now lives
  * exclusively in an HttpOnly cookie managed by the Next.js route handlers.
  * This file is safe to import from both server and client modules.
  */

@@ -7,7 +7,7 @@ import { loginAsAuditor } from "../helpers/auth";
 // Covers Stage 9: an auditor must not reach manager-only reports/exports.
 // Assertions are robust to the wrong-role redirect target (middleware sends to
 // the user's dashboard_path, but in production serve mode it can land on /login
-// — see PROGRESS.md Stage 7 review L16). Either way the auditor must NOT see the
+// - see PROGRESS.md Stage 7 review L16). Either way the auditor must NOT see the
 // privileged manager content and must NOT remain on the protected path.
 test.describe("@auditor cannot access manager reports/exports", () => {
 	test("auditor is kept out of the manager reports dashboard", async ({ page }) => {

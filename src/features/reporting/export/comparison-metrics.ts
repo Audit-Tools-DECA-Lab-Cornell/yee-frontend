@@ -173,7 +173,7 @@ export function pairwiseDomainDeltas(records: PlaceComparisonAuditRecord[]): Pai
 
 function timeOf(date: string): number {
 	const parsed = new Date(date);
-	// Unparseable/empty dates sort LAST — not to epoch 0, which would wrongly make
+	// Unparseable/empty dates sort LAST - not to epoch 0, which would wrongly make
 	// an undated record the "earliest"/first endpoint in first-vs-latest deltas.
 	return Number.isNaN(parsed.getTime()) ? Number.POSITIVE_INFINITY : parsed.getTime();
 }

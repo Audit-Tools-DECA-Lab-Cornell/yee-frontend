@@ -11,31 +11,31 @@
    user never sees the sidebar paint wide and then snap to the rail.
 
    `rail-collapsed:` only bites inside the persistent desktop aside, so the
-   mobile sheet — which renders the very same sidebar component — always stays
+   mobile sheet - which renders the very same sidebar component - always stays
    expanded no matter what the desktop rail is set to.
    `sidebar-collapsed:` is the unscoped form, for the header toggle's own icon. */
 @custom-variant rail-collapsed (html[data-sidebar-collapsed="true"] [data-dashboard-rail] &);
 @custom-variant sidebar-collapsed (html[data-sidebar-collapsed="true"] &);
 
 @theme inline {
-	/* Typography — loaded via next/font in layout.tsx */
+	/* Typography - loaded via next/font in layout.tsx */
 	--font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 	--font-mono: "JetBrains Mono", "Menlo", ui-monospace, monospace;
 
-	/* Radius scale — restrained; cards max at rounded-lg */
-	--radius-sm: 0.375rem; /* 6px — inputs, badges */
-	--radius-md: 0.625rem; /* 10px — buttons, small cards */
-	--radius-lg: 0.875rem; /* 14px — cards, panels */
-	--radius-xl: 1.25rem; /* 20px — major surfaces like auth panel */
-	--radius-control: 0.5rem; /* 8px — buttons, inputs, filters, segmented controls (crisp but in sync with 10px cards) */
+	/* Radius scale - restrained; cards max at rounded-lg */
+	--radius-sm: 0.375rem; /* 6px - inputs, badges */
+	--radius-md: 0.625rem; /* 10px - buttons, small cards */
+	--radius-lg: 0.875rem; /* 14px - cards, panels */
+	--radius-xl: 1.25rem; /* 20px - major surfaces like auth panel */
+	--radius-control: 0.5rem; /* 8px - buttons, inputs, filters, segmented controls (crisp but in sync with 10px cards) */
 	--radius: 0.625rem;
 
-	/* Shadows — elevation system, not decorative */
+	/* Shadows - elevation system, not decorative */
 	--shadow-card: 0 1px 3px 0 oklch(0 0 0 / 0.08), 0 1px 2px -1px oklch(0 0 0 / 0.06);
 	--shadow-elevated: 0 4px 12px -2px oklch(0 0 0 / 0.1), 0 2px 6px -2px oklch(0 0 0 / 0.06);
 	--shadow-panel: 0 8px 24px -4px oklch(0 0 0 / 0.12), 0 4px 10px -4px oklch(0 0 0 / 0.08);
 
-	/* Motion — the one exponential ease-out curve every state change uses. */
+	/* Motion - the one exponential ease-out curve every state change uses. */
 	--ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
 
 	/* Forward shadcn tokens to Tailwind color utilities */
@@ -116,7 +116,7 @@
 }
 
 :root {
-	/* YEE brand greens — OKLCH for perceptual uniformity */
+	/* YEE brand greens - OKLCH for perceptual uniformity */
 	--yee-green-950: oklch(0.16 0.055 162); /* sidebar bg, darkest brand */
 	--yee-green-900: oklch(0.21 0.052 161); /* primary action, header bg panel */
 	--yee-green-800: oklch(0.28 0.048 161); /* hover on dark */
@@ -127,7 +127,7 @@
 	--yee-green-100: oklch(0.93 0.02 158); /* very light tint for hover */
 	--yee-green-50: oklch(0.97 0.01 158); /* faintest green wash */
 
-	/* Surfaces — slightly cool-tinted whites */
+	/* Surfaces - slightly cool-tinted whites */
 	--yee-surface-app: oklch(0.975 0.003 240); /* app background: nearly white */
 	--yee-surface-card: oklch(1 0 0); /* card: pure white */
 	--yee-surface-muted: oklch(0.965 0.004 240); /* muted inputs, secondary panels */
@@ -162,7 +162,7 @@
 	--sidebar-border: oklch(1 0 0 / 0.08);
 	--sidebar-ring: var(--yee-green-600);
 
-	/* Sidebar rail geometry — one number read by the shell grid, the aside and
+	/* Sidebar rail geometry - one number read by the shell grid, the aside and
 	   the collapse transition, so they can never drift apart.
 	   Expanded 292px holds "Website Copy" plus its icon on one line; collapsed
 	   72px is a 44px touch target with 14px of gutter either side. */
@@ -173,53 +173,53 @@
 	/* >>> generated: domain palette values (edit domain-palette.json) <<< */
 	/* --- Data-viz: DOMAIN palette. Four roles per domain, each held to a WCAG
 	   floor by tests/unit/domain-palette.spec.ts:
-	     text   — labels/headings; >= 7:1 on the card, the app bg and its own tint
-	     strong — borders/dots/rails, and small text; >= 4.5:1 on the same three
-	     fill   — chart bars and score strips; >= 3:1 on the card (WCAG 1.4.11)
-	     light  — the tint background the two above are measured against
+	     text   - labels/headings; >= 7:1 on the card, the app bg and its own tint
+	     strong - borders/dots/rails, and small text; >= 4.5:1 on the same three
+	     fill   - chart bars and score strips; >= 3:1 on the card (WCAG 1.4.11)
+	     light  - the tint background the two above are measured against
 	   The six fills also clear categorical colour-vision separation (OKLab ΔE >= 8
 	   under protanopia and deuteranopia) so adjacent domains stay distinguishable. --- */
-	/* Access — hue 162 */
+	/* Access - hue 162 */
 	--domain-access-text: #075d3f;
 	--domain-access-strong: #0d7d56;
 	--domain-access-fill: #129768;
 	--domain-access-light: #e0f6ea;
-	/* Activity Spaces — hue 242 */
+	/* Activity Spaces - hue 242 */
 	--domain-activity-text: #065582;
 	--domain-activity-strong: #0c73ad;
 	--domain-activity-fill: #159be6;
 	--domain-activity-light: #e4f2fe;
-	/* Amenities — hue 78 */
+	/* Amenities - hue 78 */
 	--domain-amenities-text: #6c4a05;
 	--domain-amenities-strong: #91650b;
 	--domain-amenities-fill: #c28913;
 	--domain-amenities-light: #fbeedc;
-	/* Experience of the Space — hue 199 */
+	/* Experience of the Space - hue 199 */
 	--domain-experience-text: #075a5d;
 	--domain-experience-strong: #0d7a7e;
 	--domain-experience-fill: #15a3a8;
 	--domain-experience-light: #dcf6f7;
-	/* Aesthetics & Care — hue 12 */
+	/* Aesthetics & Care - hue 12 */
 	--domain-aesthetics-text: #893242;
 	--domain-aesthetics-strong: #bd415a;
 	--domain-aesthetics-fill: #e7677c;
 	--domain-aesthetics-light: #feebec;
-	/* Use & Usability — hue 293 */
+	/* Use & Usability - hue 293 */
 	--domain-use-text: #57438e;
 	--domain-use-strong: #775ac5;
 	--domain-use-fill: #9c81ef;
 	--domain-use-light: #f0eefe;
 	/* <<< end generated: domain palette values >>> */
 
-	/* Categorical SERIES palette — for comparing N places/audits (radar, trend lines).
+	/* Categorical SERIES palette - for comparing N places/audits (radar, trend lines).
 	   Brand green leads; the rest are harmonized to the same muted envelope. */
-	--chart-series-1: oklch(0.45 0.09 160); /* brand green — primary series */
+	--chart-series-1: oklch(0.45 0.09 160); /* brand green - primary series */
 	--chart-series-2: oklch(0.55 0.09 235); /* harmonized blue */
 	--chart-series-3: oklch(0.6 0.1 70); /* harmonized ochre */
 	--chart-series-4: oklch(0.55 0.1 300); /* harmonized violet */
 	--chart-series-5: oklch(0.55 0.09 20); /* harmonized clay */
 
-	/* Score bands — vivid traffic-light fills with darker, accessible text.
+	/* Score bands - vivid traffic-light fills with darker, accessible text.
 	   Keep fill and text roles separate so small labels remain readable. */
 	--score-high: #166534;
 	--score-high-fill: #22c55e;
@@ -231,16 +231,16 @@
 	--score-low-fill: #ef4444;
 	--score-low-bg: #fee2e2;
 
-	/* Chart neutrals — grid rules and axis text (replaces #d6dfe6 / slate-500) */
+	/* Chart neutrals - grid rules and axis text (replaces #d6dfe6 / slate-500) */
 	--chart-grid: oklch(0.9 0.005 240);
 	--chart-axis: oklch(0.55 0.01 240);
 
-	/* Banner gradient — maps to brand greens (replaces hardcoded #10231f/#17302c/#21483b) */
+	/* Banner gradient - maps to brand greens (replaces hardcoded #10231f/#17302c/#21483b) */
 	--banner-from: var(--yee-green-950);
 	--banner-via: var(--yee-green-900);
 	--banner-to: var(--yee-green-800);
 
-	/* Skeleton shimmer — brand-tinted sweep (replaces flat bg-slate-200) */
+	/* Skeleton shimmer - brand-tinted sweep (replaces flat bg-slate-200) */
 	--skeleton-base: var(--yee-surface-muted);
 	--skeleton-shine: var(--yee-green-100);
 }
@@ -285,7 +285,7 @@ html[data-sidebar-collapsed="true"] {
 	}
 }
 
-/* Branded skeleton shimmer — a soft brand-tinted sweep instead of a flat gray pulse.
+/* Branded skeleton shimmer - a soft brand-tinted sweep instead of a flat gray pulse.
    Disabled automatically for users with prefers-reduced-motion (see rule above). */
 @keyframes skeleton-shimmer {
 	0% {

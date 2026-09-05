@@ -29,7 +29,7 @@ function participantIdLabel(state: AuditState | undefined): string {
 	return typeof value === "string" && value.trim() ? value : "—";
 }
 
-/** Score cell for an assigned place — the shared null-safe ScoreCell once a score exists. */
+/** Score cell for an assigned place - the shared null-safe ScoreCell once a score exists. */
 function AuditScoreCell({ state }: { state: AuditState | undefined }) {
 	const score = state?.score ?? null;
 	if (!score) return <span className="text-muted-foreground">—</span>;

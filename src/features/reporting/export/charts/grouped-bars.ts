@@ -1,5 +1,5 @@
 /**
- * Grouped bar chart builder — standalone SVG. For R4: each domain is a group of
+ * Grouped bar chart builder - standalone SVG. For R4: each domain is a group of
  * N vertical bars, one per selected audit (series-colored). Grouped side-by-side
  * reads more clearly than stacked when comparing 2–3 audits (logistics §6).
  */

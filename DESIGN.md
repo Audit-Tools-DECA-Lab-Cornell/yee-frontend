@@ -1,4 +1,4 @@
-# YEE Audit Tools — Design Reference
+# YEE Audit Tools - Design Reference
 
 _Living document. Updated alongside codebase changes._
 
@@ -26,8 +26,8 @@ All colors are defined in `src/app/globals.css` using OKLCH, which gives percept
 
 | Token | Value | Usage |
 |---|---|---|
-| `--yee-surface-app` | `oklch(0.975 0.003 240)` | App background — nearly white with cool tint |
-| `--yee-surface-card` | `oklch(1 0 0)` | Card surface — pure white |
+| `--yee-surface-app` | `oklch(0.975 0.003 240)` | App background - nearly white with cool tint |
+| `--yee-surface-card` | `oklch(1 0 0)` | Card surface - pure white |
 | `--yee-surface-muted` | `oklch(0.965 0.004 240)` | Muted inputs, secondary panels |
 | `--yee-surface-hover` | `oklch(0.955 0.006 240)` | Hover state background |
 
@@ -97,10 +97,10 @@ These are the tokens used throughout all components via Tailwind utility classes
 | `--radius-lg` | `0.875rem` (14px) | Modals, sheets, large/outer cards |
 | `--radius-xl` | `1.25rem` (20px) | Major surfaces (auth panel) |
 
-**Roundedness hierarchy (keep these in sync — this is the whole point):**
+**Roundedness hierarchy (keep these in sync - this is the whole point):**
 menu items/chips `rounded-sm` (6) ≤ controls `rounded-control` (8) ≤ cards / table / popovers / sidebar
 `rounded-md` (10) ≤ modals / large cards `rounded-lg` (14). Pills & status dots use `rounded-full`.
-A control nested in a card should be one step less round than its container — never dramatically sharper.
+A control nested in a card should be one step less round than its container - never dramatically sharper.
 Never put `rounded-lg`/`rounded-xl` on a plain button. (Exception: the tall multi-select field triggers
 sit at `rounded-md` so text inputs at `rounded-control` read as one notch tighter.)
 
@@ -123,15 +123,15 @@ sit at `rounded-md` so text inputs at `rounded-control` read as one notch tighte
 ## Card Component
 
 Three elevations:
-- `flat` — border only, no shadow (tables, embedded panels)
-- `raised` (default) — `--shadow-card`
-- `panel` — `--shadow-elevated` (feature panels, modals)
+- `flat` - border only, no shadow (tables, embedded panels)
+- `raised` (default) - `--shadow-card`
+- `panel` - `--shadow-elevated` (feature panels, modals)
 
 ---
 
 ## Motion
 
-- All animations use exponential ease-out curves — `--ease-emphasized`, i.e. `cubic-bezier(0.16, 1, 0.3, 1)`
+- All animations use exponential ease-out curves - `--ease-emphasized`, i.e. `cubic-bezier(0.16, 1, 0.3, 1)`
 - Every animation has a `prefers-reduced-motion: reduce` alternative in `globals.css`
 - Keep transitions under 300ms for state changes; 500ms max for page entrances
 
@@ -140,20 +140,20 @@ Three elevations:
 ## Data Visualization
 
 All charts are hand-drawn SVG/CSS (no chart library). Colors come from tokens in
-`globals.css` — **never hardcode hex in a chart.**
+`globals.css` - **never hardcode hex in a chart.**
 
-**Domain palette** — **single source of truth** is `src/styles/domain-palette.json`, committed with
+**Domain palette** - **single source of truth** is `src/styles/domain-palette.json`, committed with
 identical contents in **yee-mobile** (`lib/domain-palette.json`). Everything else is derived from it:
 
 | Consumer | How it reads the palette |
 |---|---|
-| `globals.css` `--domain-*` tokens | **generated** — `node scripts/generate-domain-tokens.mjs` |
+| `globals.css` `--domain-*` tokens | **generated** - `node scripts/generate-domain-tokens.mjs` |
 | Tailwind `domain-*` utilities | generated into `@theme` from the same run |
 | Components / SVG charts | `yeeDomainThemes` (`features/yee-audit/config/yee-domain-theme.ts`), which holds nothing but `var(--domain-*)` strings |
 | PDF / Excel / SVG exports | `getExportPalette()` reads the JSON directly (`export/export-palette.ts`) |
 | yee-mobile | `designSystem.domains`, read from its copy of the same JSON |
 
-Four roles per domain, each tuned to the job it does — this is why one hue is not enough:
+Four roles per domain, each tuned to the job it does - this is why one hue is not enough:
 
 | Role | Used for | Floor (enforced) |
 |---|---|---|
@@ -162,17 +162,17 @@ Four roles per domain, each tuned to the job it does — this is why one hue is 
 | `fill` | chart bars, score strips | ≥ 3:1 on the card (WCAG 1.4.11 non-text) |
 | `light` | tint backgrounds | the surface the two above are measured against |
 
-The six `fill` steps additionally clear categorical separation — OKLab ΔE ≥ 15 in full colour and
-≥ 8 under simulated protanopia and deuteranopia — so adjacent domains stay tellable apart. Domain
+The six `fill` steps additionally clear categorical separation - OKLab ΔE ≥ 15 in full colour and
+≥ 8 under simulated protanopia and deuteranopia - so adjacent domains stay tellable apart. Domain
 colour is never the *only* signal: every domain mark ships beside its name (WCAG 1.4.1).
 
 **To change a domain colour:** edit the JSON in **both** repos, run `pnpm tokens:domains`, update
 `DOMAIN_PALETTE_CHECKSUM` in both, then run the guard tests on both sides.
 `tests/unit/domain-palette.spec.ts` re-runs the generator in `--check` mode, re-measures every
 contrast floor and separation gate, and **fails if any domain hex appears anywhere in `src/` outside
-the spec**. Its checksum test catches the spec being edited without the checksum being refreshed —
+the spec**. Its checksum test catches the spec being edited without the checksum being refreshed -
 it cannot read yee-mobile, so keeping the two in step still relies on landing both PRs together. Never hardcode a domain colour (no `emerald-*`,
-`blue-*`, no raw hex) — go through the tokens.
+`blue-*`, no raw hex) - go through the tokens.
 
 **Series palette** (`--chart-1 … --chart-5`): categorical colors for comparing N places/audits
 (radar, trend lines). Brand green leads; the rest are harmonized to the same muted envelope.
@@ -184,7 +184,7 @@ bars and dots stand out without reducing label contrast. Use the single `scoreBa
 
 **Chart neutrals** (`--chart-grid`, `--chart-axis`): hairline grid rules and axis text.
 
-**Chart style:** editorial — oversized `tabular-nums` numerals, hairline grids, generous whitespace,
+**Chart style:** editorial - oversized `tabular-nums` numerals, hairline grids, generous whitespace,
 one accent per chart. Reusable primitives live in `components/ui/charts/`.
 
 ---
@@ -192,15 +192,15 @@ one accent per chart. Reusable primitives live in `components/ui/charts/`.
 ## Component Conventions
 
 **Buttons:**
-- Radius `rounded-control` (4px), tight density (default `h-8`, `px-3`) — crisp, not bulky
-- `default`/`primary` — brand green, white text
-- `outline` — white bg, border, dark text
-- `quiet` — ghost-like, no border at rest
-- `danger` — destructive red (AlertDialog confirms only)
+- Radius `rounded-control` (4px), tight density (default `h-8`, `px-3`) - crisp, not bulky
+- `default`/`primary` - brand green, white text
+- `outline` - white bg, border, dark text
+- `quiet` - ghost-like, no border at rest
+- `danger` - destructive red (AlertDialog confirms only)
 - All buttons support `isLoading` prop (spinner + disabled)
 
 **Badges:**
-- Use `rounded-full` (pill shape) — always
+- Use `rounded-full` (pill shape) - always
 - Status colors: `success` (green), `warning` (amber), `destructive` (red), `secondary` (muted)
 - `dot` prop adds a colored status indicator before the label
 
@@ -221,9 +221,9 @@ one accent per chart. Reusable primitives live in `components/ui/charts/`.
 - Background: `var(--sidebar)` (deep green)
 - Nav links: `rounded-md`, 44px tall, solid `bg-sidebar-accent` for selected state (no gradient)
 - Selected state also gets a 3px `--sidebar-primary` marker on its left edge. `--sidebar-accent`
-  sits only 0.05L above `--sidebar`, so the tint alone is not a sufficient "you are here" —
+  sits only 0.05L above `--sidebar`, so the tint alone is not a sufficient "you are here" -
   and once collapsed there is no label weight left to carry it either.
-- Icons: `size-4.5` (18px) expanded, `size-5` (20px) collapsed — an icon with no label beside it
+- Icons: `size-4.5` (18px) expanded, `size-5` (20px) collapsed - an icon with no label beside it
   has to carry the row on its own.
 - Section labels: `text-xs text-sidebar-foreground/45 font-medium` at normal tracking
 - CTA card: `border-sidebar-border bg-sidebar-accent`, no glassmorphism
@@ -244,7 +244,7 @@ one accent per chart. Reusable primitives live in `components/ui/charts/`.
   `data-sidebar-collapsed` before first paint and every collapsed style is a CSS descendant of
   it (`rail-collapsed:` / `sidebar-collapsed:` variants in `globals.css`). Server and client
   render identical markup, so there is no hydration mismatch and no wide-then-narrow flash.
-  React reads the attribute through `useSyncExternalStore` for the parts CSS cannot do —
+  React reads the attribute through `useSyncExternalStore` for the parts CSS cannot do -
   `aria-expanded` and whether the rail's tooltips are live.
 - **`rail-collapsed:` is scoped to `[data-dashboard-rail]`**, the persistent desktop aside. The
   mobile sheet renders the same `DashboardSidebar` and must always be full width with visible
@@ -252,7 +252,7 @@ one accent per chart. Reusable primitives live in `components/ui/charts/`.
   (opt-in, rail only) gates the tooltips the same way.
 - **Labels collapse to `sr-only`, never `hidden`.** An icon-only link whose label is
   `display: none` has no accessible name at all.
-- Toggle: header, leading slot — the same position the sheet trigger holds below `lg`. Bound to
+- Toggle: header, leading slot - the same position the sheet trigger holds below `lg`. Bound to
   ⌘/Ctrl+B, ignored while the user is typing.
 - Preference persists in `localStorage` under `yee:sidebar-collapsed`; blocked storage degrades
   to session-only, never to a broken toggle.
@@ -261,7 +261,7 @@ one accent per chart. Reusable primitives live in `components/ui/charts/`.
 
 **Header:**
 - Sticky top, `bg-background/90 backdrop-blur`
-- No presentational search input — command palette button (`⌘K`) placeholder
+- No presentational search input - command palette button (`⌘K`) placeholder
 - User avatar: `AvatarFallback` with `bg-green-100 text-green-700`
 
 **Main content:**
@@ -274,7 +274,7 @@ one accent per chart. Reusable primitives live in `components/ui/charts/`.
 
 **Domain color rule:** Each YEE domain (Access, Activity Spaces, etc.) uses its own color family as a border/accent on option cards. The card background is a very light tint, not a solid domain fill.
 
-**Non-domain steps stay neutral.** Steps 1 (context), 2 (weighting) and 9 (final comments) are not domains, so they wear the brand-neutral base — the same rule yee-mobile's `getSurveyPalette()` follows. Colour on screen answers "which domain am I in"; spending hues on the steps that have no domain would make that signal meaningless. The one exception: inside the weighting step each *card* is a domain, so each card wears its own.
+**Non-domain steps stay neutral.** Steps 1 (context), 2 (weighting) and 9 (final comments) are not domains, so they wear the brand-neutral base - the same rule yee-mobile's `getSurveyPalette()` follows. Colour on screen answers "which domain am I in"; spending hues on the steps that have no domain would make that signal meaningless. The one exception: inside the weighting step each *card* is a domain, so each card wears its own.
 
 **Selected state:** Solid `2px border` in domain color + `bg-{domain}-50` tint. No stacked shadows/rings/gradients.
 

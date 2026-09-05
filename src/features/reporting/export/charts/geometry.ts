@@ -1,5 +1,5 @@
 /**
- * Pure chart geometry — the ONE source of the point/polygon/scale math shared
+ * Pure chart geometry - the ONE source of the point/polygon/scale math shared
  * by the on-screen React charts (`live-reports.tsx`) and the export SVG builders
  * (`radar.ts`/`trend.ts`/`domain-bars.ts`/`grouped-bars.ts`).
  *

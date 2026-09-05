@@ -21,7 +21,7 @@ const DETAIL_CLASSES: Record<ScoreStackSize, string> = {
 type ScoreStackProps = {
 	value?: number | null;
 	max?: number | null;
-	/** Decimals for the fraction — 2 for youth-weighted scores. */
+	/** Decimals for the fraction - 2 for youth-weighted scores. */
 	fractionDigits?: number;
 	/** Prefix for the secondary line: `Raw` renders `Raw 18 / 125`. */
 	label?: string;

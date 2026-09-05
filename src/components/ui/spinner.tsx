@@ -15,7 +15,7 @@ type SpinnerProps = {
 };
 
 /**
- * Brand spinner — a two-part arc (faint track + solid brand-green sweep) instead
+ * Brand spinner - a two-part arc (faint track + solid brand-green sweep) instead
  * of a generic ring. Inherits color from `currentColor`, so it can be recolored
  * on dark surfaces via `text-*`. Honors `prefers-reduced-motion` (the global rule
  * in globals.css freezes the spin).

@@ -9,7 +9,7 @@ type LoadingScreenProps = {
 };
 
 /**
- * Full-page branded loader — a large YEE mark inside a soft pulsing brand ring
+ * Full-page branded loader - a large YEE mark inside a soft pulsing brand ring
  * (one integrated visual unit), with a caption below. Replaces bare
  * "Checking access…" text on route gates and heavy first loads.
  */
@@ -39,7 +39,7 @@ type InlineLoaderProps = {
 };
 
 /**
- * Inline branded loader for use inside cards/panels — a small brand spinner with
+ * Inline branded loader for use inside cards/panels - a small brand spinner with
  * a message. Replaces the plain "Loading {x}…" text blocks scattered across the
  * dashboards.
  */

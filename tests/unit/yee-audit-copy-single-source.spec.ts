@@ -12,7 +12,7 @@ const wizardSource = readFileSync(
  * Strings the admin Audit Copy tab can publish, paired with the fallback the
  * wizard uses when an instrument version predates that key.
  *
- * Each fallback must appear exactly once — in the block near the top of the
+ * Each fallback must appear exactly once - in the block near the top of the
  * component that resolves every instrument string. Every render site then reads
  * that resolved value.
  *

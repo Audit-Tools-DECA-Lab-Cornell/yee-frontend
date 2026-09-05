@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
  *     accessibility tree and the tooltip is sighted-user affordance on top.
  *
  * Row geometry is shared by every item: 44px tall always, and 44px wide when
- * collapsed — the same touch floor the header controls hold themselves to.
+ * collapsed - the same touch floor the header controls hold themselves to.
  */
 const NAV_ROW = cn(
 	"relative flex min-h-11 items-center gap-3 rounded-md px-3 text-sm font-medium whitespace-nowrap",
@@ -42,7 +42,7 @@ const NAV_LABEL = "truncate rail-collapsed:sr-only";
 /**
  * A left marker on the active row. Collapsed there is no label weight and no
  * text colour left to carry "you are here", and `--sidebar-accent` sits only
- * 0.05L above the sidebar itself — far too quiet on its own.
+ * 0.05L above the sidebar itself - far too quiet on its own.
  */
 const NAV_ACTIVE_MARKER =
 	"before:absolute before:top-1/2 before:left-0 before:h-5 before:w-[3px] before:-translate-y-1/2 before:rounded-r-full before:bg-sidebar-primary before:content-['']";
@@ -70,7 +70,7 @@ export function DashboardSidebar({
 	/**
 	 * Only the persistent desktop aside can collapse. The mobile sheet renders
 	 * this same component at full width, where a tooltip repeating a label the
-	 * user can already read is noise — so tooltips are opt-in, like the
+	 * user can already read is noise - so tooltips are opt-in, like the
 	 * `rail-collapsed:` styles are scoped to `[data-dashboard-rail]`.
 	 */
 	collapsible?: boolean;
@@ -100,7 +100,7 @@ export function DashboardSidebar({
 				Skip to main content
 			</a>
 
-			{/* Brand header — the wordmark becomes the mark, and the workspace
+			{/* Brand header - the wordmark becomes the mark, and the workspace
 			    blurb is the first thing to go: it is orientation, not navigation. */}
 			<div
 				className={cn(
@@ -154,7 +154,7 @@ export function DashboardSidebar({
 				</nav>
 
 				{/* Sidebar CTA card. Collapsed it keeps only its action, as a rail
-				    button — for auditors this is the only Start Audit entry point,
+				    button - for auditors this is the only Start Audit entry point,
 				    so it can shrink but it cannot be dropped. */}
 				{config.sidebarCard ? (
 					<div

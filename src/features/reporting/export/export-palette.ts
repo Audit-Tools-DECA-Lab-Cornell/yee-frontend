@@ -1,5 +1,5 @@
 /**
- * D4 — the color pipeline. One module resolves every CSS color token the app
+ * D4 - the color pipeline. One module resolves every CSS color token the app
  * uses into a plain hex string that jsPDF / autotable / xlsx-js-style / the SVG
  * chart builders can consume. `globals.css` stays the single source of truth;
  * drift risk is confined to the FALLBACK_HEX table below.
@@ -15,7 +15,7 @@ import { scoreBandKey } from "@/lib/score-band";
 import { domainOrder, type ExportPalette } from "./types";
 
 /**
- * Fallback hex table for the NON-domain tokens — mirrors the `oklch()` values in
+ * Fallback hex table for the NON-domain tokens - mirrors the `oklch()` values in
  * `src/app/globals.css`. KEEP IN SYNC: if you change a `--chart-series-*`,
  * `--score-*`, `--chart-grid/axis`, `--yee-green-*`, `--foreground`,
  * `--muted-foreground`, `--border` or `--card` token there, recompute the hex
@@ -172,7 +172,7 @@ export const FALLBACK_HEX_TABLE: Readonly<Record<string, string>> = FALLBACK_HEX
 /**
  * Score-band selector for the export pipeline. Delegates to the app's
  * `scoreBandKey` so the exported PDF/XLSX bands can never drift from the
- * on-screen ones — the 34/67 cutoffs live in `@/lib/score-band` only.
+ * on-screen ones - the 34/67 cutoffs live in `@/lib/score-band` only.
  */
 export function bandForPercent(percent: number): "low" | "mid" | "high" {
 	return scoreBandKey(percent);

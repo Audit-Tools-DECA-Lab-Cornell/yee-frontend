@@ -9,7 +9,7 @@ type StatusBadgeProps = {
 	className?: string;
 };
 
-/** Consistent, dot-prefixed status badge — the only status pill in the app. */
+/** Consistent, dot-prefixed status badge - the only status pill in the app. */
 function StatusBadge({ label, tone = "secondary", dot = true, className }: StatusBadgeProps) {
 	return (
 		<Badge variant={tone} dot={dot} className={cn("font-medium", className)}>

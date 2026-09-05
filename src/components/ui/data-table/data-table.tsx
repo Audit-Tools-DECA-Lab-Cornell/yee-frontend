@@ -33,7 +33,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { cn } from "@/lib/utils";
 
 type DataTableProps<TData, TValue> = {
-	/** Memoize this array — a new reference every render re-creates the table. */
+	/** Memoize this array - a new reference every render re-creates the table. */
 	columns: ColumnDef<TData, TValue>[];
 	/** Memoize this array for the same reason. */
 	data: TData[];
@@ -62,10 +62,10 @@ type DataTableProps<TData, TValue> = {
 	className?: string;
 };
 
-/** Light column divider — intentionally lighter than the table's row/outline borders. */
+/** Light column divider - intentionally lighter than the table's row/outline borders. */
 const COLUMN_DIVIDER = "border-r border-border/40 last:border-r-0";
 
-/** Only real data columns (with a text header) are resizable/hideable — structural
+/** Only real data columns (with a text header) are resizable/hideable - structural
  * checkbox/action columns keep their natural content width and stay pinned. */
 function isDataColumn(columnDef: { header?: unknown }) {
 	return typeof columnDef.header === "string";
@@ -78,7 +78,7 @@ function countLeafRows<TData>(row: Row<TData>): number {
 	return row.subRows.reduce((total, subRow) => total + countLeafRows(subRow), 0);
 }
 
-/** Per-level group header label — a string applies to every level, a record
+/** Per-level group header label - a string applies to every level, a record
  * labels each grouped column on its own. */
 function resolveGroupLabel(groupLabel: string | Record<string, string> | undefined, columnId: string | undefined) {
 	if (!groupLabel) return undefined;
@@ -96,7 +96,7 @@ type DataTableBodyProps<TData> = {
 	table: TableInstance<TData>;
 	sized: boolean;
 	showBodyDividers: boolean;
-	/** Joined grouping key — stable across renders, so the memo below can use it. */
+	/** Joined grouping key - stable across renders, so the memo below can use it. */
 	groupKey: string;
 	groupLabel?: string | Record<string, string>;
 	/** Serialized `groupLabel`, for the same reason. */
@@ -289,7 +289,7 @@ function DataTable<TData, TValue>({
 	const isEmpty = data.length === 0;
 	// Zero rows always says so. Filtering everything out also empties `data`, so
 	// keying purely off `!isEmpty` left over-filtered tables rendering a headed
-	// but silent body — the reader could not tell a filter from a dead page.
+	// but silent body - the reader could not tell a filter from a dead page.
 	// The one case that stays quiet is the dedicated empty state below.
 	const hasNoMatches = rows.length === 0 && !(isEmpty && emptyState);
 	// Group rows are full-width bands; keeping body dividers off when grouped
@@ -317,7 +317,7 @@ function DataTable<TData, TValue>({
 				widths[leaf[index].id] = width;
 				total += width;
 			});
-			if (total <= 0) return false; // hidden (e.g. mobile card view) — wait for visibility.
+			if (total <= 0) return false; // hidden (e.g. mobile card view) - wait for visibility.
 			initialSizesRef.current = widths;
 			setColumnSizing(widths);
 			setSized(true);

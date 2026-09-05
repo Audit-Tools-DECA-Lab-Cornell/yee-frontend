@@ -40,7 +40,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 	const { pathname } = request.nextUrl;
 	const allowedRoles = matchedRoute(pathname);
 
-	// Not a protected route — pass through immediately.
+	// Not a protected route - pass through immediately.
 	if (!allowedRoles) return NextResponse.next();
 
 	const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME);
@@ -75,7 +75,7 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 
 		return NextResponse.next();
 	} catch {
-		// Network error reaching the session handler — fail open to login.
+		// Network error reaching the session handler - fail open to login.
 		return NextResponse.redirect(new URL("/login", request.url));
 	}
 }

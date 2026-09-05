@@ -11,7 +11,7 @@ const golden = readFileSync(join(__dirname, "../fixtures/golden-single-submissio
 
 test("single-submission CSV is byte-identical to the legacy generator", () => {
 	const csv = buildSingleSubmissionCsv(sampleSubmission, sampleInstrument);
-	// Exact bytes — captured from the original downloadSingleSubmissionCsv before
+	// Exact bytes - captured from the original downloadSingleSubmissionCsv before
 	// any code moved (plan acceptance criterion 4).
 	expect(csv).toBe(golden);
 });

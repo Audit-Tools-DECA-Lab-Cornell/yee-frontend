@@ -31,7 +31,7 @@ type DataTableRowActionsProps = {
 
 /**
  * The single row-action convention for every table: one visible primary
- * action plus an overflow menu for the rest — replacing the previous mix of
+ * action plus an overflow menu for the rest - replacing the previous mix of
  * lone "Open ↗" links, four coloured inline links, and inline buttons.
  */
 function DataTableRowActions({ primary, actions = [], className }: DataTableRowActionsProps) {

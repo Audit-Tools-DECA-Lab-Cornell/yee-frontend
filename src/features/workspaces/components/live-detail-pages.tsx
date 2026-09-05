@@ -33,7 +33,7 @@ import {
 	type ProjectPlaceRecord
 } from "@/features/workspaces/api/live-api";
 /**
- * Muted, field-specific placeholder for an empty setup-detail value — instead of
+ * Muted, field-specific placeholder for an empty setup-detail value - instead of
  * a wall of identical "Not specified yet." lines that read like real data.
  */
 function emptyHint(text: string) {
@@ -67,7 +67,7 @@ function statusTone(status: string): StatusTone {
 
 /**
  * Percentage-first score text: the percent is the headline and the raw fraction
- * sits beneath it, small and muted. A missing maximum renders an em dash —
+ * sits beneath it, small and muted. A missing maximum renders an em dash -
  * never a fabricated 0%.
  */
 function ScoreValue({

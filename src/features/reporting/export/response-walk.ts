@@ -27,7 +27,7 @@ function selectedLabel(options: readonly { id: string; label: string }[], answer
 	return options.find(option => option.id === answerId)?.label ?? answerId;
 }
 
-/** One recorded item — a question prompt, its answer, and any condition answer. */
+/** One recorded item - a question prompt, its answer, and any condition answer. */
 export type ResponseWalkItem = {
 	prompt: string;
 	response: string;

@@ -17,7 +17,7 @@ import { downloadChart } from "@/features/reporting/export/dashboard-charts";
  * Small per-chart download control (PNG 2× / SVG). Lives in the corner of each
  * chart card. `buildSvg` is called lazily on click so the standalone SVG is
  * generated from the current data at export time (implementation-plan logistics
- * §4, plan M3). Pure export path — no jsPDF pulled into the dashboard bundle.
+ * §4, plan M3). Pure export path - no jsPDF pulled into the dashboard bundle.
  */
 export function ChartDownloadButton({
 	buildSvg,

@@ -34,7 +34,7 @@ export type ExcelStyles = {
 	sectionBanner: (colorHex: string) => XLSX.CellStyle;
 	/**
 	 * Header cell for a column or row that IS a domain: the domain's own tint
-	 * behind its `text` step, which clears 7:1 — so the spreadsheet carries the
+	 * behind its `text` step, which clears 7:1 - so the spreadsheet carries the
 	 * same identity cue as the screen and the PDF instead of one flat brand green.
 	 */
 	domainHeader: (colors: { text: string; light: string }) => XLSX.CellStyle;

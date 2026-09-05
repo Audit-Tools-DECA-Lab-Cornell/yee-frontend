@@ -4,9 +4,9 @@
  * Two problems this module exists to fix:
  *
  *   1. The percent maths (`max ? (value / max) * 100 : 0`) had been
- *      reimplemented in six places — the score summary, the comparison panel,
+ *      reimplemented in six places - the score summary, the comparison panel,
  *      the auditor history card, the live dashboard, the score cell and the
- *      export row builders — each with slightly different rounding and
+ *      export row builders - each with slightly different rounding and
  *      clamping. One helper, one rounding rule.
  *   2. Those copies used `: 0` as the fallback, so an audit whose maximum was
  *      missing rendered a real, believable "0%" (and a red score band) instead
@@ -66,7 +66,7 @@ export function formatScoreFraction(value?: number | null, max?: number | null, 
 }
 
 /**
- * `"14% (18 / 125)"` — the percent-first summary as one string, for plain-text
+ * `"14% (18 / 125)"` - the percent-first summary as one string, for plain-text
  * contexts such as PDF table cells and aria-labels. Returns
  * {@link SCORE_UNAVAILABLE} when the score or its denominator is unavailable.
  */

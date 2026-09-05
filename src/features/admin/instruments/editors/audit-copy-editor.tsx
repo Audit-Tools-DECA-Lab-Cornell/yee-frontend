@@ -8,7 +8,7 @@ import type { InstrumentWeighting, StructuredInstrumentContent } from "../types"
  * Audit Copy tab: the auditor-facing strings that live outside sections.
  *
  * These are published to every auditor (the weighting step, the legacy
- * condition fallback, and the final comments prompt) but had no editor — the
+ * condition fallback, and the final comments prompt) but had no editor - the
  * only way to reach them was the raw JSON textarea, which is a poor place to
  * ask a non-engineer to work.
  *

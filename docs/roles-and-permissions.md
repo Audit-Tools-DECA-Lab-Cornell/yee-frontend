@@ -137,7 +137,7 @@ Managers can also act as auditors inside their own organization.
 - Field work still requires assignments: the manager must assign their own
   auditor profile to places from Manager View (`/manager/auditors`). The
   auditor-view empty state links there when the signed-in user is a manager.
-- Viewing reports does NOT require an auditor profile — the profile is only
+- Viewing reports does NOT require an auditor profile - the profile is only
   for submitting audits yourself.
 - Mobile: the Expo app accepts AUDITOR accounts and MANAGER accounts that
   already own a self auditor profile. A manager without one is signed out

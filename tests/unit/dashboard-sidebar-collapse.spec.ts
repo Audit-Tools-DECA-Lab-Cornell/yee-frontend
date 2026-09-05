@@ -31,7 +31,7 @@ test("collapsed rail styles stay scoped to the persistent desktop aside", () => 
 	).toContain("[data-dashboard-rail]");
 	expect(
 		shellSource,
-		"DashboardShell's <aside> must carry `data-dashboard-rail` — it is the anchor the `rail-collapsed` variant selects on."
+		"DashboardShell's <aside> must carry `data-dashboard-rail` - it is the anchor the `rail-collapsed` variant selects on."
 	).toContain("data-dashboard-rail");
 });
 

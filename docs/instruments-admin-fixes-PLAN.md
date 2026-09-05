@@ -1,4 +1,4 @@
-# YEE Admin — Instrument Management Fix Plan
+# YEE Admin - Instrument Management Fix Plan
 
 **Owner:** `yee-frontend`
 **Route:** `/admin/instruments`
@@ -8,7 +8,7 @@
 **Status (2026-08-21):** Phase A and Phase B are both implemented and uncommitted.
 `tsc --noEmit` clean, `eslint` 0 errors (one pre-existing unrelated warning in
 `analytics-provider.tsx`), 37/37 unit tests pass, and both Playwright specs
-compile (`--list`). **`pnpm build` could not be verified in this sandbox** —
+compile (`--list`). **`pnpm build` could not be verified in this sandbox** -
 Turbopack fails with `binding to a port / Operation not permitted`, and the
 `--webpack` fallback does not finish; run it on a normal machine. Live browser
 QA and screenshot capture also still need the local backend.
@@ -53,7 +53,7 @@ The same helper strips HTML. Running it while editing creates an asymmetric roun
 For YEE scoring items:
 
 - `question_text` is the shared stem/instruction.
-- `choices` contains the matrix rows — the questions an auditor answers.
+- `choices` contains the matrix rows - the questions an auditor answers.
 - `answers` contains the selectable answer labels.
 
 The mobile normalizer already implements this contract in `yee-mobile/lib/yee-mobile-instrument.ts`: it maps `choices` to questions and `answers` to answers. The admin helper currently labels `choices` as `Choice N`, omits `answers`, and sometimes drops the shared prompt or blank displays.
@@ -97,7 +97,7 @@ tests/visual/catalog/admin.ts
 
 ## Implementation plan
 
-### Phase A — client-reported defects
+### Phase A - client-reported defects
 
 ### 1. Preserve draft text exactly
 
@@ -132,7 +132,7 @@ Delete the Scale Guidance editor and viewer panel, then remove its tab key, Type
 
 Do not delete or normalize `content.scale_guidance`. The JSON editor must continue to round-trip unknown keys unchanged.
 
-### Phase B — complete the editor safely
+### Phase B - complete the editor safely
 
 ### 4. Rebuild the Sections tab around the real hierarchy
 
@@ -182,7 +182,7 @@ Do not add/remove weighting options or domains. These fields are consumed by the
 
 The repo uses Playwright Test for both unit and browser tests; there is no Vitest dependency.
 
-### Unit — `tests/unit/instrument-editor-utils.spec.ts`
+### Unit - `tests/unit/instrument-editor-utils.spec.ts`
 
 - Editable entry construction maps `choices` to questions and `answers` to answer options for presence and condition items.
 - Shared prompts and empty `Display` values remain represented.
@@ -199,7 +199,7 @@ cd /Users/praty/Desktop/StudentJob.nosync/yee/yee-frontend
 pnpm exec playwright test tests/unit/instrument-editor-utils.spec.ts --project=unit --workers=1
 ```
 
-### E2E — extend `tests/e2e/admin-management.spec.ts`
+### E2E - extend `tests/e2e/admin-management.spec.ts`
 
 - Open a draft and press keys one at a time in a section title; assert spaces, double spaces, and line breaks persist after React re-renders.
 - Assert `QID1#1` shows Questions containing the two matrix rows and Answer options containing Yes/No.
@@ -211,7 +211,7 @@ pnpm exec playwright test tests/unit/instrument-editor-utils.spec.ts --project=u
 
 These browser cases require the normal local YEE backend used by the existing admin suite. They must not create or publish a production instrument.
 
-### Visual catalog — `tests/visual/catalog/admin.ts`
+### Visual catalog - `tests/visual/catalog/admin.ts`
 
 Add editor states for Sections expanded, Sections collapsed, and Audit Copy. `catalog.spec.ts` runs under `screenshots-chromium`, not `visual-chromium`.
 

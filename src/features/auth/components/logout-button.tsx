@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
  * the same rail geometry as the nav rows: 44px tall always, a 44px square once
  * the sidebar collapses, with the label kept for screen readers.
  *
- * Props are forwarded (and `onClick` composed) so it can be a tooltip trigger —
+ * Props are forwarded (and `onClick` composed) so it can be a tooltip trigger -
  * Radix clones this element and needs its ref and handlers to land on the
  * button underneath.
  */

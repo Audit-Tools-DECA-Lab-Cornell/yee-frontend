@@ -16,7 +16,7 @@ type StatCardTone = "default" | "sky" | "amber" | "emerald" | "violet";
  * data-viz palette so the grid reads as one coordinated family.
  *
  * These tones are decorative: a stat card is never about a YEE domain, so it
- * must not borrow the `domain-*` tokens — those carry identity, and spending
+ * must not borrow the `domain-*` tokens - those carry identity, and spending
  * them here would say "Activity Spaces" on a card that means nothing of the
  * sort. The categorical `chart-*` steps and the semantic `score-*` pairs cover
  * it; the neutral chip keeps AA text contrast without inventing a tint.
@@ -63,7 +63,7 @@ const trendConfig = {
 } as const;
 
 /**
- * One metric/stat card for the whole app — a single component driven by props
+ * One metric/stat card for the whole app - a single component driven by props
  * that replaces the divergent KPI/metric/action-card treatments. Editorial
  * numerals, an uppercase micro-label, and a restrained brand accent.
  */

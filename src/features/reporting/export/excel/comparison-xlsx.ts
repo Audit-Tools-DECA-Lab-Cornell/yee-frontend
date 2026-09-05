@@ -1,5 +1,5 @@
 /**
- * R2/R3/R4 — comparison Excel workbooks (the analysis surface). R2: Summary +
+ * R2/R3/R4 - comparison Excel workbooks (the analysis surface). R2: Summary +
  * Domain matrix + Audit rows. R3: Timeline + Change summary. R4: Side-by-side +
  * Domain deltas. Excel renders Unicode, so delta cells use ▲/▼ markers.
  */
@@ -92,7 +92,7 @@ export function generateTrendXlsx(input: TrendReportInput, palette: ExportPalett
 	const sorted = [...input.records].sort((a, b) => timeOf(a.date) - timeOf(b.date));
 
 	const timeline: StyledCell[][] = [
-		[cell(`Trend — ${input.placeName}`, styles.title)],
+		[cell(`Trend – ${input.placeName}`, styles.title)],
 		[cell(`${input.projectName} · ${input.scope.line}`, styles.subtitle)],
 		[cell(null)],
 		[
@@ -223,7 +223,7 @@ function deltaMark(delta?: number | null): string {
 }
 function timeOf(date: string): number {
 	const parsed = new Date(date);
-	// Unparseable/empty dates sort LAST — not to epoch 0, which would wrongly make
+	// Unparseable/empty dates sort LAST - not to epoch 0, which would wrongly make
 	// an undated record the "earliest" row in the trend timeline.
 	return Number.isNaN(parsed.getTime()) ? Number.POSITIVE_INFINITY : parsed.getTime();
 }

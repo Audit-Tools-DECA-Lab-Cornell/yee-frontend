@@ -6,7 +6,7 @@ import { parseBackendJson } from "./response";
 /**
  * Cached fetch for PUBLIC backend endpoints only (site copy, instrument
  * definition). Role-scoped or authenticated data must never go through this
- * helper — it stays on `proxyRequest` per the caching policy in
+ * helper - it stays on `proxyRequest` per the caching policy in
  * docs/architecture.md.
  *
  * Non-OK backend responses throw so failures are never written to the cache;

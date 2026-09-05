@@ -1,5 +1,5 @@
 /**
- * R1 — Individual Audit Report Excel workbook. The analysis surface: styled
+ * R1 - Individual Audit Report Excel workbook. The analysis surface: styled
  * multi-sheet (Overview, Scores, Responses, Comments), no embedded chart images
  * (logistics §5). Identity routes through the row builders' `resolveAuditorId`.
  */

@@ -21,7 +21,7 @@ type SegmentedControlProps = {
 };
 
 /**
- * A single-select segmented toggle — the professional replacement for the
+ * A single-select segmented toggle - the professional replacement for the
  * ad-hoc `rounded-md` toggle buttons that used to litter the reports view.
  * Always keeps exactly one option selected (deselect is prevented).
  */

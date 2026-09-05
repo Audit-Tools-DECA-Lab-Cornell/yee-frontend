@@ -1,7 +1,7 @@
 /**
- * R4 — Audit Comparison Report PDF (2–3 selected audits). Side-by-side summary,
+ * R4 - Audit Comparison Report PDF (2–3 selected audits). Side-by-side summary,
  * per-domain delta table (with an explicit Δ column when exactly two audits are
- * selected), radar overlay, and grouped domain bars — side-by-side reads more
+ * selected), radar overlay, and grouped domain bars - side-by-side reads more
  * clearly than stacked when comparing a few audits (logistics §6).
  */
 import autoTable from "jspdf-autotable";
@@ -74,7 +74,7 @@ export async function generateAuditComparisonPdf(
 					data.column.index === 4
 						? scorePercent(record.total_raw_score, record.total_raw_maximum)
 						: scorePercent(record.total_weighted_score, record.total_weighted_maximum);
-				// An unavailable score has no band — tinting it would paint the same
+				// An unavailable score has no band - tinting it would paint the same
 				// "low" red as a genuine 0%.
 				if (percent === null) return;
 				const band = bandForPercent(percent);

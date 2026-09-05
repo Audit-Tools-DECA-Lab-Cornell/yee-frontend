@@ -32,7 +32,7 @@ import { domainPaletteOrder, domainPaletteLabels, domainVar } from "@/styles/dom
  * The six audit domains as the marketing page shows them: real domain colours
  * from the shared palette, in the real audit order, so a visitor sees the same
  * six hues they will meet in the product. Everything here reads
- * `var(--domain-*)` — the page never carries a colour of its own.
+ * `var(--domain-*)` - the page never carries a colour of its own.
  *
  * `fill` is the role used throughout this page: it is the chart-mark step, which
  * clears 3:1 on the light card surfaces AND 4.5:1 on the dark green sections.
@@ -664,7 +664,7 @@ function HowItWorksSection() {
 
 type DomainCard = {
 	icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-	/** That domain's own `fill` step — see `marketingDomains`. */
+	/** That domain's own `fill` step - see `marketingDomains`. */
 	accent: string;
 	name: string;
 	description: string;
@@ -1143,7 +1143,7 @@ function FinalCtaSection() {
    Footer - warm cream, uses horizontal subtitle logo
 ───────────────────────────────────────────────────────────────────────────── */
 
-/** No-op subscription — the current year never changes within a session. */
+/** No-op subscription - the current year never changes within a session. */
 function subscribeNever() {
 	return () => {};
 }

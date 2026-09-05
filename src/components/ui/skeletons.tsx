@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 /**
  * Content-shaped loading skeletons. These replace the old spinner+text loaders
  * so a client component's loading state matches the route-level `loading.tsx`
- * skeleton — one continuous skeleton instead of "skeleton flash → spinner".
+ * skeleton - one continuous skeleton instead of "skeleton flash → spinner".
  */
 
 /** A table card: header rule + N rows of cells. The default list-loading state. */
@@ -47,7 +47,7 @@ function TableSkeleton({
 	);
 }
 
-/** A grid of stat-card skeletons — for dashboard overviews. */
+/** A grid of stat-card skeletons - for dashboard overviews. */
 function StatCardsSkeleton({ count = 4, className }: { count?: number; className?: string }) {
 	return (
 		<div
@@ -68,7 +68,7 @@ function StatCardsSkeleton({ count = 4, className }: { count?: number; className
 	);
 }
 
-/** A short form/detail skeleton — a few stacked field rows inside a card. */
+/** A short form/detail skeleton - a few stacked field rows inside a card. */
 function FormSkeleton({ rows = 5, className }: { rows?: number; className?: string }) {
 	return (
 		<div className={cn("space-y-4", className)} role="status" aria-busy="true" aria-label="Loading">

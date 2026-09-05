@@ -1,5 +1,5 @@
 /**
- * Radar / spider chart builder — standalone SVG.
+ * Radar / spider chart builder - standalone SVG.
  *
  * One builder covers all three uses: a single-audit domain profile (R1, one
  * polygon), a places overlay (R2), and an audit overlay (R4). Geometry is the
@@ -24,7 +24,7 @@ export function buildRadarSvg(options: {
 	axisLabels: string[];
 	/**
 	 * One colour per axis, in axis order. Each axis of this chart IS a domain, so
-	 * the labels wear their domain's `text` step rather than a neutral axis grey —
+	 * the labels wear their domain's `text` step rather than a neutral axis grey -
 	 * matching the on-screen radar. Falls back to `palette.axis` when the axes are
 	 * not domains (or a caller has not supplied colours).
 	 */

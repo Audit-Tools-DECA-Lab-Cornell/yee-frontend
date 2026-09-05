@@ -16,7 +16,7 @@ import { POSTHOG_HOST, POSTHOG_KEY, isPostHogEnabled } from "@/lib/analytics/con
  *   identified user so crashes are attributable.
  *
  * When PostHog is not configured (no `NEXT_PUBLIC_POSTHOG_KEY`) the provider is
- * a transparent pass-through — only the Sentry user sync runs — so local dev and
+ * a transparent pass-through - only the Sentry user sync runs - so local dev and
  * key-less preview builds are unaffected.
  */
 export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
@@ -43,7 +43,7 @@ export function AnalyticsProvider({ children }: { children: React.ReactNode }) {
 				capture_pageleave: true,
 				capture_exceptions: true,
 				// Session replay is toggled on in the PostHog project settings; here
-				// we opt into FULL fidelity — no text/input masking — per product
+				// we opt into FULL fidelity - no text/input masking - per product
 				// decision for the pilot. Revisit if PII/compliance concerns arise.
 				session_recording: {
 					maskAllInputs: false,

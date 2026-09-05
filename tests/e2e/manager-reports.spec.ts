@@ -21,7 +21,7 @@ test.describe("@manager reports + raw-data export", () => {
 
 	// Formerly DEFERRED: the seed now writes YeeAuditSubmission rows for every
 	// SUBMITTED audit, and GET /yee/audits/{submission_id} grants managers
-	// project-scoped read access — so a manager can open individual reports.
+	// project-scoped read access - so a manager can open individual reports.
 	test("manager opens a submitted report from the reports dashboard", async ({ page }) => {
 		await loginAsManager(page);
 		await page.goto("/manager/reports");
@@ -95,7 +95,7 @@ test.describe("@manager reports + raw-data export", () => {
 		expectPdf(pdf);
 		expect(pdf.filename).toMatch(/^yee-audit-.+\.pdf$/);
 
-		// CSV — asserts the legacy identity columns are preserved.
+		// CSV - asserts the legacy identity columns are preserved.
 		await page.getByRole("button", { name: "Export" }).first().click();
 		const csv = await captureDownload(page, () => page.getByRole("menuitem", { name: /csv/i }).first().click());
 		const [header] = expectCsv(csv);

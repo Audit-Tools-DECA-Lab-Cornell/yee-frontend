@@ -26,7 +26,7 @@ type DashboardHeroProps = {
 	stats?: HeroStat[];
 	/** Extra custom tiles appended to the stat grid (e.g. a score tile). */
 	children?: React.ReactNode;
-	/** `compact` is roughly half height — used at the top of list/detail pages. */
+	/** `compact` is roughly half height - used at the top of list/detail pages. */
 	size?: "default" | "compact";
 	className?: string;
 };
@@ -64,7 +64,7 @@ function HeroStatTile({ stat }: { stat: HeroStat }) {
  * The brand hero used at the top of dashboards and list pages. A tokenized
  * deep-green gradient (mapped to the brand greens, not hardcoded hex) layered
  * with a faint dot-grid motif, a low-opacity YEE watermark, and a hairline top
- * highlight — distinct and premium while staying minimal. `size="compact"` is
+ * highlight - distinct and premium while staying minimal. `size="compact"` is
  * roughly half height for secondary pages; glass stat tiles are optional.
  */
 function DashboardHero({

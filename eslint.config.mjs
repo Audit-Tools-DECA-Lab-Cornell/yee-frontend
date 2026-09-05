@@ -3,7 +3,7 @@ import coreWebVitals from "eslint-config-next/core-web-vitals";
 import typescript from "eslint-config-next/typescript";
 
 const eslintConfig = defineConfig([
-	// eslint-config-next v16 ships native flat configs — no FlatCompat needed.
+	// eslint-config-next v16 ships native flat configs - no FlatCompat needed.
 	...coreWebVitals,
 	...typescript,
 	{

@@ -74,7 +74,8 @@ export function AuditorPlaceList({
 					<CardContent className="space-y-4 text-sm text-slate-600">
 						<p>
 							You are in Auditor View with your own auditor profile. To audit a place yourself, assign
-							your auditor profile to it from Manager View first — then it appears here, ready to start.
+							your auditor profile to it from Manager View first. It will then appear here, ready to
+							start.
 						</p>
 						<div className="flex flex-wrap gap-2">
 							<Button asChild>

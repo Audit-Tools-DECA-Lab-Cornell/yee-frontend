@@ -1,5 +1,5 @@
 /**
- * Minimal store-only (no compression) ZIP writer — ported from COPA.
+ * Minimal store-only (no compression) ZIP writer - ported from COPA.
  *
  * PDFs and XLSX files are already compressed, so DEFLATE would buy almost
  * nothing while adding a dependency. This emits a spec-correct ZIP (local file

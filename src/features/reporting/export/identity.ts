@@ -2,7 +2,7 @@
  * The single place an auditor identity enters any export. Every builder (CSV,
  * PDF, XLSX) routes the auditor field through here, so the privacy invariant is
  * enforced in exactly one function: exports show the `AUD###` generated ID, or a
- * redaction placeholder when it is absent — never the raw auditor identifier
+ * redaction placeholder when it is absent - never the raw auditor identifier
  * (logistics §3; plan acceptance criteria 4–5).
  */
 import { REDACTED_AUDITOR_ID } from "./types";

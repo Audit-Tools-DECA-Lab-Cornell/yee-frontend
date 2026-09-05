@@ -103,7 +103,7 @@ function oklabFromLinear([r, g, b]: [number, number, number]): [number, number, 
 	];
 }
 
-/** Euclidean distance in OKLab ×100 — the separation metric the palette is tuned to. */
+/** Euclidean distance in OKLab ×100 - the separation metric the palette is tuned to. */
 function deltaE(a: string, b: string, kind?: keyof typeof CVD_MATRICES): number {
 	const [l1, a1, b1] = kind ? oklabFromLinear(simulate(a, kind)) : oklab(a);
 	const [l2, a2, b2] = kind ? oklabFromLinear(simulate(b, kind)) : oklab(b);
@@ -182,7 +182,7 @@ for (const mode of MODES) {
 			// Full-colour vision: below 15 and neighbours are hard to tell apart.
 			expect(deltaE(previous, current), `${pair} (normal vision)`).toBeGreaterThanOrEqual(15);
 
-			// Protanopia and deuteranopia — between them ~8% of men — are the gated
+			// Protanopia and deuteranopia - between them ~8% of men - are the gated
 			// pair, at the ΔE 8 target. Tritanopia is not gated: it is orders of
 			// magnitude rarer, and every domain mark in the app is directly labelled,
 			// so identity never rests on the hue alone (WCAG 1.4.1).
@@ -198,7 +198,7 @@ for (const mode of MODES) {
 /**
  * Stable, formatting-independent serialization of the spec: keys sorted, no
  * whitespace. The two repos format JSON differently, so the guard has to compare
- * CONTENT — a raw byte hash would fail on a formatter run while the colours were
+ * CONTENT - a raw byte hash would fail on a formatter run while the colours were
  * still identical.
  */
 function canonical(value: unknown): unknown {
@@ -215,7 +215,7 @@ function canonical(value: unknown): unknown {
 
 /**
  * What this catches, precisely: the spec being edited without the checksum being
- * updated. That is the careless case — a hand-tweaked hex here would fail the
+ * updated. That is the careless case - a hand-tweaked hex here would fail the
  * build until someone consciously refreshed the constant, at which point the
  * failure message tells them the other repo needs the same two edits.
  *
@@ -223,7 +223,7 @@ function canonical(value: unknown): unknown {
  * this repo's constant, so updating both together passes here regardless of what
  * yee-mobile holds. The pairing rests on `DOMAIN_PALETTE_CHECKSUM` being the same
  * literal in both repos and on both PRs landing together. Genuinely proving it
- * would need cross-repo CI that fetches yee-mobile's copy and compares — worth
+ * would need cross-repo CI that fetches yee-mobile's copy and compares - worth
  * doing if these two ever drift in practice.
  */
 test("the spec has not changed without its checksum being updated", () => {

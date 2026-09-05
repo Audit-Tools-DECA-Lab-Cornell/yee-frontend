@@ -1,5 +1,5 @@
 /**
- * Raw-data export columns — the single definition of the flat raw-data row shape
+ * Raw-data export columns - the single definition of the flat raw-data row shape
  * shared by the CSV (byte-compatible with the legacy `toExportRows` +
  * `ExportCsvButton` path) and the Excel workbook. The Data Dictionary metadata
  * lets a researcher hand the Excel file to a statistician without a call

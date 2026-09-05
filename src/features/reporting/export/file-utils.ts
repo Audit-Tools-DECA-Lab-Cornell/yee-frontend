@@ -41,7 +41,7 @@ export function isoDateStamp(date: Date = new Date()): string {
 }
 
 /**
- * Build a download filename. `scopeSlug` is optional — comparison exports that
+ * Build a download filename. `scopeSlug` is optional - comparison exports that
  * describe many places omit it (`yee-place-comparison-2026-07-07.xlsx`).
  */
 export function buildExportFileName(

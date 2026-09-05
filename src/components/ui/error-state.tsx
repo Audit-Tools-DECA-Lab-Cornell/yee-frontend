@@ -13,11 +13,11 @@ type ErrorStateAction = {
 };
 
 type ErrorStateProps = {
-	/** Short, human sentence — what failed, in the user's terms. */
+	/** Short, human sentence - what failed, in the user's terms. */
 	title?: string;
 	/** A likely cause plus reassurance and a next step. */
 	description?: string;
-	/** The caught error — its message is shown only in development. */
+	/** The caught error - its message is shown only in development. */
 	error?: (Error & { digest?: string }) | null;
 	/** Retry handler (e.g. the Next.js route `reset` function). */
 	onRetry?: () => void;
@@ -30,7 +30,7 @@ type ErrorStateProps = {
 
 /**
  * The humane, branded error surface used by every route error boundary.
- * Never shows a raw stack trace to end users — the technical message is
+ * Never shows a raw stack trace to end users - the technical message is
  * revealed only in development, behind a collapsed disclosure.
  */
 function ErrorState({

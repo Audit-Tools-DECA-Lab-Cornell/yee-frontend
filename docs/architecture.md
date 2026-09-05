@@ -250,12 +250,12 @@ The repo is on Next.js 16 with Cache Components enabled
 (`cacheComponents: true` in `next.config.ts`). `use cache` is applied only to
 public, non-role-scoped data:
 
-- `/api/site-copy` — cached via `fetchPublicCached` in
+- `/api/site-copy` - cached via `fetchPublicCached` in
   `src/server/backend/cached.ts` under the `site-copy` tag; admin site-copy
   mutation routes expire it with `revalidateTag("site-copy", { expire: 0 })`.
-- `/api/yee/instrument` — same helper, `yee-instrument` tag; admin instrument
+- `/api/yee/instrument` - same helper, `yee-instrument` tag; admin instrument
   mutation routes expire it.
-- `/api/google-maps/static-map` — the upstream Google Static Maps image fetch
+- `/api/google-maps/static-map` - the upstream Google Static Maps image fetch
   is cached with `cacheLife("days")` (keyed by the full request URL).
 
 Never route authenticated data through `fetchPublicCached`; role-scoped paths

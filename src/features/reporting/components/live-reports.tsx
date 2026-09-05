@@ -88,7 +88,7 @@ function colorBandClasses(value: number) {
 /**
  * Percent-first score text: the percentage is the headline and the raw figure
  * sits beneath it, small and muted. An unavailable percent renders an em dash
- * on its own — never a fabricated 0% dressed up with a believable fraction.
+ * on its own - never a fabricated 0% dressed up with a believable fraction.
  */
 function ScoreText({ percent, secondary }: { percent: string | null; secondary?: string }) {
 	if (percent === null) return <span className="tabular-nums text-muted-foreground">{SCORE_UNAVAILABLE}</span>;
@@ -126,7 +126,7 @@ function ScoreFractionText({
 /**
  * One headline score tile on a selected-audit card: percentage large, fraction
  * small underneath. The band classes tint the whole tile, so the fraction dims
- * with opacity instead of a muted ink token that would fight the band — and a
+ * with opacity instead of a muted ink token that would fight the band - and a
  * missing maximum stays neutral rather than painting a red "0%" band.
  */
 function SelectedAuditScoreTile({
@@ -523,7 +523,7 @@ function TrendLineChart({ records }: { records: PlaceComparisonAuditRecord[] }) 
 	const width = 720;
 	const height = 260;
 	const padding = 28;
-	// Shared scale helper — identical math to the exported trend chart (D3/M1).
+	// Shared scale helper - identical math to the exported trend chart (D3/M1).
 	const { pointX, pointY } = trendScale({ count: points.length, width, height, padding });
 	const rawPolyline = points.map((point, index) => `${pointX(index)},${pointY(point.rawPercent)}`).join(" ");
 	const weightedPolyline = points
@@ -595,7 +595,7 @@ function TrendLineChart({ records }: { records: PlaceComparisonAuditRecord[] }) 
 				</svg>
 				{/* Legend: the label wears text ink and a swatch carries the series colour.
 				    Painting the label itself in the series colour put it at 4.29:1 on the
-				    badge for series 2 — under the 4.5:1 AA floor for normal text; the
+				    badge for series 2 - under the 4.5:1 AA floor for normal text; the
 				    swatch only needs 3:1 as a graphical object, which both series clear. */}
 				<div className="flex flex-wrap gap-3 text-sm text-muted-foreground">
 					<Badge className="rounded-full bg-muted px-3 py-1 text-foreground hover:bg-muted">
@@ -898,7 +898,7 @@ export function LiveReports() {
 		);
 	};
 
-	// Self-describing scope printed on export covers — mirrors the on-screen
+	// Self-describing scope printed on export covers - mirrors the on-screen
 	// "Current scope" sentence so the document says exactly what it contains.
 	const scopeLine = `${selectedProjectIds.length > 0 ? `${selectedProjectIds.length} Projects` : "All Projects"}, ${selectedPlaceIds.length > 0 ? `${selectedPlaceIds.length} Places` : "All Places"}, ${selectedAuditorIds.length > 0 ? `${selectedAuditorIds.length} Auditors` : "All Auditors"}, ${rangeLabel(dateRange)}`;
 

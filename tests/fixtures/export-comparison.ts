@@ -1,6 +1,6 @@
 import type { PlaceComparisonAuditRecord } from "../../src/features/workspaces/api/live-api";
 
-/** Two places, three audits — enough to exercise summaries, trend, and deltas. */
+/** Two places, three audits - enough to exercise summaries, trend, and deltas. */
 function record(overrides: Partial<PlaceComparisonAuditRecord> & { audit_id: string }): PlaceComparisonAuditRecord {
 	return {
 		auditor_id: "AUD007",

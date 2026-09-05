@@ -1,5 +1,5 @@
 /**
- * Per-chart download — pure (no jsPDF/xlsx), so the dashboard can import it
+ * Per-chart download - pure (no jsPDF/xlsx), so the dashboard can import it
  * statically without pulling the heavy document libraries into its bundle.
  * Ships the builder's standalone SVG directly, or rasterizes it to a 2× PNG.
  */

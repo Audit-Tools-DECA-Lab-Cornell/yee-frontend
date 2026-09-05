@@ -145,8 +145,8 @@ export function resolveWeightingDomainPrompt(
 /**
  * Weighting scale labels from the instrument, keyed onto the local options.
  *
- * The `value`s ("3" / "2" / "1") are the scoring contract — the draft stores
- * them and the backend scores on them — so the local list owns the values and
+ * The `value`s ("3" / "2" / "1") are the scoring contract - the draft stores
+ * them and the backend scores on them - so the local list owns the values and
  * their order. Only the labels are taken from the instrument, matched by value.
  * An instrument option with an unrecognised value is ignored rather than
  * silently introducing an unscoreable choice.

@@ -47,7 +47,7 @@ export async function POST(request: Request) {
 			}
 		});
 
-		// Return only the user to the browser — the raw access_token goes into
+		// Return only the user to the browser - the raw access_token goes into
 		// an HttpOnly cookie and is never visible to client-side JavaScript.
 		const nextResponse = NextResponse.json({ user: loginData.user });
 		setSessionCookie(nextResponse, loginData.access_token);

@@ -32,8 +32,8 @@ async function exportScope(rows: RawDataRecord[], format: RawDataFormat, scope: 
 
 /**
  * Percent-first score: the percentage is the headline and the raw fraction sits
- * under it, muted. A missing score or maximum renders an em dash — never a
- * fabricated 0% — while a known fraction is still shown beneath it.
+ * under it, muted. A missing score or maximum renders an em dash - never a
+ * fabricated 0% - while a known fraction is still shown beneath it.
  */
 function ScoreValue({
 	value,

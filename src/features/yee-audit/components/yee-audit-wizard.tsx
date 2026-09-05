@@ -302,7 +302,7 @@ function getSectionIntroCopy(domain: YeeDomainKey) {
  * Surface treatment for one wizard step.
  *
  * Domain steps (3-8) wear that domain's colours, straight from `yeeDomainThemes`
- * — the only place a domain colour is ever chosen. Every other step (context,
+ * - the only place a domain colour is ever chosen. Every other step (context,
  * weighting, final comments) stays on the brand-neutral base, matching how
  * yee-mobile's `getSurveyPalette()` treats its non-domain steps: the colour on
  * screen means "which domain am I in", so spending hues on the steps that have
@@ -334,7 +334,7 @@ function getSurfacePalette(stepValue: YeeStepNumber) {
 
 /**
  * Wording used only when the instrument does not supply a prompt for this
- * domain. The instrument is the source of truth — see
+ * domain. The instrument is the source of truth - see
  * `resolveWeightingDomainPrompt`; this keeps older versions rendering.
  */
 function getFallbackWeightingPrompt(domain: YeeDomainKey) {
@@ -751,7 +751,7 @@ export function YeeAuditWizard({
 	// Auditor-facing copy authored in the instrument and editable from the admin
 	// Audit Copy tab, with a fallback for instrument versions that predate each
 	// key. Resolve every string exactly once here and use these values at every
-	// render site — the questionnaire and the review screen must never resolve
+	// render site - the questionnaire and the review screen must never resolve
 	// the same string independently, or they drift apart.
 	const weightingOptions = resolveWeightingOptions(instrument, yeeWeightOptions);
 	const weightingTitle = resolveWeightingTitle(instrument, "Youth-Weighted Importance");
@@ -1606,7 +1606,7 @@ export function YeeAuditWizard({
 									placeholder="Optional"
 								/>
 								<p className="text-xs text-muted-foreground">
-									Optional — links this audit to a study or workshop participant.
+									Optional. This links the audit to a study or workshop participant.
 								</p>
 							</div>
 							<div className="space-y-3">
@@ -1901,7 +1901,7 @@ function SubmittedAuditConfirmation({
 	const [loading, setLoading] = React.useState(true);
 	const [loadError, setLoadError] = React.useState<string | null>(error);
 
-	// Without a session or submission id there is nothing to fetch — settle the
+	// Without a session or submission id there is nothing to fetch - settle the
 	// loading flag during render instead of in the effect.
 	if ((!session || !submissionId) && loading) {
 		setLoading(false);

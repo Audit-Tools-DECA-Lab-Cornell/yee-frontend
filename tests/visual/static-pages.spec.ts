@@ -9,10 +9,10 @@ import { expect, test } from "@playwright/test";
 //
 // Baselines: generated on the canonical CI runner with
 //   pnpm exec playwright test --project=visual-chromium --update-snapshots
-// (do NOT commit macOS-generated baselines — font/AA rendering differs from the
+// (do NOT commit macOS-generated baselines - font/AA rendering differs from the
 // ubuntu CI runner and would cause false diffs). See README / Stage 11 notes.
 
-// Only genuinely PUBLIC routes — confirmed NOT in src/middleware.ts PROTECTED_ROUTES.
+// Only genuinely PUBLIC routes - confirmed NOT in src/middleware.ts PROTECTED_ROUTES.
 // (/yee/introduction is protected → redirects unauthenticated visits to /login, so it
 // cannot be baselined here; it would need an authenticated visual project + fixed seed.)
 const PAGES: { name: string; path: string; ready: RegExp }[] = [

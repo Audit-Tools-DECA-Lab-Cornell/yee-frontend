@@ -14,7 +14,7 @@ const rangeBands = [
 
 type ScoreRow = ReturnType<typeof getScoreRows>[number];
 
-/** A section that has a usable percentage — sections without one are never ranked. */
+/** A section that has a usable percentage - sections without one are never ranked. */
 type ScoreExtreme = { row: ScoreRow; percentage: number };
 
 function clampPercentage(value: number) {
@@ -85,7 +85,7 @@ function TotalScorePanel({
 	tone: "raw" | "weighted";
 }) {
 	// The maximum is absent at runtime while the backend scoring rollout lands
-	// (see YeeScoreResult) — show that the score is unknown instead of 0%.
+	// (see YeeScoreResult) - show that the score is unknown instead of 0%.
 	const percentage = scorePercent(value, maximum);
 	const panelClasses = tone === "weighted" ? "border-score-high/30 bg-score-high-bg/60" : "border-border bg-muted/30";
 	const labelClasses = tone === "weighted" ? "text-score-high" : "text-muted-foreground";

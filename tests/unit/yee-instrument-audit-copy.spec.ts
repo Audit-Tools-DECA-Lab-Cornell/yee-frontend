@@ -10,7 +10,7 @@ import {
 	type InstrumentResponse
 } from "../../src/features/yee-audit/api/yee-instrument";
 
-/** The local scale — values are the scoring contract, labels are copy. */
+/** The local scale - values are the scoring contract, labels are copy. */
 const localWeightOptions = [
 	{ value: "3", label: "Very important to me" },
 	{ value: "2", label: "Somewhat important to me" },
@@ -79,7 +79,7 @@ test("blank instrument strings fall back rather than rendering an empty prompt",
 test("weighting values stay the scoring contract while labels come from the instrument", () => {
 	const whenOptionsResolve = resolveWeightingOptions(instrumentWithAuditCopy, localWeightOptions);
 
-	// Order and values are owned locally — the draft stores these and the
+	// Order and values are owned locally - the draft stores these and the
 	// backend scores on them, so an instrument must never reorder or retire one.
 	expect(whenOptionsResolve.map(option => option.value)).toEqual(["3", "2", "1"]);
 	expect(whenOptionsResolve[0].label).toBe("Matters a lot");

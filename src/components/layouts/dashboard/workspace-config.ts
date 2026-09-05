@@ -220,7 +220,7 @@ export const defaultWorkspaceConfigs: Record<WorkspaceVariant, WorkspaceConfig> 
 		variant: "auditor",
 		badge: "Auditor view",
 		title: "Focus on assigned places and complete fieldwork.",
-		description: "Everything assigned to you — your places, active audits, and submission history.",
+		description: "Everything assigned to you: your places, active audits, and submission history.",
 		searchPlaceholder: "Search your places or saved audits...",
 		primaryAction: {
 			label: "Start Audit",

@@ -29,7 +29,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
 				}}>
 				<h1 style={{ fontSize: "1.25rem", fontWeight: 600 }}>Something went wrong</h1>
 				<p style={{ color: "#666", maxWidth: "28rem" }}>
-					An unexpected error occurred. The team has been notified — please try again.
+					An unexpected error occurred. The team has been notified. Please try again.
 				</p>
 				<button
 					type="button"

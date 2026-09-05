@@ -6,7 +6,7 @@
  * authoring id `experienceOfSpace`, versus a stored block heading
  * "Experience of Space:" matched against the label "Experience of the Space".
  * A question that fails to match simply vanishes from its section, and an empty
- * section reads as complete — so the failure is silent in both directions.
+ * section reads as complete - so the failure is silent in both directions.
  */
 import { expect, test } from "@playwright/test";
 
@@ -65,7 +65,7 @@ const authoring = {
 const LABEL = "Experience of the Space";
 
 test("a legacy block heading still matches the section it belongs to", () => {
-	// "Experience of Space:" vs "Experience of the Space" — one article apart.
+	// "Experience of Space:" vs "Experience of the Space" - one article apart.
 	// Substring matching missed it, and the whole section rendered empty.
 	expect(normalizeLogicalQuestions(legacy)).toHaveLength(1);
 	expect(logicalQuestionsForSection(legacy, "experienceOfSpace", LABEL)).toHaveLength(1);

@@ -3,7 +3,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
 	cacheComponents: true,
-	// PostHog reverse proxy — routes ingestion through the app origin to avoid ad blockers.
+	// PostHog reverse proxy - routes ingestion through the app origin to avoid ad blockers.
 	async rewrites() {
 		return [
 			{

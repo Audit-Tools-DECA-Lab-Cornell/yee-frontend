@@ -11,7 +11,7 @@ test.describe("@manager audits list + edit flow", () => {
 		await page.goto("/manager/audits");
 
 		// Anchor on the loaded-table CardDescription, which is NOT present in the
-		// <LoadingCard label="audits"> ("Loading audits...") state — so a plain
+		// <LoadingCard label="audits"> ("Loading audits...") state - so a plain
 		// getByText("Audits") substring won't false-green on the loading flash.
 		await expect(page.getByText(/Filter by project or place, compare selected audits/i).first()).toBeVisible({
 			timeout: 30_000

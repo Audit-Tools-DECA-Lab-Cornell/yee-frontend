@@ -161,7 +161,7 @@ export function normalizeLogicalQuestions(instrument: InstrumentResponse): Instr
  * a legacy scoring item (`"Experience of Space:"`), which is matched against a
  * display label (`"Experience of the Space"`). Punctuation, spacing, casing, and
  * a stray article are all that separate them, and none of those carry meaning
- * here — so none of them should decide whether a question appears on screen.
+ * here - so none of them should decide whether a question appears on screen.
  */
 function sectionSlug(value: string): string {
 	return value

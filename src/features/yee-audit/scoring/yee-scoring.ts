@@ -41,7 +41,7 @@ export async function fetchScorePreview(
  */
 export function getScoreRows(score: YeeScoreResult) {
 	// The per-domain score maps can be absent at runtime during the backend
-	// scoring rollout. Guard every access — indexing an undefined map by the
+	// scoring rollout. Guard every access - indexing an undefined map by the
 	// first domain key ("access") is what previously crashed the report viewer
 	// and the wizard review step with "reading 'access'".
 	return (Object.keys(yeeDomainLabels) as YeeDomainKey[]).map(domain => ({

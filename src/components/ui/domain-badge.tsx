@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
  * names a domain, it renders it through one of these, and the colours come from
  * `yeeDomainThemes` → `--domain-*` → `src/styles/domain-palette.json`.
  *
- * Colour is never the only signal — both shapes always carry the domain's name
+ * Colour is never the only signal - both shapes always carry the domain's name
  * (or, for the dot, sit beside it), which is what WCAG 1.4.1 asks for.
  */
 
@@ -32,7 +32,7 @@ export function DomainDot({ domain, className }: { domain: YeeDomainKey; classNa
  * A pill carrying the domain's name on its own tint.
  *
  * `text` (not `strong`) paints the label: on the `light` tint it clears 7:1,
- * where `strong` would only reach ~4.5:1 — fine for a border, tight for a
+ * where `strong` would only reach ~4.5:1 - fine for a border, tight for a
  * 12px label.
  */
 export function DomainBadge({
@@ -59,7 +59,7 @@ export function DomainBadge({
 	);
 }
 
-/** A domain's name in its own colour, with the dot — the default inline treatment. */
+/** A domain's name in its own colour, with the dot - the default inline treatment. */
 export function DomainLabel({
 	domain,
 	label,

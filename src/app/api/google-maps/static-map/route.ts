@@ -108,7 +108,7 @@ export async function GET(request: NextRequest): Promise<Response> {
 }
 
 /**
- * Cached upstream fetch — map tiles for a given URL (coordinates, zoom, size)
+ * Cached upstream fetch - map tiles for a given URL (coordinates, zoom, size)
  * are stable, so avoid re-hitting the billable Google Static Maps API.
  * Failures throw so they are never cached.
  */

@@ -1,6 +1,6 @@
 /**
  * The ONLY public surface of the export layer (implementation-plan D5). UI code
- * imports from here — and only here — via dynamic `import()` from click handlers,
+ * imports from here - and only here - via dynamic `import()` from click handlers,
  * so jsPDF / xlsx-js-style never enter the initial dashboard bundle (D2).
  *
  * `types.ts` and the pure chart geometry (`charts/geometry.ts`) are the two
@@ -51,7 +51,7 @@ function stampFrom(iso: string | null | undefined): string {
 }
 
 /**
- * R1 — generate and download an individual audit report in the chosen format.
+ * R1 - generate and download an individual audit report in the chosen format.
  * The caller supplies the already-fetched submission + instrument; this resolves
  * the palette, renders, names the file (`yee-audit-<place>-<date>.<ext>`), and
  * triggers the download.
@@ -81,7 +81,7 @@ export async function exportAudit(input: AuditReportInput, format: ReportDocumen
 	triggerBrowserDownload(fileName, blob, MIME.pdf);
 }
 
-/** R2 — Compare Places export in the chosen format. */
+/** R2 - Compare Places export in the chosen format. */
 export async function exportPlaceComparison(
 	input: PlaceComparisonReportInput,
 	format: ReportDocumentFormat
@@ -94,7 +94,7 @@ export async function exportPlaceComparison(
 	triggerBrowserDownload(fileName, await generatePlaceComparisonPdf(input, palette), MIME.pdf);
 }
 
-/** R3 — Compare Over Time (trend) export in the chosen format. */
+/** R3 - Compare Over Time (trend) export in the chosen format. */
 export async function exportTrend(input: TrendReportInput, format: ReportDocumentFormat): Promise<void> {
 	const palette = getExportPalette();
 	const fileName = buildExportFileName("trend", format, { scopeSlug: input.placeName });
@@ -103,7 +103,7 @@ export async function exportTrend(input: TrendReportInput, format: ReportDocumen
 	triggerBrowserDownload(fileName, await generateTrendPdf(input, palette), MIME.pdf);
 }
 
-/** R4 — Compare Individual Audits export in the chosen format. */
+/** R4 - Compare Individual Audits export in the chosen format. */
 export async function exportAuditComparison(
 	input: AuditComparisonReportInput,
 	format: ReportDocumentFormat
@@ -116,7 +116,7 @@ export async function exportAuditComparison(
 	triggerBrowserDownload(fileName, await generateAuditComparisonPdf(input, palette), MIME.pdf);
 }
 
-/** R5 — raw-data export (CSV or Excel with a Data Dictionary sheet). */
+/** R5 - raw-data export (CSV or Excel with a Data Dictionary sheet). */
 export async function exportRawData(
 	rows: RawDataRecord[],
 	format: "csv" | "xlsx",
@@ -132,7 +132,7 @@ export async function exportRawData(
 }
 
 /**
- * R5 — bulk audit ZIP. Generates each audit's R1 file(s) and downloads one ZIP.
+ * R5 - bulk audit ZIP. Generates each audit's R1 file(s) and downloads one ZIP.
  * Returns the result (including any per-audit failures) so the caller can report
  * "N audits could not be exported".
  */

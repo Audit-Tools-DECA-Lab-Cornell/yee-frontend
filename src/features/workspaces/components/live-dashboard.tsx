@@ -394,7 +394,7 @@ export function LiveManagerOverview() {
 			<DashboardHero
 				badge="Youth Enabling Environments"
 				title="Your dashboard is ready for projects, places, and YEE fieldwork."
-				subtitle="Jump straight into your projects, places, auditors, reports, and audit records — all from one place."
+				subtitle="Jump straight into your projects, places, auditors, reports, and audit records, all from one place."
 				stats={managerSnapshotItems}
 				actions={
 					<>
@@ -563,7 +563,7 @@ export function LiveManagerOverview() {
 	);
 }
 
-/** Score cell shared by the audit tables — a null-safe ScoreCell once submitted. */
+/** Score cell shared by the audit tables - a null-safe ScoreCell once submitted. */
 function AuditScoreCell({ audit }: { audit: AuditRecord }) {
 	if (audit.status !== "Submitted") {
 		return <span className="text-muted-foreground/70">Available after submit</span>;
@@ -636,7 +636,7 @@ function AuditSummaryMobileCard({ audit }: { audit: AuditRecord }) {
 	);
 }
 
-/** Stacked mobile card for the full audits table — carries selection + row actions. */
+/** Stacked mobile card for the full audits table - carries selection + row actions. */
 function AuditRowMobileCard({
 	audit,
 	showOrganization,
@@ -1038,7 +1038,7 @@ export function LivePlacesTable() {
 			<DashboardHero
 				size="compact"
 				title="Places"
-				subtitle="Every field location you manage — address, assigned auditors, and what to do next."
+				subtitle="Every field location you manage: address, assigned auditors, and what to do next."
 				actions={
 					<Button asChild className="bg-white text-foreground hover:bg-score-high-bg">
 						<Link href="/manager/places/new">Add Place</Link>
@@ -1076,7 +1076,7 @@ export function AdminProjectsTable() {
 		return <EmptyState title="No projects yet" description="Projects created by managers will appear here." />;
 
 	// Organization only. A project filter on the project list would offer the
-	// reader the very rows already in front of them — sorting the name column
+	// reader the very rows already in front of them - sorting the name column
 	// and reading it is the shorter path to any single project.
 	const organizationOptions = uniqueFilterOptions(data.map(project => project.organization ?? null));
 	const filteredProjects = data.filter(project =>
@@ -1413,7 +1413,7 @@ export function LiveAuditsTable() {
 		[audits]
 	);
 	// A manager only ever sees their own organization, and a single-tenant
-	// platform has nothing to compare — in both cases the column, the filter and
+	// platform has nothing to compare - in both cases the column, the filter and
 	// the grouping would be a control that cannot change anything, so they stay
 	// out of the way until the data actually spans more than one owner.
 	const showOrganization = organizationOptions.length > 1;
@@ -1572,7 +1572,7 @@ export function LiveAuditsTable() {
 					);
 				}
 			},
-			// Cross-org, the row leads with the hierarchy an audit hangs off —
+			// Cross-org, the row leads with the hierarchy an audit hangs off -
 			// organization, then project, then place. Within a single organization
 			// that context is redundant, so the place stays out front.
 			...(showOrganization

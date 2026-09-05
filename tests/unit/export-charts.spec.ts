@@ -66,7 +66,7 @@ test("domain-bars builder tints each row with its domain color", () => {
 		}))
 	});
 	assertStandaloneSvg(svg);
-	// Each domain's fill hex appears (raw bar) — proves domain coloring.
+	// Each domain's fill hex appears (raw bar) - proves domain coloring.
 	expect(svg).toContain(lightDomainPalette.access.fill);
 	expect(svg).toContain(lightDomainPalette.useAndUsability.strong);
 });

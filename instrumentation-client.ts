@@ -1,5 +1,5 @@
 // Sentry browser SDK initialisation (Next.js App Router instrumentation-client).
-// A no-op when NEXT_PUBLIC_SENTRY_DSN is unset — safe for key-less builds.
+// A no-op when NEXT_PUBLIC_SENTRY_DSN is unset - safe for key-less builds.
 import * as Sentry from "@sentry/nextjs";
 
 Sentry.init({

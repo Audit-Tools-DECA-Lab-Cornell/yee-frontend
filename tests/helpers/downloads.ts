@@ -58,7 +58,7 @@ export function expectCsv(download: CapturedDownload): string[][] {
 
 /**
  * Parse an RFC-4180 CSV string into rows of cells. Handles double-quoted fields,
- * escaped quotes (`""`), and embedded newlines — enough to assert legacy
+ * escaped quotes (`""`), and embedded newlines - enough to assert legacy
  * column headers and cell values in specs.
  */
 export function parseCsv(input: string): string[][] {

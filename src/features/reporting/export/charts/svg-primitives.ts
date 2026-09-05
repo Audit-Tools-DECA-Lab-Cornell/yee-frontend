@@ -1,5 +1,5 @@
 /**
- * Primitives for assembling STANDALONE SVG strings — every element carries
+ * Primitives for assembling STANDALONE SVG strings - every element carries
  * inline presentation attributes (`fill="#2f6f4f"`), explicit `font-family`, and
  * no CSS classes or `var(--…)` tokens, so the string renders identically outside
  * the DOM (rasterized for PDF, or downloaded directly as .svg). See D3.

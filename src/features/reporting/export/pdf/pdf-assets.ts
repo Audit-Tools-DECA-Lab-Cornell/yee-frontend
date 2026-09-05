@@ -11,7 +11,7 @@ const MARK_LOGO_SRC = "/brand/logo-mark-white.png";
 export type BrandLogos = {
 	/** Horizontal wordmark + subtitle (white), aspect ratio ~1428x530. */
 	horizontal: string | null;
-	/** Square logo mark (white), 1024x1024 — used as a faint watermark. */
+	/** Square logo mark (white), 1024x1024 - used as a faint watermark. */
 	mark: string | null;
 };
 

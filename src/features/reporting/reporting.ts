@@ -29,16 +29,16 @@ function roundNullable(value: number | null, fractionDigits: number): number | n
  * different maxima, so an average raw or youth-weighted score has no single
  * denominator to show against. Each scale comes back as two sets of figures:
  *
- * - `avgRawByDomain` / `totalRawAverage` — mean raw points. Meaningful to label
+ * - `avgRawByDomain` / `totalRawAverage` - mean raw points. Meaningful to label
  *   with a maximum only when `sharedRawDomainMaximums` / `totalRawMaximum` is
  *   non-null, i.e. every selected audit was scored out of the same total.
- * - `avgRawPercentByDomain` / `totalRawPercentAverage` — mean of each audit's
+ * - `avgRawPercentByDomain` / `totalRawPercentAverage` - mean of each audit's
  *   own percentage. Always comparable, because every audit is measured against
  *   the maximum it was actually scored out of.
- * - `avgWeightedByDomain` / `totalWeightedAverage` — mean youth-weighted points.
+ * - `avgWeightedByDomain` / `totalWeightedAverage` - mean youth-weighted points.
  *   Meaningful to label with a maximum only when `sharedWeightedDomainMaximums`
  *   / `totalWeightedMaximum` is non-null.
- * - `avgWeightedPercentByDomain` / `totalWeightedPercentAverage` — mean of each
+ * - `avgWeightedPercentByDomain` / `totalWeightedPercentAverage` - mean of each
  *   audit's own youth-weighted percentage. Always comparable, for the same
  *   reason.
  *

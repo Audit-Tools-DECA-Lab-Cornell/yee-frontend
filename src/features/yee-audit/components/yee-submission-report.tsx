@@ -285,7 +285,7 @@ export function YeeSubmissionReport({ submissionId }: { submissionId: string }) 
 					}
 				}
 			`}</style>
-			{/* Report header — the brand DashboardHero (dotted bg + YEE watermark). */}
+			{/* Report header - the brand DashboardHero (dotted bg + YEE watermark). */}
 			<div className="space-y-3">
 				<Link
 					href={auditsHref}

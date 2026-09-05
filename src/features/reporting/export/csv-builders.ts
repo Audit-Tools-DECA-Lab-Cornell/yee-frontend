@@ -2,7 +2,7 @@
  * Frozen legacy CSV generators.
  *
  * Each function preserves an existing CSV's exact header names, ordering, value
- * formatting, and escaping — verified by golden fixtures (plan acceptance
+ * formatting, and escaping - verified by golden fixtures (plan acceptance
  * criterion 4). These bytes must NOT move when a PDF/XLSX layout changes, so the
  * formatting here is deliberately independent of `row-builders.ts`. The only
  * sanctioned diff is the identity-column privacy migration (criterion 5): the
@@ -36,11 +36,11 @@ function csvScoreFraction(value: number, maximum: number, fractionDigits = 0): s
 }
 
 /**
- * R1 single-submission CSV — layout-compatible with the legacy
+ * R1 single-submission CSV - layout-compatible with the legacy
  * `downloadSingleSubmissionCsv` in `yee-submission-report.tsx` (unquoted header
  * row, every cell double-quoted). Unlike the original, each cell is passed through
  * `sanitizeCsvCell` so a formula-triggering free-text value (e.g. a participant ID
- * or comment starting with `=`, `+`, `-`, `@`) is neutralized — quoting alone does
+ * or comment starting with `=`, `+`, `-`, `@`) is neutralized - quoting alone does
  * not stop a spreadsheet from evaluating it. Benign values are byte-unchanged.
  */
 export function buildSingleSubmissionCsv(
@@ -86,7 +86,7 @@ export function singleSubmissionCsvFileName(submission: YeeSubmissionRecord): st
 }
 
 /**
- * R2 place-comparison CSV — byte-compatible with the legacy
+ * R2 place-comparison CSV - byte-compatible with the legacy
  * `yee-place-comparison.csv` (the `exportCurrentComparison` "places" branch).
  * Uses `toCsv` (formula-injection safe) exactly as before.
  */
@@ -122,7 +122,7 @@ function auditRowsCsv(records: PlaceComparisonAuditRecord[]): string {
 }
 
 /**
- * R3 trend CSV — byte-compatible with the legacy `yee-audit-trend.csv`. The
+ * R3 trend CSV - byte-compatible with the legacy `yee-audit-trend.csv`. The
  * comparison payload's `auditor_id` is already the generated code (verified with
  * the backend, M0), so this stays byte-identical.
  */
@@ -131,7 +131,7 @@ export function buildTrendCsv(records: PlaceComparisonAuditRecord[]): string {
 }
 
 /**
- * R4 audit-comparison CSV — byte-compatible with the legacy
+ * R4 audit-comparison CSV - byte-compatible with the legacy
  * `yee-individual-audit-comparison.csv`.
  */
 export function buildAuditComparisonCsv(records: PlaceComparisonAuditRecord[]): string {
@@ -139,7 +139,7 @@ export function buildAuditComparisonCsv(records: PlaceComparisonAuditRecord[]): 
 }
 
 /**
- * R5 raw-data CSV — byte-compatible with the legacy raw-data page export
+ * R5 raw-data CSV - byte-compatible with the legacy raw-data page export
  * (`toExportRows` + `ExportCsvButton`), including the per-row dynamic
  * `Domain Weight *` / `Response *` columns.
  */

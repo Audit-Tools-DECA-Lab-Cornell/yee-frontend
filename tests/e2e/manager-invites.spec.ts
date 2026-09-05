@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 import { loginAsManager } from "../helpers/auth";
 
 // Runs under `manager-chromium` (filename matches /manager/).
-// Covers: auditor invite create — form renders, submit succeeds, success state shown.
+// Covers: auditor invite create - form renders, submit succeeds, success state shown.
 test.describe("@manager auditor invite flow", () => {
 	test("invite form renders and is accessible from the auditors page", async ({ page }) => {
 		await loginAsManager(page);

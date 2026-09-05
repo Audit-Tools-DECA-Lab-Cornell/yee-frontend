@@ -3,7 +3,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 /**
- * Base table primitives styled to the YEE token system. Pure markup — no
+ * Base table primitives styled to the YEE token system. Pure markup - no
  * data logic. The shared `DataTable` (see `./data-table`) composes these.
  */
 function Table({ className, ...props }: React.ComponentProps<"table">) {

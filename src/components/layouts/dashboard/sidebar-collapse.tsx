@@ -21,8 +21,8 @@ const ROOT_ATTRIBUTE = "data-sidebar-collapsed";
  *      grid, the aside and the transition all move off that single value.
  *
  * React subscribes to the attribute rather than owning it, so the parts CSS
- * cannot express — the toggle's `aria-expanded`, whether the rail's tooltips
- * are live — still track it exactly.
+ * cannot express - the toggle's `aria-expanded`, whether the rail's tooltips
+ * are live - still track it exactly.
  */
 const listeners = new Set<() => void>();
 
@@ -69,7 +69,7 @@ function applyCollapsed(next: boolean, { persist }: { persist: boolean }) {
 
 /**
  * Blocking inline script, rendered above the sidebar so it runs while the
- * browser is still parsing the shell — the attribute is in place before the
+ * browser is still parsing the shell - the attribute is in place before the
  * aside is painted.
  *
  * The mount effect below deliberately repeats it: on a client-side navigation
@@ -110,7 +110,7 @@ export function SidebarCollapseProvider({ children }: { children: React.ReactNod
 	// between renders cannot toggle off a stale snapshot.
 	const toggle = React.useCallback(() => setCollapsed(!getSnapshot()), [setCollapsed]);
 
-	// Cmd/Ctrl+B — what Linear, VS Code and Notion all bind. Skipped while the
+	// Cmd/Ctrl+B - what Linear, VS Code and Notion all bind. Skipped while the
 	// user is typing so it never eats a real "bold" or a character.
 	React.useEffect(() => {
 		function onKeyDown(event: KeyboardEvent) {
@@ -142,7 +142,7 @@ const neverChanges = () => () => {};
 
 /**
  * "⌘" or "Ctrl" for shortcut hints. The platform is not knowable on the server,
- * so it resolves right after hydration — harmless, since the only place it is
+ * so it resolves right after hydration - harmless, since the only place it is
  * shown is a tooltip that cannot open before then anyway.
  */
 export function useShortcutModifierLabel() {

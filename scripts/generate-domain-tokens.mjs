@@ -25,7 +25,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const CSS_PATH = resolve(here, "../src/app/globals.css");
 const SPEC_PATH = resolve(here, "../src/styles/domain-palette.json");
 
-/** Role order within each domain — stable so the generated diff stays readable. */
+/** Role order within each domain - stable so the generated diff stays readable. */
 const ROLES = ["text", "strong", "fill", "light"];
 
 const REGIONS = {
@@ -60,16 +60,16 @@ function buildRootRegion(spec) {
 	const lines = [
 		"\t/* --- Data-viz: DOMAIN palette. Four roles per domain, each held to a WCAG",
 		"\t   floor by tests/unit/domain-palette.spec.ts:",
-		"\t     text   — labels/headings; >= 7:1 on the card, the app bg and its own tint",
-		"\t     strong — borders/dots/rails, and small text; >= 4.5:1 on the same three",
-		"\t     fill   — chart bars and score strips; >= 3:1 on the card (WCAG 1.4.11)",
-		"\t     light  — the tint background the two above are measured against",
+		"\t     text   - labels/headings; >= 7:1 on the card, the app bg and its own tint",
+		"\t     strong - borders/dots/rails, and small text; >= 4.5:1 on the same three",
+		"\t     fill   - chart bars and score strips; >= 3:1 on the card (WCAG 1.4.11)",
+		"\t     light  - the tint background the two above are measured against",
 		"\t   The six fills also clear categorical colour-vision separation (OKLab ΔE >= 8",
 		"\t   under protanopia and deuteranopia) so adjacent domains stay distinguishable. --- */"
 	];
 	for (const key of spec.order) {
 		const { slug, label, hue } = spec.domains[key];
-		lines.push(`\t/* ${label} — hue ${hue} */`);
+		lines.push(`\t/* ${label} - hue ${hue} */`);
 		for (const role of ROLES) lines.push(`\t--domain-${slug}-${role}: ${spec.light[key][role]};`);
 	}
 	return lines.join("\n");
@@ -103,7 +103,7 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(fileURLToPath(import
 	const next = render(current, readSpec());
 	if (process.argv.includes("--check")) {
 		if (current !== next) {
-			console.error("globals.css is out of date — run: node scripts/generate-domain-tokens.mjs");
+			console.error("globals.css is out of date. Run: node scripts/generate-domain-tokens.mjs");
 			process.exit(1);
 		}
 		console.log("globals.css domain tokens are up to date.");

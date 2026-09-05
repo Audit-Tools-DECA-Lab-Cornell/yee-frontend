@@ -2,7 +2,7 @@
  * The domain colour palette, read from the canonical spec.
  *
  * `src/styles/domain-palette.json` is THE source of truth for every YEE domain
- * colour in this repo — the `--domain-*` CSS custom properties, the Tailwind
+ * colour in this repo - the `--domain-*` CSS custom properties, the Tailwind
  * `domain-*` utilities built on them, and the hex values the PDF/Excel/SVG
  * export layer paints with. The same contents are committed in yee-mobile
  * (`lib/domain-palette.json`), and `DOMAIN_PALETTE_CHECKSUM` below is the same
@@ -15,7 +15,7 @@
  *   1. edit the JSON (in BOTH repos),
  *   2. run `node scripts/generate-domain-tokens.mjs` to rewrite globals.css,
  *   3. update `DOMAIN_PALETTE_CHECKSUM` here and in yee-mobile,
- *   4. run the palette guard tests in both repos — they re-check every WCAG
+ *   4. run the palette guard tests in both repos - they re-check every WCAG
  *      contrast gate and the categorical separation of the chart fills.
  */
 import spec from "@/styles/domain-palette.json";
@@ -35,7 +35,7 @@ export type DomainPaletteKey = keyof typeof spec.light;
 
 export type DomainRoleColors = Readonly<Record<DomainRole, string>>;
 
-/** Canonical domain order — audit step order, and the order charts assign in. */
+/** Canonical domain order - audit step order, and the order charts assign in. */
 export const domainPaletteOrder = spec.order as readonly DomainPaletteKey[];
 
 /** `DomainPaletteKey` → the `--domain-<slug>-*` prefix used in globals.css. */
@@ -58,7 +58,7 @@ export const domainPalette: Readonly<Record<DomainMode, Record<DomainPaletteKey,
 export const lightDomainPalette = domainPalette.light;
 
 /**
- * SHA-256 of the spec's CONTENT — keys sorted, whitespace stripped — asserted in
+ * SHA-256 of the spec's CONTENT - keys sorted, whitespace stripped - asserted in
  * both repos. Content rather than raw bytes because the two repos format JSON
  * differently (tabs here, four spaces there), so a byte hash would break on a
  * formatter run while the colours were still identical. What must never drift
@@ -89,7 +89,7 @@ export function getDomainColors(domain: DomainPaletteKey, mode: DomainMode = "li
 	return domainPalette[mode][domain];
 }
 
-/** The `var(--domain-*)` reference for a role — for inline styles and SVG. */
+/** The `var(--domain-*)` reference for a role - for inline styles and SVG. */
 export function domainVar(domain: DomainPaletteKey, role: DomainRole): string {
 	return `var(--domain-${domainTokenSlugs[domain]}-${role})`;
 }

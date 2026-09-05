@@ -1,5 +1,5 @@
 /**
- * Bulk-export size estimator — ported thresholds from COPA (implementation-plan
+ * Bulk-export size estimator - ported thresholds from COPA (implementation-plan
  * D5/D6). Client-side generation is honest only below a certain size; above it,
  * the UI warns before a heavy export and points at where a future server-side
  * batch path would go (logistics §7, plan risk table).

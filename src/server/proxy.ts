@@ -9,7 +9,7 @@ import { errorResponse, parseBackendJson } from "./response";
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 type ProxyRequestOptions = {
-	/** Incoming Next.js request — used to read the session cookie. */
+	/** Incoming Next.js request - used to read the session cookie. */
 	request: NextRequest | Request;
 	/** Backend path, e.g. "/yee/dashboard/overview". */
 	path: string;
@@ -25,7 +25,7 @@ type ProxyRequestOptions = {
  *
  * Reads the session token from the HttpOnly cookie on the incoming request,
  * constructs the full backend URL, and forwards the call with Authorization.
- * The raw token is NEVER exposed to the browser — this runs server-side only.
+ * The raw token is NEVER exposed to the browser - this runs server-side only.
  */
 export async function proxyRequest({
 	request,
@@ -62,7 +62,7 @@ export async function proxyRequest({
 		// Report the transport failure (timeout, DNS, connection refused) to Sentry
 		// with the backend path for triage; the URL itself is not exposed to the client.
 		Sentry.captureException(error, { tags: { proxy: "authed", backend_path: path } });
-		// Do NOT expose backendUrl in the error — it could reveal internal topology.
+		// Do NOT expose backendUrl in the error - it could reveal internal topology.
 		return errorResponse(`Backend request failed: ${error instanceof Error ? error.message : String(error)}`, 502);
 	}
 }

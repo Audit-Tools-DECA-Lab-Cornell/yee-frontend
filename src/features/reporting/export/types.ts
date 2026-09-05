@@ -25,7 +25,7 @@ export type ScoreBandKey = "low" | "mid" | "high";
 
 /**
  * When a payload lacks a generated auditor ID, exports must show this
- * placeholder — never the raw auditor identifier (logistics §3 privacy
+ * placeholder - never the raw auditor identifier (logistics §3 privacy
  * invariant; plan acceptance criterion 5).
  */
 export const REDACTED_AUDITOR_ID = "Auditor ID unavailable";
@@ -64,9 +64,9 @@ export type ExportPalette = {
 		green900: string;
 		green700: string;
 		green50: string;
-		/** `--foreground` — body text. */
+		/** `--foreground` - body text. */
 		foreground: string;
-		/** `--muted-foreground` — secondary text. */
+		/** `--muted-foreground` - secondary text. */
 		muted: string;
 		/** `--border`. */
 		border: string;
@@ -86,7 +86,7 @@ export type ReportScope = {
 	placeCount: number;
 };
 
-/** R1 — one submitted audit + the instrument it was scored against. */
+/** R1 - one submitted audit + the instrument it was scored against. */
 export type AuditReportInput = {
 	submission: YeeSubmissionRecord;
 	instrument: InstrumentResponse | null;
@@ -106,14 +106,14 @@ export type PlaceComparisonSummary = {
 	weightedPercentByDomain: Record<YeeDomainKey, number | null>;
 };
 
-/** R2 — Compare Places. */
+/** R2 - Compare Places. */
 export type PlaceComparisonReportInput = {
 	summaries: PlaceComparisonSummary[];
 	audits: PlaceComparisonAuditRecord[];
 	scope: ReportScope;
 };
 
-/** R3 — Compare Over Time (one place). */
+/** R3 - Compare Over Time (one place). */
 export type TrendReportInput = {
 	placeName: string;
 	projectName: string;
@@ -121,13 +121,13 @@ export type TrendReportInput = {
 	scope: ReportScope;
 };
 
-/** R4 — Compare Individual Audits (2–3 selected). */
+/** R4 - Compare Individual Audits (2–3 selected). */
 export type AuditComparisonReportInput = {
 	records: PlaceComparisonAuditRecord[];
 	scope: ReportScope;
 };
 
-/** R5 — the flat raw-data surface (CSV/Excel). */
+/** R5 - the flat raw-data surface (CSV/Excel). */
 export type RawDataReportInput = {
 	rows: RawDataRecord[];
 };

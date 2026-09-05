@@ -124,7 +124,7 @@ export async function resetPassword(token: string, password: string): Promise<{ 
 
 /**
  * Completes the user profile after first login.
- * The session cookie is sent automatically — no accessToken argument needed.
+ * The session cookie is sent automatically - no accessToken argument needed.
  */
 export async function completeProfile(payload: CompleteProfilePayload): Promise<SessionUser> {
 	// The backend's complete-profile contract expects `name` (see CompleteProfileRequest);

@@ -49,7 +49,7 @@ export type YeeDomainScores = Record<YeeDomainKey, number>;
  *
  * Rollout note: until the backend ships these fields, the weighted / maximum /
  * gap fields are absent at runtime and dependent report values render empty.
- * That is intentional for this frontend-first migration — the browser no longer
+ * That is intentional for this frontend-first migration - the browser no longer
  * recomputes them.
  */
 export type YeeScoreResult = {

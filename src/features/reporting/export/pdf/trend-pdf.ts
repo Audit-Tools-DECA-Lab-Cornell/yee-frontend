@@ -1,5 +1,5 @@
 /**
- * R3 — Trend Report PDF (one place over time). Trend chart + audit timeline
+ * R3 - Trend Report PDF (one place over time). Trend chart + audit timeline
  * table + the change summary (per-domain first-vs-latest delta), which is new
  * content that debuts in exports (logistics §6). jsPDF's Helvetica can't render
  * ▲/▼, so direction is shown with color-coded signed deltas.
@@ -35,7 +35,7 @@ export async function generateTrendPdf(
 	const sorted = [...records].sort((a, b) => timeOf(a.date) - timeOf(b.date));
 
 	let y = await drawCover(doc, palette, {
-		title: `Trend Report — ${placeName}`,
+		title: `Trend Report – ${placeName}`,
 		subtitle: `${projectName}. How this place changes across repeated audits.`,
 		scopeLine: `Scope: ${scope.line} · ${sorted.length} audits in range`
 	});
@@ -88,7 +88,7 @@ export async function generateTrendPdf(
 	});
 	y = lastTableY(doc) + 12;
 
-	// Change summary — per-domain first-vs-latest delta.
+	// Change summary - per-domain first-vs-latest delta.
 	if (sorted.length >= 2) {
 		y = drawSectionTitle(doc, palette, "Change summary (first vs latest, raw %)", y);
 		const deltas = firstVsLatestDeltas(sorted);
@@ -147,7 +147,7 @@ function formatDelta(delta: number | null): string {
 }
 function timeOf(date: string): number {
 	const parsed = new Date(date);
-	// Unparseable/empty dates sort LAST — not to epoch 0, which would wrongly make
+	// Unparseable/empty dates sort LAST - not to epoch 0, which would wrongly make
 	// an undated record the "earliest" point in the trend chart + timeline.
 	return Number.isNaN(parsed.getTime()) ? Number.POSITIVE_INFINITY : parsed.getTime();
 }

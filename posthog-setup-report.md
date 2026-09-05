@@ -3,12 +3,12 @@
 
 The wizard has completed a full PostHog integration for the YEE Audit Tool frontend. Here is a summary of every change made:
 
-- **Reverse proxy** — `next.config.ts` now routes `/ingest/*` through the app origin (and `/ingest/static/*`, `/ingest/array/*` to the assets CDN) so PostHog requests bypass ad blockers.
-- **Client-side init** — `analytics-provider.tsx` updated to use `/ingest` as `api_host`, added `ui_host`, `defaults: "2026-01-30"`, `capture_exceptions: true`, and `debug` in development.
-- **Server-side client** — `src/lib/analytics/posthog-server.ts` created with a singleton `PostHog` (posthog-node) client, flushing immediately for short-lived route handlers.
-- **posthog-node installed** — `posthog-node@5.40.0` added as a project dependency.
-- **Environment variables** — `NEXT_PUBLIC_POSTHOG_KEY` and `NEXT_PUBLIC_POSTHOG_HOST` written to `.env.local`.
-- **User identification** — already handled end-to-end by `AnalyticsIdentitySync` in `analytics-provider.tsx` (identifies on login/session restore, resets on logout). An explicit `posthog.identify()` was also added in `invite-accept-screen.tsx` at the moment of invite acceptance.
+- **Reverse proxy** - `next.config.ts` now routes `/ingest/*` through the app origin (and `/ingest/static/*`, `/ingest/array/*` to the assets CDN) so PostHog requests bypass ad blockers.
+- **Client-side init** - `analytics-provider.tsx` updated to use `/ingest` as `api_host`, added `ui_host`, `defaults: "2026-01-30"`, `capture_exceptions: true`, and `debug` in development.
+- **Server-side client** - `src/lib/analytics/posthog-server.ts` created with a singleton `PostHog` (posthog-node) client, flushing immediately for short-lived route handlers.
+- **posthog-node installed** - `posthog-node@5.40.0` added as a project dependency.
+- **Environment variables** - `NEXT_PUBLIC_POSTHOG_KEY` and `NEXT_PUBLIC_POSTHOG_HOST` written to `.env.local`.
+- **User identification** - already handled end-to-end by `AnalyticsIdentitySync` in `analytics-provider.tsx` (identifies on login/session restore, resets on logout). An explicit `posthog.identify()` was also added in `invite-accept-screen.tsx` at the moment of invite acceptance.
 - **10 business events** instrumented across 7 files (see table below).
 - **PostHog dashboard** "Analytics basics (wizard)" created with 5 insights.
 
@@ -29,7 +29,7 @@ The wizard has completed a full PostHog integration for the YEE Audit Tool front
 
 We've built some insights and a dashboard to keep an eye on user behaviour:
 
-- **Dashboard** — [Analytics basics (wizard)](https://us.posthog.com/project/505201/dashboard/1824507)
+- **Dashboard** - [Analytics basics (wizard)](https://us.posthog.com/project/505201/dashboard/1824507)
 - [Signup → Profile completion funnel](https://us.posthog.com/project/505201/insights/hXVggm8r)
 - [Audit completion funnel (review → submitted)](https://us.posthog.com/project/505201/insights/eKBPOfMR)
 - [Audits submitted over time](https://us.posthog.com/project/505201/insights/uWUWBFgo)
@@ -39,10 +39,10 @@ We've built some insights and a dashboard to keep an eye on user behaviour:
 ## Verify before merging
 
 - [ ] Run a full production build (`pnpm build`) and fix any lint or type errors introduced by the generated code.
-- [ ] Run the test suite — call sites that were rewritten or instrumented may need updated mocks or fixtures.
+- [ ] Run the test suite - call sites that were rewritten or instrumented may need updated mocks or fixtures.
 - [ ] Add `NEXT_PUBLIC_POSTHOG_KEY` and `NEXT_PUBLIC_POSTHOG_HOST` to `.env.example` and any CI/deploy bootstrap scripts so collaborators know what to set.
 - [ ] Wire source-map upload (`posthog-cli sourcemap` or your bundler's upload step) into CI so production stack traces de-minify in PostHog Error Tracking.
-- [ ] Confirm the returning-visitor path also calls `identify` — the `AnalyticsIdentitySync` component handles this via `useEffect` watching `session`, so verify the session hydration effect runs correctly on page refresh.
+- [ ] Confirm the returning-visitor path also calls `identify` - the `AnalyticsIdentitySync` component handles this via `useEffect` watching `session`, so verify the session hydration effect runs correctly on page refresh.
 
 ### Agent skill
 

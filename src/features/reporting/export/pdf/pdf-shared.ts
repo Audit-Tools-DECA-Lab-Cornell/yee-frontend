@@ -87,7 +87,7 @@ const SECTION_LEAD_GAP = 14;
 /** Section heading with a colored tick; returns the y below it. */
 export function drawSectionTitle(doc: jsPDF, palette: ExportPalette, title: string, y: number): number {
 	// Add breathing room above the heading, but skip it when the title (with the
-	// gap) would spill the page — there ensureSpace resets to a fresh page top and
+	// gap) would spill the page - there ensureSpace resets to a fresh page top and
 	// the extra pad would just waste space.
 	const fitsWithLead = y + SECTION_LEAD_GAP + 34 <= pageHeight(doc) - PAGE.marginBottom;
 	const top = ensureSpace(doc, y + (fitsWithLead ? SECTION_LEAD_GAP : 0), 34);
@@ -135,7 +135,7 @@ function withOpacity(doc: jsPDF, opacity: number, draw: () => void): void {
 
 /**
  * Draw the brand cover block at the top of page 1. Echoes the on-screen
- * DashboardHero — deep-green banner, faint dot-grid, a transparent logo-mark
+ * DashboardHero - deep-green banner, faint dot-grid, a transparent logo-mark
  * watermark bleeding off the top-right, and the horizontal YEE wordmark (with a
  * text fallback when the logo assets can't be loaded). Returns the y below it.
  */

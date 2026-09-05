@@ -20,7 +20,7 @@ type ScoreCellProps = {
  * The single, null-safe score renderer used everywhere a score appears
  * (tables, cards, detail pages, reports). Each score is a `ScoreStack`: the
  * percentage leads and the labelled fraction sits beneath it, muted. Missing
- * values render as an em dash instead of throwing — weighted fields are absent
+ * values render as an em dash instead of throwing - weighted fields are absent
  * during the backend scoring rollout, which previously crashed the auditor
  * dashboard.
  */

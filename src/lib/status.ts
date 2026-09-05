@@ -4,7 +4,7 @@ import type { badgeVariants } from "@/components/ui/badge";
 
 /**
  * Single source of truth for place audit-readiness status. Both the admin
- * and manager tables must map identical inputs to identical labels —
+ * and manager tables must map identical inputs to identical labels -
  * previously the admin table showed "Up to date" for a never-audited place
  * while the manager table correctly showed "Pending first audit".
  */

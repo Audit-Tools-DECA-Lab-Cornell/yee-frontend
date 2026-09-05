@@ -1,5 +1,5 @@
 /**
- * Trend line chart builder — standalone SVG. Raw % and Youth-Weighted % lines
+ * Trend line chart builder - standalone SVG. Raw % and Youth-Weighted % lines
  * across a place's audits over time (R3). Series colors match the on-screen
  * chart: weighted = series 1 (brand green), raw = series 2 (blue).
  */

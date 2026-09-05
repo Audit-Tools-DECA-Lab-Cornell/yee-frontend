@@ -1,5 +1,5 @@
 /**
- * Per-domain horizontal bars — standalone SVG. For R1: each domain shows a Raw
+ * Per-domain horizontal bars - standalone SVG. For R1: each domain shows a Raw
  * bar and a Youth-Weighted bar, tinted with that domain's color (fill = raw,
  * strong = weighted), with the percentage at the end of each bar.
  */

@@ -1,5 +1,5 @@
 /**
- * R2 — Place Comparison Report PDF. Exports what the Compare Places mode shows,
+ * R2 - Place Comparison Report PDF. Exports what the Compare Places mode shows,
  * honoring the active filters (printed on the cover). Ranking table + band-tinted
  * domain matrix + top-3 radar overlay (same limit as the dashboard).
  */
@@ -69,7 +69,7 @@ export async function generatePlaceComparisonPdf(
 	});
 	y = lastTableY(doc) + 12;
 
-	// Domain matrix — cells tinted by score band.
+	// Domain matrix - cells tinted by score band.
 	y = drawSectionTitle(doc, palette, "Domain matrix (raw %)", y);
 	const matrixHead = ["Place", ...domainOrder.map(domain => domainLabels[domain])];
 	const matrixBody = summaries.map(summary => [
@@ -100,7 +100,7 @@ export async function generatePlaceComparisonPdf(
 		columnStyles: { 0: { halign: "left", fontStyle: "bold" } },
 		didParseCell: data => {
 			// Header: each column IS a domain, so it carries that domain's colours
-			// rather than one flat brand green — the same identity cue the screen uses.
+			// rather than one flat brand green - the same identity cue the screen uses.
 			if (data.section === "head" && data.column.index > 0) {
 				const colors = palette.domains[domainOrder[data.column.index - 1]];
 				data.cell.styles.fillColor = hexToRgb(colors.light);
@@ -121,12 +121,12 @@ export async function generatePlaceComparisonPdf(
 	});
 	y = lastTableY(doc) + 12;
 
-	// Radar overlay — top 3 places.
+	// Radar overlay - top 3 places.
 	const topPlaces = summaries
 		.filter(summary => domainOrder.every(domain => summary.rawPercentByDomain[domain] !== null))
 		.slice(0, 3);
 	if (topPlaces.length > 0) {
-		y = drawSectionTitle(doc, palette, `Domain profile — top ${topPlaces.length} places`, y);
+		y = drawSectionTitle(doc, palette, `Domain profile – top ${topPlaces.length} places`, y);
 		const radarSvg = buildRadarSvg({
 			axisLabels: domainOrder.map(domain => domainLabels[domain]),
 			axisColors: domainOrder.map(domain => palette.domains[domain].text),

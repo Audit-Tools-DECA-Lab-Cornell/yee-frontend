@@ -4,7 +4,7 @@
  * Structured error thrown by API fetch helpers.
  *
  * `payload` keeps the parsed response body so callers can render structured
- * detail the flat `message` cannot carry — FastAPI returns object-shaped
+ * detail the flat `message` cannot carry - FastAPI returns object-shaped
  * `detail` for several failures (for example the instrument publish 409, whose
  * `detail.scoring_compatibility` names the questions the scoring engine needs).
  * Without it that detail is discarded here and is unrecoverable further up.
