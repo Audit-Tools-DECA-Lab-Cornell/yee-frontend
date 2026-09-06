@@ -26,6 +26,7 @@ import { DashboardHero } from "@/components/ui/dashboard-hero";
 import { DataTable, DataTableRowActions } from "@/components/ui/data-table";
 import { ScoreCell } from "@/components/ui/score-cell";
 import { StatusBadge, StatusBadgeFor } from "@/components/ui/status-badge";
+import { TagListCell } from "@/components/ui/tag-list-cell";
 import { SCORE_UNAVAILABLE, aggregateScoreEntries, formatScoreFraction, scorePercent } from "@/lib/score-format";
 import { getPlaceStatus } from "@/lib/status";
 import {
@@ -719,18 +720,7 @@ function useTableData<T>(loader: (session: NonNullable<ReturnType<typeof useAuth
 }
 
 function auditorChips(ids: string[]) {
-	if (ids.length === 0) {
-		return <span className="text-muted-foreground">No auditors assigned</span>;
-	}
-	return (
-		<div className="flex flex-wrap gap-1.5">
-			{ids.map(id => (
-				<Badge key={id} variant="secondary" className="font-normal">
-					{id}
-				</Badge>
-			))}
-		</div>
-	);
+	return <TagListCell items={ids} unit="auditors" emptyLabel="No auditors assigned" />;
 }
 
 /** Column definitions shared by the manager and admin Projects tables. */
@@ -864,9 +854,8 @@ function buildPlaceColumns(variant: "manager" | "admin"): ColumnDef<PlaceRecord>
 			},
 			{
 				id: "assigned_auditors",
-				accessorFn: row => row.assigned_auditors,
-				header: "Assigned auditors",
-				enableSorting: false,
+				accessorFn: row => row.assigned_auditors.length,
+				header: "Auditors",
 				cell: ({ row }) => auditorChips(row.original.assigned_auditors)
 			}
 		);
@@ -931,7 +920,9 @@ function PlaceMobileCard({ place, variant }: { place: PlaceRecord; variant: "man
 				<StatusBadgeFor status={status} />
 			</div>
 			<p className="text-sm text-muted-foreground">{place.address}</p>
-			<p className="text-sm text-muted-foreground">{place.audits} audits</p>
+			<p className="text-sm tabular-nums text-muted-foreground">
+				{place.audits} audits · {place.assigned_auditors.length} auditors
+			</p>
 			{variant === "manager" ? (
 				<Button asChild variant="quiet" size="sm" className="px-0">
 					<Link href={`/manager/places/${place.id}`}>
@@ -1228,13 +1219,8 @@ function buildAuditorColumns(isAdmin: boolean): ColumnDef<AuditorRecord>[] {
 			id: "assigned_places",
 			accessorFn: row => row.assigned_places.length,
 			header: "Assigned places",
-			enableSorting: false,
 			cell: ({ row }) => (
-				<span className="text-muted-foreground">
-					{row.original.assigned_places.length > 0
-						? row.original.assigned_places.join(", ")
-						: "No places assigned"}
-				</span>
+				<TagListCell items={row.original.assigned_places} unit="places" emptyLabel="No places assigned" />
 			)
 		},
 		{
@@ -1261,9 +1247,7 @@ function AuditorMobileCard({ auditor, isAdmin }: { auditor: AuditorRecord; isAdm
 				<StatusBadge label={auditor.status} tone="success" />
 			</div>
 			<p className="text-sm text-muted-foreground">{auditor.email || (isAdmin ? "Hidden from admin" : "—")}</p>
-			<p className="text-sm text-muted-foreground">
-				{auditor.assigned_places.length > 0 ? auditor.assigned_places.join(", ") : "No places assigned"}
-			</p>
+			<TagListCell items={auditor.assigned_places} unit="places" emptyLabel="No places assigned" />
 			<p className="text-sm text-muted-foreground">{auditor.completed_audits} completed audits</p>
 		</div>
 	);

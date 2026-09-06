@@ -3,17 +3,23 @@
 import Image from "next/image";
 import Link from "next/link";
 import * as React from "react";
-import { ArrowRight, ClipboardList, FileBarChart2, MapPin, Users2 } from "lucide-react";
+import { ArrowRight, ChevronDown, ClipboardList, FileBarChart2, MapPin, Users2 } from "lucide-react";
 import type { ColumnDef } from "@tanstack/react-table";
 
 import { AssignmentPanel } from "@/features/manager/components/assignment-panel";
 import { useAuth } from "@/features/auth/components/auth-provider";
-import { PlaceComparisonPanel } from "@/features/reporting/components/place-comparison-panel";
+import { PlaceReportComparison } from "@/features/reporting/components/place-report-comparison";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
 import { DashboardHero } from "@/components/ui/dashboard-hero";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBadge } from "@/components/ui/status-badge";
 import type { StatusTone } from "@/lib/status";
@@ -26,7 +32,6 @@ import {
 	fetchProjectDetail,
 	type AuditRecord,
 	type PlaceAuditorRecord,
-	type PlaceComparisonAuditRecord,
 	type PlaceDetailRecord,
 	type ProjectAuditorRecord,
 	type ProjectDetailRecord,
@@ -90,36 +95,6 @@ function DetailMetric({ label, value, description }: { label: string; value: str
 				<CardTitle className="text-3xl font-semibold tracking-tight text-foreground">{value}</CardTitle>
 			</CardHeader>
 			<CardContent className="text-sm leading-6 text-muted-foreground">{description}</CardContent>
-		</Card>
-	);
-}
-
-function DetailActionCard({
-	label,
-	description,
-	href,
-	actionLabel
-}: {
-	label: string;
-	description: string;
-	href: string;
-	actionLabel: string;
-}) {
-	return (
-		<Card className="rounded-md border-border/80 bg-white shadow-sm">
-			<CardHeader className="pb-3">
-				<CardDescription>{label}</CardDescription>
-				<CardTitle className="text-2xl font-semibold tracking-tight text-foreground">{actionLabel}</CardTitle>
-			</CardHeader>
-			<CardContent className="flex flex-col items-center justify-between gap-4 text-sm leading-6 text-muted-foreground">
-				<p>{description}</p>
-				<Button asChild className="w-full bg-primary text-white hover:bg-primary/90">
-					<Link href={href}>
-						{actionLabel}
-						<ArrowRight className="size-4" />
-					</Link>
-				</Button>
-			</CardContent>
 		</Card>
 	);
 }
@@ -546,80 +521,6 @@ function PlaceAuditorsTable({
 	);
 }
 
-const submittedReportColumns: ColumnDef<PlaceComparisonAuditRecord>[] = [
-	{
-		accessorKey: "auditor_id",
-		header: "Auditor ID",
-		cell: ({ getValue }) => <span className="font-medium text-foreground">{String(getValue())}</span>
-	},
-	{
-		accessorKey: "participant_id",
-		header: "Participant ID",
-		cell: ({ getValue }) => {
-			const value = getValue();
-			return <span className="text-muted-foreground">{value ? String(value) : "—"}</span>;
-		}
-	},
-	{
-		accessorKey: "date",
-		header: "Submitted",
-		cell: ({ getValue }) => <span className="text-muted-foreground">{String(getValue())}</span>
-	},
-	{
-		id: "raw",
-		header: "Total Raw Score",
-		cell: ({ row }) => <ScoreValue value={row.original.total_raw_score} max={row.original.total_raw_maximum} />
-	},
-	{
-		id: "weighted",
-		header: "Total Youth Weighted Average",
-		cell: ({ row }) => (
-			<ScoreValue
-				value={row.original.total_weighted_score}
-				max={row.original.total_weighted_maximum}
-				fractionDigits={2}
-			/>
-		)
-	},
-	{
-		id: "report",
-		header: "",
-		enableSorting: false,
-		cell: ({ row }) => (
-			<Link
-				href={`/yee/submissions/${row.original.audit_id}`}
-				className="text-sm font-medium text-primary underline-offset-4 hover:underline">
-				Open report
-			</Link>
-		)
-	}
-];
-
-function SubmittedReportMobileCard({ record }: { record: PlaceComparisonAuditRecord }) {
-	return (
-		<Link
-			href={`/yee/submissions/${record.audit_id}`}
-			className="block space-y-1.5 rounded-md border border-border bg-card p-4">
-			<div className="flex items-center justify-between gap-3">
-				<p className="font-medium text-foreground">{record.auditor_id}</p>
-				<span className="text-xs text-muted-foreground">{record.date}</span>
-			</div>
-			{record.participant_id ? (
-				<p className="text-sm text-muted-foreground">Participant {record.participant_id}</p>
-			) : null}
-			<p className="text-sm text-muted-foreground">
-				Raw <ScoreValue value={record.total_raw_score} max={record.total_raw_maximum} /> · Youth{" "}
-				<ScoreValue
-					value={record.total_weighted_score}
-					max={record.total_weighted_maximum}
-					fractionDigits={2}
-				/>
-			</p>
-			<p className="text-sm font-medium text-primary">Open report →</p>
-		</Link>
-	);
-}
-
 export function LiveProjectDetail({ projectId }: { projectId: string }) {
 	const { session } = useAuth();
 	const loader = React.useCallback(
@@ -972,46 +873,53 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 						</>
 					}
 					actions={
-						<div className="flex flex-col items-start w-full gap-3">
-							<Button asChild className="bg-white text-foreground w-full hover:bg-emerald-50">
-								<Link href={`/manager/projects/${data.project_id}`}>Open project</Link>
-							</Button>
-							<Button
-								asChild
-								variant="outline"
-								className="border-white/15 bg-white/6 text-white w-full hover:bg-white/10 hover:text-white">
+						/* One primary and one supporting action stay visible; the rest move
+						   into a menu. Five equal-weight buttons stacked full width gave a
+						   reader no idea which one this page is for. */
+						<div className="flex flex-wrap items-center gap-2">
+							<Button asChild className="bg-white text-foreground hover:bg-emerald-50">
 								<Link href={`/manager/places/${data.id}/edit`}>Edit place</Link>
 							</Button>
 							<Button
 								asChild
 								variant="outline"
-								className="border-white/15 bg-white/6 text-white w-full hover:bg-white/10 hover:text-white">
-								<Link href={`/manager/auditors?projectId=${data.project_id}&placeId=${data.id}`}>
-									Manage Auditor Assignments
-								</Link>
-							</Button>
-							<Button
-								asChild
-								variant="outline"
-								className="border-white/15 bg-white/6 text-white w-full hover:bg-white/10 hover:text-white">
+								className="border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
 								<Link href={`/manager/audits?projectId=${data.project_id}&placeId=${data.id}`}>
-									View Audits
+									View audits
 								</Link>
 							</Button>
-							<Button
-								asChild
-								variant="outline"
-								className="border-white/15 bg-white/6 text-white w-full hover:bg-white/10 hover:text-white">
-								<Link href="/manager/reports">
-									Open reports dashboard
-									<FileBarChart2 className="size-4" />
-								</Link>
-							</Button>
+							<DropdownMenu>
+								<DropdownMenuTrigger asChild>
+									<Button
+										variant="outline"
+										className="border-white/15 bg-white/6 text-white hover:bg-white/10 hover:text-white">
+										More
+										<ChevronDown className="size-4" />
+									</Button>
+								</DropdownMenuTrigger>
+								<DropdownMenuContent align="end">
+									<DropdownMenuItem asChild>
+										<Link href={`/manager/projects/${data.project_id}`}>Open project</Link>
+									</DropdownMenuItem>
+									<DropdownMenuItem asChild>
+										<Link
+											href={`/manager/auditors?projectId=${data.project_id}&placeId=${data.id}`}>
+											Manage auditor assignments
+										</Link>
+									</DropdownMenuItem>
+									<DropdownMenuItem asChild>
+										<Link href="/manager/reports">
+											<FileBarChart2 className="size-4" />
+											Open reports dashboard
+										</Link>
+									</DropdownMenuItem>
+								</DropdownMenuContent>
+							</DropdownMenu>
 						</div>
 					}
 				/>
 
-				<section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+				<section className="grid gap-4 md:grid-cols-3">
 					<DetailMetric
 						label="Assigned auditors"
 						value={`${data.assigned_auditors}`}
@@ -1026,12 +934,6 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 						label="Submitted audits"
 						value={`${data.submitted_audits}`}
 						description="Completed YEE submissions available for scoring and reporting."
-					/>
-					<DetailActionCard
-						label="View Audits"
-						actionLabel="Open Audits"
-						href={`/manager/audits?projectId=${data.project_id}&placeId=${data.id}`}
-						description="Review draft and submitted audits already linked to this place from the manager workspace."
 					/>
 				</section>
 
@@ -1185,46 +1087,7 @@ export function LivePlaceDetail({ placeId }: { placeId: string }) {
 					onAssigned={reload}
 				/>
 
-				<Card className="rounded-md border-border/80 bg-white shadow-sm">
-					<CardHeader>
-						<CardTitle>Submitted reports</CardTitle>
-						<CardDescription>
-							Open the full read-only report for each YEE audit submitted at this place.
-						</CardDescription>
-					</CardHeader>
-					<CardContent>
-						<DataTable
-							columns={submittedReportColumns}
-							data={data.comparisons.audits}
-							getRowId={row => row.audit_id}
-							hideColumnMenu
-							emptyState={
-								<EmptyState
-									title="No reports yet"
-									description="No reports have been submitted for this place yet. As soon as an assigned auditor submits a YEE audit, its report appears here."
-								/>
-							}
-							mobileCard={record => <SubmittedReportMobileCard record={record} />}
-						/>
-					</CardContent>
-				</Card>
-
-				{data.comparisons.audits.length === 0 ? (
-					<Card className="rounded-md border-border/80 bg-white shadow-sm">
-						<CardHeader>
-							<CardTitle>Comparison view</CardTitle>
-							<CardDescription>
-								This place is ready for comparisons as soon as submitted YEE audits exist.
-							</CardDescription>
-						</CardHeader>
-						<CardContent className="text-sm leading-6 text-muted-foreground">
-							No submitted audits are linked to this place yet, so there is nothing to compare or export
-							here.
-						</CardContent>
-					</Card>
-				) : (
-					<PlaceComparisonPanel group={data.comparisons} hideAuditTable />
-				)}
+				<PlaceReportComparison records={data.comparisons.audits} />
 			</div>
 			<ConfirmDialog
 				open={placeConfirmOpen}

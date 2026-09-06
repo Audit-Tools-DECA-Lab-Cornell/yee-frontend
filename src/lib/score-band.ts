@@ -62,3 +62,22 @@ export function scoreBand(percent: number): ScoreBandClasses {
 export function scoreBandColor(percent: number): string {
 	return BAND_VAR[scoreBandKey(percent)];
 }
+
+/** Percentage clamped into the 0–100 a score track can actually draw. */
+export function clampScorePercent(percent: number): number {
+	if (!Number.isFinite(percent)) return 0;
+	return Math.min(100, Math.max(0, percent));
+}
+
+/**
+ * Filled length of a score track, as a CSS percentage.
+ *
+ * There is deliberately no minimum. The bar renderer this replaces floored the
+ * fill at 12% so that a zero score still drew a visible sliver, which made 0%
+ * and 12% indistinguishable — a reader could not tell "nobody scored this" from
+ * "a twelfth of the available points". Zero renders as zero length, and the
+ * empty track is the signal.
+ */
+export function scoreTrackLength(percent: number): string {
+	return `${clampScorePercent(percent)}%`;
+}
