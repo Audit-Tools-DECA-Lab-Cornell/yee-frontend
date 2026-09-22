@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
 	ArrowLeft,
@@ -30,7 +31,7 @@ const sections = [
 	{ id: "analytics", label: "Analytics and diagnostics" },
 	{ id: "access", label: "Access and research privacy" },
 	{ id: "security", label: "Security and offline storage" },
-	{ id: "retention", label: "Retention and deletion" },
+	{ id: "account-deletion", label: "Retention and account deletion" },
 	{ id: "youth", label: "Youth participants" },
 	{ id: "international", label: "International processing" },
 	{ id: "changes", label: "Changes to this policy" },
@@ -87,8 +88,8 @@ export default function PrivacyPolicyPage() {
 								Privacy Policy
 							</h1>
 							<p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
-								This Privacy Policy explains how the Youth Enabling Environments Audit Tool (&quot;YEE Audit
-								Tools,&quot; &quot;YEE,&quot; &quot;we,&quot; or &quot;us&quot;) handles information across the YEE web platform and
+								This Privacy Policy explains how the Youth Enabling Environments Audit Tool ("YEE Audit
+								Tools," "YEE," "we," or "us") handles information across the YEE web platform and
 								mobile field-audit application.
 							</p>
 							<div className="mt-6 flex flex-wrap gap-2 text-sm">
@@ -153,29 +154,11 @@ export default function PrivacyPolicyPage() {
 						<PolicySection id="information" icon={Database} title="1. Information we collect">
 							<p>Depending on your role and how your organization uses YEE, we may process:</p>
 							<ul>
-								<li>
-									<strong>Account and profile information:</strong> name, email address, organization or
-									institution, account role, job title, professional disciplines, optional phone number,
-									account status, and generated user or auditor identifiers.
-								</li>
-								<li>
-									<strong>Project and place information:</strong> research projects, assigned places, place
-									details, project membership, and assignment records entered by authorized managers.
-								</li>
-								<li>
-									<strong>Audit and research information:</strong> survey responses, domain weights,
-									comments, section comments, submission status, timestamps, scores, and report/export data.
-								</li>
-								<li>
-									<strong>Technical and usage information:</strong> app or browser version, operating
-									system, device and network information, IP-derived technical information, page or screen
-									views, taps/clicks, app lifecycle events, errors, diagnostics, and performance data.
-								</li>
-								<li>
-									<strong>Local offline data:</strong> the mobile app stores assigned places, instrument
-									content, in-progress drafts, pending synchronization records, and related metadata on the
-									device so audits can continue without a network connection.
-								</li>
+								<li><strong>Account and profile information:</strong> name, email address, organization or institution, account role, job title, professional disciplines, optional phone number, account status, and generated user or auditor identifiers.</li>
+								<li><strong>Project and place information:</strong> research projects, assigned places, place details, project membership, and assignment records entered by authorized managers.</li>
+								<li><strong>Audit and research information:</strong> survey responses, domain weights, comments, section comments, submission status, timestamps, scores, and report/export data.</li>
+								<li><strong>Technical and usage information:</strong> app or browser version, operating system, device and network information, IP-derived technical information, page or screen views, taps/clicks, app lifecycle events, errors, diagnostics, and performance data.</li>
+								<li><strong>Local offline data:</strong> the mobile app stores assigned places, instrument content, in-progress drafts, pending synchronization records, and related metadata on the device so audits can continue without a network connection.</li>
 							</ul>
 							<p>
 								YEE does not request device GPS, camera, microphone, contacts, or photo-library access as a
@@ -186,41 +169,16 @@ export default function PrivacyPolicyPage() {
 						</PolicySection>
 
 						<PolicySection id="use" icon={BarChart3} title="2. How we use information">
-							<p>We use information to:</p>
-							<ul>
-								<li>create and maintain accounts and verify sign-in;</li>
-								<li>assign auditors to projects and places;</li>
-								<li>save, synchronize, submit, score, and report YEE audits;</li>
-								<li>support offline fieldwork and restore pending work after connectivity returns;</li>
-								<li>generate reports, comparisons, and authorized research exports;</li>
-								<li>detect errors, prevent abuse, maintain security, and improve reliability and usability; and</li>
-								<li>respond to support, privacy, and account requests.</li>
-							</ul>
+							<p>We use information to create and maintain accounts; assign auditors; save, synchronize, submit, score, and report audits; support offline fieldwork; generate authorized reports and research exports; maintain security and reliability; and respond to support, privacy, and account requests.</p>
 						</PolicySection>
 
 						<PolicySection id="sharing" icon={Users} title="3. When information is shared">
 							<p>We do not sell personal information and do not share YEE data for targeted advertising.</p>
-							<p>Information may be made available to:</p>
 							<ul>
-								<li>
-									<strong>Authorized people in your YEE workspace.</strong> Managers can access information
-									needed to manage their organization&apos;s projects, auditors, audits, and reports. Platform
-									administrators may have broader access for system administration.
-								</li>
-								<li>
-									<strong>Service providers.</strong> YEE may use providers for application hosting,
-									database hosting, mobile app delivery and updates, maps/place lookup, analytics, and error
-									monitoring. These providers process information to deliver those services to YEE.
-								</li>
-								<li>
-									<strong>Research or institutional recipients.</strong> Authorized exports or reports may be
-									shared by the organization running a project according to its research protocol, consent
-									process, institutional requirements, and applicable law.
-								</li>
-								<li>
-									<strong>Legal and safety purposes.</strong> We may disclose information when reasonably
-									necessary to comply with law, protect users, investigate misuse, or protect the service.
-								</li>
+								<li><strong>Authorized people in your YEE workspace.</strong> Managers can access information needed to manage their organization&apos;s projects, auditors, audits, and reports. Platform administrators may have broader access for system administration.</li>
+								<li><strong>Service providers.</strong> YEE may use providers for application hosting, database hosting, mobile app delivery and updates, maps/place lookup, analytics, and error monitoring.</li>
+								<li><strong>Research or institutional recipients.</strong> Authorized exports or reports may be shared by the organization running a project according to its research protocol, consent process, institutional requirements, and applicable law.</li>
+								<li><strong>Legal and safety purposes.</strong> We may disclose information when reasonably necessary to comply with law, protect users, investigate misuse, or protect the service.</li>
 							</ul>
 						</PolicySection>
 
@@ -236,115 +194,58 @@ export default function PrivacyPolicyPage() {
 								on-screen content to help diagnose usability and reliability problems. YEE does not use
 								session replay for advertising.
 							</p>
-							<p>
-								The web application may also use Google Maps or Places services for manager-entered place
-								search and map previews when that feature is configured. The mobile application uses Expo
-								services for application delivery and updates.
-							</p>
+							<p>The web application may also use Google Maps or Places services for manager-entered place search and map previews when configured. The mobile application uses Expo services for application delivery and updates.</p>
 						</PolicySection>
 
 						<PolicySection id="access" icon={Users} title="5. Access and research privacy">
-							<p>
-								YEE uses role-based access controls. Auditors are limited to their assigned fieldwork and
-								their own submissions. Managers are scoped to their organization&apos;s projects and may
-								review submissions, reports, and authorized raw-data exports. Platform administrators may
-								access system-wide data when needed to operate the service.
-							</p>
-							<p>
-								Reporting and comparison surfaces are designed to use generated auditor identifiers, such
-								as AUD-001, instead of personal names where a full identity is not needed. Organizations
-								should avoid entering unnecessary personal or sensitive information in free-text audit
-								comments.
-							</p>
+							<p>YEE uses role-based access controls. Auditors are limited to their assigned fieldwork and their own submissions. Managers are scoped to their organization&apos;s projects and may review submissions, reports, and authorized raw-data exports. Platform administrators may access system-wide data when needed to operate the service.</p>
+							<p>Reporting and comparison surfaces are designed to use generated auditor identifiers, such as AUD-001, instead of personal names where a full identity is not needed. Organizations should avoid entering unnecessary personal or sensitive information in free-text audit comments.</p>
 						</PolicySection>
 
 						<PolicySection id="security" icon={LockKeyhole} title="6. Security and offline storage">
-							<p>
-								YEE uses administrative and technical safeguards intended to protect information. On the
-								web, authentication tokens are stored in an HttpOnly session cookie with secure production
-								settings. On mobile, authentication sessions and offline-login credentials are stored using
-								the operating system&apos;s secure storage when available.
-							</p>
-							<p>
-								To support offline fieldwork, in-progress audit drafts and synchronization queues are stored
-								locally in account-scoped device storage. Application-level encryption is not currently
-								enabled for those local draft records. Protect access to any device used for YEE fieldwork,
-								and remove app data before transferring a device to another person.
-							</p>
-							<p>
-								Production network traffic is expected to use HTTPS/TLS. No method of storage or
-								transmission is completely secure, so we cannot guarantee absolute security.
-							</p>
+							<p>YEE uses administrative and technical safeguards intended to protect information. On the web, authentication tokens are stored in an HttpOnly session cookie with secure production settings. On mobile, authentication sessions and offline-login credentials are stored using the operating system&apos;s secure storage when available.</p>
+							<p>To support offline fieldwork, in-progress audit drafts and synchronization queues are stored locally in account-scoped device storage. Application-level encryption is not currently enabled for those local draft records. Protect access to any device used for YEE fieldwork, and remove app data before transferring a device to another person.</p>
+							<p>Production network traffic is expected to use HTTPS/TLS. No method of storage or transmission is completely secure, so we cannot guarantee absolute security.</p>
 						</PolicySection>
 
-						<PolicySection id="retention" icon={Clock3} title="7. Retention and deletion">
-							<p>
-								We retain account and project information for as long as it is reasonably needed to provide
-								YEE, administer the relevant research workspace, maintain security, and satisfy applicable
-								institutional, legal, or research-record obligations.
-							</p>
-							<p>
-								Mobile offline drafts may remain on a device until they are submitted, cleared, or the
-								application data is removed. Submitted audit records may be retained by the organization
-								operating the project under its approved research or records-retention requirements.
-							</p>
-							<p>
-								You may request deletion of your YEE account and account-linked personal information by
-								contacting your organization&apos;s YEE manager or the privacy contact below. Where a submitted
-								research record must be retained, we may retain or de-identify that record as permitted or
-								required by the applicable research protocol, institutional policy, or law. Deletion may
-								take additional time to propagate through backups and security logs.
-							</p>
+						<PolicySection id="account-deletion" icon={Clock3} title="7. Retention and account deletion">
+							<p>We retain account and project information for as long as it is reasonably needed to provide YEE, administer the relevant research workspace, maintain security, and satisfy applicable institutional, legal, or research-record obligations.</p>
+							<p>Mobile offline drafts may remain on a device until they are submitted, cleared, or the application data is removed. Submitted audit records may be retained by the organization operating the project under its approved research or records-retention requirements.</p>
+							<div className="rounded-lg border border-(--yee-green-200) bg-(--yee-green-50) p-5">
+								<p className="font-semibold text-(--yee-green-950)">Request account deletion</p>
+								<p className="mt-2 text-sm leading-6 text-(--yee-green-900)">
+									Email{" "}
+									<a href="mailto:j.loebach@cornell.edu?subject=YEE%20Account%20Deletion%20Request" className="font-semibold underline underline-offset-4">
+										j.loebach@cornell.edu
+									</a>{" "}
+									with the email address used for your YEE account and the name of your organization. The request will be verified before account-linked personal information is removed.
+								</p>
+							</div>
+							<p>Where a submitted research record must be retained, we may retain or de-identify that record as permitted or required by the applicable research protocol, institutional policy, or law. Deletion may take additional time to propagate through backups and security logs.</p>
 						</PolicySection>
 
 						<PolicySection id="youth" icon={Users} title="8. Youth participants">
-							<p>
-								YEE is designed for youth-engaged environmental assessment and may be used by youth
-								participants as part of an organization-led research, education, or community project.
-								Organizations using YEE are responsible for determining participant eligibility and
-								obtaining any parental permission, participant consent or assent, ethics approval, or other
-								authorization required for their project.
-							</p>
-							<p>
-								YEE does not use youth audit information for targeted advertising and does not sell that
-								information.
-							</p>
+							<p>YEE is designed for youth-engaged environmental assessment and may be used by youth participants as part of an organization-led research, education, or community project. Organizations using YEE are responsible for determining participant eligibility and obtaining any parental permission, participant consent or assent, ethics approval, or other authorization required for their project.</p>
+							<p>YEE does not use youth audit information for targeted advertising and does not sell that information.</p>
 						</PolicySection>
 
 						<PolicySection id="international" icon={Database} title="9. International processing">
-							<p>
-								YEE and its service providers may process or store information in the United States or in
-								other countries where the relevant service provider operates. If you access YEE from
-								outside the United States, your information may therefore be transferred across borders.
-							</p>
+							<p>YEE and its service providers may process or store information in the United States or in other countries where the relevant service provider operates. If you access YEE from outside the United States, your information may therefore be transferred across borders.</p>
 						</PolicySection>
 
 						<PolicySection id="changes" icon={Clock3} title="10. Changes to this policy">
-							<p>
-								We may update this Privacy Policy when YEE features, data practices, or legal requirements
-								change. The effective date at the top of this page will be updated when a revised policy is
-								published.
-							</p>
+							<p>We may update this Privacy Policy when YEE features, data practices, or legal requirements change. The effective date at the top of this page will be updated when a revised policy is published.</p>
 						</PolicySection>
 
 						<PolicySection id="contact" icon={Mail} title="11. Contact">
-							<p>
-								YEE Audit Tools is developed for the Youth Enabling Environments project in collaboration
-								with the DECA Lab (Design Environments with/for Children &amp; Adolescents) at Cornell
-								University.
-							</p>
+							<p>YEE Audit Tools is developed for the Youth Enabling Environments project in collaboration with the DECA Lab (Design Environments with/for Children &amp; Adolescents) at Cornell University.</p>
 							<div className="rounded-lg border border-border bg-card p-5">
 								<p className="text-sm font-semibold text-foreground">Privacy questions or deletion requests</p>
-								<a
-									href="mailto:j.loebach@cornell.edu?subject=YEE%20Privacy%20Request"
-									className="mt-2 inline-flex items-center gap-2 text-sm font-medium text-(--yee-green-700) underline-offset-4 hover:underline">
+								<a href="mailto:j.loebach@cornell.edu?subject=YEE%20Privacy%20Request" className="mt-2 inline-flex items-center gap-2 text-sm font-medium text-(--yee-green-700) underline-offset-4 hover:underline">
 									<Mail className="size-4" aria-hidden="true" />
 									j.loebach@cornell.edu
 								</a>
-								<p className="mt-3 text-sm leading-6 text-muted-foreground">
-									DECA Lab, Department of Human Centered Design, Cornell University, Ithaca, New York,
-									United States.
-								</p>
+								<p className="mt-3 text-sm leading-6 text-muted-foreground">DECA Lab, Department of Human Centered Design, Cornell University, Ithaca, New York, United States.</p>
 							</div>
 						</PolicySection>
 					</article>
@@ -365,7 +266,7 @@ function PolicySection({
 	id: string;
 	icon: LucideIcon;
 	title: string;
-	children: React.ReactNode;
+	children: ReactNode;
 }) {
 	return (
 		<section id={id} className="scroll-mt-28">
