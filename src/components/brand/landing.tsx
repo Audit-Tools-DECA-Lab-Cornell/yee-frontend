@@ -1174,9 +1174,10 @@ function LandingFooter() {
 					<nav aria-label="Footer navigation">
 						<ul className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
 							{[
-								{ href: "#platform", label: "The Platform" },
-								{ href: "#how", label: "How It Works" },
-								{ href: "#domains", label: "Domains" },
+								{ href: "/#platform", label: "The Platform" },
+								{ href: "/#how", label: "How It Works" },
+								{ href: "/#domains", label: "Domains" },
+								{ href: "/privacy", label: "Privacy" },
 								{ href: "/login", label: "Sign In" },
 								{ href: "/signup", label: "Get Started" }
 							].map(link => (
