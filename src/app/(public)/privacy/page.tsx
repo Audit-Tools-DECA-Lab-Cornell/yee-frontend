@@ -88,8 +88,8 @@ export default function PrivacyPolicyPage() {
 								Privacy Policy
 							</h1>
 							<p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
-								This Privacy Policy explains how the Youth Enabling Environments Audit Tool ("YEE Audit
-								Tools," "YEE," "we," or "us") handles information across the YEE web platform and
+								This Privacy Policy explains how the Youth Enabling Environments Audit Tool (&quot;YEE Audit
+								Tools,&quot; &quot;YEE,&quot; &quot;we,&quot; or &quot;us&quot;) handles information across the YEE web platform and
 								mobile field-audit application.
 							</p>
 							<div className="mt-6 flex flex-wrap gap-2 text-sm">
