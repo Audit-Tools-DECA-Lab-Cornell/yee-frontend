@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import type { LucideIcon } from "lucide-react";
 import {
 	ArrowLeft,
 	BarChart3,
@@ -362,7 +363,7 @@ function PolicySection({
 	children
 }: {
 	id: string;
-	icon: typeof ShieldCheck;
+	icon: LucideIcon;
 	title: string;
 	children: React.ReactNode;
 }) {
